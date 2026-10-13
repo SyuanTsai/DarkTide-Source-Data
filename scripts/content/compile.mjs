@@ -605,10 +605,14 @@ function validateAuthoring(authoring) {
   return receiptsByTarget;
 }
 
-function markdownForAnalysis(authoring, records, publicationEligible) {
-  const banner = authoring.fixtureOnly || !publicationEligible
-    ? '> **Fixture only / pending:** synthetic contract output; not approved game facts.\n\n'
-    : '';
+function markdownStatusBanner(fixtureOnly, publicationEligible) {
+  if (fixtureOnly) return '> **Fixture only / pending:** synthetic contract output; not approved game facts.\n\n';
+  if (!publicationEligible) return '> **Pending review:** not approved for publication.\n\n';
+  return '';
+}
+
+function markdownForAnalysis(authoring, records, publicationEligible, fixtureOnly) {
+  const banner = markdownStatusBanner(fixtureOnly, publicationEligible);
   const lines = [banner + '# Technical source analysis', '', 'Game release: ' + authoring.gameReleaseId, ''];
   for (const record of records) {
     lines.push('## ' + record.recordId, '', '- Kind: ' + record.kind, '- Review: ' + record.reviewState, '');
@@ -617,10 +621,8 @@ function markdownForAnalysis(authoring, records, publicationEligible) {
   return lines.join('\n');
 }
 
-function markdownForChanges(authoring, changes, publicationEligible) {
-  const banner = authoring.fixtureOnly || !publicationEligible
-    ? '> **Fixture only / pending:** synthetic contract output; not approved game facts.\n\n'
-    : '';
+function markdownForChanges(authoring, changes, publicationEligible, fixtureOnly) {
+  const banner = markdownStatusBanner(fixtureOnly, publicationEligible);
   const lines = [banner + '# Game content changes', '', 'Game release: ' + authoring.gameReleaseId, ''];
   if (changes.length === 0) {
     lines.push('No reviewed game changes are included in this release.');
@@ -683,7 +685,7 @@ export function compileSource(authoring, { mode = 'preview' } = {}) {
   const technical = { ...releaseWithoutRevision, sourceRevision };
   const files = new Map([
     ['technical.json', canonicalJsonBytes(technical)],
-    ['analysis.md', Buffer.from(markdownForAnalysis(authoring, records, publicationEligible), 'utf8')],
+    ['analysis.md', Buffer.from(markdownForAnalysis(authoring, records, publicationEligible, fixtureOnly), 'utf8')],
     ['game-changes.json', canonicalJsonBytes({
       fixtureOnly,
       publicationEligible,
@@ -691,7 +693,7 @@ export function compileSource(authoring, { mode = 'preview' } = {}) {
       sourceRevision,
       changes
     })],
-    ['game-changes.md', Buffer.from(markdownForChanges(authoring, changes, publicationEligible), 'utf8')]
+    ['game-changes.md', Buffer.from(markdownForChanges(authoring, changes, publicationEligible, fixtureOnly), 'utf8')]
   ]);
   const listedFiles = [...files.entries()]
     .sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)

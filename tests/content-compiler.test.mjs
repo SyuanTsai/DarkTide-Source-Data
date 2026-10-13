@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { compileSource } from '../scripts/content/compile.mjs';
+import { loadAuthoring, parseBuildOptions } from '../scripts/content/build.mjs';
 
 const fixedInput = {
   fixtureOnly: true,
@@ -266,6 +267,127 @@ test('UnitT50_does_not_derive_game_changes_from_a_data_revision', () => {
   assert.notEqual(first.sourceRevision, second.sourceRevision);
   assert.deepEqual(first.changes, []);
   assert.deepEqual(second.changes, []);
+});
+
+// Scenario: A pinned non-fixture Psyker parameter claim and a pending fixture are compiled into both Markdown documents.
+// Purpose: Keep real pending content clearly unapproved without labeling it synthetic, while preserving the fixture banner.
+test('UnitT51_marks_real_pending_markdown_unapproved_without_fixture_label', () => {
+  const releaseId = 'darktide:1.13.2';
+  const sourceId = 'public-code:psyker-buff-templates-ba6c148';
+  const idMap = new Map([
+    ['fixture:claim:cooldown', 'darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier'],
+    ['fixture:evidence:a', 'darktide:evidence:psyker:brain-burst-improved-smite-damage-multiplier-code'],
+    ['fixture:skill:cooldown', 'darktide:skill:psyker:brain-burst-improved']
+  ]);
+  const realPending = structuredClone(fixedInput);
+  realPending.fixtureOnly = false;
+  realPending.gameReleaseId = releaseId;
+  realPending.gameVersion = '1.13.2';
+  realPending.sourceRefs = [{
+    sourceId,
+    fixtureOnly: false,
+    safeSummary: 'Pinned public Psyker buff-template source.',
+    repository: 'https://github.com/Aussiemon/Darktide-Source-Code',
+    commit: 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e',
+    path: 'scripts/settings/buff/archetype_buff_templates/psyker_buff_templates.lua',
+    snapshot: { commit: 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e' }
+  }];
+  realPending.records = realPending.records.map(record => ({
+    ...record,
+    recordId: idMap.get(record.recordId),
+    gameReleaseId: releaseId,
+    payload: { ...record.payload },
+    sourceRefs: [sourceId]
+  }));
+  const claim = realPending.records.find(record => record.kind === 'claim');
+  claim.payload.property = 'template.stat_buffs.smite_damage_multiplier';
+  claim.payload.targetRef = idMap.get('fixture:skill:cooldown');
+  claim.payload.value = { status: 'known', decimal: '1.5', unit: 'ratio' };
+  claim.payload.basis = 'code-observed';
+  claim.payload.evidenceRefs = [idMap.get('fixture:evidence:a')];
+  const evidence = realPending.records.find(record => record.kind === 'evidence');
+  evidence.payload.sourceRef = sourceId;
+  evidence.payload.safeSummary = 'The pinned public code assigns decimal 1.5 to the Psyker Smite stat parameter.';
+
+  const realFiles = compileSource(realPending).files;
+  const fixtureFiles = compileSource(fixedInput).files;
+
+  for (const name of ['analysis.md', 'game-changes.md']) {
+    const pendingMarkdown = realFiles.get(name).toString('utf8');
+    assert.match(pendingMarkdown, /> \*\*Pending review:\*\* not approved for publication\./);
+    assert.doesNotMatch(pendingMarkdown, /Fixture only \/ pending|synthetic contract output/);
+
+    const fixtureMarkdown = fixtureFiles.get(name).toString('utf8');
+    assert.match(fixtureMarkdown, /> \*\*Fixture only \/ pending:\*\* synthetic contract output; not approved game facts\./);
+  }
+});
+
+// Scenario: A real candidate keeps record identities and references when its release metadata changes.
+// Purpose: Follow v17-A identity scope: uniqueness is (recordId, gameReleaseId), while recordId stays release-stable.
+test('UnitT52_keeps_candidate_record_identity_stable_across_release_metadata', async () => {
+  const candidate = await loadAuthoring('w01-real-claim-candidate.json');
+  const expectedIds = [
+    'darktide:term:psyker:smite-damage-multiplier-parameter',
+    'darktide:skill:psyker:brain-burst-improved',
+    'darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier',
+    'darktide:evidence:psyker:brain-burst-improved-smite-damage-multiplier-code'
+  ];
+  const identityProjection = input => ({
+    sourceIds: input.sourceRefs.map(source => source.sourceId),
+    records: input.records.map(record => ({
+      recordId: record.recordId,
+      sourceRefs: record.sourceRefs,
+      payloadRefs: Object.fromEntries(Object.entries(record.payload).filter(([key]) => /Refs?$/.test(key)))
+    }))
+  });
+  const before = identityProjection(candidate);
+  const nextRelease = structuredClone(candidate);
+  nextRelease.gameReleaseId = 'darktide:1.13.3';
+  nextRelease.gameVersion = '1.13.3';
+  for (const record of nextRelease.records) record.gameReleaseId = nextRelease.gameReleaseId;
+
+  assert.deepEqual(candidate.records.map(record => record.recordId), expectedIds);
+  assert.deepEqual(before.records.map(record => record.payloadRefs), [
+    { claimRefs: [expectedIds[2]] },
+    { termRef: expectedIds[0], claimRefs: [expectedIds[2]] },
+    { targetRef: expectedIds[1], evidenceRefs: [expectedIds[3]] },
+    { sourceRef: 'public-code:psyker-buff-templates-ba6c148' }
+  ]);
+  assert.deepEqual(identityProjection(nextRelease), before);
+});
+// Scenario: The default build input and the explicitly selected review candidate are loaded through the allowlisted CLI options.
+// Purpose: Preserve the fixture bytes while keeping the real candidate pending and blocked from formal output.
+test('UnitT80_selects_the_pending_candidate_without_changing_the_default_fixture_hash', async () => {
+  const defaultOptions = parseBuildOptions([]);
+  const candidateOptions = parseBuildOptions(['--input', 'w01-real-claim-candidate.json']);
+  const defaultAuthoring = await loadAuthoring(defaultOptions.input);
+  const candidateAuthoring = await loadAuthoring(candidateOptions.input);
+  const defaultResult = compileSource(defaultAuthoring);
+  const candidateResult = compileSource(candidateAuthoring);
+  const candidateTechnical = JSON.parse(candidateResult.files.get('technical.json').toString('utf8'));
+
+  assert.deepEqual(defaultOptions, { mode: 'preview', input: 'w01-preview.json' });
+  assert.equal(defaultResult.sourceRevision, '94d2e7767bf60d56793a6b9a910376c975fef3439afe5931fbb03d763913ef4b');
+  assert.equal(defaultResult.manifestSha256, '27a06a383ab06ab0d15720bd2b0a3e0e8e905755679665a32988ca704c80acb6');
+  assert.equal(candidateResult.fixtureOnly, false);
+  assert.equal(candidateResult.publicationEligible, false);
+  assert.deepEqual(candidateAuthoring.gameChanges, []);
+  assert.deepEqual(candidateAuthoring.reviewReceipts, []);
+  assert.equal(candidateTechnical.records.length, 4);
+  assert.equal(candidateTechnical.records.every(record => record.reviewState === 'pending'), true);
+  assert.throws(() => compileSource(candidateAuthoring, { mode: 'formal' }), /formal source output requires/);
+});
+
+// Scenario: CLI callers provide path-like, arbitrary, repeated, or unknown build flags.
+// Purpose: Restrict builds to the two public authoring names and prevent traversal or ambiguous input selection.
+test('UnitT81_rejects_unsafe_or_duplicate_build_options', async () => {
+  for (const input of ['../private-proof.json', 'C:\\private\\proof.json', 'private-proof.zip']) {
+    assert.throws(() => parseBuildOptions(['--input', input]), /input must be exactly/);
+    await assert.rejects(loadAuthoring(input), /input must be exactly/);
+  }
+  assert.throws(() => parseBuildOptions(['--input', 'w01-preview.json', '--input', 'w01-real-claim-candidate.json']), /usage:/);
+  assert.throws(() => parseBuildOptions(['--mode', 'preview', '--mode', 'formal']), /usage:/);
+  assert.throws(() => parseBuildOptions(['--unknown', 'value']), /usage:/);
 });
 
 // Scenario: One explicit pending change record names a reviewed source record and safe evidence reference.

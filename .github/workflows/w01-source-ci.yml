@@ -24,30 +24,57 @@ jobs:
         run: npm test
       - name: Build isolated fixture preview and capture its receipt
         run: npm run --silent content:preview > "$RUNNER_TEMP/w01-source-receipt.json"
-      - name: Verify fixture-only receipt and write run summary
+      - name: Build pending real-claim preview and capture its receipt
+        run: node scripts/content/build.mjs --mode preview --input w01-real-claim-candidate.json > "$RUNNER_TEMP/w01-source-real-claim-receipt.json"
+      - name: Verify fixture and pending-candidate receipts and write run summary
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import path from 'node:path';
 
-          const receiptPath = path.join(process.env.RUNNER_TEMP, 'w01-source-receipt.json');
-          const receipt = JSON.parse(fs.readFileSync(receiptPath, 'utf8'));
-          if (receipt.previewOnly !== true || receipt.fixtureOnly !== true || receipt.publicationEligible !== false) {
+          function readVerifiedReceipt(filename) {
+            const receiptPath = path.join(process.env.RUNNER_TEMP, filename);
+            const receipt = JSON.parse(fs.readFileSync(receiptPath, 'utf8'));
+            const outputPath = path.join(process.cwd(), receipt.outputDirectory);
+            const storedReceipt = JSON.parse(fs.readFileSync(path.join(outputPath, 'receipt.json'), 'utf8'));
+            if (JSON.stringify(storedReceipt) !== JSON.stringify(receipt)) throw new Error(filename + ': stored receipt differs from CLI receipt');
+            return { receipt, outputPath };
+          }
+
+          const fixture = readVerifiedReceipt('w01-source-receipt.json');
+          if (fixture.receipt.previewOnly !== true || fixture.receipt.fixtureOnly !== true || fixture.receipt.publicationEligible !== false) {
             throw new Error('W01 CI requires a fixture-only, ineligible preview receipt');
           }
-          const storedReceipt = JSON.parse(fs.readFileSync(path.join(process.cwd(), receipt.outputDirectory, 'receipt.json'), 'utf8'));
-          if (JSON.stringify(storedReceipt) !== JSON.stringify(receipt)) throw new Error('stored receipt differs from CLI receipt');
+          const candidate = readVerifiedReceipt('w01-source-real-claim-receipt.json');
+          if (candidate.receipt.previewOnly !== true || candidate.receipt.fixtureOnly !== false || candidate.receipt.publicationEligible !== false) {
+            throw new Error('W01 CI requires a non-fixture, pending, ineligible candidate preview receipt');
+          }
+          const technical = JSON.parse(fs.readFileSync(path.join(candidate.outputPath, 'technical.json'), 'utf8'));
+          if (technical.fixtureOnly !== false || technical.publicationEligible !== false || technical.records.length !== 4 ||
+              technical.records.some(record => record.reviewState !== 'pending') || technical.gameChanges.length !== 0) {
+            throw new Error('W01 CI candidate must contain four pending records and no game changes');
+          }
+          for (const filename of ['analysis.md', 'game-changes.md']) {
+            const markdown = fs.readFileSync(path.join(candidate.outputPath, filename), 'utf8');
+            if (!markdown.startsWith('> **Pending review:** not approved for publication.\n\n') || markdown.includes('synthetic contract output')) {
+              throw new Error(filename + ': pending real candidate banner is incorrect');
+            }
+          }
           const summary = [
-            '## W01 source fixture preview',
+            '## W01 source previews',
             '',
-            '- Preview only: `true`',
-            '- Fixture only: `true`',
-            '- Publication eligible: `false`',
-            `- Source revision: \`${receipt.sourceRevision}\``,
-            `- Manifest SHA-256: \`${receipt.manifestSha256}\``,
-            '- Output: `dist-w01/source/<sourceRevision>`',
+            '- Candidate status: non-fixture, pending, publication-ineligible.',
+            '- Candidate source revision: ' + candidate.receipt.sourceRevision,
+            '- Candidate manifest SHA-256: ' + candidate.receipt.manifestSha256,
+            '- Candidate output: ' + candidate.receipt.outputDirectory,
+            '- Review scope: docs/w01-real-claim-review.md',
             '',
-            'This run validates synthetic/pending technical authoring. It does not approve game facts or publish a formal release.',
+            '- Existing fixture status: fixture-only, pending, publication-ineligible.',
+            '- Fixture source revision: ' + fixture.receipt.sourceRevision,
+            '- Fixture manifest SHA-256: ' + fixture.receipt.manifestSha256,
+            '- Fixture output: ' + fixture.receipt.outputDirectory,
+            '',
+            'This run validates a public-code-backed pending candidate and synthetic fixture. It does not approve the claim or publish a formal release.',
             ''
           ].join('\n');
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);

@@ -4,21 +4,44 @@ import { fileURLToPath } from 'node:url';
 import { compileSource } from './compile.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const AUTHORING = join(ROOT, 'content', 'authoring', 'w01-preview.json');
+const DEFAULT_AUTHORING = 'w01-preview.json';
+const ALLOWED_AUTHORING = new Set([DEFAULT_AUTHORING, 'w01-real-claim-candidate.json']);
 
-function parseMode(args) {
-  let mode = 'preview';
+export function parseBuildOptions(args) {
+  const options = { mode: 'preview', input: DEFAULT_AUTHORING };
+  const seen = new Set();
   for (let index = 0; index < args.length; index += 1) {
-    if (args[index] !== '--mode' || !args[index + 1]) {
-      throw new Error('usage: node scripts/content/build.mjs --mode preview|formal');
+    const flag = args[index];
+    if (!['--mode', '--input'].includes(flag) || seen.has(flag)) {
+      throw new Error('usage: node scripts/content/build.mjs [--mode preview|formal] [--input w01-preview.json|w01-real-claim-candidate.json]');
     }
-    mode = args[index + 1];
+    const value = args[index + 1];
+    if (typeof value !== 'string' || value.length === 0 || value.startsWith('--')) {
+      throw new Error('usage: node scripts/content/build.mjs [--mode preview|formal] [--input w01-preview.json|w01-real-claim-candidate.json]');
+    }
+    seen.add(flag);
     index += 1;
+    if (flag === '--mode') {
+      if (!['preview', 'formal'].includes(value)) throw new Error('mode must be preview or formal');
+      options.mode = value;
+    } else {
+      validateAuthoringInput(value);
+      options.input = value;
+    }
   }
-  if (!['preview', 'formal'].includes(mode)) {
-    throw new Error('mode must be preview or formal');
+  return options;
+}
+
+function validateAuthoringInput(inputName) {
+  if (!ALLOWED_AUTHORING.has(inputName)) {
+    throw new Error('input must be exactly w01-preview.json or w01-real-claim-candidate.json');
   }
-  return mode;
+  return inputName;
+}
+
+export async function loadAuthoring(inputName = DEFAULT_AUTHORING) {
+  const safeName = validateAuthoringInput(inputName);
+  return JSON.parse(await readFile(join(ROOT, 'content', 'authoring', safeName), 'utf8'));
 }
 
 async function ensurePlainDirectory(root, segments) {
@@ -55,8 +78,8 @@ async function writeImmutable(path, bytes) {
   }
 }
 
-export async function buildSource({ mode = 'preview' } = {}) {
-  const authoring = JSON.parse(await readFile(AUTHORING, 'utf8'));
+export async function buildSource({ mode = 'preview', input = DEFAULT_AUTHORING } = {}) {
+  const authoring = await loadAuthoring(input);
   const result = compileSource(authoring, { mode });
   const directorySegments = ['dist-w01', 'source', result.sourceRevision];
   const destination = await ensurePlainDirectory(ROOT, directorySegments);
@@ -87,8 +110,8 @@ export async function buildSource({ mode = 'preview' } = {}) {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    const mode = parseMode(process.argv.slice(2));
-    const receipt = await buildSource({ mode });
+    const options = parseBuildOptions(process.argv.slice(2));
+    const receipt = await buildSource(options);
     process.stdout.write(JSON.stringify(receipt, null, 2) + '\n');
   } catch (error) {
     process.stderr.write(String(error.message || error) + '\n');
