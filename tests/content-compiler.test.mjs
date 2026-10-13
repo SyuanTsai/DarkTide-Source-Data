@@ -390,6 +390,127 @@ test('UnitT81_rejects_unsafe_or_duplicate_build_options', async () => {
   assert.throws(() => parseBuildOptions(['--unknown', 'value']), /usage:/);
 });
 
+// Scenario: A pinned public-code representative candidate is selected through the existing allowlisted build interface.
+// Purpose: Keep the third preview pending and prove the existing fixture and four-record candidate revisions stay unchanged.
+test('UnitT82_selects_pending_representative_candidate_and_preserves_existing_revisions', async () => {
+  const inputName = 'w01-real-representative-candidate.json';
+  const options = parseBuildOptions(['--mode', 'preview', '--input', inputName]);
+  const authoring = await loadAuthoring(options.input);
+  const fourRecordAuthoring = await loadAuthoring('w01-real-claim-candidate.json');
+  const result = compileSource(authoring);
+  const technical = JSON.parse(result.files.get('technical.json').toString('utf8'));
+
+  assert.deepEqual(options, { mode: 'preview', input: inputName });
+  assert.deepEqual(authoring.records.slice(0, fourRecordAuthoring.records.length), fourRecordAuthoring.records);
+  assert.deepEqual(authoring.sourceRefs.slice(0, fourRecordAuthoring.sourceRefs.length), fourRecordAuthoring.sourceRefs);
+  assert.equal(authoring.fixtureOnly, false);
+  assert.deepEqual(authoring.gameChanges, []);
+  assert.deepEqual(authoring.reviewReceipts, []);
+  assert.equal(result.fixtureOnly, false);
+  assert.equal(result.publicationEligible, false);
+  assert.equal(technical.records.length, 13);
+  assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
+  assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
+
+  const fixture = compileSource(await loadAuthoring('w01-preview.json'));
+  const fourRecordCandidate = compileSource(await loadAuthoring('w01-real-claim-candidate.json'));
+  assert.equal(fixture.sourceRevision, '94d2e7767bf60d56793a6b9a910376c975fef3439afe5931fbb03d763913ef4b');
+  assert.equal(fixture.manifestSha256, '27a06a383ab06ab0d15720bd2b0a3e0e8e905755679665a32988ca704c80acb6');
+  assert.equal(fourRecordCandidate.sourceRevision, '2a2e9b3f731358c01fb103bde759bf03be726e3e15aa0b623821d8c717d68c11');
+  assert.equal(fourRecordCandidate.manifestSha256, '86f617d2ec13cdd905641e7d7230fd1b2d650be6243e2ffde9ad756f57cc6307');
+});
+
+// Scenario: A chainaxe template provides literal blessing tiers, a duration binding, and two ordered raw parameter tables.
+// Purpose: Preserve only source-observed values, explicit unknowns, and the limited P1 M1 template link without calculating runtime behavior.
+test('UnitT83_preserves_representative_blessing_weapon_and_raw_tables', async () => {
+  const authoring = await loadAuthoring('w01-real-representative-candidate.json');
+  const result = compileSource(authoring);
+  const technical = JSON.parse(result.files.get('technical.json').toString('utf8'));
+  const byId = new Map(technical.records.map(record => [record.recordId, record]));
+  const sourcesById = new Map(authoring.sourceRefs.map(source => [source.sourceId, source]));
+  const blessingId = 'darktide:blessing:chainaxe:p1-movement-speed-on-activation';
+  const variantId = 'darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation';
+  const weaponId = 'darktide:weapon:chainaxe:p1-m1';
+  const traitSourceId = 'public-code:chainaxe-p1-traits-ba6c148';
+  const traitSource = sourcesById.get(traitSourceId);
+  assert.equal(traitSource.commit, 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e');
+  assert.equal(traitSource.path, 'scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_chainaxe_p1.lua');
+  assert.match(traitSource.safeSummary, /9670e08685d0aa90ddbc1b4577756a0b0365b610/);
+  const variant = byId.get(variantId);
+
+  assert.deepEqual(byId.get(blessingId).payload.variantRefs, [variantId]);
+  assert.deepEqual(variant.payload.blessingRef, blessingId);
+  assert.deepEqual(variant.payload.weaponRefs, [weaponId]);
+  assert.deepEqual(variant.payload.definedTiers, [1, 2, 3, 4]);
+  assert.deepEqual(variant.payload.obtainableTiers, { status: 'unknown', reasonCode: 'NOT_VERIFIED' });
+  assert.deepEqual(variant.payload.tierValues.map(item => [item.tier, item.value.decimal, item.value.unit]), [
+    [1, '0.17', 'ratio'], [2, '0.18', 'ratio'], [3, '0.19', 'ratio'], [4, '0.2', 'ratio']
+  ]);
+
+  const durationClaim = byId.get('darktide:claim:chainaxe:p1-movement-speed-on-activation-duration');
+  const durationEvidenceId = 'darktide:evidence:chainaxe:p1-movement-speed-on-activation-code';
+  assert.equal(durationClaim.payload.targetRef, variantId);
+  assert.equal(durationClaim.payload.property, 'template.buff_override.active_duration');
+  assert.deepEqual(durationClaim.payload.value, { status: 'known', decimal: '2', unit: 's' });
+  assert.equal(durationClaim.payload.basis, 'code-observed');
+  assert.deepEqual(durationClaim.payload.evidenceRefs, [durationEvidenceId]);
+  assert.equal(byId.get(durationEvidenceId).payload.sourceRef, traitSourceId);
+  assert.match(byId.get(durationEvidenceId).payload.safeSummary, /lines 119-143/);
+  assert.match(byId.get(durationEvidenceId).payload.safeSummary, /active_duration.*2/);
+
+  const weapon = byId.get(weaponId).payload;
+  assert.deepEqual({ familyId: weapon.familyId, markId: weapon.markId, templateKey: weapon.templateKey }, {
+    familyId: 'chainaxe_p1', markId: 'chainaxe_p1_m1', templateKey: 'chainaxe_p1_m1'
+  });
+  assert.equal(Object.hasOwn(weapon, 'theoreticalInputRange'), false);
+  assert.deepEqual(weapon.dataCoverage, {
+    status: 'partial',
+    missing: [{ field: 'action/profile override resolution', reasonCode: 'NOT_IMPORTED' }]
+  });
+
+  const attackStat = byId.get('darktide:stat-definition:chainaxe-p1-m1-default-light-attack-power-table');
+  const attackCurve = byId.get('darktide:stat-curve:chainaxe-p1-m1-default-light-attack-power-table');
+  assert.equal(attackStat.payload.quantity, 'damage_templates.default_light_chainaxe.targets[1].power_distribution.attack');
+  assert.equal(attackStat.payload.inputUnit, 'point');
+  assert.equal(attackStat.payload.outputUnit, 'point');
+  assert.deepEqual(attackStat.payload.theoreticalInputRange, {
+    status: 'known', min: '1', max: '2', unit: 'point', step: '1', inclusive: true
+  });
+  assert.deepEqual(attackStat.payload.obtainableInputRange, { status: 'unknown', reasonCode: 'NOT_VERIFIED' });
+  assert.deepEqual(attackCurve.payload.knots, [{ x: '1', y: '80' }, { x: '2', y: '140' }]);
+  assert.deepEqual(attackCurve.payload.interpolation, { status: 'unknown', reasonCode: 'NOT_VERIFIED' });
+  assert.deepEqual(attackCurve.payload.edgePolicy, { status: 'unknown', reasonCode: 'NOT_VERIFIED' });
+  const profileSource = sourcesById.get('public-code:chainaxe-default-light-profile-ba6c148');
+  assert.equal(profileSource.path,
+    'scripts/settings/equipment/weapon_templates/chain_axes/settings_templates/chain_axe_damage_profile_templates.lua');
+  assert.match(profileSource.safeSummary, /damage_lerp_values\.lerp_1_5/);
+
+  const armorStat = byId.get('darktide:stat-definition:chainaxe-p1-m1-default-light-armored-parameter-table');
+  const armorCurve = byId.get('darktide:stat-curve:chainaxe-p1-m1-default-light-armored-parameter-table');
+  assert.equal(armorStat.payload.quantity,
+    'damage_templates.default_light_chainaxe.targets[1].armor_damage_modifier.attack[armor_types.armored]');
+  assert.equal(armorStat.payload.inputUnit, 'point');
+  assert.equal(armorStat.payload.outputUnit, 'ratio');
+  assert.deepEqual(armorCurve.payload.knots, [{ x: '1', y: '1.035' }, { x: '2', y: '1.965' }]);
+  assert.deepEqual(armorCurve.payload.interpolation, { status: 'unknown', reasonCode: 'NOT_VERIFIED' });
+  assert.deepEqual(armorCurve.payload.edgePolicy, { status: 'unknown', reasonCode: 'NOT_VERIFIED' });
+  assert.deepEqual(sourcesById.get('public-code:damage-profile-settings-ba6c148').path,
+    'scripts/settings/damage/damage_profile_settings.lua');
+  assert.deepEqual(weapon.statRefs, [attackStat.recordId, armorStat.recordId]);
+});
+
+// Scenario: Callers try paths, arbitrary filenames, or repeated input flags while selecting the new preview.
+// Purpose: Keep the CLI limited to the three checked-in authoring inputs and prevent private-path loading or ambiguous builds.
+test('UnitT84_rejects_unsafe_or_duplicate_representative_build_options', async () => {
+  for (const input of ['../private-proof.json', 'C:\\private\\proof.json', 'w01-real-representative-candidate.json/../../private-proof.json']) {
+    assert.throws(() => parseBuildOptions(['--input', input]), /input must be exactly/);
+    await assert.rejects(loadAuthoring(input), /input must be exactly/);
+  }
+  assert.throws(() => parseBuildOptions([
+    '--input', 'w01-real-representative-candidate.json', '--input', 'w01-preview.json'
+  ]), /usage:/);
+});
+
 // Scenario: One explicit pending change record names a reviewed source record and safe evidence reference.
 // Purpose: Keep the same change ID in the generated technical record without adding MOD-impact fields.
 test('UnitT60_generates_explicit_game_change_without_mod_impact', () => {

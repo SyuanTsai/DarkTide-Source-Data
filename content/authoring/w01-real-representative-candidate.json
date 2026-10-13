@@ -1,0 +1,415 @@
+{
+  "schemaVersion": "2.0.0",
+  "fixtureOnly": false,
+  "gameReleaseId": "darktide:1.13.2",
+  "gameVersion": "1.13.2",
+  "sourceRefs": [
+    {
+      "sourceId": "public-code:psyker-talents-ba6c148",
+      "fixtureOnly": false,
+      "safeSummary": "Fixed public upstream commit connects loc_talent_psyker_brain_burst_improved_description to the Psyker brain-burst-improved buff template; no runtime result is asserted.",
+      "repository": "https://github.com/Aussiemon/Darktide-Source-Code",
+      "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e",
+      "path": "scripts/settings/ability/archetype_talents/talents/psyker_talents.lua",
+      "snapshot": {
+        "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e"
+      }
+    },
+    {
+      "sourceId": "public-code:psyker-buff-templates-ba6c148",
+      "fixtureOnly": false,
+      "safeSummary": "Fixed public upstream commit blob a4c87abf254c520ad57bd09df718d6ac458dd7d5 assigns decimal literal 1.5 to stat_buffs.smite_damage_multiplier in the psyker_brain_burst_improved template.",
+      "repository": "https://github.com/Aussiemon/Darktide-Source-Code",
+      "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e",
+      "path": "scripts/settings/buff/archetype_buff_templates/psyker_buff_templates.lua",
+      "snapshot": {
+        "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e"
+      }
+    },
+    {
+      "sourceId": "public-code:chainaxe-p1-traits-ba6c148",
+      "fixtureOnly": false,
+      "safeSummary": "Pinned public code blob 9670e08685d0aa90ddbc1b4577756a0b0365b610, lines 92-145: the P1 movement-speed-on-activation trait defines tier literals 0.17, 0.18, 0.19, and 0.2; each override includes active_duration = 2 (lines 119-143). Code observation only; no runtime effect is established.",
+      "repository": "https://github.com/Aussiemon/Darktide-Source-Code",
+      "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e",
+      "path": "scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_chainaxe_p1.lua",
+      "snapshot": {
+        "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e"
+      }
+    },
+    {
+      "sourceId": "public-code:chainaxe-p1-m1-ba6c148",
+      "fixtureOnly": false,
+      "safeSummary": "Pinned public code blob f42be428d76cf30d6b2488d2c24dfee1294023b5, lines 2072-2076: the chainaxe_p1_m1 template appends WeaponTraitsBespokeChainaxeP1. This records template linkage only.",
+      "repository": "https://github.com/Aussiemon/Darktide-Source-Code",
+      "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e",
+      "path": "scripts/settings/equipment/weapon_templates/chain_axes/chainaxe_p1_m1.lua",
+      "snapshot": {
+        "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e"
+      }
+    },
+    {
+      "sourceId": "public-code:chainaxe-default-light-profile-ba6c148",
+      "fixtureOnly": false,
+      "safeSummary": "Pinned public code blob 64e0f96ccbfd011bf183bbaa1c36e693dc0e8ac1: default_light_chainaxe contains raw attack power endpoints 80 and 140; the armored parameter property references damage_lerp_values.lerp_1_5. This candidate preserves source table values without resolving a runtime action.",
+      "repository": "https://github.com/Aussiemon/Darktide-Source-Code",
+      "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e",
+      "path": "scripts/settings/equipment/weapon_templates/chain_axes/settings_templates/chain_axe_damage_profile_templates.lua",
+      "snapshot": {
+        "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e"
+      }
+    },
+    {
+      "sourceId": "public-code:damage-profile-settings-ba6c148",
+      "fixtureOnly": false,
+      "safeSummary": "Pinned public code blob 9298f8cdc27aa0323a9eff76c286cecb6350b9b1, lines 32-35: damage_lerp_values.lerp_1_5 is the raw two-point table [1.035, 1.965]. The candidate preserves these points without interpolation or a final damage claim.",
+      "repository": "https://github.com/Aussiemon/Darktide-Source-Code",
+      "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e",
+      "path": "scripts/settings/damage/damage_profile_settings.lua",
+      "snapshot": {
+        "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e"
+      }
+    }
+  ],
+  "records": [
+    {
+      "recordId": "darktide:term:psyker:smite-damage-multiplier-parameter",
+      "owner": "source",
+      "kind": "term",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "termKey": "smite_damage_multiplier",
+        "contextKey": "psyker_brain_burst_improved.stat_buffs",
+        "technicalDefinitionEn": "The stat_buffs parameter key used by the Psyker brain-burst-improved buff template. This is a code-level label and does not define downstream damage resolution.",
+        "claimRefs": [
+          "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier"
+        ]
+      },
+      "sourceRefs": [
+        "public-code:psyker-buff-templates-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:skill:psyker:brain-burst-improved",
+      "owner": "source",
+      "kind": "skill",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "termRef": "darktide:term:psyker:smite-damage-multiplier-parameter",
+        "claimRefs": [
+          "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier"
+        ]
+      },
+      "sourceRefs": [
+        "public-code:psyker-talents-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier",
+      "owner": "source",
+      "kind": "claim",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "targetRef": "darktide:skill:psyker:brain-burst-improved",
+        "property": "template.stat_buffs.smite_damage_multiplier",
+        "value": {
+          "status": "known",
+          "decimal": "1.5",
+          "unit": "ratio"
+        },
+        "context": {},
+        "basis": "code-observed",
+        "evidenceRefs": [
+          "darktide:evidence:psyker:brain-burst-improved-smite-damage-multiplier-code"
+        ]
+      },
+      "sourceRefs": [
+        "public-code:psyker-buff-templates-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:evidence:psyker:brain-burst-improved-smite-damage-multiplier-code",
+      "owner": "source",
+      "kind": "evidence",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "sourceRef": "public-code:psyker-buff-templates-ba6c148",
+        "safeSummary": "At the fixed upstream commit, the psyker_brain_burst_improved template assigns the code literal 1.5 to stat_buffs[stat_buffs.smite_damage_multiplier]. This evidence supports only the parameter value; downstream damage outcome and runtime application are unverified."
+      },
+      "sourceRefs": [
+        "public-code:psyker-buff-templates-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:blessing:chainaxe:p1-movement-speed-on-activation",
+      "owner": "source",
+      "kind": "blessing",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "variantRefs": [
+          "darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation"
+        ]
+      },
+      "sourceRefs": [
+        "public-code:chainaxe-p1-traits-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation",
+      "owner": "source",
+      "kind": "blessing-variant",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "blessingRef": "darktide:blessing:chainaxe:p1-movement-speed-on-activation",
+        "weaponRefs": [
+          "darktide:weapon:chainaxe:p1-m1"
+        ],
+        "definedTiers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "obtainableTiers": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "tierValues": [
+          {
+            "tier": 1,
+            "value": {
+              "status": "known",
+              "decimal": "0.17",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 2,
+            "value": {
+              "status": "known",
+              "decimal": "0.18",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 3,
+            "value": {
+              "status": "known",
+              "decimal": "0.19",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 4,
+            "value": {
+              "status": "known",
+              "decimal": "0.2",
+              "unit": "ratio"
+            }
+          }
+        ]
+      },
+      "sourceRefs": [
+        "public-code:chainaxe-p1-traits-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:weapon:chainaxe:p1-m1",
+      "owner": "source",
+      "kind": "weapon",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "familyId": "chainaxe_p1",
+        "markId": "chainaxe_p1_m1",
+        "templateKey": "chainaxe_p1_m1",
+        "statRefs": [
+          "darktide:stat-definition:chainaxe-p1-m1-default-light-attack-power-table",
+          "darktide:stat-definition:chainaxe-p1-m1-default-light-armored-parameter-table"
+        ],
+        "attackProfileRefs": [],
+        "dataCoverage": {
+          "status": "partial",
+          "missing": [
+            {
+              "field": "action/profile override resolution",
+              "reasonCode": "NOT_IMPORTED"
+            }
+          ]
+        }
+      },
+      "sourceRefs": [
+        "public-code:chainaxe-p1-m1-ba6c148",
+        "public-code:chainaxe-p1-traits-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:stat-definition:chainaxe-p1-m1-default-light-attack-power-table",
+      "owner": "source",
+      "kind": "stat-definition",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "quantity": "damage_templates.default_light_chainaxe.targets[1].power_distribution.attack",
+        "inputUnit": "point",
+        "outputUnit": "point",
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "1",
+          "max": "2",
+          "unit": "point",
+          "step": "1",
+          "inclusive": true
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "curveRef": "darktide:stat-curve:chainaxe-p1-m1-default-light-attack-power-table"
+      },
+      "sourceRefs": [
+        "public-code:chainaxe-default-light-profile-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:stat-curve:chainaxe-p1-m1-default-light-attack-power-table",
+      "owner": "source",
+      "kind": "stat-curve",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "inputUnit": "point",
+        "outputUnit": "point",
+        "knots": [
+          {
+            "x": "1",
+            "y": "80"
+          },
+          {
+            "x": "2",
+            "y": "140"
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        }
+      },
+      "sourceRefs": [
+        "public-code:chainaxe-default-light-profile-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:stat-definition:chainaxe-p1-m1-default-light-armored-parameter-table",
+      "owner": "source",
+      "kind": "stat-definition",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "quantity": "damage_templates.default_light_chainaxe.targets[1].armor_damage_modifier.attack[armor_types.armored]",
+        "inputUnit": "point",
+        "outputUnit": "ratio",
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "1",
+          "max": "2",
+          "unit": "point",
+          "step": "1",
+          "inclusive": true
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "curveRef": "darktide:stat-curve:chainaxe-p1-m1-default-light-armored-parameter-table"
+      },
+      "sourceRefs": [
+        "public-code:chainaxe-default-light-profile-ba6c148",
+        "public-code:damage-profile-settings-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:stat-curve:chainaxe-p1-m1-default-light-armored-parameter-table",
+      "owner": "source",
+      "kind": "stat-curve",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "inputUnit": "point",
+        "outputUnit": "ratio",
+        "knots": [
+          {
+            "x": "1",
+            "y": "1.035"
+          },
+          {
+            "x": "2",
+            "y": "1.965"
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        }
+      },
+      "sourceRefs": [
+        "public-code:chainaxe-default-light-profile-ba6c148",
+        "public-code:damage-profile-settings-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:claim:chainaxe:p1-movement-speed-on-activation-duration",
+      "owner": "source",
+      "kind": "claim",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "targetRef": "darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation",
+        "property": "template.buff_override.active_duration",
+        "value": {
+          "status": "known",
+          "decimal": "2",
+          "unit": "s"
+        },
+        "context": {},
+        "basis": "code-observed",
+        "evidenceRefs": [
+          "darktide:evidence:chainaxe:p1-movement-speed-on-activation-code"
+        ]
+      },
+      "sourceRefs": [
+        "public-code:chainaxe-p1-traits-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:evidence:chainaxe:p1-movement-speed-on-activation-code",
+      "owner": "source",
+      "kind": "evidence",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "sourceRef": "public-code:chainaxe-p1-traits-ba6c148",
+        "safeSummary": "The fixed P1 traits table defines movement_speed values 0.17, 0.18, 0.19, and 0.2; each relevant override has active_duration = 2 (lines 119-143). This supports the literal template parameter only and does not establish actual in-game effect duration."
+      },
+      "sourceRefs": [
+        "public-code:chainaxe-p1-traits-ba6c148"
+      ],
+      "reviewState": "pending"
+    }
+  ],
+  "gameChanges": [],
+  "reviewReceipts": []
+}

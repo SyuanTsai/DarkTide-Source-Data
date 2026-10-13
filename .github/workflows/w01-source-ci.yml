@@ -26,6 +26,8 @@ jobs:
         run: npm run --silent content:preview > "$RUNNER_TEMP/w01-source-receipt.json"
       - name: Build pending real-claim preview and capture its receipt
         run: node scripts/content/build.mjs --mode preview --input w01-real-claim-candidate.json > "$RUNNER_TEMP/w01-source-real-claim-receipt.json"
+      - name: Build pending representative preview and capture its receipt
+        run: node scripts/content/build.mjs --mode preview --input w01-real-representative-candidate.json > "$RUNNER_TEMP/w01-source-representative-receipt.json"
       - name: Verify fixture and pending-candidate receipts and write run summary
         run: |
           node --input-type=module <<'NODE'
@@ -45,6 +47,10 @@ jobs:
           if (fixture.receipt.previewOnly !== true || fixture.receipt.fixtureOnly !== true || fixture.receipt.publicationEligible !== false) {
             throw new Error('W01 CI requires a fixture-only, ineligible preview receipt');
           }
+          if (fixture.receipt.sourceRevision !== '94d2e7767bf60d56793a6b9a910376c975fef3439afe5931fbb03d763913ef4b' ||
+              fixture.receipt.manifestSha256 !== '27a06a383ab06ab0d15720bd2b0a3e0e8e905755679665a32988ca704c80acb6') {
+            throw new Error('W01 default fixture revision changed unexpectedly');
+          }
           const candidate = readVerifiedReceipt('w01-source-real-claim-receipt.json');
           if (candidate.receipt.previewOnly !== true || candidate.receipt.fixtureOnly !== false || candidate.receipt.publicationEligible !== false) {
             throw new Error('W01 CI requires a non-fixture, pending, ineligible candidate preview receipt');
@@ -54,10 +60,50 @@ jobs:
               technical.records.some(record => record.reviewState !== 'pending') || technical.gameChanges.length !== 0) {
             throw new Error('W01 CI candidate must contain four pending records and no game changes');
           }
+          if (candidate.receipt.sourceRevision !== '2a2e9b3f731358c01fb103bde759bf03be726e3e15aa0b623821d8c717d68c11' ||
+              candidate.receipt.manifestSha256 !== '86f617d2ec13cdd905641e7d7230fd1b2d650be6243e2ffde9ad756f57cc6307') {
+            throw new Error('W01 four-record candidate revision changed unexpectedly');
+          }
           for (const filename of ['analysis.md', 'game-changes.md']) {
             const markdown = fs.readFileSync(path.join(candidate.outputPath, filename), 'utf8');
             if (!markdown.startsWith('> **Pending review:** not approved for publication.\n\n') || markdown.includes('synthetic contract output')) {
               throw new Error(filename + ': pending real candidate banner is incorrect');
+            }
+          }
+          const representative = readVerifiedReceipt('w01-source-representative-receipt.json');
+          if (representative.receipt.previewOnly !== true || representative.receipt.fixtureOnly !== false || representative.receipt.publicationEligible !== false) {
+            throw new Error('W01 CI requires a non-fixture, pending, ineligible representative preview receipt');
+          }
+          const representativeTechnical = JSON.parse(fs.readFileSync(path.join(representative.outputPath, 'technical.json'), 'utf8'));
+          if (representativeTechnical.fixtureOnly !== false || representativeTechnical.publicationEligible !== false ||
+              representativeTechnical.records.length !== 13 || representativeTechnical.records.some(record => record.reviewState !== 'pending') ||
+              representativeTechnical.gameChanges.length !== 0) {
+            throw new Error('W01 representative candidate must contain thirteen pending records and no game changes');
+          }
+          const byId = new Map(representativeTechnical.records.map(record => [record.recordId, record]));
+          const variant = byId.get('darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation');
+          if (!variant || JSON.stringify(variant.payload.definedTiers) !== JSON.stringify([1, 2, 3, 4]) ||
+              JSON.stringify(variant.payload.tierValues.map(item => item.value.decimal)) !== JSON.stringify(['0.17', '0.18', '0.19', '0.2']) ||
+              variant.payload.obtainableTiers.status !== 'unknown' || variant.payload.obtainableTiers.reasonCode !== 'NOT_VERIFIED') {
+            throw new Error('W01 representative blessing tiers do not match the pending raw-code candidate');
+          }
+          const duration = byId.get('darktide:claim:chainaxe:p1-movement-speed-on-activation-duration');
+          if (!duration || duration.payload.property !== 'template.buff_override.active_duration' ||
+              duration.payload.value.status !== 'known' || duration.payload.value.decimal !== '2' || duration.payload.value.unit !== 's' ||
+              duration.payload.basis !== 'code-observed' || duration.reviewState !== 'pending') {
+            throw new Error('W01 representative duration must remain a pending code-observed template literal');
+          }
+          const rawAttack = byId.get('darktide:stat-curve:chainaxe-p1-m1-default-light-attack-power-table');
+          const rawArmor = byId.get('darktide:stat-curve:chainaxe-p1-m1-default-light-armored-parameter-table');
+          if (!rawAttack || JSON.stringify(rawAttack.payload.knots) !== JSON.stringify([{ x: '1', y: '80' }, { x: '2', y: '140' }]) ||
+              !rawArmor || JSON.stringify(rawArmor.payload.knots) !== JSON.stringify([{ x: '1', y: '1.035' }, { x: '2', y: '1.965' }]) ||
+              rawAttack.payload.interpolation.status !== 'unknown' || rawArmor.payload.interpolation.status !== 'unknown') {
+            throw new Error('W01 representative raw parameter tables must remain ordered and uninterpolated');
+          }
+          for (const filename of ['analysis.md', 'game-changes.md']) {
+            const markdown = fs.readFileSync(path.join(representative.outputPath, filename), 'utf8');
+            if (!markdown.startsWith('> **Pending review:** not approved for publication.\n\n') || markdown.includes('synthetic contract output')) {
+              throw new Error(filename + ': pending representative candidate banner is incorrect');
             }
           }
           const summary = [
@@ -69,12 +115,18 @@ jobs:
             '- Candidate output: ' + candidate.receipt.outputDirectory,
             '- Review scope: docs/w01-real-claim-review.md',
             '',
+            '- Representative status: non-fixture, pending, publication-ineligible.',
+            '- Representative source revision: ' + representative.receipt.sourceRevision,
+            '- Representative manifest SHA-256: ' + representative.receipt.manifestSha256,
+            '- Representative output: ' + representative.receipt.outputDirectory,
+            '- Review scope: docs/w01-real-claim-review.md',
+            '',
             '- Existing fixture status: fixture-only, pending, publication-ineligible.',
             '- Fixture source revision: ' + fixture.receipt.sourceRevision,
             '- Fixture manifest SHA-256: ' + fixture.receipt.manifestSha256,
             '- Fixture output: ' + fixture.receipt.outputDirectory,
             '',
-            'This run validates a public-code-backed pending candidate and synthetic fixture. It does not approve the claim or publish a formal release.',
+            'This run validates two public-code-backed pending candidates and a synthetic fixture. It does not approve the claims or publish a formal release.',
             ''
           ].join('\n');
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);

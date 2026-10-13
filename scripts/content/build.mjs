@@ -5,7 +5,13 @@ import { compileSource } from './compile.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const DEFAULT_AUTHORING = 'w01-preview.json';
-const ALLOWED_AUTHORING = new Set([DEFAULT_AUTHORING, 'w01-real-claim-candidate.json']);
+const ALLOWED_AUTHORING = new Set([
+  DEFAULT_AUTHORING,
+  'w01-real-claim-candidate.json',
+  'w01-real-representative-candidate.json'
+]);
+
+const USAGE = 'usage: node scripts/content/build.mjs [--mode preview|formal] [--input w01-preview.json|w01-real-claim-candidate.json|w01-real-representative-candidate.json]';
 
 export function parseBuildOptions(args) {
   const options = { mode: 'preview', input: DEFAULT_AUTHORING };
@@ -13,11 +19,11 @@ export function parseBuildOptions(args) {
   for (let index = 0; index < args.length; index += 1) {
     const flag = args[index];
     if (!['--mode', '--input'].includes(flag) || seen.has(flag)) {
-      throw new Error('usage: node scripts/content/build.mjs [--mode preview|formal] [--input w01-preview.json|w01-real-claim-candidate.json]');
+      throw new Error(USAGE);
     }
     const value = args[index + 1];
     if (typeof value !== 'string' || value.length === 0 || value.startsWith('--')) {
-      throw new Error('usage: node scripts/content/build.mjs [--mode preview|formal] [--input w01-preview.json|w01-real-claim-candidate.json]');
+      throw new Error(USAGE);
     }
     seen.add(flag);
     index += 1;
@@ -34,7 +40,7 @@ export function parseBuildOptions(args) {
 
 function validateAuthoringInput(inputName) {
   if (!ALLOWED_AUTHORING.has(inputName)) {
-    throw new Error('input must be exactly w01-preview.json or w01-real-claim-candidate.json');
+    throw new Error('input must be exactly w01-preview.json, w01-real-claim-candidate.json, or w01-real-representative-candidate.json');
   }
   return inputName;
 }
