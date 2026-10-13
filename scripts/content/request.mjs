@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { canonicalJsonBytes, sha256 } from './compile.mjs';
-import { buildSource } from './build.mjs';
+import { buildSource, parseBuildOptions } from './build.mjs';
 
 export const SOURCE_REPOSITORY = 'https://github.com/SyuanTsai/DarkTide-Source-Data';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -22,6 +22,24 @@ function assertExactKeys(value, keys, label) {
 
 function normalizeRemote(value) {
   return value.trim().replace(/\.git$/i, '').replace(/\/+$/, '');
+}
+
+export function parseCompositionRequestOptions(args) {
+  const options = parseBuildOptions(args);
+  if (options.mode !== 'preview') fail('composition requests are preview-only; formal mode is not supported');
+  return { input: options.input };
+}
+
+export function assertPreviewRequestReceipt(receipt) {
+  if (receipt === null || typeof receipt !== 'object' || Array.isArray(receipt) ||
+      receipt.mode !== 'preview' || receipt.previewOnly !== true) {
+    fail('composition requests require a preview-only Source build');
+  }
+  if (typeof receipt.fixtureOnly !== 'boolean' || typeof receipt.publicationEligible !== 'boolean' ||
+      (receipt.fixtureOnly && receipt.publicationEligible)) {
+    fail('composition requests require compiler-derived preview status booleans');
+  }
+  return receipt;
 }
 
 export function createCompositionRequest(value) {
@@ -49,7 +67,8 @@ async function writeImmutable(filePath, bytes) {
   }
 }
 
-export async function generateCompositionRequest() {
+export async function generateCompositionRequest({ input } = {}) {
+  const selectedInput = parseBuildOptions(input === undefined ? [] : ['--input', input]).input;
   const root = ROOT;
   const remote = normalizeRemote(execFileSync('git', ['remote', 'get-url', 'origin'], { cwd: root, encoding: 'utf8' }));
   if (remote !== SOURCE_REPOSITORY) fail('origin is not the pinned public Source repository');
@@ -61,10 +80,7 @@ export async function generateCompositionRequest() {
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   if (!/^[a-f0-9]{40}$/.test(commit)) fail('Source HEAD is not a full Git SHA');
 
-  const receipt = await buildSource({ mode: 'preview' });
-  if (receipt.previewOnly !== true || receipt.fixtureOnly !== true || receipt.publicationEligible !== false) {
-    fail('composition requests require a quarantined fixture-only Source preview build');
-  }
+  const receipt = assertPreviewRequestReceipt(await buildSource({ mode: 'preview', input: selectedInput }));
   const outputDirectory = path.join(root, ...receipt.outputDirectory.split('/'));
   const manifestBytes = await readFile(path.join(outputDirectory, 'source-manifest.json'));
   const sourceManifest = JSON.parse(manifestBytes.toString('utf8'));
@@ -86,7 +102,8 @@ export async function generateCompositionRequest() {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    const result = await generateCompositionRequest();
+    const options = parseCompositionRequestOptions(process.argv.slice(2));
+    const result = await generateCompositionRequest(options);
     process.stdout.write('Wrote Source composition request ' + result.requestPath + '\n' + JSON.stringify(result.request, null, 2) + '\n');
   } catch (error) {
     process.stderr.write(String(error?.message ?? error) + '\n');
