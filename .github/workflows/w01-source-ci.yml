@@ -1,0 +1,67 @@
+name: W01 source preview CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [codex/SYP-311-w01]
+permissions:
+  contents: read
+jobs:
+  source-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Set up Node.js 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Run Source contract tests
+        run: npm test
+      - name: Build isolated fixture preview and capture its receipt
+        run: npm run --silent content:preview > "$RUNNER_TEMP/w01-source-receipt.json"
+      - name: Verify fixture-only receipt and write run summary
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          const receiptPath = path.join(process.env.RUNNER_TEMP, 'w01-source-receipt.json');
+          const receipt = JSON.parse(fs.readFileSync(receiptPath, 'utf8'));
+          if (receipt.previewOnly !== true || receipt.fixtureOnly !== true || receipt.publicationEligible !== false) {
+            throw new Error('W01 CI requires a fixture-only, ineligible preview receipt');
+          }
+          const storedReceipt = JSON.parse(fs.readFileSync(path.join(process.cwd(), receipt.outputDirectory, 'receipt.json'), 'utf8'));
+          if (JSON.stringify(storedReceipt) !== JSON.stringify(receipt)) throw new Error('stored receipt differs from CLI receipt');
+          const summary = [
+            '## W01 source fixture preview',
+            '',
+            '- Preview only: `true`',
+            '- Fixture only: `true`',
+            '- Publication eligible: `false`',
+            `- Source revision: \`${receipt.sourceRevision}\``,
+            `- Manifest SHA-256: \`${receipt.manifestSha256}\``,
+            '- Output: `dist-w01/source/<sourceRevision>`',
+            '',
+            'This run validates synthetic/pending technical authoring. It does not approve game facts or publish a formal release.',
+            ''
+          ].join('\n');
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+          NODE
+      - name: Upload safe generated Source preview
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: syp-311-w01-source-preview
+          path: |
+            dist-w01/source/*/analysis.md
+            dist-w01/source/*/game-changes.json
+            dist-w01/source/*/game-changes.md
+            dist-w01/source/*/receipt.json
+            dist-w01/source/*/source-manifest.json
+            dist-w01/source/*/technical.json
+          if-no-files-found: error
+          retention-days: 7
