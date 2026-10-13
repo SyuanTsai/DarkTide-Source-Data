@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFile } from 'node:fs/promises';
+import { access, appendFile, copyFile, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { execFileSync, spawnSync } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { compileSource, canonicalJsonBytes, sha256 } from '../scripts/content/compile.mjs';
 import {
   assertPreviewRequestReceipt,
@@ -9,6 +12,8 @@ import {
   parseCompositionRequestOptions,
   SOURCE_REPOSITORY
 } from '../scripts/content/request.mjs';
+
+const SOURCE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // Scenario: the Source compiler publishes a minimal request for a fixed generated revision.
 // Purpose: the request contains only the public repo, commit, source revision, and manifest digest.
@@ -84,9 +89,61 @@ test('UnitT50_composition-request-generates-default-and-representative-preview-p
   assert.deepEqual(Object.keys(implicitDefault.request), ['repository', 'commit', 'sourceRevision', 'manifestSha256']);
 
   const representative = await generateCompositionRequest({ input: 'w01-real-representative-candidate.json' });
-  assert.equal(representative.request.sourceRevision, '5e74a3edd31866a90f2f1dd30b6b6dbf623b968577516b238342a1620b32a880');
-  assert.equal(representative.request.manifestSha256, '3814b573bd510b43c05ad86e4dcf569101f1c9648088d262d8329006175cdc99');
+  assert.equal(representative.request.sourceRevision, 'b48a8e6dcf61dcfbd8ca4ea8a89ebd636216c70907d82bd9fe6587b19c31851e');
+  assert.equal(representative.request.manifestSha256, '7546a19ff3396c712586e62af58d38d0ae707df1b279633de47658de091043f1');
   assert.deepEqual(Object.keys(representative.request), ['repository', 'commit', 'sourceRevision', 'manifestSha256']);
+});
+
+// Scenario: The authoring and schema paths are clean, but a tracked compiler file has an uncommitted probe edit.
+// Purpose: Prove the public request pin rejects code that cannot be reconstructed from its advertised commit and writes no request.
+test('InterT10_rejects_dirty_compiler_provenance_without_writing_request', async () => {
+  const ignoredDistRoot = path.join(SOURCE_ROOT, 'dist-w01');
+  await mkdir(ignoredDistRoot, { recursive: true });
+  const temporaryParent = await mkdtemp(path.join(ignoredDistRoot, '.request-provenance-'));
+  const temporaryRoot = path.join(temporaryParent, 'source');
+  const resolvedParent = path.resolve(temporaryParent);
+  const resolvedRoot = path.resolve(temporaryRoot);
+  assert.ok(resolvedRoot.startsWith(resolvedParent + path.sep));
+
+  try {
+    const trackedPaths = execFileSync('git', ['ls-files', '-z'], { cwd: SOURCE_ROOT }).toString('utf8').split('\0').filter(Boolean);
+    for (const relativePath of trackedPaths) {
+      const destination = path.join(temporaryRoot, relativePath);
+      await mkdir(path.dirname(destination), { recursive: true });
+      await copyFile(path.join(SOURCE_ROOT, relativePath), destination);
+    }
+    execFileSync('git', ['init', '--quiet'], { cwd: temporaryRoot, encoding: 'utf8' });
+    execFileSync('git', ['config', 'core.autocrlf', 'false'], { cwd: temporaryRoot, encoding: 'utf8' });
+    execFileSync('git', ['config', 'user.name', 'Source request integration test'], { cwd: temporaryRoot, encoding: 'utf8' });
+    execFileSync('git', ['config', 'user.email', 'source-request-test@example.invalid'], { cwd: temporaryRoot, encoding: 'utf8' });
+    execFileSync('git', ['add', '--all'], { cwd: temporaryRoot, encoding: 'utf8' });
+    execFileSync('git', ['commit', '--quiet', '-m', 'temporary test fixture'], { cwd: temporaryRoot, encoding: 'utf8' });
+    execFileSync('git', ['remote', 'add', 'origin', SOURCE_REPOSITORY], { cwd: temporaryRoot, encoding: 'utf8' });
+
+    const dirtyAuthoring = execFileSync('git', [
+      'status', '--porcelain', '--untracked-files=all', '--', 'content/authoring', 'content/schema'
+    ], { cwd: temporaryRoot, encoding: 'utf8' }).trim();
+    assert.equal(dirtyAuthoring, '');
+
+    await appendFile(path.join(temporaryRoot, 'scripts/content/compile.mjs'), '\n// Controlled uncommitted compiler provenance probe.\n');
+    const dirtyCompiler = execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], {
+      cwd: temporaryRoot,
+      encoding: 'utf8'
+    });
+    assert.match(dirtyCompiler, /scripts\/content\/compile\.mjs/);
+
+    const result = spawnSync(process.execPath, [
+      'scripts/content/request.mjs', '--input', 'w01-preview.json'
+    ], { cwd: temporaryRoot, encoding: 'utf8' });
+    assert.equal(result.error, undefined);
+    await assert.rejects(access(path.join(temporaryRoot, 'dist-w01/requests')), error => error.code === 'ENOENT');
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /commit or discard Source working-tree changes/);
+  } finally {
+    const cleanupRoot = path.resolve(temporaryParent);
+    assert.ok(cleanupRoot.startsWith(path.resolve(ignoredDistRoot) + path.sep));
+    await rm(cleanupRoot, { recursive: true, force: true });
+  }
 });
 
 function approvedTestAuthoring() {

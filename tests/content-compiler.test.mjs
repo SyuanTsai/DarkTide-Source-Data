@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { compileSource } from '../scripts/content/compile.mjs';
+import { canonicalJsonBytes, compileSource, sha256 } from '../scripts/content/compile.mjs';
 import { loadAuthoring, parseBuildOptions } from '../scripts/content/build.mjs';
 
 const fixedInput = {
@@ -408,7 +408,7 @@ test('UnitT82_selects_pending_representative_candidate_and_preserves_existing_re
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.equal(result.fixtureOnly, false);
   assert.equal(result.publicationEligible, false);
-  assert.equal(technical.records.length, 13);
+  assert.equal(technical.records.length, 17);
   assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
   assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
 
@@ -509,6 +509,84 @@ test('UnitT84_rejects_unsafe_or_duplicate_representative_build_options', async (
   assert.throws(() => parseBuildOptions([
     '--input', 'w01-real-representative-candidate.json', '--input', 'w01-preview.json'
   ]), /usage:/);
+});
+
+// Scenario: The representative preview adds values derived from pinned official description-format bindings.
+// Purpose: Keep each display parameter Source-owned, provenance-closed, pending, tier-bounded, and separate from runtime outcomes.
+test('UnitT85_records_official_description_format_values_with_source_closure', async () => {
+  const authoring = await loadAuthoring('w01-real-representative-candidate.json');
+  const previousRecords = authoring.records.slice(0, 13);
+  const previousSources = authoring.sourceRefs.slice(0, 6);
+  const result = compileSource(authoring);
+  const technical = JSON.parse(result.files.get('technical.json').toString('utf8'));
+  const byId = new Map(technical.records.map(record => [record.recordId, record]));
+  const sourcesById = new Map(authoring.sourceRefs.map(source => [source.sourceId, source]));
+
+  assert.equal(sha256(canonicalJsonBytes(previousRecords)), '6cf186232220c5c8912fc0d93200849549f491070726ea8b939fc1b42ad2fbe8');
+  assert.equal(sha256(canonicalJsonBytes(previousSources)), 'e966620ba975058711b508c8401165d49a23b1124ec3d33e7d5bb20cbccb34a8');
+  assert.equal(technical.records.length, 17);
+  assert.equal(authoring.gameChanges.length, 0);
+  assert.deepEqual(authoring.reviewReceipts, []);
+  assert.equal(result.fixtureOnly, false);
+  assert.equal(result.publicationEligible, false);
+  assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
+  assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
+
+  const psykerClaim = byId.get('darktide:claim:psyker:brain-burst-improved-description-display-percent');
+  const psykerEvidenceId = 'darktide:evidence:psyker:brain-burst-improved-description-display-percent-code';
+  const psykerEvidence = byId.get(psykerEvidenceId);
+  assert.equal(psykerClaim.payload.targetRef, 'darktide:skill:psyker:brain-burst-improved');
+  assert.equal(psykerClaim.payload.property, 'description.format_values.damage.display_percent');
+  assert.deepEqual(psykerClaim.payload.value, { status: 'known', decimal: '50', unit: 'percent' });
+  assert.deepEqual(psykerClaim.payload.context, {});
+  assert.equal(psykerClaim.payload.basis, 'code-derived');
+  assert.deepEqual(psykerClaim.payload.evidenceRefs, [
+    'darktide:evidence:psyker:brain-burst-improved-smite-damage-multiplier-code', psykerEvidenceId
+  ]);
+  assert.deepEqual(psykerClaim.sourceRefs, [
+    'public-code:psyker-talents-ba6c148',
+    'public-code:psyker-buff-templates-ba6c148',
+    'public-code:talent-layout-parser-ba6c148'
+  ]);
+  assert.equal(psykerEvidence.payload.sourceRef, 'public-code:psyker-talents-ba6c148');
+  assert.deepEqual(psykerEvidence.sourceRefs, [
+    'public-code:psyker-talents-ba6c148', 'public-code:talent-layout-parser-ba6c148'
+  ]);
+  assert.match(psykerEvidence.payload.safeSummary, /description-format value is 50 percent/);
+  assert.match(psykerEvidence.payload.safeSummary, /not a final damage/);
+
+  const movementClaim = byId.get('darktide:claim:chainaxe:p1-movement-speed-on-activation-tier1-display-percent');
+  const movementEvidenceId = 'darktide:evidence:chainaxe:p1-movement-speed-on-activation-tier1-display-percent-code';
+  const movementEvidence = byId.get(movementEvidenceId);
+  assert.equal(movementClaim.payload.targetRef, 'darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation');
+  assert.equal(movementClaim.payload.property, 'description.format_values.movement_speed.defined_tier_1_display_percent');
+  assert.deepEqual(movementClaim.payload.value, { status: 'known', decimal: '17', unit: 'percent' });
+  assert.deepEqual(movementClaim.payload.context, {});
+  assert.equal(movementClaim.payload.basis, 'code-derived');
+  assert.deepEqual(movementClaim.payload.evidenceRefs, [
+    'darktide:evidence:chainaxe:p1-movement-speed-on-activation-code', movementEvidenceId
+  ]);
+  assert.deepEqual(movementClaim.sourceRefs, [
+    'public-code:chainaxe-p1-traits-ba6c148', 'public-code:trait-value-parser-ba6c148'
+  ]);
+  assert.equal(movementEvidence.payload.sourceRef, 'public-code:chainaxe-p1-traits-ba6c148');
+  assert.deepEqual(movementEvidence.sourceRefs, [
+    'public-code:chainaxe-p1-traits-ba6c148', 'public-code:trait-value-parser-ba6c148'
+  ]);
+  assert.match(movementEvidence.payload.safeSummary, /defined tier 1.*0\.17/);
+  assert.match(movementEvidence.payload.safeSummary, /description-format value is 17 percent/);
+  assert.match(movementEvidence.payload.safeSummary, /not verified obtainable or game-tested/);
+
+  const talentParser = sourcesById.get('public-code:talent-layout-parser-ba6c148');
+  assert.equal(talentParser.commit, 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e');
+  assert.equal(talentParser.path, 'scripts/ui/views/talent_builder_view/utilities/talent_layout_parser.lua');
+  assert.match(talentParser.safeSummary, /1cd7b67b1069b12325b58f48f5c8f66afbbbaff1/);
+  assert.match(talentParser.safeSummary, /lines 379-403/);
+  const traitParser = sourcesById.get('public-code:trait-value-parser-ba6c148');
+  assert.equal(traitParser.commit, 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e');
+  assert.equal(traitParser.path, 'scripts/utilities/trait_value_parser.lua');
+  assert.match(traitParser.safeSummary, /6b72f166b74f834256c79736059a03401087baa5/);
+  assert.match(traitParser.safeSummary, /lines 8-20/);
 });
 
 // Scenario: One explicit pending change record names a reviewed source record and safe evidence reference.

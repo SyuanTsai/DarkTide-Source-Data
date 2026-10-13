@@ -69,6 +69,28 @@
       "snapshot": {
         "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e"
       }
+    },
+    {
+      "sourceId": "public-code:talent-layout-parser-ba6c148",
+      "fixtureOnly": false,
+      "safeSummary": "Fixed public code blob 1cd7b67b1069b12325b58f48f5c8f66afbbbaff1, lines 379-403 and 629-635: the talent layout parser applies configured value manipulation or percentage scaling and renders the configured prefix. This describes presentation formatting only.",
+      "repository": "https://github.com/Aussiemon/Darktide-Source-Code",
+      "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e",
+      "path": "scripts/ui/views/talent_builder_view/utilities/talent_layout_parser.lua",
+      "snapshot": {
+        "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e"
+      }
+    },
+    {
+      "sourceId": "public-code:trait-value-parser-ba6c148",
+      "fixtureOnly": false,
+      "safeSummary": "Fixed public code blob 6b72f166b74f834256c79736059a03401087baa5, lines 8-20 and 99-105: the trait value parser applies custom value manipulation or default percentage scaling and renders the configured prefix. This describes presentation formatting only.",
+      "repository": "https://github.com/Aussiemon/Darktide-Source-Code",
+      "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e",
+      "path": "scripts/utilities/trait_value_parser.lua",
+      "snapshot": {
+        "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e"
+      }
     }
   ],
   "records": [
@@ -406,6 +428,89 @@
       },
       "sourceRefs": [
         "public-code:chainaxe-p1-traits-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:claim:psyker:brain-burst-improved-description-display-percent",
+      "owner": "source",
+      "kind": "claim",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "targetRef": "darktide:skill:psyker:brain-burst-improved",
+        "property": "description.format_values.damage.display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "50",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          "darktide:evidence:psyker:brain-burst-improved-smite-damage-multiplier-code",
+          "darktide:evidence:psyker:brain-burst-improved-description-display-percent-code"
+        ]
+      },
+      "sourceRefs": [
+        "public-code:psyker-talents-ba6c148",
+        "public-code:psyker-buff-templates-ba6c148",
+        "public-code:talent-layout-parser-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:evidence:psyker:brain-burst-improved-description-display-percent-code",
+      "owner": "source",
+      "kind": "evidence",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "sourceRef": "public-code:psyker-talents-ba6c148",
+        "safeSummary": "The talent definition binds the improved brain-burst description's damage format value to smite_damage_multiplier and applies (value - 1) * 100; the pinned talent layout parser renders the percentage with its configured prefix. With source parameter 1.5, the description-format value is 50 percent. This is a code-derived display parameter, not a final damage value; Steam build and localized-description compatibility are unverified."
+      },
+      "sourceRefs": [
+        "public-code:psyker-talents-ba6c148",
+        "public-code:talent-layout-parser-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:claim:chainaxe:p1-movement-speed-on-activation-tier1-display-percent",
+      "owner": "source",
+      "kind": "claim",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "targetRef": "darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation",
+        "property": "description.format_values.movement_speed.defined_tier_1_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "17",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          "darktide:evidence:chainaxe:p1-movement-speed-on-activation-code",
+          "darktide:evidence:chainaxe:p1-movement-speed-on-activation-tier1-display-percent-code"
+        ]
+      },
+      "sourceRefs": [
+        "public-code:chainaxe-p1-traits-ba6c148",
+        "public-code:trait-value-parser-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:evidence:chainaxe:p1-movement-speed-on-activation-tier1-display-percent-code",
+      "owner": "source",
+      "kind": "evidence",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "sourceRef": "public-code:chainaxe-p1-traits-ba6c148",
+        "safeSummary": "The fixed trait definition configures movement_speed as a percentage format with a + prefix and its defined tier 1 is 0.17. The pinned trait value parser applies default percentage scaling because no custom value manipulation is configured, so the description-format value is 17 percent. This covers defined tier 1 only, not verified obtainable or game-tested; runtime movement outcome and localized-description compatibility are unverified."
+      },
+      "sourceRefs": [
+        "public-code:chainaxe-p1-traits-ba6c148",
+        "public-code:trait-value-parser-ba6c148"
       ],
       "reviewState": "pending"
     }

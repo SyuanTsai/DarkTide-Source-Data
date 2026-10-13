@@ -72,11 +72,11 @@ export async function generateCompositionRequest({ input } = {}) {
   const root = ROOT;
   const remote = normalizeRemote(execFileSync('git', ['remote', 'get-url', 'origin'], { cwd: root, encoding: 'utf8' }));
   if (remote !== SOURCE_REPOSITORY) fail('origin is not the pinned public Source repository');
-  const dirtyAuthoring = execFileSync('git', ['status', '--porcelain', '--untracked-files=all', '--', 'content/authoring', 'content/schema'], {
+  const dirtyWorkingTree = execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], {
     cwd: root,
     encoding: 'utf8'
   }).trim();
-  if (dirtyAuthoring) fail('commit or discard Source authoring/schema changes before generating a composition request');
+  if (dirtyWorkingTree) fail('commit or discard Source working-tree changes before generating a composition request');
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   if (!/^[a-f0-9]{40}$/.test(commit)) fail('Source HEAD is not a full Git SHA');
 
