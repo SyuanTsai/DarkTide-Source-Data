@@ -91,11 +91,14 @@ jobs:
           const stickyCharge = byId.get('darktide:claim:psyker:brain-burst-improved-sticky-charge-base-time');
           const onHitPeril = byId.get('darktide:claim:psyker:brain-burst-improved-successful-hit-base-peril-ratio');
           if (!normalCharge || normalCharge.payload.property !== 'action.psyker_smite.action_charge_target.default_charge_time' ||
-              JSON.stringify(normalCharge.payload.value) !== JSON.stringify({ status: 'known', decimal: '3', unit: 's' }) || normalCharge.reviewState !== 'pending' ||
+              normalCharge.payload.value?.status !== 'known' || normalCharge.payload.value?.decimal !== '3' || normalCharge.payload.value?.unit !== 's' ||
+              normalCharge.reviewState !== 'pending' ||
               !stickyCharge || stickyCharge.payload.property !== 'action.psyker_smite.action_charge_target_sticky.charge_time' ||
-              JSON.stringify(stickyCharge.payload.value) !== JSON.stringify({ status: 'known', decimal: '2', unit: 's' }) || stickyCharge.reviewState !== 'pending' ||
+              stickyCharge.payload.value?.status !== 'known' || stickyCharge.payload.value?.decimal !== '2' || stickyCharge.payload.value?.unit !== 's' ||
+              stickyCharge.reviewState !== 'pending' ||
               !onHitPeril || onHitPeril.payload.property !== 'charge_template.psyker_smite_use_power.warp_charge_percent' ||
-              JSON.stringify(onHitPeril.payload.value) !== JSON.stringify({ status: 'known', decimal: '0.25', unit: 'ratio' }) || onHitPeril.reviewState !== 'pending') {
+              onHitPeril.payload.value?.status !== 'known' || onHitPeril.payload.value?.decimal !== '0.25' || onHitPeril.payload.value?.unit !== 'ratio' ||
+              onHitPeril.reviewState !== 'pending') {
             throw new Error('W01 representative charge-time and on-hit peril claims must remain pending source parameters');
           }
           const duration = byId.get('darktide:claim:chainaxe:p1-movement-speed-on-activation-duration');
