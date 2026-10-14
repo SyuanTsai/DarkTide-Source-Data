@@ -76,9 +76,9 @@ jobs:
           }
           const representativeTechnical = JSON.parse(fs.readFileSync(path.join(representative.outputPath, 'technical.json'), 'utf8'));
           if (representativeTechnical.fixtureOnly !== false || representativeTechnical.publicationEligible !== false ||
-              representativeTechnical.records.length !== 17 || representativeTechnical.records.some(record => record.reviewState !== 'pending') ||
+              representativeTechnical.records.length !== 19 || representativeTechnical.records.some(record => record.reviewState !== 'pending') ||
               representativeTechnical.gameChanges.length !== 0) {
-            throw new Error('W01 representative candidate must contain seventeen pending records and no game changes');
+            throw new Error('W01 representative candidate must contain nineteen pending records and no game changes');
           }
           const byId = new Map(representativeTechnical.records.map(record => [record.recordId, record]));
           const variant = byId.get('darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation');

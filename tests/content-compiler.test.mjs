@@ -391,7 +391,7 @@ test('UnitT81_rejects_unsafe_or_duplicate_build_options', async () => {
 });
 
 // Scenario: A pinned public-code representative candidate is selected through the existing allowlisted build interface.
-// Purpose: Keep the third preview pending and prove the existing fixture and four-record candidate revisions stay unchanged.
+// Purpose: Keep the third preview pending, constrain the Psyker term/claim edits, and preserve prior artifact revisions.
 test('UnitT82_selects_pending_representative_candidate_and_preserves_existing_revisions', async () => {
   const inputName = 'w01-real-representative-candidate.json';
   const options = parseBuildOptions(['--mode', 'preview', '--input', inputName]);
@@ -401,14 +401,20 @@ test('UnitT82_selects_pending_representative_candidate_and_preserves_existing_re
   const technical = JSON.parse(result.files.get('technical.json').toString('utf8'));
 
   assert.deepEqual(options, { mode: 'preview', input: inputName });
-  assert.deepEqual(authoring.records.slice(0, fourRecordAuthoring.records.length), fourRecordAuthoring.records);
+  assertPsykerPrefixChangesAreScoped(authoring.records, fourRecordAuthoring.records);
+  const changedSkill = structuredClone(authoring.records);
+  changedSkill[1].payload.claimRefs.push('darktide:claim:unapproved:skill');
+  assert.throws(() => assertPsykerPrefixChangesAreScoped(changedSkill, fourRecordAuthoring.records), assert.AssertionError);
+  const changedEvidence = structuredClone(authoring.records);
+  changedEvidence[3].payload.safeSummary += ' Unreviewed alteration.';
+  assert.throws(() => assertPsykerPrefixChangesAreScoped(changedEvidence, fourRecordAuthoring.records), assert.AssertionError);
   assert.deepEqual(authoring.sourceRefs.slice(0, fourRecordAuthoring.sourceRefs.length), fourRecordAuthoring.sourceRefs);
   assert.equal(authoring.fixtureOnly, false);
   assert.deepEqual(authoring.gameChanges, []);
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.equal(result.fixtureOnly, false);
   assert.equal(result.publicationEligible, false);
-  assert.equal(technical.records.length, 17);
+  assert.equal(technical.records.length, 19);
   assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
   assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
 
@@ -512,7 +518,7 @@ test('UnitT84_rejects_unsafe_or_duplicate_representative_build_options', async (
 });
 
 // Scenario: The representative preview adds values derived from pinned official description-format bindings.
-// Purpose: Keep each display parameter Source-owned, provenance-closed, pending, tier-bounded, and separate from runtime outcomes.
+// Purpose: Keep display parameters and the bounded smite multiplier path Source-owned, provenance-closed, pending, and separate from runtime outcomes.
 test('UnitT85_records_official_description_format_values_with_source_closure', async () => {
   const authoring = await loadAuthoring('w01-real-representative-candidate.json');
   const previousRecords = authoring.records.slice(0, 13);
@@ -522,9 +528,10 @@ test('UnitT85_records_official_description_format_values_with_source_closure', a
   const byId = new Map(technical.records.map(record => [record.recordId, record]));
   const sourcesById = new Map(authoring.sourceRefs.map(source => [source.sourceId, source]));
 
-  assert.equal(sha256(canonicalJsonBytes(previousRecords)), '6cf186232220c5c8912fc0d93200849549f491070726ea8b939fc1b42ad2fbe8');
+  assert.equal(sha256(canonicalJsonBytes(previousRecords)), '7f0426604bf9dce25f425306051436763caa76c025ae263ec048103a59a1db78');
   assert.equal(sha256(canonicalJsonBytes(previousSources)), 'e966620ba975058711b508c8401165d49a23b1124ec3d33e7d5bb20cbccb34a8');
-  assert.equal(technical.records.length, 17);
+  assert.equal(technical.records.length, 19);
+  assert.equal(technical.sourceRefs.length, 10);
   assert.equal(authoring.gameChanges.length, 0);
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.equal(result.fixtureOnly, false);
@@ -554,6 +561,50 @@ test('UnitT85_records_official_description_format_values_with_source_closure', a
   ]);
   assert.match(psykerEvidence.payload.safeSummary, /description-format value is 50 percent/);
   assert.match(psykerEvidence.payload.safeSummary, /not a final damage/);
+
+  const multiplierClaim = byId.get('darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier');
+  const multiplierEvidenceId = 'darktide:evidence:psyker:brain-burst-improved-smite-damage-multiplier-code';
+  const calculationEvidenceId = 'darktide:evidence:psyker:brain-burst-improved-smite-damage-calculation-code';
+  const actionEvidenceId = 'darktide:evidence:psyker:smite-action-damage-type-code';
+  const calculationSourceId = 'public-code:damage-calculation-ba6c148';
+  const smiteActionSourceId = 'public-code:psyker-smite-action-ba6c148';
+  assert.equal(multiplierClaim.payload.property, 'template.stat_buffs.smite_damage_multiplier');
+  assert.deepEqual(multiplierClaim.payload.value, { status: 'known', decimal: '1.5', unit: 'ratio' });
+  assert.deepEqual(multiplierClaim.payload.context, {});
+  assert.deepEqual(multiplierClaim.payload.evidenceRefs, [
+    multiplierEvidenceId, calculationEvidenceId, actionEvidenceId
+  ]);
+  assert.deepEqual(multiplierClaim.sourceRefs, [
+    'public-code:psyker-buff-templates-ba6c148', calculationSourceId, smiteActionSourceId
+  ]);
+  const calculationSource = sourcesById.get(calculationSourceId);
+  assert.equal(calculationSource.commit, 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e');
+  assert.equal(calculationSource.path, 'scripts/utilities/attack/damage_calculation.lua');
+  assert.match(calculationSource.safeSummary, /0befe848712f85d0ae723168d8807d04b6aa280c/);
+  assert.match(calculationSource.safeSummary, /lines 506-514/);
+  const smiteActionSource = sourcesById.get(smiteActionSourceId);
+  assert.equal(smiteActionSource.commit, 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e');
+  assert.equal(smiteActionSource.path, 'scripts/settings/equipment/weapon_templates/grenades/psyker_smite.lua');
+  assert.match(smiteActionSource.safeSummary, /09bae668c991438b9b72e9ef0549cc650bcd6ccd/);
+  assert.match(smiteActionSource.safeSummary, /lines 538-562/);
+
+  const calculationEvidence = byId.get(calculationEvidenceId);
+  assert.equal(calculationEvidence.payload.sourceRef, calculationSourceId);
+  assert.deepEqual(calculationEvidence.sourceRefs, [calculationSourceId]);
+  assert.match(calculationEvidence.payload.safeSummary, /damage_type.*damage_types\.smite/);
+  assert.match(calculationEvidence.payload.safeSummary, /multiplies.*damage_multiplier/);
+  const actionEvidence = byId.get(actionEvidenceId);
+  assert.equal(actionEvidence.payload.sourceRef, smiteActionSourceId);
+  assert.deepEqual(actionEvidence.sourceRefs, [smiteActionSourceId]);
+  assert.match(actionEvidence.payload.safeSummary, /psyker_smite_kill/);
+  assert.match(actionEvidence.payload.safeSummary, /damage_types\.smite/);
+  const smiteTerm = byId.get('darktide:term:psyker:smite-damage-multiplier-parameter');
+  assert.match(smiteTerm.payload.technicalDefinitionEn, /damage_types\.smite/);
+  assert.match(smiteTerm.payload.technicalDefinitionEn, /damage_multiplier/);
+  assert.match(smiteTerm.payload.technicalDefinitionEn, /does not resolve.*final damage/i);
+  assert.deepEqual(smiteTerm.sourceRefs, [
+    'public-code:psyker-buff-templates-ba6c148', calculationSourceId, smiteActionSourceId
+  ]);
 
   const movementClaim = byId.get('darktide:claim:chainaxe:p1-movement-speed-on-activation-tier1-display-percent');
   const movementEvidenceId = 'darktide:evidence:chainaxe:p1-movement-speed-on-activation-tier1-display-percent-code';
@@ -625,6 +676,24 @@ function testCanonical(value) {
 
 function testDigest(value) {
   return createHash('sha256').update(JSON.stringify(testCanonical(value), null, 2) + '\n').digest('hex');
+}
+
+function assertPsykerPrefixChangesAreScoped(candidateRecords, baselineRecords) {
+  const candidate = candidateRecords.slice(0, 4);
+  const baseline = baselineRecords.slice(0, 4);
+  assert.deepEqual(candidate.map(record => record.recordId), baseline.map(record => record.recordId));
+  assert.deepEqual(candidate[1], baseline[1]);
+  assert.deepEqual(candidate[3], baseline[3]);
+
+  const termWithoutAuthorizedChanges = structuredClone(candidate[0]);
+  termWithoutAuthorizedChanges.payload.technicalDefinitionEn = baseline[0].payload.technicalDefinitionEn;
+  termWithoutAuthorizedChanges.sourceRefs = baseline[0].sourceRefs;
+  assert.deepEqual(termWithoutAuthorizedChanges, baseline[0]);
+
+  const claimWithoutAuthorizedChanges = structuredClone(candidate[2]);
+  claimWithoutAuthorizedChanges.payload.evidenceRefs = baseline[2].payload.evidenceRefs;
+  claimWithoutAuthorizedChanges.sourceRefs = baseline[2].sourceRefs;
+  assert.deepEqual(claimWithoutAuthorizedChanges, baseline[2]);
 }
 
 function approvedWithBoundReceipts() {
