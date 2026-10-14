@@ -414,7 +414,7 @@ test('UnitT82_selects_pending_representative_candidate_and_preserves_existing_re
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.equal(result.fixtureOnly, false);
   assert.equal(result.publicationEligible, false);
-  assert.equal(technical.records.length, 28);
+  assert.equal(technical.records.length, 34);
   assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
   assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
 
@@ -538,7 +538,7 @@ test('UnitT85_records_official_description_format_values_with_source_closure', a
 
   assert.equal(sha256(canonicalJsonBytes(previousRecords)), '7f0426604bf9dce25f425306051436763caa76c025ae263ec048103a59a1db78');
   assert.equal(sha256(canonicalJsonBytes(previousSources)), 'e966620ba975058711b508c8401165d49a23b1124ec3d33e7d5bb20cbccb34a8');
-  assert.equal(technical.records.length, 28);
+  assert.equal(technical.records.length, 34);
   assert.equal(technical.sourceRefs.length, 22);
   assert.equal(authoring.gameChanges.length, 0);
   assert.deepEqual(authoring.reviewReceipts, []);
@@ -773,13 +773,70 @@ test('UnitT86_archives_legacy_analysis_and_closes_charge_parameter_claims', asyn
   ];
   assert.equal(sha256(canonicalJsonBytes(priorRecords)), 'b2f1865c5c7ccce78a7ee9ee4d4e9a465b935983c6904b703ff06704a4985fbf');
   assert.equal(sha256(canonicalJsonBytes(authoring.sourceRefs.slice(0, 10))), 'e58f2f9daf341d64e28ae2dcc36acbe7d83c7be45dbebfcc1c6f109ed6257023');
-  assert.equal(technical.records.length, 28);
+  assert.equal(technical.records.length, 34);
   assert.equal(technical.sourceRefs.length, 22);
   assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.deepEqual(authoring.gameChanges, []);
   assert.equal(result.fixtureOnly, false);
   assert.equal(result.publicationEligible, false);
+  assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
+});
+
+// Scenario: The representative source candidate contains defined tier 2–4 movement-speed display values.
+// Purpose: Preserve all 28 existing records while closing each new percent value to its fixed trait and parser evidence.
+test('UnitT87_closes_defined_chainaxe_tier_2_to_4_display_values', async () => {
+  const authoring = await loadAuthoring('w01-real-representative-candidate.json');
+  const result = compileSource(authoring);
+  const technical = JSON.parse(result.files.get('technical.json').toString('utf8'));
+  const byId = new Map(technical.records.map(record => [record.recordId, record]));
+  const traitSourceId = 'public-code:chainaxe-p1-traits-ba6c148';
+  const parserSourceId = 'public-code:trait-value-parser-ba6c148';
+  const rawTierEvidenceId = 'darktide:evidence:chainaxe:p1-movement-speed-on-activation-code';
+  const expectedSourceRefs = [traitSourceId, parserSourceId];
+
+  assert.equal(sha256(canonicalJsonBytes(authoring.records.slice(0, 28))), '2d9ab6bd82ddfa4e9ab57756128df06195c1aaadc7f8c3f7ec3ea862b05da4a3');
+  assert.equal(technical.records.length, 34);
+  assert.equal(technical.sourceRefs.length, 22);
+  assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
+  assert.equal(result.fixtureOnly, false);
+  assert.equal(result.publicationEligible, false);
+  assert.deepEqual(authoring.reviewReceipts, []);
+  assert.deepEqual(authoring.gameChanges, []);
+
+  for (const { tier, ratio, percent } of [
+    { tier: 2, ratio: '0.18', percent: '18' },
+    { tier: 3, ratio: '0.19', percent: '19' },
+    { tier: 4, ratio: '0.2', percent: '20' }
+  ]) {
+    const claimId = `darktide:claim:chainaxe:p1-movement-speed-on-activation-tier${tier}-display-percent`;
+    const evidenceId = `darktide:evidence:chainaxe:p1-movement-speed-on-activation-tier${tier}-display-percent-code`;
+    const claim = byId.get(claimId);
+    const evidence = byId.get(evidenceId);
+
+    assert.ok(claim, `tier ${tier} display claim must exist`);
+    assert.deepEqual(claim.payload, {
+      targetRef: 'darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation',
+      property: `description.format_values.movement_speed.defined_tier_${tier}_display_percent`,
+      value: { status: 'known', decimal: percent, unit: 'percent' },
+      context: {},
+      basis: 'code-derived',
+      evidenceRefs: [rawTierEvidenceId, evidenceId]
+    });
+    assert.deepEqual(claim.sourceRefs, expectedSourceRefs);
+    assert.equal(claim.reviewState, 'pending');
+    assert.ok(evidence, `tier ${tier} display evidence must exist`);
+    assert.equal(evidence.payload.sourceRef, traitSourceId);
+    assert.deepEqual(evidence.sourceRefs, expectedSourceRefs);
+    assert.equal(evidence.reviewState, 'pending');
+    assert.ok(evidence.payload.safeSummary.includes(`defined tier ${tier} is ${ratio}`));
+    assert.ok(evidence.payload.safeSummary.includes(`description-format value is ${percent} percent`));
+    assert.match(evidence.payload.safeSummary, /percentage format with a \+ prefix/);
+    assert.match(evidence.payload.safeSummary, /default percentage scaling/);
+    assert.match(evidence.payload.safeSummary, /not verified obtainable or game-tested/);
+    assert.match(evidence.payload.safeSummary, /runtime movement outcome.*localized-description compatibility are unverified/);
+  }
+
   assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
 });
 

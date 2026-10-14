@@ -76,9 +76,9 @@ jobs:
           }
           const representativeTechnical = JSON.parse(fs.readFileSync(path.join(representative.outputPath, 'technical.json'), 'utf8'));
           if (representativeTechnical.fixtureOnly !== false || representativeTechnical.publicationEligible !== false ||
-              representativeTechnical.records.length !== 28 || representativeTechnical.records.some(record => record.reviewState !== 'pending') ||
+              representativeTechnical.records.length !== 34 || representativeTechnical.records.some(record => record.reviewState !== 'pending') ||
               representativeTechnical.gameChanges.length !== 0) {
-            throw new Error('W01 representative candidate must contain twenty-eight pending records and no game changes');
+            throw new Error('W01 representative candidate must contain thirty-four pending records and no game changes');
           }
           const byId = new Map(representativeTechnical.records.map(record => [record.recordId, record]));
           const variant = byId.get('darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation');
@@ -86,6 +86,36 @@ jobs:
               JSON.stringify(variant.payload.tierValues.map(item => item.value.decimal)) !== JSON.stringify(['0.17', '0.18', '0.19', '0.2']) ||
               variant.payload.obtainableTiers.status !== 'unknown' || variant.payload.obtainableTiers.reasonCode !== 'NOT_VERIFIED') {
             throw new Error('W01 representative blessing tiers do not match the pending raw-code candidate');
+          }
+          const traitSourceId = 'public-code:chainaxe-p1-traits-ba6c148';
+          const parserSourceId = 'public-code:trait-value-parser-ba6c148';
+          const rawTierEvidenceId = 'darktide:evidence:chainaxe:p1-movement-speed-on-activation-code';
+          for (const { tier, ratio, percent } of [
+            { tier: 2, ratio: '0.18', percent: '18' },
+            { tier: 3, ratio: '0.19', percent: '19' },
+            { tier: 4, ratio: '0.2', percent: '20' }
+          ]) {
+            const claimId = 'darktide:claim:chainaxe:p1-movement-speed-on-activation-tier' + tier + '-display-percent';
+            const evidenceId = 'darktide:evidence:chainaxe:p1-movement-speed-on-activation-tier' + tier + '-display-percent-code';
+            const claim = byId.get(claimId);
+            const evidence = byId.get(evidenceId);
+            const expectedSourceRefs = [traitSourceId, parserSourceId];
+            if (!claim || claim.payload.targetRef !== variant.recordId ||
+                claim.payload.property !== 'description.format_values.movement_speed.defined_tier_' + tier + '_display_percent' ||
+                claim.payload.value?.status !== 'known' || claim.payload.value?.decimal !== percent || claim.payload.value?.unit !== 'percent' ||
+                Object.keys(claim.payload.context ?? {}).length !== 0 || claim.payload.basis !== 'code-derived' ||
+                JSON.stringify(claim.payload.evidenceRefs) !== JSON.stringify([rawTierEvidenceId, evidenceId]) ||
+                JSON.stringify(claim.sourceRefs) !== JSON.stringify(expectedSourceRefs) || claim.reviewState !== 'pending' ||
+                !evidence || evidence.payload.sourceRef !== traitSourceId ||
+                JSON.stringify(evidence.sourceRefs) !== JSON.stringify(expectedSourceRefs) || evidence.reviewState !== 'pending' ||
+                !evidence.payload.safeSummary.includes('defined tier ' + tier + ' is ' + ratio) ||
+                !evidence.payload.safeSummary.includes('description-format value is ' + percent + ' percent') ||
+                !evidence.payload.safeSummary.includes('percentage format with a + prefix') ||
+                !evidence.payload.safeSummary.includes('default percentage scaling') ||
+                !evidence.payload.safeSummary.includes('not verified obtainable or game-tested') ||
+                !evidence.payload.safeSummary.includes('runtime movement outcome and localized-description compatibility are unverified')) {
+              throw new Error('W01 chainaxe tier 2-4 display claims must remain pending and closed to fixed trait/parser evidence');
+            }
           }
           const normalCharge = byId.get('darktide:claim:psyker:brain-burst-improved-normal-charge-base-time');
           const stickyCharge = byId.get('darktide:claim:psyker:brain-burst-improved-sticky-charge-base-time');
