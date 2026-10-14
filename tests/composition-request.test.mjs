@@ -89,8 +89,8 @@ test('UnitT50_composition-request-generates-default-and-representative-preview-p
   assert.deepEqual(Object.keys(implicitDefault.request), ['repository', 'commit', 'sourceRevision', 'manifestSha256']);
 
   const representative = await generateCompositionRequest({ input: 'w01-real-representative-candidate.json' });
-  assert.equal(representative.request.sourceRevision, '1a92c29a928bcd766a453b69555930bfb5d57c86b3dfbd593b34bac29404f20d');
-  assert.equal(representative.request.manifestSha256, 'c96229dfeeae86b3656648aada1119b4a3909d20fd8c444d676617d6e2ac0d79');
+  assert.equal(representative.request.sourceRevision, 'b4068895536183ee34d3beff4d6741c8d6355c3912dd7e8bb1955c110d7d7ddc');
+  assert.equal(representative.request.manifestSha256, '64cb59aa48064f5e2cc31a6279fa8ba074bee1a4659830658da7cae5805ae982');
   assert.deepEqual(Object.keys(representative.request), ['repository', 'commit', 'sourceRevision', 'manifestSha256']);
 });
 

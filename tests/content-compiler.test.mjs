@@ -414,7 +414,7 @@ test('UnitT82_selects_pending_representative_candidate_and_preserves_existing_re
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.equal(result.fixtureOnly, false);
   assert.equal(result.publicationEligible, false);
-  assert.equal(technical.records.length, 19);
+  assert.equal(technical.records.length, 28);
   assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
   assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
 
@@ -521,7 +521,15 @@ test('UnitT84_rejects_unsafe_or_duplicate_representative_build_options', async (
 // Purpose: Keep display parameters and the bounded smite multiplier path Source-owned, provenance-closed, pending, and separate from runtime outcomes.
 test('UnitT85_records_official_description_format_values_with_source_closure', async () => {
   const authoring = await loadAuthoring('w01-real-representative-candidate.json');
-  const previousRecords = authoring.records.slice(0, 13);
+  const previousRecords = structuredClone(authoring.records.slice(0, 13));
+  const priorSkill = previousRecords.find(record => record.recordId === 'darktide:skill:psyker:brain-burst-improved');
+  priorSkill.payload.claimRefs = ['darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier'];
+  const priorMultiplier = previousRecords.find(record => record.recordId === 'darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier');
+  priorMultiplier.payload.evidenceRefs = [
+    'darktide:evidence:psyker:brain-burst-improved-smite-damage-multiplier-code',
+    'darktide:evidence:psyker:brain-burst-improved-smite-damage-calculation-code',
+    'darktide:evidence:psyker:smite-action-damage-type-code'
+  ];
   const previousSources = authoring.sourceRefs.slice(0, 6);
   const result = compileSource(authoring);
   const technical = JSON.parse(result.files.get('technical.json').toString('utf8'));
@@ -530,8 +538,8 @@ test('UnitT85_records_official_description_format_values_with_source_closure', a
 
   assert.equal(sha256(canonicalJsonBytes(previousRecords)), '7f0426604bf9dce25f425306051436763caa76c025ae263ec048103a59a1db78');
   assert.equal(sha256(canonicalJsonBytes(previousSources)), 'e966620ba975058711b508c8401165d49a23b1124ec3d33e7d5bb20cbccb34a8');
-  assert.equal(technical.records.length, 19);
-  assert.equal(technical.sourceRefs.length, 10);
+  assert.equal(technical.records.length, 28);
+  assert.equal(technical.sourceRefs.length, 22);
   assert.equal(authoring.gameChanges.length, 0);
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.equal(result.fixtureOnly, false);
@@ -572,7 +580,8 @@ test('UnitT85_records_official_description_format_values_with_source_closure', a
   assert.deepEqual(multiplierClaim.payload.value, { status: 'known', decimal: '1.5', unit: 'ratio' });
   assert.deepEqual(multiplierClaim.payload.context, {});
   assert.deepEqual(multiplierClaim.payload.evidenceRefs, [
-    multiplierEvidenceId, calculationEvidenceId, actionEvidenceId
+    multiplierEvidenceId, calculationEvidenceId, actionEvidenceId,
+    'darktide:evidence:psyker:brain-burst-improved-legacy-analysis-smite-damage-multiplier'
   ]);
   assert.deepEqual(multiplierClaim.sourceRefs, [
     'public-code:psyker-buff-templates-ba6c148', calculationSourceId, smiteActionSourceId
@@ -588,6 +597,11 @@ test('UnitT85_records_official_description_format_values_with_source_closure', a
   assert.match(smiteActionSource.safeSummary, /09bae668c991438b9b72e9ef0549cc650bcd6ccd/);
   assert.match(smiteActionSource.safeSummary, /lines 538-562/);
 
+  const legacyMultiplierEvidence = byId.get('darktide:evidence:psyker:brain-burst-improved-legacy-analysis-smite-damage-multiplier');
+  assert.equal(legacyMultiplierEvidence.payload.sourceRef, 'legacy:mods:psyker:brain-burst-improved:analysis-en');
+  assert.match(legacyMultiplierEvidence.payload.safeSummary, /1.5 Smite damage multiplier/);
+  assert.match(legacyMultiplierEvidence.payload.safeSummary, /Smite-only calculation branch/);
+  assert.doesNotMatch(legacyMultiplierEvidence.payload.safeSummary, /100 × 1\.5 = 150/);
   const calculationEvidence = byId.get(calculationEvidenceId);
   assert.equal(calculationEvidence.payload.sourceRef, calculationSourceId);
   assert.deepEqual(calculationEvidence.sourceRefs, [calculationSourceId]);
@@ -640,6 +654,135 @@ test('UnitT85_records_official_description_format_values_with_source_closure', a
   assert.match(traitParser.safeSummary, /lines 8-20/);
 });
 
+// Scenario: The historical bilingual analysis is byte-exactly archived while concise claim-supporting summaries remain in pending evidence.
+// Purpose: Keep the full legacy findings archive-only and preserve the prior 1.13.1 bytes while attaching bounded 1.13.2 parameter claims.
+test('UnitT86_archives_legacy_analysis_and_closes_charge_parameter_claims', async () => {
+  const authoring = await loadAuthoring('w01-real-representative-candidate.json');
+  const result = compileSource(authoring);
+  const technical = JSON.parse(result.files.get('technical.json').toString('utf8'));
+  const byId = new Map(technical.records.map(record => [record.recordId, record]));
+  const sourcesById = new Map(authoring.sourceRefs.map(source => [source.sourceId, source]));
+  const enBytes = readFileSync(new URL('../content/legacy/mods/241ad76/psyker/en/psyker_brain_burst_improved.md', import.meta.url));
+  const zhBytes = readFileSync(new URL('../content/legacy/mods/241ad76/psyker/psyker_brain_burst_improved.md', import.meta.url));
+  const provenance = JSON.parse(readFileSync(new URL('../content/legacy/mods/241ad76/psyker/provenance.json', import.meta.url), 'utf8'));
+  const attrs = readFileSync(new URL('../.gitattributes', import.meta.url), 'utf8');
+
+  assert.equal(sha256(enBytes), '0865a4c7c71e2fc21ed2c1c8d19c87e5cfbea3523a7ae957684ba5ce7d420403');
+  assert.equal(sha256(zhBytes), 'cedc22b9acc3f69d0ef1906ce254b60ad5782d42699b636c2348ca80841acbef');
+  assert.match(attrs, /^\/content\/legacy\/mods\/241ad76\/psyker\/psyker_brain_burst_improved\.md -text$/m);
+  assert.match(attrs, /^\/content\/legacy\/mods\/241ad76\/psyker\/en\/psyker_brain_burst_improved\.md -text$/m);
+  assert.equal(provenance.legacyArchive.commit, '241ad76ce62330472aa423055a5b85db59bb6c0d');
+  assert.equal(provenance.legacyArchive.gameRelease, '1.13.1');
+  assert.deepEqual(provenance.legacyArchive.files.map(file => file.archivePath), [
+    'en/psyker_brain_burst_improved.md', 'psyker_brain_burst_improved.md'
+  ]);
+  assert.equal(provenance.sourceCodeComparison.uniqueFileCount, 15);
+  assert.equal(provenance.sourceCodeComparison.citationLocatorCount, 28);
+  assert.equal(provenance.sourceCodeComparison.allCitedBlobsIdentical, true);
+  assert.equal(provenance.sourceCodeComparison.historical.commit, '7e662fcda16219d775b84af50322be2e9cd9d62e');
+  assert.equal(provenance.sourceCodeComparison.target.commit, 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e');
+  assert.equal(provenance.versionDelta.targetCodeGameRelease, '1.13.2');
+  for (const row of provenance.sourceCodeComparison.files) {
+    assert.equal(row.historicalBlobSha1, row.currentBlobSha1);
+    const source = sourcesById.get(row.sourceId);
+    assert.ok(source, row.sourceId);
+    assert.equal(source.commit, provenance.sourceCodeComparison.target.commit);
+    assert.equal(source.path, row.path);
+  }
+
+  const legacyId = 'legacy:mods:psyker:brain-burst-improved:analysis-en';
+  const legacySource = sourcesById.get(legacyId);
+  assert.equal(legacySource.repository, 'https://github.com/SyuanTsai/Warhammer-40-000-DARKTIDE-Mods');
+  assert.equal(legacySource.commit, provenance.legacyArchive.commit);
+  assert.equal(legacySource.path, 'Game Info/releases/1.13.X/skills/talents/Psyker/en/psyker_brain_burst_improved.md');
+  const english = enBytes.toString('utf8');
+  const sourceSection = english.split('## Source-confirmed behavior and static derivation')[1]?.split('\n## ')[0];
+  const paragraphs = sourceSection.split(/\r?\n/).filter(line => line.startsWith('- ')).map(line => line.slice(2));
+  assert.equal(paragraphs.length, 6);
+
+  const evidenceIds = [
+    'darktide:evidence:psyker:brain-burst-improved-legacy-analysis-smite-damage-multiplier',
+    'darktide:evidence:psyker:brain-burst-improved-normal-charge-base-time-legacy-analysis',
+    'darktide:evidence:psyker:brain-burst-improved-sticky-charge-base-time-legacy-analysis',
+    'darktide:evidence:psyker:brain-burst-improved-lock-on-charge-legacy-analysis',
+    'darktide:evidence:psyker:brain-burst-improved-successful-hit-base-peril-legacy-analysis',
+    'darktide:evidence:psyker:brain-burst-improved-combined-charge-and-peril-example-legacy-analysis'
+  ];
+  const expectedSummaries = [
+    'The archived analysis identifies a 1.5 Smite damage multiplier and relates it to the Smite-only calculation branch. This is a bounded parameter relationship, not a final-damage result.',
+    'The archived analysis records a 3-second normal-charge default when smite_attack_speed=1. Under the described non-target-locked update conditions, charging and Peril can begin before a valid target is acquired. This is a template-level observation, not a universal runtime time.',
+    'The archived analysis records a 2-second sticky charge when smite_attack_speed=1, after acquiring a valid lockable target; target-locked mode cannot precharge or switch targets while the lock is maintained. If the target supports Smite stagger, maintaining the lock for 1 second applies one small stagger.',
+    'A fresh lock-on charge requires a valid Smite target and uses the normal 3-second default. Chaining can preserve current charge level, while changing the target resets the charge timer. If a target supports Smite stagger, more than 0.25 seconds locked applies one small stagger; these are bounded branch observations, not universal runtime timing.',
+    'The archived analysis records a 0.25 base Peril parameter paid only after successful damage; empty casts and misses do not enter that payment branch. The described payment is independent of charge level because the template does not enable use_charge.',
+    'Under the archived no-buff assumptions with smite_attack_speed=1, full charge is estimated at 20% Peril; a successful hit adds the 25% base cost for 45% total. Holding full charge for another second adds 9%/s. These are template-based estimates, not measured runtime outcomes.'
+  ];
+  const analysis = result.files.get('analysis.md').toString('utf8');
+  for (const [index, id] of evidenceIds.entries()) {
+    const evidence = byId.get(id);
+    assert.ok(evidence, id);
+    assert.equal(evidence.kind, 'evidence');
+    assert.equal(evidence.payload.sourceRef, legacyId);
+    assert.equal(evidence.payload.safeSummary, expectedSummaries[index]);
+    assert.ok(evidence.payload.safeSummary.length < paragraphs[index].length);
+    assert.equal(evidence.reviewState, 'pending');
+    assert.ok(evidence.sourceRefs.includes(legacyId));
+    assert.ok(analysis.includes(expectedSummaries[index]));
+    assert.equal(analysis.includes(paragraphs[index]), false);
+  }
+
+  const expectedClaims = [
+    ['darktide:claim:psyker:brain-burst-improved-normal-charge-base-time',
+      'action.psyker_smite.action_charge_target.default_charge_time', '3', 's', [evidenceIds[1], evidenceIds[3], evidenceIds[5]]],
+    ['darktide:claim:psyker:brain-burst-improved-sticky-charge-base-time',
+      'action.psyker_smite.action_charge_target_sticky.charge_time', '2', 's', [evidenceIds[2], evidenceIds[5]]],
+    ['darktide:claim:psyker:brain-burst-improved-successful-hit-base-peril-ratio',
+      'charge_template.psyker_smite_use_power.warp_charge_percent', '0.25', 'ratio', [evidenceIds[4], evidenceIds[5]]]
+  ];
+  for (const [id, property, decimal, unit, evidenceRefs] of expectedClaims) {
+    const claim = byId.get(id);
+    assert.ok(claim, id);
+    assert.deepEqual(claim.payload, {
+      targetRef: 'darktide:skill:psyker:brain-burst-improved',
+      property,
+      value: { status: 'known', decimal, unit },
+      context: {},
+      basis: 'code-observed',
+      evidenceRefs
+    });
+    assert.equal(claim.reviewState, 'pending');
+    assert.ok(claim.sourceRefs.includes(legacyId));
+    assert.equal(new Set(claim.sourceRefs).size, claim.sourceRefs.length);
+  }
+  const skill = byId.get('darktide:skill:psyker:brain-burst-improved');
+  assert.deepEqual(skill.payload.claimRefs, [
+    'darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier',
+    ...expectedClaims.map(([id]) => id)
+  ]);
+  const multiplier = byId.get('darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier');
+  assert.deepEqual(multiplier.payload.value, { status: 'known', decimal: '1.5', unit: 'ratio' });
+  assert.ok(multiplier.payload.evidenceRefs.includes(evidenceIds[0]));
+
+  const priorRecords = structuredClone(authoring.records.slice(0, 19));
+  priorRecords.find(record => record.recordId === skill.recordId).payload.claimRefs = [
+    'darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier'
+  ];
+  priorRecords.find(record => record.recordId === multiplier.recordId).payload.evidenceRefs = [
+    'darktide:evidence:psyker:brain-burst-improved-smite-damage-multiplier-code',
+    'darktide:evidence:psyker:brain-burst-improved-smite-damage-calculation-code',
+    'darktide:evidence:psyker:smite-action-damage-type-code'
+  ];
+  assert.equal(sha256(canonicalJsonBytes(priorRecords)), 'b2f1865c5c7ccce78a7ee9ee4d4e9a465b935983c6904b703ff06704a4985fbf');
+  assert.equal(sha256(canonicalJsonBytes(authoring.sourceRefs.slice(0, 10))), 'e58f2f9daf341d64e28ae2dcc36acbe7d83c7be45dbebfcc1c6f109ed6257023');
+  assert.equal(technical.records.length, 28);
+  assert.equal(technical.sourceRefs.length, 22);
+  assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
+  assert.deepEqual(authoring.reviewReceipts, []);
+  assert.deepEqual(authoring.gameChanges, []);
+  assert.equal(result.fixtureOnly, false);
+  assert.equal(result.publicationEligible, false);
+  assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
+});
+
 // Scenario: One explicit pending change record names a reviewed source record and safe evidence reference.
 // Purpose: Keep the same change ID in the generated technical record without adding MOD-impact fields.
 test('UnitT60_generates_explicit_game_change_without_mod_impact', () => {
@@ -682,8 +825,18 @@ function assertPsykerPrefixChangesAreScoped(candidateRecords, baselineRecords) {
   const candidate = candidateRecords.slice(0, 4);
   const baseline = baselineRecords.slice(0, 4);
   assert.deepEqual(candidate.map(record => record.recordId), baseline.map(record => record.recordId));
-  assert.deepEqual(candidate[1], baseline[1]);
   assert.deepEqual(candidate[3], baseline[3]);
+
+  const expectedClaimRefs = [
+    ...baseline[1].payload.claimRefs,
+    'darktide:claim:psyker:brain-burst-improved-normal-charge-base-time',
+    'darktide:claim:psyker:brain-burst-improved-sticky-charge-base-time',
+    'darktide:claim:psyker:brain-burst-improved-successful-hit-base-peril-ratio'
+  ];
+  assert.deepEqual(candidate[1].payload.claimRefs, expectedClaimRefs);
+  const skillWithoutAuthorizedChanges = structuredClone(candidate[1]);
+  skillWithoutAuthorizedChanges.payload.claimRefs = baseline[1].payload.claimRefs;
+  assert.deepEqual(skillWithoutAuthorizedChanges, baseline[1]);
 
   const termWithoutAuthorizedChanges = structuredClone(candidate[0]);
   termWithoutAuthorizedChanges.payload.technicalDefinitionEn = baseline[0].payload.technicalDefinitionEn;

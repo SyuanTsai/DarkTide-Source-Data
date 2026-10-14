@@ -76,9 +76,9 @@ jobs:
           }
           const representativeTechnical = JSON.parse(fs.readFileSync(path.join(representative.outputPath, 'technical.json'), 'utf8'));
           if (representativeTechnical.fixtureOnly !== false || representativeTechnical.publicationEligible !== false ||
-              representativeTechnical.records.length !== 19 || representativeTechnical.records.some(record => record.reviewState !== 'pending') ||
+              representativeTechnical.records.length !== 28 || representativeTechnical.records.some(record => record.reviewState !== 'pending') ||
               representativeTechnical.gameChanges.length !== 0) {
-            throw new Error('W01 representative candidate must contain nineteen pending records and no game changes');
+            throw new Error('W01 representative candidate must contain twenty-eight pending records and no game changes');
           }
           const byId = new Map(representativeTechnical.records.map(record => [record.recordId, record]));
           const variant = byId.get('darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation');
@@ -86,6 +86,17 @@ jobs:
               JSON.stringify(variant.payload.tierValues.map(item => item.value.decimal)) !== JSON.stringify(['0.17', '0.18', '0.19', '0.2']) ||
               variant.payload.obtainableTiers.status !== 'unknown' || variant.payload.obtainableTiers.reasonCode !== 'NOT_VERIFIED') {
             throw new Error('W01 representative blessing tiers do not match the pending raw-code candidate');
+          }
+          const normalCharge = byId.get('darktide:claim:psyker:brain-burst-improved-normal-charge-base-time');
+          const stickyCharge = byId.get('darktide:claim:psyker:brain-burst-improved-sticky-charge-base-time');
+          const onHitPeril = byId.get('darktide:claim:psyker:brain-burst-improved-successful-hit-base-peril-ratio');
+          if (!normalCharge || normalCharge.payload.property !== 'action.psyker_smite.action_charge_target.default_charge_time' ||
+              JSON.stringify(normalCharge.payload.value) !== JSON.stringify({ status: 'known', decimal: '3', unit: 's' }) || normalCharge.reviewState !== 'pending' ||
+              !stickyCharge || stickyCharge.payload.property !== 'action.psyker_smite.action_charge_target_sticky.charge_time' ||
+              JSON.stringify(stickyCharge.payload.value) !== JSON.stringify({ status: 'known', decimal: '2', unit: 's' }) || stickyCharge.reviewState !== 'pending' ||
+              !onHitPeril || onHitPeril.payload.property !== 'charge_template.psyker_smite_use_power.warp_charge_percent' ||
+              JSON.stringify(onHitPeril.payload.value) !== JSON.stringify({ status: 'known', decimal: '0.25', unit: 'ratio' }) || onHitPeril.reviewState !== 'pending') {
+            throw new Error('W01 representative charge-time and on-hit peril claims must remain pending source parameters');
           }
           const duration = byId.get('darktide:claim:chainaxe:p1-movement-speed-on-activation-duration');
           if (!duration || duration.payload.property !== 'template.buff_override.active_duration' ||
