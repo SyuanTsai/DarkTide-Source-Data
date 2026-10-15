@@ -76,9 +76,14 @@ jobs:
           }
           const representativeTechnical = JSON.parse(fs.readFileSync(path.join(representative.outputPath, 'technical.json'), 'utf8'));
           if (representativeTechnical.fixtureOnly !== false || representativeTechnical.publicationEligible !== false ||
-              representativeTechnical.records.length !== 34 || representativeTechnical.records.some(record => record.reviewState !== 'pending') ||
+              representativeTechnical.records.length !== 40 || representativeTechnical.sourceRefs.length !== 24 ||
+              representativeTechnical.records.some(record => record.reviewState !== 'pending') ||
               representativeTechnical.gameChanges.length !== 0) {
-            throw new Error('W01 representative candidate must contain thirty-four pending records and no game changes');
+            throw new Error('W01 representative candidate must contain forty pending records, twenty-four sources, and no game changes');
+          }
+          if (representative.receipt.sourceRevision !== 'f9917e5f8c14e1fd768f502b9c0cafa59602cae1ac5e9bf8372e467268de38e2' ||
+              representative.receipt.manifestSha256 !== 'e8ec9697ce5b15d3e9e040a2c023f18db23e2fa7ab41ea25c28f75eb75e85835') {
+            throw new Error('W01 forty-record representative revision changed unexpectedly');
           }
           const byId = new Map(representativeTechnical.records.map(record => [record.recordId, record]));
           const variant = byId.get('darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation');
@@ -144,6 +149,95 @@ jobs:
               rawAttack.payload.interpolation.status !== 'unknown' || rawArmor.payload.interpolation.status !== 'unknown') {
             throw new Error('W01 representative raw parameter tables must remain ordered and uninterpolated');
           }
+          const attackStatId = 'darktide:stat-definition:chainaxe-p1-m1-default-light-attack-power-table';
+          const armorStatId = 'darktide:stat-definition:chainaxe-p1-m1-default-light-armored-parameter-table';
+          const attackStat = byId.get(attackStatId);
+          const armorStat = byId.get(armorStatId);
+          const weapon = byId.get('darktide:weapon:chainaxe:p1-m1');
+          const attackClaimIds = [
+            'darktide:claim:chainaxe:p1-m1-default-light-attack-power-comparison-60',
+            'darktide:claim:chainaxe:p1-m1-default-light-attack-power-comparison-80'
+          ];
+          const armorClaimIds = [
+            'darktide:claim:chainaxe:p1-m1-default-light-armored-modifier-comparison-60',
+            'darktide:claim:chainaxe:p1-m1-default-light-armored-modifier-comparison-80'
+          ];
+          if (!weapon || JSON.stringify(weapon.payload.statRefs) !== JSON.stringify([attackStatId, armorStatId]) ||
+              !attackStat || JSON.stringify(attackStat.payload.claimRefs) !== JSON.stringify(attackClaimIds) ||
+              !armorStat || JSON.stringify(armorStat.payload.claimRefs) !== JSON.stringify(armorClaimIds)) {
+            throw new Error('W01 chainaxe comparison claims must be reachable through the weapon stat references');
+          }
+          const comparisonSources = {
+            template: 'public-code:chainaxe-p1-m1-ba6c148',
+            traits: 'public-code:damage-trait-templates-ba6c148',
+            tweak: 'public-code:weapon-tweak-templates-ba6c148',
+            profile: 'public-code:chainaxe-default-light-profile-ba6c148',
+            armorSettings: 'public-code:damage-profile-settings-ba6c148'
+          };
+          const attackSources = [comparisonSources.template, comparisonSources.traits, comparisonSources.tweak, comparisonSources.profile];
+          const armorSources = [...attackSources, comparisonSources.armorSettings];
+          const comparisonEvidence = {
+            attack: 'darktide:evidence:chainaxe:p1-m1-default-light-attack-power-comparison-code',
+            armor: 'darktide:evidence:chainaxe:p1-m1-default-light-armored-modifier-comparison-code'
+          };
+          const expectedComparisonClaims = [
+            { id: attackClaimIds[0], targetRef: attackStatId, weaponStat: 'chainaxe_dps_stat', comparison: '60', property: 'damage_templates.default_light_chainaxe.targets[1].power_distribution.attack', decimal: '113', unit: 'point', evidenceId: comparisonEvidence.attack, sourceRefs: attackSources },
+            { id: attackClaimIds[1], targetRef: attackStatId, weaponStat: 'chainaxe_dps_stat', comparison: '80', property: 'damage_templates.default_light_chainaxe.targets[1].power_distribution.attack', decimal: '119', unit: 'point', evidenceId: comparisonEvidence.attack, sourceRefs: attackSources },
+            { id: armorClaimIds[0], targetRef: armorStatId, weaponStat: 'chainaxe_armor_pierce_stat', comparison: '60', property: 'damage_templates.default_light_chainaxe.targets[1].armor_damage_modifier.attack[armor_types.armored]', decimal: '1.6023', unit: 'ratio', evidenceId: comparisonEvidence.armor, sourceRefs: armorSources },
+            { id: armorClaimIds[1], targetRef: armorStatId, weaponStat: 'chainaxe_armor_pierce_stat', comparison: '80', property: 'damage_templates.default_light_chainaxe.targets[1].armor_damage_modifier.attack[armor_types.armored]', decimal: '1.7604', unit: 'ratio', evidenceId: comparisonEvidence.armor, sourceRefs: armorSources }
+          ];
+          for (const expected of expectedComparisonClaims) {
+            const claim = byId.get(expected.id);
+            const context = claim?.payload.context;
+            const value = claim?.payload.value;
+            if (!claim || claim.kind !== 'claim' || claim.owner !== 'source' || claim.reviewState !== 'pending' ||
+                claim.payload.targetRef !== expected.targetRef || claim.payload.property !== expected.property ||
+                claim.payload.basis !== 'code-derived' ||
+                JSON.stringify(Object.keys(context ?? {}).sort()) !== JSON.stringify(['comparisonStat', 'weaponStat']) ||
+                context.weaponStat !== expected.weaponStat || context.comparisonStat?.status !== 'known' ||
+                context.comparisonStat?.decimal !== expected.comparison || context.comparisonStat?.unit !== 'percent' ||
+                JSON.stringify(Object.keys(context.comparisonStat ?? {}).sort()) !== JSON.stringify(['decimal', 'status', 'unit']) ||
+                value?.status !== 'known' || value?.decimal !== expected.decimal || value?.unit !== expected.unit ||
+                JSON.stringify(claim.payload.evidenceRefs) !== JSON.stringify([expected.evidenceId]) ||
+                JSON.stringify(claim.sourceRefs) !== JSON.stringify(expected.sourceRefs) ||
+                new Set(claim.sourceRefs).size !== claim.sourceRefs.length) {
+              throw new Error(expected.id + ': W01 comparison claim context, value, target, or source closure changed');
+            }
+          }
+          const comparisonSourcePaths = new Map([
+            [comparisonSources.template, 'scripts/settings/equipment/weapon_templates/chain_axes/chainaxe_p1_m1.lua'],
+            [comparisonSources.traits, 'scripts/settings/equipment/weapon_templates/weapon_trait_templates/damage_trait_templates.lua'],
+            [comparisonSources.tweak, 'scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua'],
+            [comparisonSources.profile, 'scripts/settings/equipment/weapon_templates/chain_axes/settings_templates/chain_axe_damage_profile_templates.lua'],
+            [comparisonSources.armorSettings, 'scripts/settings/damage/damage_profile_settings.lua']
+          ]);
+          const sourceById = new Map(representativeTechnical.sourceRefs.map(source => [source.sourceId, source]));
+          for (const [sourceId, sourcePath] of comparisonSourcePaths) {
+            const source = sourceById.get(sourceId);
+            if (!source || source.fixtureOnly !== false || source.commit !== 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e' ||
+                source.path !== sourcePath || source.snapshot?.commit !== 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e') {
+              throw new Error(sourceId + ': W01 comparison source reference changed');
+            }
+          }
+          for (const { evidenceId, sourceRefs, summaryFragments } of [
+            {
+              evidenceId: comparisonEvidence.attack,
+              sourceRefs: attackSources,
+              summaryFragments: ['analysis-selected comparison inputs are 60 percent and 80 percent', 'not an obtainable range or final damage']
+            },
+            {
+              evidenceId: comparisonEvidence.armor,
+              sourceRefs: armorSources,
+              summaryFragments: ['analysis-selected comparison inputs are 60 percent and 80 percent', 'not an obtainable range or final damage']
+            }
+          ]) {
+            const evidence = byId.get(evidenceId);
+            if (!evidence || evidence.kind !== 'evidence' || evidence.owner !== 'source' || evidence.reviewState !== 'pending' ||
+                evidence.payload.sourceRef !== comparisonSources.tweak || JSON.stringify(evidence.sourceRefs) !== JSON.stringify(sourceRefs) ||
+                summaryFragments.some(fragment => !evidence.payload.safeSummary.includes(fragment))) {
+              throw new Error(evidenceId + ': W01 comparison evidence must remain pending and closed to its direct source refs');
+            }
+          }
           for (const filename of ['analysis.md', 'game-changes.md']) {
             const markdown = fs.readFileSync(path.join(representative.outputPath, filename), 'utf8');
             if (!markdown.startsWith('> **Pending review:** not approved for publication.\n\n') || markdown.includes('synthetic contract output')) {
@@ -163,6 +257,7 @@ jobs:
             '- Representative source revision: ' + representative.receipt.sourceRevision,
             '- Representative manifest SHA-256: ' + representative.receipt.manifestSha256,
             '- Representative output: ' + representative.receipt.outputDirectory,
+            '- Representative records/sources: ' + representativeTechnical.records.length + '/' + representativeTechnical.sourceRefs.length + '.',
             '- Review scope: docs/w01-real-claim-review.md',
             '',
             '- Existing fixture status: fixture-only, pending, publication-ineligible.',
