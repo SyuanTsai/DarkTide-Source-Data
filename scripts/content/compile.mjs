@@ -26,7 +26,7 @@ const RECORD_PAYLOAD_FIELDS = new Map([
   ['blessing', new Set(['variantRefs'])],
   ['blessing-variant', new Set(['blessingRef', 'weaponRefs', 'definedTiers', 'obtainableTiers', 'tierValues'])],
   ['weapon', new Set(['familyId', 'markId', 'templateKey', 'statRefs', 'attackProfileRefs', 'dataCoverage', 'armorRefs', 'theoreticalInputRange'])],
-  ['stat-definition', new Set(['quantity', 'inputUnit', 'outputUnit', 'theoreticalInputRange', 'obtainableInputRange', 'curveRef'])],
+  ['stat-definition', new Set(['quantity', 'inputUnit', 'outputUnit', 'theoreticalInputRange', 'obtainableInputRange', 'curveRef', 'claimRefs'])],
   ['stat-curve', new Set(['inputUnit', 'outputUnit', 'knots', 'interpolation', 'edgePolicy'])],
   ['term', new Set(['termKey', 'contextKey', 'technicalDefinitionEn', 'claimRefs'])]
 ]);
@@ -56,7 +56,11 @@ const TYPED_VALUE_FIELDS = new Set([
   'status', 'decimal', 'min', 'max', 'unit', 'step', 'inclusive', 'reasonCode'
 ]);
 const CLAIM_BASES = new Set(['code-observed', 'code-derived', 'game-tested', 'unknown']);
-const CONTEXT_FIELDS = new Set(['attackMode', 'charge', 'armorClass', 'targetId', 'hitZone', 'critical', 'weakspot', 'distance']);
+const CONTEXT_FIELDS = new Set([
+  'attackMode', 'charge', 'armorClass', 'targetId', 'hitZone', 'critical', 'weakspot', 'distance',
+  'weaponStat', 'comparisonStat'
+]);
+const COMPARISON_STAT_FIELDS = new Set(['status', 'decimal', 'unit']);
 const DATA_COVERAGE_FIELDS = new Set(['status', 'missing']);
 const DATA_COVERAGE_MISSING_FIELDS = new Set(['field', 'reasonCode', 'sourceRef']);
 const TIER_VALUE_FIELDS = new Set(['tier', 'value']);
@@ -198,8 +202,19 @@ function validateRecordPayload(record, location) {
       throw new Error(location + '.payload.context must be an object');
     }
     assertOnlyKeys(payload.context, CONTEXT_FIELDS, location + '.payload.context', 'claim context');
+    if (Object.hasOwn(payload.context, 'weaponStat') !== Object.hasOwn(payload.context, 'comparisonStat')) {
+      throw new Error(location + '.payload.context must pair weaponStat with comparisonStat');
+    }
     for (const [key, value] of Object.entries(payload.context)) {
-      if (['charge', 'distance'].includes(key) && typeof value === 'object' && value !== null) {
+      if (key === 'weaponStat') {
+        requireString(value, location + '.payload.context.weaponStat');
+      } else if (key === 'comparisonStat') {
+        validateTypedValue(value, location + '.payload.context.comparisonStat');
+        assertOnlyKeys(value, COMPARISON_STAT_FIELDS, location + '.payload.context.comparisonStat', 'comparison stat');
+        if (value.status !== 'known' || typeof value.decimal !== 'string' || value.unit !== 'percent') {
+          throw new Error(location + '.payload.context.comparisonStat must be a known scalar percent');
+        }
+      } else if (['charge', 'distance'].includes(key) && typeof value === 'object' && value !== null) {
         validateTypedValue(value, location + '.payload.context.' + key);
       } else if (typeof value !== 'string' && typeof value !== 'boolean') {
         throw new Error(location + '.payload.context.' + key + ' must be a string or boolean');

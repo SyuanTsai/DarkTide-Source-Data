@@ -414,7 +414,7 @@ test('UnitT82_selects_pending_representative_candidate_and_preserves_existing_re
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.equal(result.fixtureOnly, false);
   assert.equal(result.publicationEligible, false);
-  assert.equal(technical.records.length, 34);
+  assert.equal(technical.records.length, 40);
   assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
   assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
 
@@ -536,10 +536,10 @@ test('UnitT85_records_official_description_format_values_with_source_closure', a
   const byId = new Map(technical.records.map(record => [record.recordId, record]));
   const sourcesById = new Map(authoring.sourceRefs.map(source => [source.sourceId, source]));
 
-  assert.equal(sha256(canonicalJsonBytes(previousRecords)), '7f0426604bf9dce25f425306051436763caa76c025ae263ec048103a59a1db78');
-  assert.equal(sha256(canonicalJsonBytes(previousSources)), 'e966620ba975058711b508c8401165d49a23b1124ec3d33e7d5bb20cbccb34a8');
-  assert.equal(technical.records.length, 34);
-  assert.equal(technical.sourceRefs.length, 22);
+  assert.equal(sha256(canonicalJsonBytes(previousRecords)), 'b769359ba3426b2ef6d6776d0de652ad0ab134bea3cf8cea5d96d0fcd0df5d40');
+  assert.equal(sha256(canonicalJsonBytes(previousSources)), '26c6705801b480cce3140ee13f0a4fb48869264814ee1aad650ff5fb25c92eee');
+  assert.equal(technical.records.length, 40);
+  assert.equal(technical.sourceRefs.length, 24);
   assert.equal(authoring.gameChanges.length, 0);
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.equal(result.fixtureOnly, false);
@@ -771,10 +771,10 @@ test('UnitT86_archives_legacy_analysis_and_closes_charge_parameter_claims', asyn
     'darktide:evidence:psyker:brain-burst-improved-smite-damage-calculation-code',
     'darktide:evidence:psyker:smite-action-damage-type-code'
   ];
-  assert.equal(sha256(canonicalJsonBytes(priorRecords)), 'b2f1865c5c7ccce78a7ee9ee4d4e9a465b935983c6904b703ff06704a4985fbf');
-  assert.equal(sha256(canonicalJsonBytes(authoring.sourceRefs.slice(0, 10))), 'e58f2f9daf341d64e28ae2dcc36acbe7d83c7be45dbebfcc1c6f109ed6257023');
-  assert.equal(technical.records.length, 34);
-  assert.equal(technical.sourceRefs.length, 22);
+  assert.equal(sha256(canonicalJsonBytes(priorRecords)), 'e1d33fa3dcd4b5f13da8d67081ee7e5972949e20beb2a00b265a4788e1672271');
+  assert.equal(sha256(canonicalJsonBytes(authoring.sourceRefs.slice(0, 10))), 'a3af95d1e5158f28393e8f0d56155a292f22cc4fc68ac939627158fb330a1951');
+  assert.equal(technical.records.length, 40);
+  assert.equal(technical.sourceRefs.length, 24);
   assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.deepEqual(authoring.gameChanges, []);
@@ -795,9 +795,9 @@ test('UnitT87_closes_defined_chainaxe_tier_2_to_4_display_values', async () => {
   const rawTierEvidenceId = 'darktide:evidence:chainaxe:p1-movement-speed-on-activation-code';
   const expectedSourceRefs = [traitSourceId, parserSourceId];
 
-  assert.equal(sha256(canonicalJsonBytes(authoring.records.slice(0, 28))), '2d9ab6bd82ddfa4e9ab57756128df06195c1aaadc7f8c3f7ec3ea862b05da4a3');
-  assert.equal(technical.records.length, 34);
-  assert.equal(technical.sourceRefs.length, 22);
+  assert.equal(sha256(canonicalJsonBytes(authoring.records.slice(0, 28))), '477ce3cd7c874fc5964c35a0f68c099992e6ef1240fb0a060bc22713cb83d25b');
+  assert.equal(technical.records.length, 40);
+  assert.equal(technical.sourceRefs.length, 24);
   assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
   assert.equal(result.fixtureOnly, false);
   assert.equal(result.publicationEligible, false);
@@ -837,6 +837,158 @@ test('UnitT87_closes_defined_chainaxe_tier_2_to_4_display_values', async () => {
     assert.match(evidence.payload.safeSummary, /runtime movement outcome.*localized-description compatibility are unverified/);
   }
 
+  assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
+});
+
+// Scenario: The chainaxe sample adds analysis-selected 60% and 80% comparisons for two default-light parameters.
+// Purpose: Keep derived values, typed comparison inputs, source evidence, and weapon stat references closed and pending.
+test('UnitT88_records_selected_chainaxe_stat_comparisons_with_full_source_closure', async () => {
+  const authoring = await loadAuthoring('w01-real-representative-candidate.json');
+  const result = compileSource(authoring);
+  const technical = JSON.parse(result.files.get('technical.json').toString('utf8'));
+  const byId = new Map(technical.records.map(record => [record.recordId, record]));
+  const sourcesById = new Map(authoring.sourceRefs.map(source => [source.sourceId, source]));
+  const weaponId = 'darktide:weapon:chainaxe:p1-m1';
+  const attackStatId = 'darktide:stat-definition:chainaxe-p1-m1-default-light-attack-power-table';
+  const armorStatId = 'darktide:stat-definition:chainaxe-p1-m1-default-light-armored-parameter-table';
+  const templateSourceId = 'public-code:chainaxe-p1-m1-ba6c148';
+  const traitsSourceId = 'public-code:damage-trait-templates-ba6c148';
+  const tweakSourceId = 'public-code:weapon-tweak-templates-ba6c148';
+  const attackProfileSourceId = 'public-code:chainaxe-default-light-profile-ba6c148';
+  const armorSettingsSourceId = 'public-code:damage-profile-settings-ba6c148';
+  const attackEvidenceId = 'darktide:evidence:chainaxe:p1-m1-default-light-attack-power-comparison-code';
+  const armorEvidenceId = 'darktide:evidence:chainaxe:p1-m1-default-light-armored-modifier-comparison-code';
+  const attackSources = [templateSourceId, traitsSourceId, tweakSourceId, attackProfileSourceId];
+  const armorSources = [...attackSources, armorSettingsSourceId];
+  const expectedClaims = [
+    {
+      id: 'darktide:claim:chainaxe:p1-m1-default-light-attack-power-comparison-60',
+      targetRef: attackStatId,
+      weaponStat: 'chainaxe_dps_stat',
+      comparison: '60',
+      property: 'damage_templates.default_light_chainaxe.targets[1].power_distribution.attack',
+      decimal: '113',
+      unit: 'point',
+      sourceRefs: attackSources,
+      evidenceRefs: [attackEvidenceId]
+    },
+    {
+      id: 'darktide:claim:chainaxe:p1-m1-default-light-attack-power-comparison-80',
+      targetRef: attackStatId,
+      weaponStat: 'chainaxe_dps_stat',
+      comparison: '80',
+      property: 'damage_templates.default_light_chainaxe.targets[1].power_distribution.attack',
+      decimal: '119',
+      unit: 'point',
+      sourceRefs: attackSources,
+      evidenceRefs: [attackEvidenceId]
+    },
+    {
+      id: 'darktide:claim:chainaxe:p1-m1-default-light-armored-modifier-comparison-60',
+      targetRef: armorStatId,
+      weaponStat: 'chainaxe_armor_pierce_stat',
+      comparison: '60',
+      property: 'damage_templates.default_light_chainaxe.targets[1].armor_damage_modifier.attack[armor_types.armored]',
+      decimal: '1.6023',
+      unit: 'ratio',
+      sourceRefs: armorSources,
+      evidenceRefs: [armorEvidenceId]
+    },
+    {
+      id: 'darktide:claim:chainaxe:p1-m1-default-light-armored-modifier-comparison-80',
+      targetRef: armorStatId,
+      weaponStat: 'chainaxe_armor_pierce_stat',
+      comparison: '80',
+      property: 'damage_templates.default_light_chainaxe.targets[1].armor_damage_modifier.attack[armor_types.armored]',
+      decimal: '1.7604',
+      unit: 'ratio',
+      sourceRefs: armorSources,
+      evidenceRefs: [armorEvidenceId]
+    }
+  ];
+  const attackEvidence = byId.get(attackEvidenceId);
+  const armorEvidence = byId.get(armorEvidenceId);
+  const weapon = byId.get(weaponId);
+  const attackStat = byId.get(attackStatId);
+  const armorStat = byId.get(armorStatId);
+
+  assert.equal(technical.records.length, 40);
+  assert.equal(technical.sourceRefs.length, 24);
+  assert.deepEqual(weapon.payload.statRefs, [attackStatId, armorStatId]);
+  assert.deepEqual(attackStat.payload.claimRefs, expectedClaims.slice(0, 2).map(claim => claim.id));
+  assert.deepEqual(armorStat.payload.claimRefs, expectedClaims.slice(2).map(claim => claim.id));
+  assert.ok(attackEvidence, attackEvidenceId);
+  assert.ok(armorEvidence, armorEvidenceId);
+  assert.equal(attackEvidence.payload.sourceRef, tweakSourceId);
+  assert.deepEqual(attackEvidence.sourceRefs, attackSources);
+  assert.match(attackEvidence.payload.safeSummary, /analysis-selected comparison inputs are 60 percent and 80 percent/);
+  assert.match(attackEvidence.payload.safeSummary, /lerp\(0\.25, 0\.75, 0\.60\) = 0\.55.*lerp\(0\.25, 0\.75, 0\.80\) = 0\.65/);
+  assert.match(attackEvidence.payload.safeSummary, /yielding lerp\(80, 140, 0\.55\) = 113.*lerp\(80, 140, 0\.65\) = 119 attack-power points/);
+  assert.match(attackEvidence.payload.safeSummary, /not an obtainable range or final damage/);
+  assert.equal(armorEvidence.payload.sourceRef, tweakSourceId);
+  assert.deepEqual(armorEvidence.sourceRefs, armorSources);
+  assert.match(armorEvidence.payload.safeSummary, /analysis-selected comparison inputs are 60 percent and 80 percent/);
+  assert.match(armorEvidence.payload.safeSummary, /lerp\(0\.1, 0\.95, 0\.60\) = 0\.61.*lerp\(0\.1, 0\.95, 0\.80\) = 0\.78/);
+  assert.match(armorEvidence.payload.safeSummary, /yielding lerp\(1\.035, 1\.965, 0\.61\) = 1\.6023.*lerp\(1\.035, 1\.965, 0\.78\) = 1\.7604 ratios/);
+  assert.match(armorEvidence.payload.safeSummary, /not an obtainable range or final damage/);
+
+  for (const sourceId of [templateSourceId, traitsSourceId, tweakSourceId, attackProfileSourceId, armorSettingsSourceId]) {
+    const source = sourcesById.get(sourceId);
+    assert.ok(source, sourceId);
+    assert.equal(source.commit, 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e');
+  }
+  assert.equal(sourcesById.get(templateSourceId).path,
+    'scripts/settings/equipment/weapon_templates/chain_axes/chainaxe_p1_m1.lua');
+  assert.equal(sourcesById.get(traitsSourceId).path,
+    'scripts/settings/equipment/weapon_templates/weapon_trait_templates/damage_trait_templates.lua');
+  assert.equal(sourcesById.get(tweakSourceId).path,
+    'scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua');
+  assert.match(sourcesById.get(templateSourceId).safeSummary, /chainaxe_dps_stat.*default_melee_dps_stat/);
+  assert.match(sourcesById.get(templateSourceId).safeSummary, /chainaxe_armor_pierce_stat.*default_armor_pierce_stat/);
+  assert.match(sourcesById.get(traitsSourceId).safeSummary, /0\.25.*0\.75/);
+  assert.match(sourcesById.get(traitsSourceId).safeSummary, /0\.1.*0\.95/);
+  assert.match(sourcesById.get(tweakSourceId).safeSummary, /trait min\/max.*player stat/);
+  assert.match(sourcesById.get(tweakSourceId).safeSummary, /raw profile endpoints/);
+
+  for (const expected of expectedClaims) {
+    const claim = byId.get(expected.id);
+    assert.ok(claim, expected.id);
+    assert.deepEqual(claim.payload, {
+      targetRef: expected.targetRef,
+      property: expected.property,
+      value: { status: 'known', decimal: expected.decimal, unit: expected.unit },
+      context: {
+        weaponStat: expected.weaponStat,
+        comparisonStat: { status: 'known', decimal: expected.comparison, unit: 'percent' }
+      },
+      basis: 'code-derived',
+      evidenceRefs: expected.evidenceRefs
+    });
+    assert.equal(claim.owner, 'source');
+    assert.equal(claim.reviewState, 'pending');
+    assert.deepEqual(claim.sourceRefs, expected.sourceRefs);
+    assert.equal(new Set(claim.sourceRefs).size, claim.sourceRefs.length);
+    assert.equal(claim.sourceRefs.every(sourceId => sourcesById.has(sourceId)), true);
+    assert.doesNotMatch(JSON.stringify(claim.payload), /obtainable|range/i);
+  }
+
+  const falselyLabelledRange = structuredClone(authoring);
+  falselyLabelledRange.records.find(record => record.recordId === expectedClaims[0].id)
+    .payload.context.obtainableRange = { status: 'known', min: '60', max: '80', unit: 'percent' };
+  assert.throws(() => compileSource(falselyLabelledRange), /claim context field is not allowed.*obtainableRange/);
+  const rangeComparisonStat = structuredClone(authoring);
+  rangeComparisonStat.records.find(record => record.recordId === expectedClaims[0].id).payload.context.comparisonStat = {
+    status: 'known', min: '60', max: '80', unit: 'percent'
+  };
+  assert.throws(() => compileSource(rangeComparisonStat), /comparison stat field is not allowed/);
+  const unpairedComparisonContext = structuredClone(authoring);
+  delete unpairedComparisonContext.records.find(record => record.recordId === expectedClaims[0].id)
+    .payload.context.comparisonStat;
+  assert.throws(() => compileSource(unpairedComparisonContext), /must pair weaponStat with comparisonStat/);
+  assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
+  assert.deepEqual(authoring.gameChanges, []);
+  assert.deepEqual(authoring.reviewReceipts, []);
+  assert.equal(result.publicationEligible, false);
   assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
 });
 
