@@ -719,6 +719,14 @@ function validateAuthoring(authoring) {
       }
     }
     if (record.kind !== 'weapon') continue;
+    for (const attack of record.payload.displayedAttacks ?? []) {
+      for (const evidenceRef of attack.evidenceRefs ?? []) {
+        const evidence = recordsById.get(evidenceRef);
+        if (evidence && evidence.kind !== 'evidence') {
+          throw new Error('displayedAttacks evidenceRefs must reference evidence records: ' + evidenceRef);
+        }
+      }
+    }
     for (const claimRef of record.payload.claimRefs ?? []) {
       const claim = recordsById.get(claimRef);
       if (!claim || claim.kind !== 'claim') throw new Error('weapon claimRefs must reference claims: ' + claimRef);

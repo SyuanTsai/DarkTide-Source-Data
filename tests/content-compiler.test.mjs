@@ -1380,6 +1380,11 @@ test('UnitT89_validates_displayed_attack_role_summaries_and_claim_display_values
     .payload.displayedAttacks[0].evidenceRefs = ['fixture:evidence:missing'];
   assert.throws(() => compileSource(unresolvedNestedEvidence), /unresolved evidenceRefs reference/);
 
+  const nonEvidenceNestedEvidence = structuredClone(authoring);
+  nonEvidenceNestedEvidence.records.find(record => record.recordId === 'fixture:weapon:chainaxe:m1')
+    .payload.displayedAttacks[0].evidenceRefs = ['fixture:claim:cooldown'];
+  assert.throws(() => compileSource(nonEvidenceNestedEvidence), /displayedAttacks evidenceRefs must reference evidence records/);
+
   const zeroBasedSegment = structuredClone(authoring);
   zeroBasedSegment.records.find(record => record.recordId === 'fixture:weapon:chainaxe:m1')
     .payload.displayedAttacks[0].segments[0].index = 0;
