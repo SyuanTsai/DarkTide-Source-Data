@@ -1,7 +1,10 @@
 import { createHash } from 'node:crypto';
 
 const REVIEW_STATES = new Set(['draft', 'pending', 'approved', 'rejected', 'stale']);
-const UNITS = new Set(['ratio', 'percent', 's', 'm', 'damage', 'impact', 'point', 'rating']);
+const UNITS = new Set([
+  'ratio', 'percent', 's', 'm', 'damage', 'impact', 'point', 'rating', 'attack-power-point',
+  'stamina-point', 'stamina-point-per-second', 'dodge-count'
+]);
 const DECIMAL = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/;
 const WEB_OWNED_FIELDS = new Set([
   'announcement', 'detailSections', 'errata', 'localizations', 'official', 'presentation',
@@ -21,11 +24,11 @@ const RECORD_FIELDS = new Set([
 ]);
 const RECORD_PAYLOAD_FIELDS = new Map([
   ['skill', new Set(['termRef', 'claimRefs'])],
-  ['claim', new Set(['targetRef', 'property', 'value', 'context', 'basis', 'evidenceRefs'])],
+  ['claim', new Set(['targetRef', 'property', 'value', 'displayValue', 'displayFormat', 'context', 'basis', 'evidenceRefs'])],
   ['evidence', new Set(['sourceRef', 'safeSummary'])],
   ['blessing', new Set(['variantRefs'])],
   ['blessing-variant', new Set(['blessingRef', 'weaponRefs', 'definedTiers', 'obtainableTiers', 'tierValues'])],
-  ['weapon', new Set(['familyId', 'markId', 'templateKey', 'statRefs', 'attackProfileRefs', 'dataCoverage', 'armorRefs', 'theoreticalInputRange'])],
+  ['weapon', new Set(['familyId', 'markId', 'templateKey', 'statRefs', 'claimRefs', 'attackProfileRefs', 'displayedAttacks', 'dataCoverage', 'armorRefs', 'theoreticalInputRange'])],
   ['stat-definition', new Set(['quantity', 'inputUnit', 'outputUnit', 'theoreticalInputRange', 'obtainableInputRange', 'curveRef', 'claimRefs'])],
   ['stat-curve', new Set(['inputUnit', 'outputUnit', 'knots', 'interpolation', 'edgePolicy'])],
   ['term', new Set(['termKey', 'contextKey', 'technicalDefinitionEn', 'claimRefs'])]
@@ -57,10 +60,76 @@ const TYPED_VALUE_FIELDS = new Set([
 ]);
 const CLAIM_BASES = new Set(['code-observed', 'code-derived', 'game-tested', 'unknown']);
 const CONTEXT_FIELDS = new Set([
-  'attackMode', 'charge', 'armorClass', 'targetId', 'hitZone', 'critical', 'weakspot', 'distance',
+  'weaponRef', 'profile', 'attackMode', 'charge', 'armorClass', 'targetId', 'hitZone', 'critical', 'weakspot', 'distance',
   'weaponStat', 'comparisonStat'
 ]);
 const COMPARISON_STAT_FIELDS = new Set(['status', 'decimal', 'unit']);
+const DISPLAY_FORMATS = new Set([
+  'fixed-2', 'fixed-2-signed', 'percentage-fixed-2', 'multiplier-percent-fixed-2-signed', 'floor-fixed-2'
+]);
+const DISPLAY_VALUE_RULES = [
+  {
+    weaponStat: 'chainaxe_dps_stat',
+    property: /^damage_templates\.(default_light_chainaxe|heavy_chainaxe|light_chainaxe_tank|heavy_chainaxe_smiter)\.targets\[1\]\.power_distribution\.attack$/,
+    format: 'fixed-2', rawUnit: 'attack-power-point', displayUnit: 'attack-power-point',
+    profileCapture: 1,
+    modeByProfile: { default_light_chainaxe: 'light', heavy_chainaxe: 'heavy', light_chainaxe_tank: 'light', heavy_chainaxe_smiter: 'heavy' }
+  },
+  {
+    weaponStat: 'chainaxe_sawing_stat',
+    property: /^base_stats\.chainaxe_sawing_stat\.damage\.action_[a-z0-9_]+\.overrides\.(light_chainaxe_active_sticky|light_chainaxe_active_sticky_last|light_chainaxe_sticky_last_quick|heavy_chainaxe_active_sticky|heavy_chainaxe_active_sticky_last)\.targets\[1\]\.power_distribution\.attack$/,
+    format: 'fixed-2', rawUnit: 'attack-power-point', displayUnit: 'attack-power-point',
+    profileCapture: 1,
+    modeByProfile: {
+      light_chainaxe_active_sticky: 'light', light_chainaxe_active_sticky_last: 'light', light_chainaxe_sticky_last_quick: 'light',
+      heavy_chainaxe_active_sticky: 'heavy', heavy_chainaxe_active_sticky_last: 'heavy'
+    }
+  },
+  {
+    weaponStat: 'chainaxe_armor_pierce_stat',
+    property: /^damage_templates\.(default_light_chainaxe|heavy_chainaxe|light_chainaxe_tank|heavy_chainaxe_smiter)\.targets\[1\]\.armor_damage_modifier\.attack\[armor_types\.(armored|berserker|disgustingly_resilient|resistant|super_armor|unarmored)\]$/,
+    format: 'percentage-fixed-2', rawUnit: 'ratio', displayUnit: 'percent',
+    profileCapture: 1, armorClassCapture: 2,
+    modeByProfile: { default_light_chainaxe: 'light', heavy_chainaxe: 'heavy', light_chainaxe_tank: 'light', heavy_chainaxe_smiter: 'heavy' }
+  },
+  {
+    weaponStat: 'chainaxe_defence_stat',
+    property: /^weapon_stamina_templates\.linesman\.stamina_modifier$/,
+    profile: 'linesman', format: 'fixed-2-signed', rawUnit: 'stamina-point', displayUnit: 'stamina-point'
+  },
+  {
+    weaponStat: 'chainaxe_defence_stat',
+    property: /^weapon_stamina_templates\.linesman\.sprint_cost_per_second$/,
+    profile: 'linesman', format: 'fixed-2', rawUnit: 'stamina-point-per-second', displayUnit: 'stamina-point-per-second'
+  },
+  {
+    weaponStat: 'chainaxe_defence_stat',
+    property: /^weapon_stamina_templates\.linesman\.push_cost$/,
+    profile: 'linesman', format: 'fixed-2', rawUnit: 'stamina-point', displayUnit: 'stamina-point'
+  },
+  {
+    weaponStat: 'chainaxe_mobility_stat',
+    property: /^weapon_dodge_templates\.smiter_plus\.(distance_scale|speed_modifier)$/,
+    profile: 'smiter_plus', format: 'multiplier-percent-fixed-2-signed', rawUnit: 'ratio', displayUnit: 'percent'
+  },
+  {
+    weaponStat: 'chainaxe_mobility_stat',
+    property: /^weapon_dodge_templates\.smiter_plus\.diminishing_return_start$/,
+    profile: 'smiter_plus', format: 'floor-fixed-2', rawUnit: 'dodge-count', displayUnit: 'dodge-count'
+  },
+  {
+    weaponStat: 'chainaxe_mobility_stat',
+    property: /^weapon_sprint_templates\.default\.sprint_speed_mod$/,
+    profile: 'default', format: 'fixed-2-signed', rawUnit: 'ratio', displayUnit: 'ratio'
+  }
+];
+const ARMOR_CLASSES = new Set(['armored', 'berserker', 'disgustingly_resilient', 'resistant', 'super_armor', 'unarmored']);
+const DISPLAY_ATTACK_KEYS = new Set(['primary', 'secondary']);
+const DISPLAY_ATTACK_MODES = new Set(['light', 'heavy']);
+const DISPLAY_ATTACK_TYPES = new Set(['linesman', 'ninja_fencer', 'smiter', 'tank']);
+const DISPLAY_TARGET_ROLES = new Set(['single-target', 'multi-target-cleave']);
+const DISPLAY_ATTACK_FIELDS = new Set(['key', 'mode', 'displayedType', 'scope', 'segments', 'sourceRefs', 'evidenceRefs']);
+const DISPLAY_SEGMENT_FIELDS = new Set(['index', 'attackType', 'targetRole', 'roleProfileKey']);
 const DATA_COVERAGE_FIELDS = new Set(['status', 'missing']);
 const DATA_COVERAGE_MISSING_FIELDS = new Set(['field', 'reasonCode', 'sourceRef']);
 const TIER_VALUE_FIELDS = new Set(['tier', 'value']);
@@ -205,6 +274,17 @@ function validateRecordPayload(record, location) {
     if (Object.hasOwn(payload.context, 'weaponStat') !== Object.hasOwn(payload.context, 'comparisonStat')) {
       throw new Error(location + '.payload.context must pair weaponStat with comparisonStat');
     }
+    if (payload.context.weaponRef !== undefined) requireString(payload.context.weaponRef, location + '.payload.context.weaponRef');
+    if (payload.context.profile !== undefined &&
+        (typeof payload.context.profile !== 'string' || !/^[a-z][a-z0-9_]*$/.test(payload.context.profile))) {
+      throw new Error(location + '.payload.context.profile must be a profile key');
+    }
+    if (payload.context.attackMode !== undefined && !DISPLAY_ATTACK_MODES.has(payload.context.attackMode)) {
+      throw new Error(location + '.payload.context.attackMode is invalid');
+    }
+    if (payload.context.armorClass !== undefined && !ARMOR_CLASSES.has(payload.context.armorClass)) {
+      throw new Error(location + '.payload.context.armorClass is invalid');
+    }
     for (const [key, value] of Object.entries(payload.context)) {
       if (key === 'weaponStat') {
         requireString(value, location + '.payload.context.weaponStat');
@@ -221,6 +301,47 @@ function validateRecordPayload(record, location) {
       }
     }
     validateTypedValue(payload.value, location + '.payload.value');
+    if (Object.hasOwn(payload, 'displayValue') !== Object.hasOwn(payload, 'displayFormat')) {
+      throw new Error(location + '.payload.displayValue must be paired with displayFormat');
+    }
+    if (payload.displayValue !== undefined) {
+      validateTypedValue(payload.displayValue, location + '.payload.displayValue');
+      if (payload.value.status !== 'known' || typeof payload.value.decimal !== 'string') {
+        throw new Error(location + '.payload.value must be a known scalar when displayValue is present');
+      }
+      if (payload.displayValue.status !== 'known' || typeof payload.displayValue.decimal !== 'string') {
+        throw new Error(location + '.payload.displayValue must be a known scalar');
+      }
+      if (!DISPLAY_FORMATS.has(payload.displayFormat)) throw new Error(location + '.payload.displayFormat is invalid');
+      const rawValue = Number(payload.value.decimal);
+      const displayNumber = Number(payload.displayValue.decimal);
+      const displayRule = DISPLAY_VALUE_RULES.find(rule => {
+        if (rule.weaponStat !== payload.context.weaponStat || rule.format !== payload.displayFormat) return false;
+        const propertyMatch = rule.property.exec(payload.property);
+        if (!propertyMatch) return false;
+        if (rule.profileCapture !== undefined && payload.context.profile !== propertyMatch[rule.profileCapture]) return false;
+        if (rule.armorClassCapture !== undefined && payload.context.armorClass !== propertyMatch[rule.armorClassCapture]) return false;
+        if (rule.modeByProfile && payload.context.attackMode !== rule.modeByProfile[payload.context.profile]) return false;
+        return rule.profile === undefined || payload.context.profile === rule.profile;
+      });
+      if (!displayRule) throw new Error(location + '.payload.displayFormat is not supported for this metric and profile');
+      if (payload.value.unit !== displayRule.rawUnit || payload.displayValue.unit !== displayRule.displayUnit) {
+        throw new Error(location + '.payload display units do not match the metric formatter');
+      }
+      let expected;
+      if (payload.displayFormat === 'fixed-2' || payload.displayFormat === 'fixed-2-signed') {
+        expected = rawValue.toFixed(2);
+      } else if (payload.displayFormat === 'percentage-fixed-2') {
+        expected = (rawValue * 100).toFixed(2);
+      } else if (payload.displayFormat === 'multiplier-percent-fixed-2-signed') {
+        expected = ((rawValue - 1) * 100).toFixed(2);
+      } else {
+        expected = Math.floor(rawValue).toFixed(2);
+      }
+      if (payload.displayValue.decimal !== expected || !Number.isFinite(displayNumber)) {
+        throw new Error(location + '.payload.displayValue does not match displayFormat');
+      }
+    }
   }
 
   if (record.kind === 'blessing-variant') {
@@ -250,6 +371,51 @@ function validateRecordPayload(record, location) {
     requireString(payload.familyId, location + '.payload.familyId');
     requireString(payload.markId, location + '.payload.markId');
     requireString(payload.templateKey, location + '.payload.templateKey');
+    if (payload.displayedAttacks !== undefined) {
+      if (!Array.isArray(payload.displayedAttacks)) throw new Error(location + '.payload.displayedAttacks must be an array');
+      const keys = new Set();
+      const modes = new Set();
+      payload.displayedAttacks.forEach((attack, attackIndex) => {
+        const attackLocation = location + '.payload.displayedAttacks[' + attackIndex + ']';
+        if (attack === null || typeof attack !== 'object' || Array.isArray(attack)) throw new Error(attackLocation + ' must be an object');
+        assertOnlyKeys(attack, DISPLAY_ATTACK_FIELDS, attackLocation, 'displayed attack');
+        for (const key of ['key', 'mode']) {
+          if (!(key === 'key' ? DISPLAY_ATTACK_KEYS : DISPLAY_ATTACK_MODES).has(attack[key])) {
+            throw new Error(attackLocation + '.' + key + ' is invalid');
+          }
+        }
+        if (!DISPLAY_ATTACK_TYPES.has(attack.displayedType)) throw new Error(attackLocation + '.displayedType is invalid');
+        if (attack.scope !== 'display-summary') throw new Error(attackLocation + '.scope must be display-summary');
+        if (keys.has(attack.key) || modes.has(attack.mode)) throw new Error(attackLocation + ' key and mode must be unique');
+        if (attack.mode !== (attack.key === 'primary' ? 'light' : 'heavy')) {
+          throw new Error(attackLocation + ' key and mode do not match the weapon card');
+        }
+        keys.add(attack.key);
+        modes.add(attack.mode);
+        if (!Array.isArray(attack.segments) || attack.segments.length === 0) throw new Error(attackLocation + '.segments must be a non-empty array');
+        attack.segments.forEach((segment, segmentIndex) => {
+          const segmentLocation = attackLocation + '.segments[' + segmentIndex + ']';
+          if (segment === null || typeof segment !== 'object' || Array.isArray(segment)) throw new Error(segmentLocation + ' must be an object');
+          assertOnlyKeys(segment, DISPLAY_SEGMENT_FIELDS, segmentLocation, 'displayed attack segment');
+          if (!Number.isInteger(segment.index) || segment.index !== segmentIndex + 1) {
+            throw new Error(attackLocation + ' segment indices must be unique and contiguous, starting at 1');
+          }
+          if (!DISPLAY_ATTACK_TYPES.has(segment.attackType)) throw new Error(segmentLocation + '.attackType is invalid');
+          if (!DISPLAY_TARGET_ROLES.has(segment.targetRole)) throw new Error(segmentLocation + '.targetRole is invalid');
+          if (typeof segment.roleProfileKey !== 'string' || !/^[a-z][a-z0-9_]*$/.test(segment.roleProfileKey)) {
+            throw new Error(segmentLocation + '.roleProfileKey must be a profile key');
+          }
+        });
+        for (const key of ['sourceRefs', 'evidenceRefs']) {
+          if (!Array.isArray(attack[key]) || attack[key].length === 0) throw new Error(attackLocation + '.' + key + ' must be a non-empty array');
+          attack[key].forEach((ref, index) => requireString(ref, attackLocation + '.' + key + '[' + index + ']'));
+        }
+      });
+      if (keys.size !== 2 || !keys.has('primary') || !keys.has('secondary') ||
+          !modes.has('light') || !modes.has('heavy')) {
+        throw new Error(location + '.payload.displayedAttacks must define primary/light and secondary/heavy');
+      }
+    }
     if (payload.theoreticalInputRange !== undefined) validateTypedValue(payload.theoreticalInputRange, location + '.payload.theoreticalInputRange');
     const coverage = payload.dataCoverage;
     if (coverage === null || typeof coverage !== 'object' || Array.isArray(coverage)) throw new Error(location + '.payload.dataCoverage must be an object');
@@ -542,6 +708,24 @@ function validateAuthoring(authoring) {
       throw new Error('invalid reviewState for ' + id);
     }
     validateRecordPayload(record, location);
+  }
+
+  const recordsById = new Map(authoring.records.map(record => [record.recordId, record]));
+  for (const record of authoring.records) {
+    if (record.kind === 'claim' && record.payload.context.weaponRef !== undefined) {
+      const weapon = recordsById.get(record.payload.context.weaponRef);
+      if (!weapon || weapon.kind !== 'weapon') {
+        throw new Error('claim context.weaponRef must reference a weapon: ' + record.payload.context.weaponRef);
+      }
+    }
+    if (record.kind !== 'weapon') continue;
+    for (const claimRef of record.payload.claimRefs ?? []) {
+      const claim = recordsById.get(claimRef);
+      if (!claim || claim.kind !== 'claim') throw new Error('weapon claimRefs must reference claims: ' + claimRef);
+      if (claim.payload.context.weaponRef !== record.recordId) {
+        throw new Error('weapon claim context.weaponRef must match its owning weapon: ' + claimRef);
+      }
+    }
   }
 
   const changes = authoring.gameChanges ?? [];

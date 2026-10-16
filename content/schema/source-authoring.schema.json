@@ -118,7 +118,11 @@
         "damage",
         "impact",
         "point",
-        "rating"
+        "rating",
+        "attack-power-point",
+        "stamina-point",
+        "stamina-point-per-second",
+        "dodge-count"
       ]
     },
     "typedValue": {
@@ -217,17 +221,123 @@
         "minLength": 1
       }
     },
+    "displayedAttackSegment": {
+      "type": "object",
+      "required": [
+        "index",
+        "attackType",
+        "targetRole",
+        "roleProfileKey"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "attackType": {
+          "enum": [
+            "linesman",
+            "ninja_fencer",
+            "smiter",
+            "tank"
+          ]
+        },
+        "targetRole": {
+          "enum": [
+            "single-target",
+            "multi-target-cleave"
+          ]
+        },
+        "roleProfileKey": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "displayedAttack": {
+      "type": "object",
+      "required": [
+        "key",
+        "mode",
+        "displayedType",
+        "scope",
+        "segments",
+        "sourceRefs",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "key": {
+          "enum": [
+            "primary",
+            "secondary"
+          ]
+        },
+        "mode": {
+          "enum": [
+            "light",
+            "heavy"
+          ]
+        },
+        "displayedType": {
+          "enum": [
+            "linesman",
+            "ninja_fencer",
+            "smiter",
+            "tank"
+          ]
+        },
+        "scope": {
+          "const": "display-summary"
+        },
+        "segments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/displayedAttackSegment"
+          }
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/refList",
+          "minItems": 1
+        },
+        "evidenceRefs": {
+          "$ref": "#/$defs/refList",
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
     "context": {
       "type": "object",
       "properties": {
+        "weaponRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
         "attackMode": {
-          "type": "string"
+          "enum": [
+            "light",
+            "heavy"
+          ]
         },
         "charge": {
           "$ref": "#/$defs/typedValue"
         },
         "armorClass": {
-          "type": "string"
+          "enum": [
+            "armored",
+            "berserker",
+            "disgustingly_resilient",
+            "resistant",
+            "super_armor",
+            "unarmored"
+          ]
         },
         "targetId": {
           "type": "string"
@@ -960,6 +1070,18 @@
         "value": {
           "$ref": "#/$defs/typedValue"
         },
+        "displayValue": {
+          "$ref": "#/$defs/typedValue"
+        },
+        "displayFormat": {
+          "enum": [
+            "fixed-2",
+            "fixed-2-signed",
+            "percentage-fixed-2",
+            "multiplier-percent-fixed-2-signed",
+            "floor-fixed-2"
+          ]
+        },
         "context": {
           "$ref": "#/$defs/context"
         },
@@ -974,6 +1096,14 @@
         "evidenceRefs": {
           "$ref": "#/$defs/refList"
         }
+      },
+      "dependentRequired": {
+        "displayValue": [
+          "displayFormat"
+        ],
+        "displayFormat": [
+          "displayValue"
+        ]
       },
       "additionalProperties": false
     },
@@ -1086,8 +1216,19 @@
         "statRefs": {
           "$ref": "#/$defs/refList"
         },
+        "claimRefs": {
+          "$ref": "#/$defs/refList"
+        },
         "attackProfileRefs": {
           "$ref": "#/$defs/refList"
+        },
+        "displayedAttacks": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/displayedAttack"
+          }
         },
         "dataCoverage": {
           "$ref": "#/$defs/dataCoverage"

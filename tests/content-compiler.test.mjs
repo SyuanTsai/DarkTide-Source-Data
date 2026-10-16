@@ -414,7 +414,7 @@ test('UnitT82_selects_pending_representative_candidate_and_preserves_existing_re
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.equal(result.fixtureOnly, false);
   assert.equal(result.publicationEligible, false);
-  assert.equal(technical.records.length, 40);
+  assert.equal(technical.records.length, 125);
   assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
   assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
 
@@ -478,7 +478,7 @@ test('UnitT83_preserves_representative_blessing_weapon_and_raw_tables', async ()
   const attackCurve = byId.get('darktide:stat-curve:chainaxe-p1-m1-default-light-attack-power-table');
   assert.equal(attackStat.payload.quantity, 'damage_templates.default_light_chainaxe.targets[1].power_distribution.attack');
   assert.equal(attackStat.payload.inputUnit, 'point');
-  assert.equal(attackStat.payload.outputUnit, 'point');
+  assert.equal(attackStat.payload.outputUnit, 'attack-power-point');
   assert.deepEqual(attackStat.payload.theoreticalInputRange, {
     status: 'known', min: '1', max: '2', unit: 'point', step: '1', inclusive: true
   });
@@ -536,10 +536,10 @@ test('UnitT85_records_official_description_format_values_with_source_closure', a
   const byId = new Map(technical.records.map(record => [record.recordId, record]));
   const sourcesById = new Map(authoring.sourceRefs.map(source => [source.sourceId, source]));
 
-  assert.equal(sha256(canonicalJsonBytes(previousRecords)), 'b769359ba3426b2ef6d6776d0de652ad0ab134bea3cf8cea5d96d0fcd0df5d40');
+  assert.equal(sha256(canonicalJsonBytes(previousRecords)), '1e1221e0cd0bbe49a16ce753304b8383df2639fedd5312eb60e664c1789f8187');
   assert.equal(sha256(canonicalJsonBytes(previousSources)), '26c6705801b480cce3140ee13f0a4fb48869264814ee1aad650ff5fb25c92eee');
-  assert.equal(technical.records.length, 40);
-  assert.equal(technical.sourceRefs.length, 24);
+  assert.equal(technical.records.length, 125);
+  assert.equal(technical.sourceRefs.length, 36);
   assert.equal(authoring.gameChanges.length, 0);
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.equal(result.fixtureOnly, false);
@@ -771,10 +771,10 @@ test('UnitT86_archives_legacy_analysis_and_closes_charge_parameter_claims', asyn
     'darktide:evidence:psyker:brain-burst-improved-smite-damage-calculation-code',
     'darktide:evidence:psyker:smite-action-damage-type-code'
   ];
-  assert.equal(sha256(canonicalJsonBytes(priorRecords)), 'e1d33fa3dcd4b5f13da8d67081ee7e5972949e20beb2a00b265a4788e1672271');
+  assert.equal(sha256(canonicalJsonBytes(priorRecords)), 'f0c36ea0195d30165e940205fbd51debd16523d8e05d122830d6d69c0fc2d4ec');
   assert.equal(sha256(canonicalJsonBytes(authoring.sourceRefs.slice(0, 10))), 'a3af95d1e5158f28393e8f0d56155a292f22cc4fc68ac939627158fb330a1951');
-  assert.equal(technical.records.length, 40);
-  assert.equal(technical.sourceRefs.length, 24);
+  assert.equal(technical.records.length, 125);
+  assert.equal(technical.sourceRefs.length, 36);
   assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
   assert.deepEqual(authoring.reviewReceipts, []);
   assert.deepEqual(authoring.gameChanges, []);
@@ -795,9 +795,9 @@ test('UnitT87_closes_defined_chainaxe_tier_2_to_4_display_values', async () => {
   const rawTierEvidenceId = 'darktide:evidence:chainaxe:p1-movement-speed-on-activation-code';
   const expectedSourceRefs = [traitSourceId, parserSourceId];
 
-  assert.equal(sha256(canonicalJsonBytes(authoring.records.slice(0, 28))), '477ce3cd7c874fc5964c35a0f68c099992e6ef1240fb0a060bc22713cb83d25b');
-  assert.equal(technical.records.length, 40);
-  assert.equal(technical.sourceRefs.length, 24);
+  assert.equal(sha256(canonicalJsonBytes(authoring.records.slice(0, 28))), '7f5268603d021282f01e12991e64a449f237710f9ecdb5e0ac87587abd78e257');
+  assert.equal(technical.records.length, 125);
+  assert.equal(technical.sourceRefs.length, 36);
   assert.equal(technical.records.every(record => record.reviewState === 'pending'), true);
   assert.equal(result.fixtureOnly, false);
   assert.equal(result.publicationEligible, false);
@@ -840,8 +840,8 @@ test('UnitT87_closes_defined_chainaxe_tier_2_to_4_display_values', async () => {
   assert.throws(() => compileSource(authoring, { mode: 'formal' }), /formal source output requires/);
 });
 
-// Scenario: The chainaxe sample adds analysis-selected 60% and 80% comparisons for two default-light parameters.
-// Purpose: Keep derived values, typed comparison inputs, source evidence, and weapon stat references closed and pending.
+// Scenario: The chainaxe sample adds 60% and 80% profile parameters plus a UI-formatted armor multiplier.
+// Purpose: Keep calculation inputs, raw/display values, source evidence, and mark context closed and pending.
 test('UnitT88_records_selected_chainaxe_stat_comparisons_with_full_source_closure', async () => {
   const authoring = await loadAuthoring('w01-real-representative-candidate.json');
   const result = compileSource(authoring);
@@ -854,12 +854,18 @@ test('UnitT88_records_selected_chainaxe_stat_comparisons_with_full_source_closur
   const templateSourceId = 'public-code:chainaxe-p1-m1-ba6c148';
   const traitsSourceId = 'public-code:damage-trait-templates-ba6c148';
   const tweakSourceId = 'public-code:weapon-tweak-templates-ba6c148';
-  const attackProfileSourceId = 'public-code:chainaxe-default-light-profile-ba6c148';
+  const attackProfileSourceId = 'public-code:chainaxe-damage-profiles-ba6c148';
   const armorSettingsSourceId = 'public-code:damage-profile-settings-ba6c148';
-  const attackEvidenceId = 'darktide:evidence:chainaxe:p1-m1-default-light-attack-power-comparison-code';
-  const armorEvidenceId = 'darktide:evidence:chainaxe:p1-m1-default-light-armored-modifier-comparison-code';
-  const attackSources = [templateSourceId, traitsSourceId, tweakSourceId, attackProfileSourceId];
-  const armorSources = [...attackSources, armorSettingsSourceId];
+  const uiDataSourceId = 'public-code:weapon-tweak-stats-ui-data-ba6c148';
+  const barUiSourceId = 'public-code:weapon-bar-ui-descriptions-ba6c148';
+  const uiFormatSourceId = 'public-code:weapon-info-value-formatting-ba6c148';
+  const attackEvidenceId = 'darktide:evidence:chainaxe:p1-m1-damage-comparison-code';
+  const armorEvidenceId = 'darktide:evidence:chainaxe:p1-m1-armor-penetration-comparison-code';
+  const attackSources = [templateSourceId, traitsSourceId, tweakSourceId, attackProfileSourceId, uiDataSourceId, uiFormatSourceId];
+  const armorSources = [templateSourceId, traitsSourceId, tweakSourceId, attackProfileSourceId,
+    armorSettingsSourceId, uiDataSourceId, barUiSourceId, uiFormatSourceId];
+  const armorEvidenceSources = [templateSourceId, attackProfileSourceId, traitsSourceId, tweakSourceId,
+    armorSettingsSourceId, uiDataSourceId, barUiSourceId, uiFormatSourceId];
   const expectedClaims = [
     {
       id: 'darktide:claim:chainaxe:p1-m1-default-light-attack-power-comparison-60',
@@ -868,9 +874,13 @@ test('UnitT88_records_selected_chainaxe_stat_comparisons_with_full_source_closur
       comparison: '60',
       property: 'damage_templates.default_light_chainaxe.targets[1].power_distribution.attack',
       decimal: '113',
-      unit: 'point',
+      unit: 'attack-power-point',
       sourceRefs: attackSources,
-      evidenceRefs: [attackEvidenceId]
+      evidenceRefs: [attackEvidenceId],
+      contextProfile: 'default_light_chainaxe',
+      attackMode: 'light',
+      displayValue: { status: 'known', decimal: '113.00', unit: 'attack-power-point' },
+      displayFormat: 'fixed-2'
     },
     {
       id: 'darktide:claim:chainaxe:p1-m1-default-light-attack-power-comparison-80',
@@ -879,9 +889,13 @@ test('UnitT88_records_selected_chainaxe_stat_comparisons_with_full_source_closur
       comparison: '80',
       property: 'damage_templates.default_light_chainaxe.targets[1].power_distribution.attack',
       decimal: '119',
-      unit: 'point',
+      unit: 'attack-power-point',
       sourceRefs: attackSources,
-      evidenceRefs: [attackEvidenceId]
+      evidenceRefs: [attackEvidenceId],
+      contextProfile: 'default_light_chainaxe',
+      attackMode: 'light',
+      displayValue: { status: 'known', decimal: '119.00', unit: 'attack-power-point' },
+      displayFormat: 'fixed-2'
     },
     {
       id: 'darktide:claim:chainaxe:p1-m1-default-light-armored-modifier-comparison-60',
@@ -892,7 +906,12 @@ test('UnitT88_records_selected_chainaxe_stat_comparisons_with_full_source_closur
       decimal: '1.6023',
       unit: 'ratio',
       sourceRefs: armorSources,
-      evidenceRefs: [armorEvidenceId]
+      evidenceRefs: [armorEvidenceId],
+      contextProfile: 'default_light_chainaxe',
+      attackMode: 'light',
+      armorClass: 'armored',
+      displayValue: { status: 'known', decimal: '160.23', unit: 'percent' },
+      displayFormat: 'percentage-fixed-2'
     },
     {
       id: 'darktide:claim:chainaxe:p1-m1-default-light-armored-modifier-comparison-80',
@@ -903,7 +922,12 @@ test('UnitT88_records_selected_chainaxe_stat_comparisons_with_full_source_closur
       decimal: '1.7604',
       unit: 'ratio',
       sourceRefs: armorSources,
-      evidenceRefs: [armorEvidenceId]
+      evidenceRefs: [armorEvidenceId],
+      contextProfile: 'default_light_chainaxe',
+      attackMode: 'light',
+      armorClass: 'armored',
+      displayValue: { status: 'known', decimal: '176.04', unit: 'percent' },
+      displayFormat: 'percentage-fixed-2'
     }
   ];
   const attackEvidence = byId.get(attackEvidenceId);
@@ -912,27 +936,28 @@ test('UnitT88_records_selected_chainaxe_stat_comparisons_with_full_source_closur
   const attackStat = byId.get(attackStatId);
   const armorStat = byId.get(armorStatId);
 
-  assert.equal(technical.records.length, 40);
-  assert.equal(technical.sourceRefs.length, 24);
+  assert.equal(technical.records.length, 125);
+  assert.equal(technical.sourceRefs.length, 36);
   assert.deepEqual(weapon.payload.statRefs, [attackStatId, armorStatId]);
   assert.deepEqual(attackStat.payload.claimRefs, expectedClaims.slice(0, 2).map(claim => claim.id));
   assert.deepEqual(armorStat.payload.claimRefs, expectedClaims.slice(2).map(claim => claim.id));
   assert.ok(attackEvidence, attackEvidenceId);
   assert.ok(armorEvidence, armorEvidenceId);
-  assert.equal(attackEvidence.payload.sourceRef, tweakSourceId);
+  assert.equal(attackEvidence.payload.sourceRef, templateSourceId);
   assert.deepEqual(attackEvidence.sourceRefs, attackSources);
-  assert.match(attackEvidence.payload.safeSummary, /analysis-selected comparison inputs are 60 percent and 80 percent/);
-  assert.match(attackEvidence.payload.safeSummary, /lerp\(0\.25, 0\.75, 0\.60\) = 0\.55.*lerp\(0\.25, 0\.75, 0\.80\) = 0\.65/);
-  assert.match(attackEvidence.payload.safeSummary, /yielding lerp\(80, 140, 0\.55\) = 113.*lerp\(80, 140, 0\.65\) = 119 attack-power points/);
-  assert.match(attackEvidence.payload.safeSummary, /not an obtainable range or final damage/);
-  assert.equal(armorEvidence.payload.sourceRef, tweakSourceId);
-  assert.deepEqual(armorEvidence.sourceRefs, armorSources);
-  assert.match(armorEvidence.payload.safeSummary, /analysis-selected comparison inputs are 60 percent and 80 percent/);
-  assert.match(armorEvidence.payload.safeSummary, /lerp\(0\.1, 0\.95, 0\.60\) = 0\.61.*lerp\(0\.1, 0\.95, 0\.80\) = 0\.78/);
-  assert.match(armorEvidence.payload.safeSummary, /yielding lerp\(1\.035, 1\.965, 0\.61\) = 1\.6023.*lerp\(1\.035, 1\.965, 0\.78\) = 1\.7604 ratios/);
-  assert.match(armorEvidence.payload.safeSummary, /not an obtainable range or final damage/);
+  assert.match(attackEvidence.payload.safeSummary, /inputs 60% and 80% give t=0\.55 and 0\.65/);
+  assert.match(attackEvidence.payload.safeSummary, /resulting source parameters are light 113 and 119; heavy 232\.5 and 247\.5 attack-power points/);
+  assert.match(attackEvidence.payload.safeSummary, /not final HP damage and not values for every displayed segment/);
+  assert.match(attackEvidence.payload.safeSummary, /player-facing weapon-info panel.*default display row, with no scalar conversion.*two decimals/);
+  assert.equal(armorEvidence.payload.sourceRef, templateSourceId);
+  assert.deepEqual(armorEvidence.sourceRefs, armorEvidenceSources);
+  assert.match(armorEvidence.payload.safeSummary, /inputs 60% and 80% give t=0\.61 and 0\.78/);
+  assert.match(armorEvidence.payload.safeSummary, /light default_light_chainaxe profile exposes armored\/resistant via lerp_1_5/);
+  assert.match(armorEvidence.payload.safeSummary, /UI display_type percentage multiplies each raw ratio by 100 and prints two decimals/);
+  assert.match(armorEvidence.payload.safeSummary, /values are not final damage/);
 
-  for (const sourceId of [templateSourceId, traitsSourceId, tweakSourceId, attackProfileSourceId, armorSettingsSourceId]) {
+  for (const sourceId of [templateSourceId, traitsSourceId, tweakSourceId, attackProfileSourceId,
+    armorSettingsSourceId, uiDataSourceId, barUiSourceId, uiFormatSourceId]) {
     const source = sourcesById.get(sourceId);
     assert.ok(source, sourceId);
     assert.equal(source.commit, 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e');
@@ -943,6 +968,10 @@ test('UnitT88_records_selected_chainaxe_stat_comparisons_with_full_source_closur
     'scripts/settings/equipment/weapon_templates/weapon_trait_templates/damage_trait_templates.lua');
   assert.equal(sourcesById.get(tweakSourceId).path,
     'scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua');
+  assert.equal(sourcesById.get(uiFormatSourceId).path,
+    'scripts/ui/view_elements/view_element_weapon_info/view_element_weapon_info.lua');
+  assert.match(sourcesById.get(uiFormatSourceId).safeSummary, /default display type leaves the raw value unchanged/);
+  assert.match(sourcesById.get(uiFormatSourceId).safeSummary, /string\.format\("%0\.2f", value\)/);
   assert.match(sourcesById.get(templateSourceId).safeSummary, /chainaxe_dps_stat.*default_melee_dps_stat/);
   assert.match(sourcesById.get(templateSourceId).safeSummary, /chainaxe_armor_pierce_stat.*default_armor_pierce_stat/);
   assert.match(sourcesById.get(traitsSourceId).safeSummary, /0\.25.*0\.75/);
@@ -958,11 +987,19 @@ test('UnitT88_records_selected_chainaxe_stat_comparisons_with_full_source_closur
       property: expected.property,
       value: { status: 'known', decimal: expected.decimal, unit: expected.unit },
       context: {
+        weaponRef: weaponId,
         weaponStat: expected.weaponStat,
-        comparisonStat: { status: 'known', decimal: expected.comparison, unit: 'percent' }
+        comparisonStat: { status: 'known', decimal: expected.comparison, unit: 'percent' },
+        attackMode: expected.attackMode,
+        profile: expected.contextProfile,
+        ...(expected.armorClass ? { armorClass: expected.armorClass } : {})
       },
       basis: 'code-derived',
-      evidenceRefs: expected.evidenceRefs
+      evidenceRefs: expected.evidenceRefs,
+      ...(expected.displayValue ? {
+        displayValue: expected.displayValue,
+        displayFormat: expected.displayFormat
+      } : {})
     });
     assert.equal(claim.owner, 'source');
     assert.equal(claim.reviewState, 'pending');
@@ -1192,4 +1229,358 @@ test('UnitT70_stales_receipts_when_dependency_contents_change', () => {
   assert.equal(releaseTechnical.records[0].reviewState, 'stale');
   assert.equal(releaseTechnical.records[2].reviewState, 'stale');
   assert.equal(releaseResult.publicationEligible, false);
+});
+
+// Scenario: A Source weapon can publish typed attack-card role summaries and preserve raw versus formatted values.
+// Purpose: Keep displayed attack roles distinct from action-chain execution and whitelist exact UI value conversions.
+test('UnitT89_validates_displayed_attack_role_summaries_and_claim_display_values', () => {
+  const authoring = structuredClone(fixedInput);
+  const claim = authoring.records.find(record => record.recordId === 'fixture:claim:cooldown');
+  claim.payload.property = 'weapon_stamina_templates.linesman.sprint_cost_per_second';
+  claim.payload.value = { status: 'known', decimal: '0.975', unit: 'stamina-point-per-second' };
+  claim.payload.displayValue = { status: 'known', decimal: '0.97', unit: 'stamina-point-per-second' };
+  claim.payload.displayFormat = 'fixed-2';
+  claim.payload.context = {
+    weaponRef: 'fixture:weapon:chainaxe:m1',
+    weaponStat: 'chainaxe_defence_stat',
+    comparisonStat: { status: 'known', decimal: '60', unit: 'percent' },
+    profile: 'linesman'
+  };
+  authoring.records.push({
+    recordId: 'fixture:weapon:chainaxe:m1',
+    owner: 'source',
+    kind: 'weapon',
+    gameReleaseId: 'fixture-game-1',
+    payload: {
+      familyId: 'chainaxe_p1',
+      markId: 'chainaxe_p1_m1',
+      templateKey: 'chainaxe_p1_m1',
+      statRefs: [],
+      claimRefs: ['fixture:claim:cooldown'],
+      attackProfileRefs: [],
+      dataCoverage: { status: 'partial', missing: [] },
+      displayedAttacks: [{
+        key: 'primary',
+        mode: 'light',
+        displayedType: 'smiter',
+        scope: 'display-summary',
+        segments: [{
+          index: 1,
+          attackType: 'smiter',
+          targetRole: 'single-target',
+          roleProfileKey: 'default_light_chainaxe'
+        }],
+        sourceRefs: ['fixture:snapshot:a'],
+        evidenceRefs: ['fixture:evidence:a']
+      }, {
+        key: 'secondary',
+        mode: 'heavy',
+        displayedType: 'linesman',
+        scope: 'display-summary',
+        segments: [{
+          index: 1,
+          attackType: 'linesman',
+          targetRole: 'multi-target-cleave',
+          roleProfileKey: 'heavy_chainaxe'
+        }],
+        sourceRefs: ['fixture:snapshot:a'],
+        evidenceRefs: ['fixture:evidence:a']
+      }]
+    },
+    sourceRefs: ['fixture:snapshot:a'],
+    reviewState: 'pending'
+  });
+
+  const result = compileSource(authoring);
+  const technical = JSON.parse(result.files.get('technical.json').toString('utf8'));
+  const weapon = technical.records.find(record => record.recordId === 'fixture:weapon:chainaxe:m1');
+  const compiledClaim = technical.records.find(record => record.recordId === 'fixture:claim:cooldown');
+  assert.deepEqual(weapon.payload.displayedAttacks[0].segments, [{
+    index: 1,
+    attackType: 'smiter',
+    targetRole: 'single-target',
+    roleProfileKey: 'default_light_chainaxe'
+  }]);
+  assert.equal(weapon.payload.displayedAttacks[0].scope, 'display-summary');
+  assert.deepEqual(compiledClaim.payload.value, { status: 'known', decimal: '0.975', unit: 'stamina-point-per-second' });
+  assert.deepEqual(compiledClaim.payload.displayValue, { status: 'known', decimal: '0.97', unit: 'stamina-point-per-second' });
+  assert.equal(compiledClaim.payload.displayFormat, 'fixed-2');
+  assert.equal(compiledClaim.payload.context.weaponRef, 'fixture:weapon:chainaxe:m1');
+
+  const invalidRole = structuredClone(authoring);
+  invalidRole.records.find(record => record.recordId === 'fixture:weapon:chainaxe:m1')
+    .payload.displayedAttacks[0].segments[0].targetRole = 'area-of-effect';
+  assert.throws(() => compileSource(invalidRole), /targetRole is invalid/);
+
+  const duplicateSegmentIndex = structuredClone(authoring);
+  duplicateSegmentIndex.records.find(record => record.recordId === 'fixture:weapon:chainaxe:m1')
+    .payload.displayedAttacks[0].segments.push({
+      index: 1, attackType: 'smiter', targetRole: 'single-target', roleProfileKey: 'default_light_chainaxe'
+    });
+  assert.throws(() => compileSource(duplicateSegmentIndex), /segment indices must be unique and contiguous/);
+
+  const mislabeledScope = structuredClone(authoring);
+  mislabeledScope.records.find(record => record.recordId === 'fixture:weapon:chainaxe:m1')
+    .payload.displayedAttacks[0].scope = 'full-action-chain';
+  assert.throws(() => compileSource(mislabeledScope), /scope must be display-summary/);
+
+  const missingDisplayUnit = structuredClone(authoring);
+  missingDisplayUnit.records.find(record => record.recordId === 'fixture:claim:cooldown')
+    .payload.displayValue = { status: 'known', decimal: '0.97' };
+  assert.throws(() => compileSource(missingDisplayUnit), /known unit is invalid/);
+
+  const missingDisplayFormat = structuredClone(authoring);
+  delete missingDisplayFormat.records.find(record => record.recordId === 'fixture:claim:cooldown').payload.displayFormat;
+  assert.throws(() => compileSource(missingDisplayFormat), /must be paired with displayFormat/);
+
+  const contradictoryDisplay = structuredClone(authoring);
+  contradictoryDisplay.records.find(record => record.recordId === 'fixture:claim:cooldown')
+    .payload.displayValue.decimal = '0.98';
+  assert.throws(() => compileSource(contradictoryDisplay), /does not match displayFormat/);
+
+  const unsupportedMetricFormat = structuredClone(authoring);
+  unsupportedMetricFormat.records.find(record => record.recordId === 'fixture:claim:cooldown')
+    .payload.displayFormat = 'percentage-fixed-2';
+  assert.throws(() => compileSource(unsupportedMetricFormat), /displayFormat is not supported for this metric and profile/);
+
+  const wrongDisplayUnit = structuredClone(authoring);
+  wrongDisplayUnit.records.find(record => record.recordId === 'fixture:claim:cooldown')
+    .payload.displayValue.unit = 'percent';
+  assert.throws(() => compileSource(wrongDisplayUnit), /display units do not match the metric formatter/);
+
+  const invalidProfile = structuredClone(authoring);
+  invalidProfile.records.find(record => record.recordId === 'fixture:claim:cooldown')
+    .payload.context.profile = 'linesman profile prose';
+  assert.throws(() => compileSource(invalidProfile), /profile must be a profile key/);
+
+  const wrongWeapon = structuredClone(authoring);
+  wrongWeapon.records.find(record => record.recordId === 'fixture:claim:cooldown')
+    .payload.context.weaponRef = 'fixture:weapon:chainaxe:m2';
+  wrongWeapon.records.push({
+    recordId: 'fixture:weapon:chainaxe:m2',
+    owner: 'source',
+    kind: 'weapon',
+    gameReleaseId: 'fixture-game-1',
+    payload: {
+      familyId: 'chainaxe_p1', markId: 'chainaxe_p1_m2', templateKey: 'chainaxe_p1_m2',
+      statRefs: [], attackProfileRefs: [], dataCoverage: { status: 'partial', missing: [] }
+    },
+    sourceRefs: ['fixture:snapshot:a'],
+    reviewState: 'pending'
+  });
+  assert.throws(() => compileSource(wrongWeapon), /weapon claim context\.weaponRef must match its owning weapon/);
+
+  const unresolvedNestedSource = structuredClone(authoring);
+  unresolvedNestedSource.records.find(record => record.recordId === 'fixture:weapon:chainaxe:m1')
+    .payload.displayedAttacks[0].sourceRefs = ['fixture:snapshot:missing'];
+  assert.throws(() => compileSource(unresolvedNestedSource), /unresolved sourceRefs reference/);
+
+  const unresolvedNestedEvidence = structuredClone(authoring);
+  unresolvedNestedEvidence.records.find(record => record.recordId === 'fixture:weapon:chainaxe:m1')
+    .payload.displayedAttacks[0].evidenceRefs = ['fixture:evidence:missing'];
+  assert.throws(() => compileSource(unresolvedNestedEvidence), /unresolved evidenceRefs reference/);
+
+  const zeroBasedSegment = structuredClone(authoring);
+  zeroBasedSegment.records.find(record => record.recordId === 'fixture:weapon:chainaxe:m1')
+    .payload.displayedAttacks[0].segments[0].index = 0;
+  assert.throws(() => compileSource(zeroBasedSegment), /segment indices must be unique and contiguous/);
+
+  const schema = JSON.parse(readFileSync(new URL('../content/schema/source-authoring.schema.json', import.meta.url), 'utf8'));
+  assert.equal(schema.$defs.claimPayload.properties.displayValue.$ref, '#/$defs/typedValue');
+  assert.ok(schema.$defs.claimPayload.properties.displayFormat.enum.includes('multiplier-percent-fixed-2-signed'));
+  assert.ok(schema.$defs.claimPayload.properties.displayFormat.enum.includes('floor-fixed-2'));
+  assert.equal(schema.$defs.context.properties.weaponRef.type, 'string');
+  assert.equal(schema.$defs.context.properties.profile.pattern, '^[a-z][a-z0-9_]*$');
+  assert.equal(schema.$defs.weaponPayload.properties.displayedAttacks.items.$ref, '#/$defs/displayedAttack');
+  assert.deepEqual(schema.$defs.displayedAttackSegment.properties.targetRole.enum, [
+    'single-target', 'multi-target-cleave'
+  ]);
+  assert.equal(schema.$defs.displayedAttackSegment.properties.index.minimum, 1);
+  assert.equal(schema.$defs.displayedAttackSegment.properties.roleProfileKey.pattern, '^[a-z][a-z0-9_]*$');
+  assert.deepEqual(schema.$defs.displayedAttack.properties.displayedType.enum, [
+    'linesman', 'ninja_fencer', 'smiter', 'tank'
+  ]);
+  assert.deepEqual(schema.$defs.unit.enum.slice(-4), [
+    'attack-power-point', 'stamina-point', 'stamina-point-per-second', 'dodge-count'
+  ]);
+});
+
+// Scenario: UI formatting rounds the stored binary values with the pinned game's two-decimal formatter.
+// Purpose: Keep the .975 raw stamina input separate from the displayed .97 value.
+test('UnitT90_tracks_binary_rounding_for_defence_sprint_cost_display', async () => {
+  const raw60 = Number('0.975');
+  const raw80 = Number('0.925');
+  assert.equal(raw60.toPrecision(17), '0.97499999999999998');
+  assert.equal(raw80.toPrecision(17), '0.92500000000000004');
+  assert.equal(raw60.toFixed(2), '0.97');
+  assert.equal(raw80.toFixed(2), '0.93');
+
+  const authoring = await loadAuthoring('w01-real-representative-candidate.json');
+  const claims = authoring.records.filter(record => record.kind === 'claim' &&
+    record.payload.context?.weaponStat === 'chainaxe_defence_stat' &&
+    record.payload.property.endsWith('.sprint_cost_per_second'));
+  assert.equal(claims.length, 4);
+  assert.deepEqual(new Set(claims.map(claim => `${claim.payload.value.decimal}:${claim.payload.displayValue.decimal}`)),
+    new Set(['0.975:0.97', '0.925:0.93']));
+  assert.equal(claims.every(claim => claim.payload.displayFormat === 'fixed-2'), true);
+});
+
+// Scenario: The selected Mk IV and Mk XII attack cards retain every displayed segment role with source closure.
+// Purpose: Record the displayed_attacks summary without claiming it is the complete action-chain execution.
+test('UnitT91_records_chainaxe_displayed_attack_roles_per_segment', async () => {
+  const authoring = await loadAuthoring('w01-real-representative-candidate.json');
+  const result = compileSource(authoring);
+  const technical = JSON.parse(result.files.get('technical.json').toString('utf8'));
+  const byId = new Map(technical.records.map(record => [record.recordId, record]));
+  const sourcesById = new Map(authoring.sourceRefs.map(source => [source.sourceId, source]));
+  const expected = [
+    {
+      weaponId: 'darktide:weapon:chainaxe:p1-m1',
+      templateSource: 'public-code:chainaxe-p1-m1-ba6c148',
+      roleEvidence: 'darktide:evidence:chainaxe:p1-m1-displayed-attack-role-summary-code',
+      attacks: [
+        { key: 'primary', mode: 'light', displayedType: 'smiter', profile: 'default_light_chainaxe', attackType: 'smiter', role: 'single-target', count: 4 },
+        { key: 'secondary', mode: 'heavy', displayedType: 'linesman', profile: 'heavy_chainaxe', attackType: 'linesman', role: 'multi-target-cleave', count: 2 }
+      ]
+    },
+    {
+      weaponId: 'darktide:weapon:chainaxe:p1-m2',
+      templateSource: 'public-code:chainaxe-p1-m2-ba6c148',
+      roleEvidence: 'darktide:evidence:chainaxe:p1-m2-displayed-attack-role-summary-code',
+      attacks: [
+        { key: 'primary', mode: 'light', displayedType: 'tank', profile: 'light_chainaxe_tank', attackType: 'tank', role: 'multi-target-cleave', count: 2 },
+        { key: 'secondary', mode: 'heavy', displayedType: 'smiter', profile: 'heavy_chainaxe_smiter', attackType: 'smiter', role: 'single-target', count: 2 }
+      ]
+    }
+  ];
+
+  for (const mark of expected) {
+    const weapon = byId.get(mark.weaponId);
+    assert.ok(weapon, mark.weaponId);
+    assert.deepEqual(weapon.payload.displayedAttacks.map(attack => ({
+      key: attack.key,
+      mode: attack.mode,
+      displayedType: attack.displayedType,
+      scope: attack.scope,
+      segments: attack.segments.map(segment => [segment.index, segment.attackType, segment.roleProfileKey, segment.targetRole]),
+      sourceRefs: attack.sourceRefs,
+      evidenceRefs: attack.evidenceRefs
+    })), mark.attacks.map(attack => ({
+      key: attack.key,
+      mode: attack.mode,
+      displayedType: attack.displayedType,
+      scope: 'display-summary',
+      segments: Array.from({ length: attack.count }, (_, index) => [index + 1, attack.attackType, attack.profile, attack.role]),
+      sourceRefs: [mark.templateSource, 'public-code:chainaxe-damage-profiles-ba6c148'],
+      evidenceRefs: [mark.roleEvidence]
+    })));
+    for (const attack of weapon.payload.displayedAttacks) {
+      assert.equal(attack.sourceRefs.every(sourceId => sourcesById.has(sourceId)), true);
+      assert.equal(attack.evidenceRefs.every(evidenceId => byId.get(evidenceId)?.kind === 'evidence'), true);
+    }
+    assert.equal(byId.get(mark.roleEvidence).payload.sourceRef, mark.templateSource);
+    assert.match(byId.get(mark.roleEvidence).payload.safeSummary, /displayed_attacks.*display summary.*not the complete action chain/i);
+    assert.equal(sourcesById.get(mark.templateSource).commit, 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e');
+  }
+});
+
+// Scenario: The pending Mk IV and Mk XII claims contain every selected metric at both comparison inputs.
+// Purpose: Preserve five-stat-family coverage while refusing to turn raw attack-power parameters into final damage.
+test('UnitT92_covers_five_chainaxe_stat_families_at_both_comparison_inputs', async () => {
+  const authoring = await loadAuthoring('w01-real-representative-candidate.json');
+  const result = compileSource(authoring);
+  const technical = JSON.parse(result.files.get('technical.json').toString('utf8'));
+  const byId = new Map(technical.records.map(record => [record.recordId, record]));
+  const sourceIds = new Set(authoring.sourceRefs.map(source => source.sourceId));
+  const claims = technical.records.filter(record => record.kind === 'claim' && record.payload.context.weaponRef);
+  const marks = [
+    { id: 'darktide:weapon:chainaxe:p1-m1', expected: 38 },
+    { id: 'darktide:weapon:chainaxe:p1-m2', expected: 38 }
+  ];
+  const families = new Map([
+    ['chainaxe_dps_stat', 'damage'],
+    ['chainaxe_armor_pierce_stat', 'armor penetration'],
+    ['chainaxe_defence_stat', 'defence'],
+    ['chainaxe_sawing_stat', 'sawing'],
+    ['chainaxe_mobility_stat', 'mobility']
+  ]);
+
+  for (const mark of marks) {
+    const weapon = byId.get(mark.id);
+    const markClaims = claims.filter(claim => claim.payload.context.weaponRef === mark.id);
+    assert.ok(weapon, mark.id);
+    assert.equal(markClaims.length, mark.expected);
+    assert.deepEqual(new Set(markClaims.map(claim => claim.payload.context.weaponStat)), new Set(families.keys()));
+    assert.equal(weapon.payload.claimRefs.length, mark.expected);
+    assert.deepEqual(new Set(markClaims.map(claim => claim.payload.context.comparisonStat.decimal)), new Set(['60', '80']));
+
+    for (const [stat, familyName] of families) {
+      const familyClaims = markClaims.filter(claim => claim.payload.context.weaponStat === stat);
+      assert.ok(familyClaims.length > 0, familyName);
+      for (const input of ['60', '80']) {
+        assert.ok(familyClaims.some(claim => claim.payload.context.comparisonStat.decimal === input), `${familyName} ${input}`);
+      }
+    }
+
+    for (const claim of markClaims) {
+      assert.equal(weapon.payload.claimRefs.includes(claim.recordId), true);
+      const target = byId.get(claim.payload.targetRef);
+      assert.ok(target?.kind === 'weapon' && target.recordId === mark.id ||
+        target?.kind === 'stat-definition' && weapon.payload.statRefs.includes(target.recordId));
+      if (target.kind === 'stat-definition') assert.equal(target.payload.claimRefs.includes(claim.recordId), true);
+      assert.equal(claim.payload.value.status, 'known');
+      assert.ok(claim.payload.context.profile || claim.payload.context.attackMode);
+      assert.equal(claim.sourceRefs.every(sourceId => sourceIds.has(sourceId)), true);
+      assert.equal(claim.payload.evidenceRefs.every(evidenceId => byId.get(evidenceId)?.kind === 'evidence'), true);
+      assert.equal(claim.payload.displayFormat !== undefined, claim.payload.displayValue !== undefined);
+      if (claim.payload.displayValue) {
+        const sourceIds = new Set(claim.sourceRefs);
+        assert.equal(sourceIds.has('public-code:weapon-tweak-stats-ui-data-ba6c148'), true);
+        assert.equal(sourceIds.has('public-code:weapon-info-value-formatting-ba6c148'), true);
+        const displayEvidence = claim.payload.evidenceRefs.map(evidenceId => byId.get(evidenceId));
+        assert.equal(displayEvidence.some(evidence =>
+          evidence.sourceRefs.includes('public-code:weapon-tweak-stats-ui-data-ba6c148') &&
+          evidence.sourceRefs.includes('public-code:weapon-info-value-formatting-ba6c148')), true);
+        const property = claim.payload.property;
+        const raw = Number(claim.payload.value.decimal);
+        if (claim.payload.context.weaponStat === 'chainaxe_armor_pierce_stat') {
+          assert.equal(claim.payload.displayFormat, 'percentage-fixed-2');
+          assert.equal(claim.payload.displayValue.decimal, (raw * 100).toFixed(2));
+          assert.equal(claim.payload.displayValue.unit, 'percent');
+        } else if (claim.payload.context.weaponStat === 'chainaxe_defence_stat') {
+          assert.equal(claim.payload.displayFormat, property.endsWith('.stamina_modifier') ? 'fixed-2-signed' : 'fixed-2');
+          assert.equal(claim.payload.displayValue.decimal, raw.toFixed(2));
+          assert.equal(claim.payload.displayValue.unit, claim.payload.value.unit);
+        } else if (property.endsWith('.distance_scale') || property.endsWith('.speed_modifier')) {
+          assert.equal(claim.payload.displayFormat, 'multiplier-percent-fixed-2-signed');
+          assert.equal(claim.payload.displayValue.decimal, ((raw - 1) * 100).toFixed(2));
+          assert.equal(claim.payload.displayValue.unit, 'percent');
+        } else if (property.endsWith('.diminishing_return_start')) {
+          assert.equal(claim.payload.displayFormat, 'floor-fixed-2');
+          assert.equal(claim.payload.displayValue.decimal, Math.floor(raw).toFixed(2));
+          assert.equal(claim.payload.displayValue.unit, 'dodge-count');
+        } else if (property.endsWith('.sprint_speed_mod')) {
+          assert.equal(claim.payload.displayFormat, 'fixed-2-signed');
+          assert.equal(claim.payload.displayValue.decimal, raw.toFixed(2));
+          assert.equal(claim.payload.displayValue.unit, 'ratio');
+        }
+      }
+      if (['chainaxe_dps_stat', 'chainaxe_sawing_stat'].includes(claim.payload.context.weaponStat)) {
+        assert.equal(claim.payload.value.unit, 'attack-power-point');
+        assert.equal(claim.payload.displayFormat, 'fixed-2');
+        assert.equal(claim.payload.displayValue.decimal, Number(claim.payload.value.decimal).toFixed(2));
+        assert.equal(claim.payload.displayValue.unit, 'attack-power-point');
+      }
+    }
+  }
+
+  const unsupportedAttackPowerFormat = structuredClone(authoring);
+  unsupportedAttackPowerFormat.records.find(record => record.recordId ===
+    'darktide:claim:chainaxe:p1-m1-default-light-attack-power-comparison-60').payload.displayFormat = 'percentage-fixed-2';
+  assert.throws(() => compileSource(unsupportedAttackPowerFormat), /displayFormat is not supported for this metric and profile/);
+
+  const contradictoryAttackPowerDisplay = structuredClone(authoring);
+  contradictoryAttackPowerDisplay.records.find(record => record.recordId ===
+    'darktide:claim:chainaxe:p1-m1-default-light-attack-power-comparison-60').payload.displayValue.decimal = '113.01';
+  assert.throws(() => compileSource(contradictoryAttackPowerDisplay), /does not match displayFormat/);
 });
