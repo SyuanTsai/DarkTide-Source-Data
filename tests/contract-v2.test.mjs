@@ -412,3 +412,63 @@ test('UnitT12_game-tested-claims-and-changes-require-game-test-source-evidence',
   codeSourceLabeledAsGameTest.records.find((record) => record.recordId === 'fixture:evidence:alpha').payload.evidenceKind = 'game-tested';
   assert.ok(issueCodes(codeSourceLabeledAsGameTest).has('game-test-source-required'));
 });
+
+// Scenario: Cross-record contexts, stat comparisons, and curve references appear before or after their target records.
+// Purpose: Apply tier membership and unit compatibility rules independently of record order while preserving defined-but-not-obtainable tiers.
+test('UnitT13_cross-record-context-units-and-curves-are-order-independent', () => {
+  const outOfRangeClaimTier = structuredClone(fixture);
+  outOfRangeClaimTier.records.find((record) => record.recordId === 'fixture:claim:damage').payload.context.tier = 99;
+  assert.ok(issueCodes(outOfRangeClaimTier).has('context-tier-not-defined'));
+  const reorderedOutOfRangeClaimTier = structuredClone(outOfRangeClaimTier);
+  reorderedOutOfRangeClaimTier.records.reverse();
+  assert.ok(issueCodes(reorderedOutOfRangeClaimTier).has('context-tier-not-defined'));
+
+  const missingClaimVariant = structuredClone(fixture);
+  const missingVariantClaim = missingClaimVariant.records.find((record) => record.recordId === 'fixture:claim:damage');
+  delete missingVariantClaim.payload.context.variantRef;
+  assert.ok(issueCodes(missingClaimVariant).has('context-tier-needs-variant'));
+
+  const inferredDefinedTier = structuredClone(fixture);
+  const inferredClaim = inferredDefinedTier.records.find((record) => record.recordId === 'fixture:claim:damage');
+  inferredClaim.payload.targetRef = { recordId: 'fixture:variant:alpha', gameReleaseId: 'fixture-r1' };
+  delete inferredClaim.payload.context.variantRef;
+  inferredClaim.payload.context.tier = 3;
+  assert.equal(validate(inferredDefinedTier).valid, true, JSON.stringify(validate(inferredDefinedTier).issues, null, 2));
+
+  const outOfRangeAttackTier = structuredClone(fixture);
+  outOfRangeAttackTier.records.find((record) => record.recordId === 'fixture:attack:alpha').payload.contexts[0].tier = 99;
+  assert.ok(issueCodes(outOfRangeAttackTier).has('context-tier-not-defined'));
+
+  const outOfRangeDamageConditionTier = structuredClone(fixture);
+  const damage = outOfRangeDamageConditionTier.records.find((record) => record.recordId === 'fixture:damage:alpha');
+  damage.payload.segments[0].conditions = [{
+    variantRef: { recordId: 'fixture:variant:alpha', gameReleaseId: 'fixture-r1' },
+    tier: 99
+  }];
+  assert.ok(issueCodes(outOfRangeDamageConditionTier).has('context-tier-not-defined'));
+
+  const claimComparisonUnitMismatch = structuredClone(fixture);
+  claimComparisonUnitMismatch.records.find((record) => record.recordId === 'fixture:claim:damage')
+    .payload.context.statComparisons[0].inputUnit = 'damage';
+  assert.ok(issueCodes(claimComparisonUnitMismatch).has('stat-comparison-unit'));
+  const reorderedClaimComparisonUnitMismatch = structuredClone(claimComparisonUnitMismatch);
+  reorderedClaimComparisonUnitMismatch.records.reverse();
+  assert.ok(issueCodes(reorderedClaimComparisonUnitMismatch).has('stat-comparison-unit'));
+
+  const attackComparisonUnitMismatch = structuredClone(fixture);
+  attackComparisonUnitMismatch.records.find((record) => record.recordId === 'fixture:attack:alpha')
+    .payload.statComparisons[0].inputUnit = 'damage';
+  assert.ok(issueCodes(attackComparisonUnitMismatch).has('stat-comparison-unit'));
+
+  const curveUnitMismatch = structuredClone(fixture);
+  curveUnitMismatch.records.find((record) => record.recordId === 'fixture:curve:damage' && record.gameReleaseId === 'fixture-r1')
+    .payload.inputUnit = 's';
+  assert.ok(issueCodes(curveUnitMismatch).has('curve-unit-mismatch'));
+  const reorderedCurveUnitMismatch = structuredClone(curveUnitMismatch);
+  reorderedCurveUnitMismatch.records.reverse();
+  assert.ok(issueCodes(reorderedCurveUnitMismatch).has('curve-unit-mismatch'));
+
+  const reorderedValidFixture = structuredClone(fixture);
+  reorderedValidFixture.records.reverse();
+  assert.equal(validate(reorderedValidFixture).valid, true, JSON.stringify(validate(reorderedValidFixture).issues, null, 2));
+});

@@ -498,7 +498,9 @@ function validateRecordIdentityAndCoverage(contract, releaseMap, sourceMap, issu
     }
     if ((coverage?.status === 'complete') !== ((coverage?.missing?.length ?? 0) === 0)) issues.push({ path: `${base}/dataCoverage/status`, code: 'coverage-status', message: 'complete coverage requires no missing fields; incomplete coverage requires at least one' });
     for (const link of collectSourceLinks(record)) validateSourceLink(record, link, sourceMap, contract, releaseMap, issues, base);
-    validateNumericPayload(record, base, issues, recordMap);
+  }
+  for (const [index, record] of contract.records.entries()) {
+    validateNumericPayload(record, `/records/${index}`, issues, recordMap);
   }
   for (const alias of aliases.keys()) if (recordIds.has(alias) && aliases.get(alias) !== alias) issues.push({ path: '/records', code: 'alias-record-id-collision', message: `Alias ${alias} collides with another stable record ID` });
   for (const [index, tombstone] of contract.tombstones.entries()) {
@@ -594,6 +596,49 @@ function validateNumericPayload(record, base, issues, recordMap) {
         pairs.add(key);
       }
     }
+  }
+}
+
+function validateContextAndComparisonSemantics(contract, recordMap, issues) {
+  const contextContainers = new Set(['context', 'contexts', 'conditions', 'applicability']);
+  for (const [recordIndex, record] of contract.records.entries()) {
+    if (!record || !record.payload || typeof record.payload !== 'object') continue;
+    const base = `/records/${recordIndex}`;
+    const targetRef = record.kind === 'claim' ? record.payload.targetRef : null;
+    const inferredVariant = targetRef && typeof targetRef === 'object'
+      ? recordMap.get(recordKey(targetRef.recordId, targetRef.gameReleaseId)) : null;
+    const visit = (value, pointer, isContext = false) => {
+      if (!value || typeof value !== 'object') return;
+      if (Array.isArray(value)) { value.forEach((item, index) => visit(item, `${pointer}/${index}`, isContext)); return; }
+      if (isContext && value.tier !== undefined) {
+        const hasVariantRef = hasOwn(value, 'variantRef');
+        const variantRef = hasVariantRef ? value.variantRef : null;
+        const explicitVariant = variantRef && typeof variantRef === 'object'
+          ? recordMap.get(recordKey(variantRef.recordId, variantRef.gameReleaseId)) : null;
+        const mayInferFromClaim = !hasVariantRef && record.kind === 'claim' && inferredVariant?.kind === 'blessing-variant';
+        const variant = hasVariantRef ? explicitVariant : (mayInferFromClaim ? inferredVariant : null);
+        if (!hasVariantRef && !mayInferFromClaim) {
+          issues.push({ path: `${pointer}/variantRef`, code: 'context-tier-needs-variant', message: 'A context tier requires a blessing variant reference or a claim targeting one' });
+        } else if (variant?.kind === 'blessing-variant' && Array.isArray(variant.payload?.definedTiers) &&
+          !variant.payload.definedTiers.includes(value.tier)) {
+          issues.push({ path: `${pointer}/tier`, code: 'context-tier-not-defined', message: `Context tier ${value.tier} is not defined for its blessing variant` });
+        }
+      }
+      if (Array.isArray(value.statComparisons)) {
+        for (const [index, comparison] of value.statComparisons.entries()) {
+          const statRef = comparison && typeof comparison === 'object' ? comparison.statRef : null;
+          const stat = statRef && typeof statRef === 'object'
+            ? recordMap.get(recordKey(statRef.recordId, statRef.gameReleaseId)) : null;
+          if (stat?.kind === 'stat-definition' && comparison.inputUnit !== stat.payload?.inputUnit) {
+            issues.push({ path: `${pointer}/statComparisons/${index}/inputUnit`, code: 'stat-comparison-unit', message: 'Stat comparison inputUnit must match the referenced stat definition' });
+          }
+        }
+      }
+      for (const [key, child] of Object.entries(value)) {
+        visit(child, `${pointer}/${pointerEscape(key)}`, isContext || contextContainers.has(key));
+      }
+    };
+    visit(record.payload, `${base}/payload`);
   }
 }
 
@@ -791,6 +836,7 @@ export function validateSourceContract(contract, { schema, sourceRoot = REPO_ROO
   const sourceMap = validateProvenance(contract, releaseMap, issues);
   const { recordMap } = validateRecordIdentityAndCoverage(contract, releaseMap, sourceMap, issues);
   validateReferences(contract, releaseMap, recordMap, sourceMap, issues);
+  validateContextAndComparisonSemantics(contract, recordMap, issues);
   validateGameTestEvidence(contract, recordMap, sourceMap, issues);
   validateCompatibilityAndChanges(contract, releaseMap, recordMap, issues);
   validateCoverageAndEmptyCollections(contract, issues);
