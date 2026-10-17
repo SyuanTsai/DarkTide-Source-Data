@@ -1,0 +1,306 @@
+name: W01 source preview CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [codex/SYP-311-w01]
+permissions:
+  contents: read
+jobs:
+  source-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Set up Node.js 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Run Source contract tests
+        run: npm test
+      - name: Build isolated fixture preview and capture its receipt
+        run: npm run --silent content:preview > "$RUNNER_TEMP/w01-source-receipt.json"
+      - name: Build pending real-claim preview and capture its receipt
+        run: node scripts/content/build.mjs --mode preview --input w01-real-claim-candidate.json > "$RUNNER_TEMP/w01-source-real-claim-receipt.json"
+      - name: Build pending representative preview and capture its receipt
+        run: node scripts/content/build.mjs --mode preview --input w01-real-representative-candidate.json > "$RUNNER_TEMP/w01-source-representative-receipt.json"
+      - name: Verify fixture and pending-candidate receipts and write run summary
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          function readVerifiedReceipt(filename) {
+            const receiptPath = path.join(process.env.RUNNER_TEMP, filename);
+            const receipt = JSON.parse(fs.readFileSync(receiptPath, 'utf8'));
+            const outputPath = path.join(process.cwd(), receipt.outputDirectory);
+            const storedReceipt = JSON.parse(fs.readFileSync(path.join(outputPath, 'receipt.json'), 'utf8'));
+            if (JSON.stringify(storedReceipt) !== JSON.stringify(receipt)) throw new Error(filename + ': stored receipt differs from CLI receipt');
+            return { receipt, outputPath };
+          }
+
+          const fixture = readVerifiedReceipt('w01-source-receipt.json');
+          if (fixture.receipt.previewOnly !== true || fixture.receipt.fixtureOnly !== true || fixture.receipt.publicationEligible !== false) {
+            throw new Error('W01 CI requires a fixture-only, ineligible preview receipt');
+          }
+          if (fixture.receipt.sourceRevision !== '94d2e7767bf60d56793a6b9a910376c975fef3439afe5931fbb03d763913ef4b' ||
+              fixture.receipt.manifestSha256 !== '27a06a383ab06ab0d15720bd2b0a3e0e8e905755679665a32988ca704c80acb6') {
+            throw new Error('W01 default fixture revision changed unexpectedly');
+          }
+          const candidate = readVerifiedReceipt('w01-source-real-claim-receipt.json');
+          if (candidate.receipt.previewOnly !== true || candidate.receipt.fixtureOnly !== false || candidate.receipt.publicationEligible !== false) {
+            throw new Error('W01 CI requires a non-fixture, pending, ineligible candidate preview receipt');
+          }
+          const technical = JSON.parse(fs.readFileSync(path.join(candidate.outputPath, 'technical.json'), 'utf8'));
+          if (technical.fixtureOnly !== false || technical.publicationEligible !== false || technical.records.length !== 4 ||
+              technical.records.some(record => record.reviewState !== 'pending') || technical.gameChanges.length !== 0) {
+            throw new Error('W01 CI candidate must contain four pending records and no game changes');
+          }
+          if (candidate.receipt.sourceRevision !== '2a2e9b3f731358c01fb103bde759bf03be726e3e15aa0b623821d8c717d68c11' ||
+              candidate.receipt.manifestSha256 !== '86f617d2ec13cdd905641e7d7230fd1b2d650be6243e2ffde9ad756f57cc6307') {
+            throw new Error('W01 four-record candidate revision changed unexpectedly');
+          }
+          for (const filename of ['analysis.md', 'game-changes.md']) {
+            const markdown = fs.readFileSync(path.join(candidate.outputPath, filename), 'utf8');
+            if (!markdown.startsWith('> **Pending review:** not approved for publication.\n\n') || markdown.includes('synthetic contract output')) {
+              throw new Error(filename + ': pending real candidate banner is incorrect');
+            }
+          }
+          const representative = readVerifiedReceipt('w01-source-representative-receipt.json');
+          if (representative.receipt.previewOnly !== true || representative.receipt.fixtureOnly !== false || representative.receipt.publicationEligible !== false) {
+            throw new Error('W01 CI requires a non-fixture, pending, ineligible representative preview receipt');
+          }
+          const representativeTechnical = JSON.parse(fs.readFileSync(path.join(representative.outputPath, 'technical.json'), 'utf8'));
+          if (representativeTechnical.fixtureOnly !== false || representativeTechnical.publicationEligible !== false ||
+              representativeTechnical.records.length !== 125 || representativeTechnical.sourceRefs.length !== 36 ||
+              representativeTechnical.records.some(record => record.reviewState !== 'pending') ||
+              representativeTechnical.gameChanges.length !== 0) {
+            throw new Error('W01 representative candidate must contain 125 pending records, 36 sources, and no game changes');
+          }
+          if (representative.receipt.sourceRevision !== '3af04f0212a88e6b29f91f397178dd6d22c0c27d40566088eca8f8f06d4845c1' ||
+              representative.receipt.manifestSha256 !== '3140d7c5f8f49b2cd9b8574819159079d8542cf165d870af96890ca8efe063d6') {
+            throw new Error('W01 125-record representative revision changed unexpectedly');
+          }
+          const byId = new Map(representativeTechnical.records.map(record => [record.recordId, record]));
+          const variant = byId.get('darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation');
+          if (!variant || JSON.stringify(variant.payload.definedTiers) !== JSON.stringify([1, 2, 3, 4]) ||
+              JSON.stringify(variant.payload.tierValues.map(item => item.value.decimal)) !== JSON.stringify(['0.17', '0.18', '0.19', '0.2']) ||
+              variant.payload.obtainableTiers.status !== 'unknown' || variant.payload.obtainableTiers.reasonCode !== 'NOT_VERIFIED') {
+            throw new Error('W01 representative blessing tiers do not match the pending raw-code candidate');
+          }
+          const traitSourceId = 'public-code:chainaxe-p1-traits-ba6c148';
+          const parserSourceId = 'public-code:trait-value-parser-ba6c148';
+          const rawTierEvidenceId = 'darktide:evidence:chainaxe:p1-movement-speed-on-activation-code';
+          for (const { tier, ratio, percent } of [
+            { tier: 2, ratio: '0.18', percent: '18' },
+            { tier: 3, ratio: '0.19', percent: '19' },
+            { tier: 4, ratio: '0.2', percent: '20' }
+          ]) {
+            const claimId = 'darktide:claim:chainaxe:p1-movement-speed-on-activation-tier' + tier + '-display-percent';
+            const evidenceId = 'darktide:evidence:chainaxe:p1-movement-speed-on-activation-tier' + tier + '-display-percent-code';
+            const claim = byId.get(claimId);
+            const evidence = byId.get(evidenceId);
+            const expectedSourceRefs = [traitSourceId, parserSourceId];
+            if (!claim || claim.payload.targetRef !== variant.recordId ||
+                claim.payload.property !== 'description.format_values.movement_speed.defined_tier_' + tier + '_display_percent' ||
+                claim.payload.value?.status !== 'known' || claim.payload.value?.decimal !== percent || claim.payload.value?.unit !== 'percent' ||
+                Object.keys(claim.payload.context ?? {}).length !== 0 || claim.payload.basis !== 'code-derived' ||
+                JSON.stringify(claim.payload.evidenceRefs) !== JSON.stringify([rawTierEvidenceId, evidenceId]) ||
+                JSON.stringify(claim.sourceRefs) !== JSON.stringify(expectedSourceRefs) || claim.reviewState !== 'pending' ||
+                !evidence || evidence.payload.sourceRef !== traitSourceId ||
+                JSON.stringify(evidence.sourceRefs) !== JSON.stringify(expectedSourceRefs) || evidence.reviewState !== 'pending' ||
+                !evidence.payload.safeSummary.includes('defined tier ' + tier + ' is ' + ratio) ||
+                !evidence.payload.safeSummary.includes('description-format value is ' + percent + ' percent') ||
+                !evidence.payload.safeSummary.includes('percentage format with a + prefix') ||
+                !evidence.payload.safeSummary.includes('default percentage scaling') ||
+                !evidence.payload.safeSummary.includes('not verified obtainable or game-tested') ||
+                !evidence.payload.safeSummary.includes('runtime movement outcome and localized-description compatibility are unverified')) {
+              throw new Error('W01 chainaxe tier 2-4 display claims must remain pending and closed to fixed trait/parser evidence');
+            }
+          }
+          const normalCharge = byId.get('darktide:claim:psyker:brain-burst-improved-normal-charge-base-time');
+          const stickyCharge = byId.get('darktide:claim:psyker:brain-burst-improved-sticky-charge-base-time');
+          const onHitPeril = byId.get('darktide:claim:psyker:brain-burst-improved-successful-hit-base-peril-ratio');
+          if (!normalCharge || normalCharge.payload.property !== 'action.psyker_smite.action_charge_target.default_charge_time' ||
+              normalCharge.payload.value?.status !== 'known' || normalCharge.payload.value?.decimal !== '3' || normalCharge.payload.value?.unit !== 's' ||
+              normalCharge.reviewState !== 'pending' ||
+              !stickyCharge || stickyCharge.payload.property !== 'action.psyker_smite.action_charge_target_sticky.charge_time' ||
+              stickyCharge.payload.value?.status !== 'known' || stickyCharge.payload.value?.decimal !== '2' || stickyCharge.payload.value?.unit !== 's' ||
+              stickyCharge.reviewState !== 'pending' ||
+              !onHitPeril || onHitPeril.payload.property !== 'charge_template.psyker_smite_use_power.warp_charge_percent' ||
+              onHitPeril.payload.value?.status !== 'known' || onHitPeril.payload.value?.decimal !== '0.25' || onHitPeril.payload.value?.unit !== 'ratio' ||
+              onHitPeril.reviewState !== 'pending') {
+            throw new Error('W01 representative charge-time and on-hit peril claims must remain pending source parameters');
+          }
+          const duration = byId.get('darktide:claim:chainaxe:p1-movement-speed-on-activation-duration');
+          if (!duration || duration.payload.property !== 'template.buff_override.active_duration' ||
+              duration.payload.value.status !== 'known' || duration.payload.value.decimal !== '2' || duration.payload.value.unit !== 's' ||
+              duration.payload.basis !== 'code-observed' || duration.reviewState !== 'pending') {
+            throw new Error('W01 representative duration must remain a pending code-observed template literal');
+          }
+          const rawAttack = byId.get('darktide:stat-curve:chainaxe-p1-m1-default-light-attack-power-table');
+          const rawArmor = byId.get('darktide:stat-curve:chainaxe-p1-m1-default-light-armored-parameter-table');
+          if (!rawAttack || JSON.stringify(rawAttack.payload.knots) !== JSON.stringify([{ x: '1', y: '80' }, { x: '2', y: '140' }]) ||
+              !rawArmor || JSON.stringify(rawArmor.payload.knots) !== JSON.stringify([{ x: '1', y: '1.035' }, { x: '2', y: '1.965' }]) ||
+              rawAttack.payload.interpolation.status !== 'unknown' || rawArmor.payload.interpolation.status !== 'unknown') {
+            throw new Error('W01 representative raw parameter tables must remain ordered and uninterpolated');
+          }
+          const attackStatId = 'darktide:stat-definition:chainaxe-p1-m1-default-light-attack-power-table';
+          const armorStatId = 'darktide:stat-definition:chainaxe-p1-m1-default-light-armored-parameter-table';
+          const attackStat = byId.get(attackStatId);
+          const armorStat = byId.get(armorStatId);
+          const weapon = byId.get('darktide:weapon:chainaxe:p1-m1');
+          const attackClaimIds = [
+            'darktide:claim:chainaxe:p1-m1-default-light-attack-power-comparison-60',
+            'darktide:claim:chainaxe:p1-m1-default-light-attack-power-comparison-80'
+          ];
+          const armorClaimIds = [
+            'darktide:claim:chainaxe:p1-m1-default-light-armored-modifier-comparison-60',
+            'darktide:claim:chainaxe:p1-m1-default-light-armored-modifier-comparison-80'
+          ];
+          if (!weapon || JSON.stringify(weapon.payload.statRefs) !== JSON.stringify([attackStatId, armorStatId]) ||
+              !attackStat || JSON.stringify(attackStat.payload.claimRefs) !== JSON.stringify(attackClaimIds) ||
+              !armorStat || JSON.stringify(armorStat.payload.claimRefs) !== JSON.stringify(armorClaimIds)) {
+            throw new Error('W01 chainaxe comparison claims must be reachable through the weapon stat references');
+          }
+          const comparisonSources = {
+            template: 'public-code:chainaxe-p1-m1-ba6c148',
+            traits: 'public-code:damage-trait-templates-ba6c148',
+            tweak: 'public-code:weapon-tweak-templates-ba6c148',
+            profile: 'public-code:chainaxe-damage-profiles-ba6c148',
+            armorSettings: 'public-code:damage-profile-settings-ba6c148',
+            uiData: 'public-code:weapon-tweak-stats-ui-data-ba6c148',
+            weaponBar: 'public-code:weapon-bar-ui-descriptions-ba6c148',
+            weaponInfo: 'public-code:weapon-info-value-formatting-ba6c148'
+          };
+          const attackSources = [comparisonSources.template, comparisonSources.traits, comparisonSources.tweak,
+            comparisonSources.profile, comparisonSources.uiData, comparisonSources.weaponInfo];
+          const armorClaimSources = [comparisonSources.template, comparisonSources.traits, comparisonSources.tweak,
+            comparisonSources.profile, comparisonSources.armorSettings, comparisonSources.uiData,
+            comparisonSources.weaponBar, comparisonSources.weaponInfo];
+          const armorSources = [comparisonSources.template, comparisonSources.profile, comparisonSources.traits,
+            comparisonSources.tweak, comparisonSources.armorSettings, comparisonSources.uiData,
+            comparisonSources.weaponBar, comparisonSources.weaponInfo];
+          const comparisonEvidence = {
+            attack: 'darktide:evidence:chainaxe:p1-m1-damage-comparison-code',
+            armor: 'darktide:evidence:chainaxe:p1-m1-armor-penetration-comparison-code'
+          };
+          const expectedComparisonClaims = [
+            { id: attackClaimIds[0], targetRef: attackStatId, weaponStat: 'chainaxe_dps_stat', comparison: '60', property: 'damage_templates.default_light_chainaxe.targets[1].power_distribution.attack', decimal: '113', unit: 'attack-power-point', displayDecimal: '113.00', displayUnit: 'attack-power-point', displayFormat: 'fixed-2', profile: 'default_light_chainaxe', evidenceId: comparisonEvidence.attack, sourceRefs: attackSources },
+            { id: attackClaimIds[1], targetRef: attackStatId, weaponStat: 'chainaxe_dps_stat', comparison: '80', property: 'damage_templates.default_light_chainaxe.targets[1].power_distribution.attack', decimal: '119', unit: 'attack-power-point', displayDecimal: '119.00', displayUnit: 'attack-power-point', displayFormat: 'fixed-2', profile: 'default_light_chainaxe', evidenceId: comparisonEvidence.attack, sourceRefs: attackSources },
+            { id: armorClaimIds[0], targetRef: armorStatId, weaponStat: 'chainaxe_armor_pierce_stat', comparison: '60', property: 'damage_templates.default_light_chainaxe.targets[1].armor_damage_modifier.attack[armor_types.armored]', decimal: '1.6023', unit: 'ratio', displayDecimal: '160.23', displayUnit: 'percent', displayFormat: 'percentage-fixed-2', profile: 'default_light_chainaxe', armorClass: 'armored', evidenceId: comparisonEvidence.armor, sourceRefs: armorClaimSources },
+            { id: armorClaimIds[1], targetRef: armorStatId, weaponStat: 'chainaxe_armor_pierce_stat', comparison: '80', property: 'damage_templates.default_light_chainaxe.targets[1].armor_damage_modifier.attack[armor_types.armored]', decimal: '1.7604', unit: 'ratio', displayDecimal: '176.04', displayUnit: 'percent', displayFormat: 'percentage-fixed-2', profile: 'default_light_chainaxe', armorClass: 'armored', evidenceId: comparisonEvidence.armor, sourceRefs: armorClaimSources }
+          ];
+          for (const expected of expectedComparisonClaims) {
+            const claim = byId.get(expected.id);
+            const context = claim?.payload.context;
+            const value = claim?.payload.value;
+            const displayValue = claim?.payload.displayValue;
+            const expectedContextKeys = expected.armorClass === undefined
+              ? ['attackMode', 'comparisonStat', 'profile', 'weaponRef', 'weaponStat']
+              : ['armorClass', 'attackMode', 'comparisonStat', 'profile', 'weaponRef', 'weaponStat'];
+            if (!claim || claim.kind !== 'claim' || claim.owner !== 'source' || claim.reviewState !== 'pending' ||
+                claim.payload.targetRef !== expected.targetRef || claim.payload.property !== expected.property ||
+                claim.payload.basis !== 'code-derived' ||
+                JSON.stringify(Object.keys(context ?? {}).sort()) !== JSON.stringify(expectedContextKeys) ||
+                context.attackMode !== 'light' || context.profile !== expected.profile ||
+                context.weaponRef !== 'darktide:weapon:chainaxe:p1-m1' ||
+                (expected.armorClass !== undefined && context.armorClass !== expected.armorClass) ||
+                context.weaponStat !== expected.weaponStat || context.comparisonStat?.status !== 'known' ||
+                context.comparisonStat?.decimal !== expected.comparison || context.comparisonStat?.unit !== 'percent' ||
+                JSON.stringify(Object.keys(context.comparisonStat ?? {}).sort()) !== JSON.stringify(['decimal', 'status', 'unit']) ||
+                value?.status !== 'known' || value?.decimal !== expected.decimal || value?.unit !== expected.unit ||
+                displayValue?.status !== 'known' || displayValue?.decimal !== expected.displayDecimal || displayValue?.unit !== expected.displayUnit ||
+                claim.payload.displayFormat !== expected.displayFormat ||
+                JSON.stringify(claim.payload.evidenceRefs) !== JSON.stringify([expected.evidenceId]) ||
+                JSON.stringify(claim.sourceRefs) !== JSON.stringify(expected.sourceRefs) ||
+                new Set(claim.sourceRefs).size !== claim.sourceRefs.length) {
+              throw new Error(expected.id + ': W01 comparison claim context, value, target, or source closure changed');
+            }
+          }
+          const comparisonSourcePaths = new Map([
+            [comparisonSources.template, 'scripts/settings/equipment/weapon_templates/chain_axes/chainaxe_p1_m1.lua'],
+            [comparisonSources.traits, 'scripts/settings/equipment/weapon_templates/weapon_trait_templates/damage_trait_templates.lua'],
+            [comparisonSources.tweak, 'scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua'],
+            [comparisonSources.profile, 'scripts/settings/equipment/weapon_templates/chain_axes/settings_templates/chain_axe_damage_profile_templates.lua'],
+            [comparisonSources.armorSettings, 'scripts/settings/damage/damage_profile_settings.lua'],
+            [comparisonSources.uiData, 'scripts/settings/equipment/weapon_tweak_stats_ui_data.lua'],
+            [comparisonSources.weaponBar, 'scripts/settings/equipment/weapon_bar_ui_description_templates.lua'],
+            [comparisonSources.weaponInfo, 'scripts/ui/view_elements/view_element_weapon_info/view_element_weapon_info.lua']
+          ]);
+          const sourceById = new Map(representativeTechnical.sourceRefs.map(source => [source.sourceId, source]));
+          for (const [sourceId, sourcePath] of comparisonSourcePaths) {
+            const source = sourceById.get(sourceId);
+            if (!source || source.fixtureOnly !== false || source.commit !== 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e' ||
+                source.path !== sourcePath || source.snapshot?.commit !== 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e') {
+              throw new Error(sourceId + ': W01 comparison source reference changed');
+            }
+          }
+          for (const { evidenceId, sourceRefs, summaryFragments } of [
+            {
+              evidenceId: comparisonEvidence.attack,
+              sourceRefs: attackSources,
+              summaryFragments: ['inputs 60% and 80% give t=0.55 and 0.65', 'not final HP damage', 'not values for every displayed segment']
+            },
+            {
+              evidenceId: comparisonEvidence.armor,
+              sourceRefs: armorSources,
+              summaryFragments: ['inputs 60% and 80% give t=0.61 and 0.78', 'Only explicit profile armor keys are claimed', 'values are not final damage']
+            }
+          ]) {
+            const evidence = byId.get(evidenceId);
+            if (!evidence || evidence.kind !== 'evidence' || evidence.owner !== 'source' || evidence.reviewState !== 'pending' ||
+                evidence.payload.sourceRef !== comparisonSources.template || JSON.stringify(evidence.sourceRefs) !== JSON.stringify(sourceRefs) ||
+                summaryFragments.some(fragment => !evidence.payload.safeSummary.includes(fragment))) {
+              throw new Error(evidenceId + ': W01 comparison evidence must remain pending and closed to its direct source refs');
+            }
+          }
+          for (const filename of ['analysis.md', 'game-changes.md']) {
+            const markdown = fs.readFileSync(path.join(representative.outputPath, filename), 'utf8');
+            if (!markdown.startsWith('> **Pending review:** not approved for publication.\n\n') || markdown.includes('synthetic contract output')) {
+              throw new Error(filename + ': pending representative candidate banner is incorrect');
+            }
+          }
+          const summary = [
+            '## W01 source previews',
+            '',
+            '- Candidate status: non-fixture, pending, publication-ineligible.',
+            '- Candidate source revision: ' + candidate.receipt.sourceRevision,
+            '- Candidate manifest SHA-256: ' + candidate.receipt.manifestSha256,
+            '- Candidate output: ' + candidate.receipt.outputDirectory,
+            '- Review scope: docs/w01-real-claim-review.md',
+            '',
+            '- Representative status: non-fixture, pending, publication-ineligible.',
+            '- Representative source revision: ' + representative.receipt.sourceRevision,
+            '- Representative manifest SHA-256: ' + representative.receipt.manifestSha256,
+            '- Representative output: ' + representative.receipt.outputDirectory,
+            '- Representative records/sources: ' + representativeTechnical.records.length + '/' + representativeTechnical.sourceRefs.length + '.',
+            '- Review scope: docs/w01-real-claim-review.md',
+            '',
+            '- Existing fixture status: fixture-only, pending, publication-ineligible.',
+            '- Fixture source revision: ' + fixture.receipt.sourceRevision,
+            '- Fixture manifest SHA-256: ' + fixture.receipt.manifestSha256,
+            '- Fixture output: ' + fixture.receipt.outputDirectory,
+            '',
+            'This run validates two public-code-backed pending candidates and a synthetic fixture. It does not approve the claims or publish a formal release.',
+            ''
+          ].join('\n');
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+          NODE
+      - name: Upload safe generated Source preview
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: syp-311-w01-source-preview
+          path: |
+            dist-w01/source/*/analysis.md
+            dist-w01/source/*/game-changes.json
+            dist-w01/source/*/game-changes.md
+            dist-w01/source/*/receipt.json
+            dist-w01/source/*/source-manifest.json
+            dist-w01/source/*/technical.json
+          if-no-files-found: error
+          retention-days: 7
