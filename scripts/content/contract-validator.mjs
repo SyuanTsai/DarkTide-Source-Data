@@ -484,6 +484,14 @@ function validateRecordIdentityAndCoverage(contract, releaseMap, sourceMap, issu
     const expectedState = deriveReviewState(record, new Map(), contract, issues, base);
     void expectedState;
     const coverage = record.dataCoverage;
+    if (record.kind === "blessing" && record.payload.nameKey?.status === "unknown") {
+      const nameKeyCoverage = (coverage.missing ?? []).find((item) => item.field === "/payload/nameKey");
+      if (record.payload.nameKey.reasonCode !== "NOT_VERIFIED"
+        || coverage.status === "complete"
+        || nameKeyCoverage?.reasonCode !== "NOT_VERIFIED") {
+        issues.push({ path: base + "/payload/nameKey", code: "unknown-blessing-name-key-coverage", message: "An unknown blessing nameKey must be NOT_VERIFIED and match non-complete coverage for /payload/nameKey" });
+      }
+    }
     const missingPaths = new Set();
     for (const [missingIndex, missing] of (coverage?.missing ?? []).entries()) {
       const p = `${base}/dataCoverage/missing/${missingIndex}`;

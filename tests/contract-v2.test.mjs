@@ -472,3 +472,18 @@ test('UnitT13_cross-record-context-units-and-curves-are-order-independent', () =
   reorderedValidFixture.records.reverse();
   assert.equal(validate(reorderedValidFixture).valid, true, JSON.stringify(validate(reorderedValidFixture).issues, null, 2));
 });
+// Scenario: A blessing has an unresolved localized name key represented as NOT_VERIFIED and its exact field is covered.
+// Purpose: Permit this explicit unknown without weakening existing string names or allowing uncovered unknown identity.
+test('UnitT14_blessing-name-key-unknown-requires-matching-not-verified-coverage', () => {
+  const candidate = structuredClone(fixture);
+  const blessing = candidate.records.find((record) => record.kind === 'blessing');
+  blessing.payload.nameKey = { status: 'unknown', reasonCode: 'NOT_VERIFIED' };
+  blessing.dataCoverage = { status: 'partial', missing: [{ field: '/payload/nameKey', reasonCode: 'NOT_VERIFIED' }] };
+  assert.equal(validate(candidate).valid, true, JSON.stringify(validate(candidate).issues, null, 2));
+  assert.equal(validate(fixture).valid, true);
+
+  const uncovered = structuredClone(candidate);
+  const uncoveredBlessing = uncovered.records.find((record) => record.kind === 'blessing');
+  uncoveredBlessing.dataCoverage = { status: 'complete', missing: [] };
+  assert.ok(issueCodes(uncovered).has('unknown-blessing-name-key-coverage'));
+});
