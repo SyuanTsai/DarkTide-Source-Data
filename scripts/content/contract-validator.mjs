@@ -279,6 +279,9 @@ function identityPayloadProjection(item) {
   if (item.kind === 'target-profile' && Array.isArray(payload.hitZones)) {
     projected.hitZones = payload.hitZones.map(({ zoneId, armorRef, weakspot, critEligible }) => ({ zoneId, armorRef, weakspot, critEligible }));
   }
+  if (item.kind === 'damage-profile' && payload.rawSourceDefinition?.parentProfileRef) {
+    projected.parentProfileRef = payload.rawSourceDefinition.parentProfileRef;
+  }
   if (item.kind === 'damage-profile' && Array.isArray(payload.segments)) {
     projected.segments = payload.segments.map(({ segmentId, quantity, hitZone, conditions }) => ({ segmentId, quantity, hitZone, conditions }));
   }
@@ -346,12 +349,16 @@ function dependencyClosure(contract, rootItem, recordMap, sourceMap, releaseMap)
       sourceRefs: sourceRefs.sort((a, b) => compareLexical(a.sourceId, b.sourceId))
     });
     for (const link of links) if (link.compatibilityRef) visit(recordMap.get(recordKey(link.compatibilityRef, item.gameReleaseId)), 'full');
-    if (!isTombstone) for (const { ref, field } of getAllRecordRefs(item)) {
+    const recordRefs = mode === 'identity'
+      ? getAllRecordRefs({ ...item, payload: identityPayloadProjection(item) })
+      : getAllRecordRefs(item);
+    if (!isTombstone) for (const { ref, field } of recordRefs) {
       const followsClaimDependency = expandsClaimRefs && DIGEST_BACKLINK_FIELDS.has(field);
       if (DIGEST_BACKLINK_FIELDS.has(field) && !followsClaimDependency) continue;
       const identityEdge = IDENTITY_REFERENCE_FIELDS.has(field);
       if (mode === 'identity' && identityEdge) {
         if (ref.compatibilityRef) visit(recordMap.get(recordKey(ref.compatibilityRef, item.gameReleaseId)), 'full');
+        visit(recordMap.get(recordKey(ref.recordId, ref.gameReleaseId)), 'identity', false);
         continue;
       }
       const targetMode = identityEdge ? 'identity' : 'full';

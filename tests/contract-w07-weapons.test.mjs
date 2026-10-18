@@ -4,12 +4,14 @@ import { test } from 'node:test';
 import {
   loadContractSchema,
   loadRepresentativeFixture,
+  computeReviewDigests,
   validateSourceContract
 } from '../scripts/content/contract-validator.mjs';
 
 const schema = await loadContractSchema();
 const fixture = await loadRepresentativeFixture();
 const w01 = JSON.parse(await readFile(new URL('../content/authoring/w01-real-representative-candidate.json', import.meta.url), 'utf8'));
+const w07Weapons = JSON.parse(await readFile(new URL('../content/authoring/v2/w07-weapons.json', import.meta.url), 'utf8'));
 const validate = (candidate) => validateSourceContract(candidate, { schema });
 const selectedCodeSnapshot = (snapshotId = 'fixture-selected-code-snapshot') => ({
   snapshotId,
@@ -710,4 +712,76 @@ test('UnitT26_w07-action-profile-literal-rejects-trailing-expression', async () 
   binding.rawValue = 'DamageProfileTemplates.' + originalKey + '.unimported_expression';
 
   assert.ok(validate(candidate).issues.some((issue) => issue.code === 'attack-source-binding-profile'));
+});
+
+// Scenario: One Mk IV heavy-special continuation changes while a sibling Mk IV action and a DPS claim still point at the same weapon identity.
+// Purpose: Keep identity-only weapon dependencies from fanning one action edit out to unrelated stat and action review targets.
+test('UnitT27_w07-action-continuation-digest-does-not-fan-out-through-weapon-identity', () => {
+  const heavy = w07Weapons.records.find((record) => record.kind === 'attack-profile'
+    && record.payload.action === 'action_heavy_special'
+    && record.payload.markId === 'chainaxe_p1_m1');
+  const sibling = w07Weapons.records.find((record) => record.kind === 'attack-profile'
+    && record.payload.action === 'action_left_down_light'
+    && record.payload.markId === 'chainaxe_p1_m1');
+  const statClaim = w07Weapons.records.find((record) => record.kind === 'claim'
+    && record.payload.context?.weaponRef?.recordId === 'darktide:weapon:chainaxe:p1-m1'
+    && record.payload.context?.weaponStat === 'chainaxe_dps_stat');
+  assert.ok(heavy && sibling && statClaim, 'Pinned Mk IV action and stat records must be present');
+  const reviewTarget = (record, fieldPath, dimension) => ({
+    recordId: record.recordId,
+    gameReleaseId: record.gameReleaseId,
+    fieldPath,
+    dimension,
+  });
+  const heavyTarget = reviewTarget(heavy, '/payload/continuations', 'technical');
+  const siblingTarget = reviewTarget(sibling, '/payload/continuations', 'technical');
+  const statTarget = reviewTarget(statClaim, '/payload/value', 'technical');
+  const before = {
+    heavy: computeReviewDigests(w07Weapons, heavyTarget),
+    sibling: computeReviewDigests(w07Weapons, siblingTarget),
+    stat: computeReviewDigests(w07Weapons, statTarget),
+  };
+
+  const changed = structuredClone(w07Weapons);
+  const changedHeavy = changed.records.find((record) => record.recordId === heavy.recordId);
+  changedHeavy.payload.continuations[0].conditions[0].rawValue = '999';
+  const after = {
+    heavy: computeReviewDigests(changed, heavyTarget),
+    sibling: computeReviewDigests(changed, siblingTarget),
+    stat: computeReviewDigests(changed, statTarget),
+  };
+
+  assert.notDeepEqual(after.heavy, before.heavy, 'The edited action target must become stale');
+  assert.deepEqual(after.sibling, before.sibling, 'An unrelated action target must keep its digest');
+  assert.deepEqual(after.stat, before.stat, 'An unrelated stat target must keep its digest');
+});
+
+// Scenario: A derived damage profile points to a typed parent profile whose ordered source table contains numeric raw points.
+// Purpose: Preserve full parent-profile dependencies so editing a parent table stales the derived profile and its action consumers.
+test('UnitT28_w07-derived-damage-profile-keeps-parent-table-numeric-dependency', () => {
+  const child = w07Weapons.records.find((record) => record.kind === 'damage-profile'
+    && record.payload.rawSourceDefinition?.parentProfileRef);
+  assert.ok(child, 'A pinned derived damage profile must be present');
+  const parentRef = child.payload.rawSourceDefinition.parentProfileRef;
+  const parent = w07Weapons.records.find((record) => record.recordId === parentRef.recordId
+    && record.gameReleaseId === parentRef.gameReleaseId);
+  const point = parent?.payload.rawSourceDefinition?.tables?.flatMap((table) => table.orderedValues)
+    .find((item) => item.decimal !== undefined && item.rawValue !== undefined);
+  assert.ok(parent && point, 'The typed parent profile must expose a numeric source point');
+  const target = {
+    recordId: child.recordId,
+    gameReleaseId: child.gameReleaseId,
+    fieldPath: '/payload/rawSourceDefinition',
+    dimension: 'technical',
+  };
+  const before = computeReviewDigests(w07Weapons, target);
+  const changed = structuredClone(w07Weapons);
+  const changedParent = changed.records.find((record) => record.recordId === parent.recordId);
+  const changedPoint = changedParent.payload.rawSourceDefinition.tables.flatMap((table) => table.orderedValues)
+    .find((item) => item.ordinal === point.ordinal && item.decimal === point.decimal);
+  changedPoint.decimal = '999';
+  changedPoint.rawValue = '999';
+
+  const after = computeReviewDigests(changed, target);
+  assert.notEqual(after.dependenciesDigest, before.dependenciesDigest);
 });
