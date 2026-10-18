@@ -487,3 +487,46 @@ test('UnitT14_blessing-name-key-unknown-requires-matching-not-verified-coverage'
   uncoveredBlessing.dataCoverage = { status: 'complete', missing: [] };
   assert.ok(issueCodes(uncovered).has('unknown-blessing-name-key-coverage'));
 });
+
+// Scenario: Pending, draft, and tombstone records each declare a review target whose JSON Pointer does not resolve.
+// Purpose: Reject every bad declared target before a receipt exists, while keeping legal array indices and escaped object keys valid.
+test('UnitT15_declared-review-target-pointers-are-validated-without-receipts', () => {
+  const assertMissingDeclaredPointer = (candidate, listName, index) => {
+    const prefix = `/${listName}/${index}/reviewTargets/`;
+    assert.ok(validate(candidate).issues.some((issue) => issue.code === 'missing-review-field' && issue.path.startsWith(prefix)));
+  };
+
+  const pending = structuredClone(fixture);
+  const pendingIndex = pending.records.findIndex((item) => item.reviewState === 'pending');
+  const pendingRecord = pending.records[pendingIndex];
+  pendingRecord.reviewTargets.push({ fieldPath: '/payload/does-not-exist', dimension: 'technical' });
+  assertMissingDeclaredPointer(pending, 'records', pendingIndex);
+
+  const draft = structuredClone(fixture);
+  const draftIndex = draft.records.findIndex((item) => item.reviewState === 'pending');
+  draft.records[draftIndex].reviewState = 'draft';
+  draft.records[draftIndex].reviewTargets.push({ fieldPath: '/payload/does-not-exist', dimension: 'context' });
+  assertMissingDeclaredPointer(draft, 'records', draftIndex);
+
+  const tombstone = structuredClone(fixture);
+  assert.ok(tombstone.tombstones.length > 0, 'The representative fixture must retain a tombstone');
+  tombstone.tombstones[0].reviewTargets[0].fieldPath = '/does-not-exist';
+  assertMissingDeclaredPointer(tombstone, 'tombstones', 0);
+
+  const pointerCase = structuredClone(fixture);
+  const pointerRecord = pointerCase.records.find((item) => Array.isArray(item.payload.segments) && item.payload.segments.length > 0);
+  assert.ok(pointerRecord, 'The representative fixture must retain an array-valued payload field');
+  pointerRecord.payload['review/a~key'] = 'synthetic pointer target';
+  assert.doesNotThrow(() => computeReviewDigests(pointerCase, {
+    recordId: pointerRecord.recordId,
+    gameReleaseId: pointerRecord.gameReleaseId,
+    fieldPath: '/payload/segments/0',
+    dimension: 'technical'
+  }));
+  assert.doesNotThrow(() => computeReviewDigests(pointerCase, {
+    recordId: pointerRecord.recordId,
+    gameReleaseId: pointerRecord.gameReleaseId,
+    fieldPath: '/payload/review~1a~0key',
+    dimension: 'technical'
+  }));
+});

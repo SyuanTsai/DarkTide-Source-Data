@@ -465,9 +465,9 @@ function makeProfileRecords(facts, state) {
       ]),
       reviewTargets: [
         { fieldPath: '/payload/profileKey', dimension: 'identity' },
-        { fieldPath: '/payload/rawSourceDefinition.leaves', dimension: 'technical' },
-        { fieldPath: '/payload/rawSourceDefinition.tables', dimension: 'technical' },
-        { fieldPath: '/payload/rawSourceDefinition.targetOrder', dimension: 'technical' }
+        { fieldPath: '/payload/rawSourceDefinition/leaves', dimension: 'technical' },
+        { fieldPath: '/payload/rawSourceDefinition/tables', dimension: 'technical' },
+        { fieldPath: '/payload/rawSourceDefinition/targetOrder', dimension: 'technical' }
       ]
     }));
   }

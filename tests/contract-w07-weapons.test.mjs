@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import {
   loadContractSchema,
   loadRepresentativeFixture,
+  createReviewReceipt,
   computeReviewDigests,
   validateSourceContract
 } from '../scripts/content/contract-validator.mjs';
@@ -784,4 +785,105 @@ test('UnitT28_w07-derived-damage-profile-keeps-parent-table-numeric-dependency',
 
   const after = computeReviewDigests(changed, target);
   assert.notEqual(after.dependenciesDigest, before.dependenciesDigest);
+});
+
+// Scenario: Every declared W07 review target is resolved against the real weapon candidate.
+// Purpose: Ensure all 662 targets can produce deterministic digests and in-memory synthetic receipts before any human review begins.
+test('UnitT29_w07-all-real-review-targets-resolve-and-create-synthetic-receipts', () => {
+  const targets = w07Weapons.records.flatMap((record) => (record.reviewTargets ?? []).map((target) => ({
+    recordId: record.recordId,
+    gameReleaseId: record.gameReleaseId,
+    ...target
+  })));
+  assert.equal(targets.length, 662, 'The pinned W07 candidate must retain all 662 review targets');
+
+  const receipts = targets.map((target) => createReviewReceipt(w07Weapons, target, {
+    reviewer: { kind: 'human', id: 'synthetic-red-green-probe-only' },
+    reviewedAt: '2026-10-19T00:00:00Z'
+  }));
+
+  assert.equal(receipts.length, targets.length);
+  assert.ok(receipts.every((receipt) => /^[a-f0-9]{64}$/u.test(receipt.targetDigest)
+    && /^[a-f0-9]{64}$/u.test(receipt.dependenciesDigest)));
+});
+
+// Scenario: The pinned W07 public-code snapshot is mirrored at a different commit with the same selected artifact bytes.
+// Purpose: Ignore only a verified permalink commit segment while keeping artifact and repository-relative path changes reviewable.
+test('UnitT30_w07-verified-public-code-commit-rebase-keeps-review-digest-stable', () => {
+  const snapshotEntry = w07Weapons.sourceSnapshots.find((item) => item.snapshot.snapshotId === 'chainaxe-weapons-1.13.2-37-files');
+  assert.ok(snapshotEntry, 'The selected W07 public-code snapshot must be present');
+  const sourceIndex = w07Weapons.sourceRefs.findIndex((item) => item.sourceKind === 'public-code'
+    && item.snapshot.snapshotId === snapshotEntry.snapshot.snapshotId);
+  assert.ok(sourceIndex >= 0, 'A public-code source must use the selected W07 snapshot');
+  const source = w07Weapons.sourceRefs[sourceIndex];
+  const linkedRecord = w07Weapons.records.find((record) => record.sourceRefs.some((link) => link.sourceId === source.sourceId)
+    && record.reviewTargets.some((target) => {
+      try {
+        computeReviewDigests(w07Weapons, { recordId: record.recordId, gameReleaseId: record.gameReleaseId, ...target });
+        return true;
+      } catch { return false; }
+    }));
+  assert.ok(linkedRecord, 'A review target must directly depend on a pinned W07 source');
+  const target = linkedRecord.reviewTargets.map((entry) => ({
+    recordId: linkedRecord.recordId,
+    gameReleaseId: linkedRecord.gameReleaseId,
+    ...entry
+  })).find((entry) => {
+    try { computeReviewDigests(w07Weapons, entry); return true; } catch { return false; }
+  });
+  assert.ok(target);
+  const before = computeReviewDigests(w07Weapons, target);
+  const oldCommit = source.commit;
+  const rebased = structuredClone(w07Weapons);
+  const nextCommit = 'd'.repeat(40);
+  const rebasedSnapshot = rebased.sourceSnapshots.find((item) => item.snapshot.snapshotId === snapshotEntry.snapshot.snapshotId);
+  rebasedSnapshot.snapshot.commit = nextCommit;
+  for (const item of rebased.sourceRefs.filter((candidate) => candidate.sourceKind === 'public-code'
+    && candidate.snapshot.snapshotId === snapshotEntry.snapshot.snapshotId)) {
+    assert.equal(item.commit, oldCommit, 'The selected W07 refs must share the pinned source commit');
+    const commitPath = `/blob/${oldCommit}/`;
+    assert.ok(item.publicUrl.includes(commitPath), 'The public permalink must expose the exact verified commit segment');
+    item.commit = nextCommit;
+    item.snapshot.commit = nextCommit;
+    item.publicUrl = item.publicUrl.replace(commitPath, `/blob/${nextCommit}/`);
+  }
+  assert.equal(validate(rebased).valid, true, JSON.stringify(validate(rebased).issues, null, 2));
+  assert.deepEqual(computeReviewDigests(rebased, target), before);
+
+  const artifactChanged = structuredClone(rebased);
+  artifactChanged.sourceRefs[sourceIndex].artifactSha256 = 'e'.repeat(64);
+  assert.notDeepEqual(computeReviewDigests(artifactChanged, target), before, 'A true source artifact change must remain reviewable');
+
+  const pathChanged = structuredClone(rebased);
+  pathChanged.sourceRefs[sourceIndex].path += '.changed';
+  assert.notDeepEqual(computeReviewDigests(pathChanged, target), before, 'A repository-relative source path change must remain reviewable');
+
+  const mismatchedUrl = structuredClone(rebased);
+  const mismatchedSource = mismatchedUrl.sourceRefs[sourceIndex];
+  mismatchedSource.publicUrl = mismatchedSource.publicUrl.replace(`/blob/${nextCommit}/`, `/blob/${oldCommit}/`);
+  assert.notDeepEqual(computeReviewDigests(mismatchedUrl, target), before, 'An unverified URL commit must not be blindly normalized');
+
+  const assertUnknownRepositoryRebaseStaysStale = (repository) => {
+    const unknownBase = structuredClone(w07Weapons);
+    const unknownSource = unknownBase.sourceRefs[sourceIndex];
+    unknownSource.repository = repository;
+    unknownSource.publicUrl = `${repository}/blob/${oldCommit}/${unknownSource.path}`;
+    const unknownBefore = computeReviewDigests(unknownBase, target);
+
+    const unknownRebased = structuredClone(unknownBase);
+    const rebasedSource = unknownRebased.sourceRefs[sourceIndex];
+    rebasedSource.commit = nextCommit;
+    rebasedSource.snapshot.commit = nextCommit;
+    rebasedSource.publicUrl = rebasedSource.publicUrl.replace(`/blob/${oldCommit}/`, `/blob/${nextCommit}/`);
+    assert.notDeepEqual(computeReviewDigests(unknownRebased, target), unknownBefore, 'Unknown repositories must retain the commit-bearing URL dependency');
+  };
+  assertUnknownRepositoryRebaseStaysStale('https://example.invalid/synthetic/game-code');
+  assertUnknownRepositoryRebaseStaysStale('https://github.com/OtherOwner/OtherGameCode');
+
+  const fragmentBase = structuredClone(rebased);
+  fragmentBase.sourceRefs[sourceIndex].publicUrl += '#L120';
+  const fragmentDigest = computeReviewDigests(fragmentBase, target);
+  const fragmentChanged = structuredClone(fragmentBase);
+  fragmentChanged.sourceRefs[sourceIndex].publicUrl = fragmentChanged.sourceRefs[sourceIndex].publicUrl.replace('#L120', '#L121');
+  assert.notDeepEqual(computeReviewDigests(fragmentChanged, target), fragmentDigest, 'Permalink line fragments must remain reviewable');
 });
