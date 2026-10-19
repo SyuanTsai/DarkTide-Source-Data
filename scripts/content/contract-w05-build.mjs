@@ -18,7 +18,7 @@ import {
 } from './contract-validator.mjs';
 
 const DERIVED_ISSUES = new Set(['review-state-mismatch', 'publication-state-mismatch']);
-const REGISTRY_NAMES = ['gameReleases', 'sourceRefs', 'records', 'tombstones'];
+const REGISTRY_NAMES = ['gameReleases', 'sourceSnapshots', 'sourceRefs', 'records', 'tombstones'];
 const TICK = String.fromCharCode(96);
 
 function safeError(label, validation) {
@@ -116,6 +116,7 @@ function compareLexical(left, right) {
 
 function registryKey(name, item) {
   if (name === 'gameReleases') return JSON.stringify([item.gameReleaseId]);
+  if (name === 'sourceSnapshots') return JSON.stringify([item.snapshot.snapshotId]);
   if (name === 'sourceRefs') return JSON.stringify([item.gameReleaseId, item.sourceId]);
   if (name === 'reviewReceipts') return JSON.stringify([
     item.target.gameReleaseId, item.target.recordId, item.target.fieldPath, item.target.dimension
@@ -147,9 +148,14 @@ function fieldPaths(before, after, currentPath = '') {
   return [currentPath || '/'];
 }
 
+function registryEntries(contract, name) {
+  if (name === 'sourceSnapshots' && !Object.hasOwn(contract, name)) return [];
+  return contract[name];
+}
+
 function registryDiff(name, baseline, merged) {
-  const before = new Map(baseline[name].map((item) => [registryKey(name, item), item]));
-  const after = new Map(merged[name].map((item) => [registryKey(name, item), item]));
+  const before = new Map(registryEntries(baseline, name).map((item) => [registryKey(name, item), item]));
+  const after = new Map(registryEntries(merged, name).map((item) => [registryKey(name, item), item]));
   const keys = [...new Set([...before.keys(), ...after.keys()])].sort(compareLexical);
   const added = [];
   const removed = [];
@@ -168,7 +174,9 @@ function registryDiff(name, baseline, merged) {
 }
 
 function calculateRevisionChanges(baseline, merged) {
-  return Object.fromEntries(REGISTRY_NAMES.map((name) => [name, registryDiff(name, baseline, merged)]));
+  const names = REGISTRY_NAMES.filter((name) =>
+    name !== 'sourceSnapshots' || Object.hasOwn(baseline, name) || Object.hasOwn(merged, name));
+  return Object.fromEntries(names.map((name) => [name, registryDiff(name, baseline, merged)]));
 }
 
 function markdownInline(value) {
@@ -301,11 +309,13 @@ function revisionLog(baseline, merged, sourceRevision, mode) {
   ];
   const labels = {
     gameReleases: 'Game release metadata',
+    sourceSnapshots: 'Source snapshots',
     sourceRefs: 'Source references',
     records: 'Records',
     tombstones: 'Tombstones'
   };
   for (const name of REGISTRY_NAMES) {
+    if (!Object.hasOwn(changes, name)) continue;
     const diff = changes[name];
     lines.push('## ' + labels[name]);
     lines.push('');
@@ -331,18 +341,22 @@ function makeBuildFiles({ contract, baseline, mode, validation }) {
   const semanticBaseline = structuredClone(baseline);
   semanticBaseline.publicationEligible = false;
   for (const item of [...semanticBaseline.records, ...semanticBaseline.tombstones]) item.reviewState = 'pending';
-  for (const name of ['gameReleases', 'sourceRefs', 'records', 'tombstones', 'reviewReceipts']) {
+  for (const name of ['gameReleases', 'sourceSnapshots', 'sourceRefs', 'records', 'tombstones', 'reviewReceipts']) {
+    if (name === 'sourceSnapshots' && !Object.hasOwn(semanticBaseline, name)) continue;
     semanticBaseline[name].sort((left, right) => compareLexical(registryKey(name, left), registryKey(name, right)));
   }
+  const revisionSchema = Object.hasOwn(baseline, 'sourceSnapshots') || Object.hasOwn(contract, 'sourceSnapshots')
+    ? 'w05-source-revision/2'
+    : 'w05-source-revision/1';
   const sourceRevision = sha256Canonical({
-    format: 'w05-source-revision/1',
+    format: revisionSchema,
     mode,
     baseline: semanticBaseline,
     output: contract
   });
   const changes = calculateRevisionChanges(baseline, contract);
   const revisionDocument = {
-    schema: 'w05-source-revision/1',
+    schema: revisionSchema,
     sourceRevision,
     mode,
     note: 'Source data revision only; this does not assert an official game change.',

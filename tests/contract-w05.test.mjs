@@ -8,7 +8,8 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   mergeContractDocuments,
-  mergeThreeWayValue
+  mergeThreeWayValue,
+  sha256Canonical
 } from '../scripts/content/contract-w05-merge.mjs';
 import {
   buildContractCandidate
@@ -65,6 +66,27 @@ function fullyApproveContract(contract) {
 async function withTempRoot(run) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'source-w05-test-'));
   try { await run(root); } finally { await rm(root, { recursive: true, force: true }); }
+}
+
+function legacyV1SourceRevisionAddress(baseline, output, mode = 'candidate') {
+  const semanticBaseline = copy(baseline);
+  semanticBaseline.publicationEligible = false;
+  for (const item of [...semanticBaseline.records, ...semanticBaseline.tombstones]) item.reviewState = 'pending';
+  const keys = {
+    gameReleases: (item) => [item.gameReleaseId],
+    sourceRefs: (item) => [item.gameReleaseId, item.sourceId],
+    records: (item) => [item.gameReleaseId, item.recordId],
+    tombstones: (item) => [item.gameReleaseId, item.recordId],
+    reviewReceipts: (item) => [item.target.gameReleaseId, item.target.recordId, item.target.fieldPath, item.target.dimension]
+  };
+  for (const name of Object.keys(keys)) {
+    semanticBaseline[name].sort((left, right) => {
+      const leftKey = JSON.stringify(keys[name](left));
+      const rightKey = JSON.stringify(keys[name](right));
+      return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
+    });
+  }
+  return sha256Canonical({ format: 'w05-source-revision/1', mode, baseline: semanticBaseline, output });
 }
 
 // Scenario: The author changes one record by hand while the new Source candidate changes a different field; registry arrays are reordered.
@@ -555,5 +577,210 @@ test('UnitT09_formal_gate_rejects_unverified_build_metadata_with_current_receipt
     assert.match(JSON.stringify(preview.manifest.buildIdentity), /UNVERIFIED/u);
     assert.ok(preview.manifest.limitations.some((item) => /formal output is blocked/u.test(item)));
     assert.ok(preview.receipt.limitations.some((item) => /formal output is blocked/u.test(item)));
+  });
+});
+
+function makeW07SourceSnapshot(snapshotId, options = {}) {
+  return {
+    gameReleaseId: options.gameReleaseId || 'fixture-r1',
+    snapshot: {
+      snapshotId,
+      commit: options.commit || 'e'.repeat(40),
+      manifestSha256: options.manifestSha256 || 'a'.repeat(64),
+      contentSha256: options.contentSha256 || 'b'.repeat(64)
+    }
+  };
+}
+
+// Scenario: Two valid Source branches add different snapshots and independently edit different fields of a shared snapshot.
+// Purpose: Merge sourceSnapshots as a global snapshotId registry, preserve reorder-insensitive identity, and isolate only real edit/delete conflicts.
+test('UnitT12_merges_source_snapshots_by_global_snapshot_id', async () => {
+  const baseline = copy(fixture);
+  baseline.sourceSnapshots = [makeW07SourceSnapshot('snapshot-w07-base')];
+  const authoring = copy(baseline);
+  const candidate = copy(baseline);
+  authoring.sourceSnapshots[0].snapshot.commit = '1'.repeat(40);
+  authoring.sourceSnapshots.push(makeW07SourceSnapshot('snapshot-w07-author'));
+  candidate.sourceSnapshots[0].snapshot.contentSha256 = '2'.repeat(64);
+  candidate.sourceSnapshots.push(makeW07SourceSnapshot('snapshot-w07-candidate'));
+  authoring.sourceSnapshots.reverse();
+  candidate.sourceSnapshots.reverse();
+
+  const merged = mergeContractDocuments({ baseline, authoring, candidate });
+  assert.deepEqual(merged.conflicts, []);
+  const byId = new Map(merged.merged.sourceSnapshots.map((item) => [item.snapshot.snapshotId, item]));
+  assert.deepEqual([...byId.keys()], ['snapshot-w07-author', 'snapshot-w07-base', 'snapshot-w07-candidate']);
+  assert.equal(byId.get('snapshot-w07-base').snapshot.commit, '1'.repeat(40));
+  assert.equal(byId.get('snapshot-w07-base').snapshot.contentSha256, '2'.repeat(64));
+
+  const reorderBase = copy(fixture);
+  reorderBase.sourceSnapshots = [makeW07SourceSnapshot('snapshot-w07-alpha'), makeW07SourceSnapshot('snapshot-w07-beta')];
+  const reorderAuthor = copy(reorderBase);
+  const reorderCandidate = copy(reorderBase);
+  reorderAuthor.sourceSnapshots.reverse();
+  reorderCandidate.sourceSnapshots.reverse();
+  const reordered = mergeContractDocuments({ baseline: reorderBase, authoring: reorderAuthor, candidate: reorderCandidate });
+  assert.deepEqual(reordered.conflicts, []);
+  assert.deepEqual(reordered.merged.sourceSnapshots.map((item) => item.snapshot.snapshotId), ['snapshot-w07-alpha', 'snapshot-w07-beta']);
+
+  const conflictingAuthor = copy(baseline);
+  const conflictingCandidate = copy(baseline);
+  conflictingAuthor.sourceSnapshots[0].snapshot.manifestSha256 = 'c'.repeat(64);
+  conflictingCandidate.sourceSnapshots[0].snapshot.manifestSha256 = 'd'.repeat(64);
+  const editConflict = mergeContractDocuments({ baseline, authoring: conflictingAuthor, candidate: conflictingCandidate });
+  assert.equal(editConflict.merged, null);
+  assert.equal(editConflict.conflicts.length, 1);
+  assert.equal(editConflict.conflicts[0].registry, 'sourceSnapshots');
+  assert.equal(editConflict.conflicts[0].entityKey, 'sourceSnapshots:["snapshot-w07-base"]');
+  assert.equal(editConflict.conflicts[0].path, '/snapshot/manifestSha256');
+
+  const deletingAuthor = copy(baseline);
+  const editingCandidate = copy(baseline);
+  deletingAuthor.sourceSnapshots = [];
+  editingCandidate.sourceSnapshots[0].snapshot.commit = '3'.repeat(40);
+  const deleteConflict = mergeContractDocuments({ baseline, authoring: deletingAuthor, candidate: editingCandidate });
+  assert.equal(deleteConflict.merged, null);
+  assert.equal(deleteConflict.conflicts.length, 1);
+  assert.equal(deleteConflict.conflicts[0].entityKey, 'sourceSnapshots:["snapshot-w07-base"]');
+  assert.equal(deleteConflict.conflicts[0].path, '');
+
+  await withTempRoot(async (root) => {
+    const outRoot = path.join(root, 'snapshot-conflict');
+    await assert.rejects(buildContractCandidate({
+      baseline, authoring: conflictingAuthor, candidate: conflictingCandidate, outRoot
+    }), /merge conflict/u);
+    await assert.rejects(readdir(outRoot));
+  });
+});
+
+// Scenario: The optional snapshot registry is omitted in legacy contracts, partially omitted across branches, or malformed/duplicated.
+// Purpose: Preserve legacy omission, treat only absent properties as an empty registry, and reject ambiguous global identities fail-closed.
+test('UnitT12a_source_snapshots_are_optional_but_duplicate_and_malformed_registries_fail_closed', () => {
+  const legacy = copy(fixture);
+  delete legacy.sourceSnapshots;
+  const legacyMerge = mergeContractDocuments({ baseline: legacy, authoring: legacy, candidate: legacy });
+  assert.deepEqual(legacyMerge.conflicts, []);
+  assert.equal(Object.hasOwn(legacyMerge.merged, 'sourceSnapshots'), false);
+
+  const candidate = copy(legacy);
+  candidate.sourceSnapshots = [makeW07SourceSnapshot('snapshot-w07-partial')];
+  const partialMerge = mergeContractDocuments({ baseline: legacy, authoring: legacy, candidate });
+  assert.deepEqual(partialMerge.conflicts, []);
+  assert.deepEqual(partialMerge.merged.sourceSnapshots.map((item) => item.snapshot.snapshotId), ['snapshot-w07-partial']);
+
+  const duplicate = copy(legacy);
+  duplicate.sourceSnapshots = [
+    makeW07SourceSnapshot('snapshot-w07-global-duplicate', { gameReleaseId: 'fixture-r1' }),
+    makeW07SourceSnapshot('snapshot-w07-global-duplicate', { gameReleaseId: 'fixture-r2' })
+  ];
+  assert.throws(() => mergeContractDocuments({ baseline: duplicate, authoring: duplicate, candidate: duplicate }), /duplicate sourceSnapshots registry key/u);
+
+  const malformedKey = copy(legacy);
+  malformedKey.sourceSnapshots = [{ gameReleaseId: 'fixture-r1', snapshot: { manifestSha256: 'a'.repeat(64) } }];
+  assert.throws(() => mergeContractDocuments({ baseline: malformedKey, authoring: malformedKey, candidate: malformedKey }), /malformed sourceSnapshots registry key/u);
+
+  const malformedRegistry = copy(legacy);
+  malformedRegistry.sourceSnapshots = null;
+  assert.throws(() => mergeContractDocuments({ baseline: malformedRegistry, authoring: malformedRegistry, candidate: malformedRegistry }), /sourceSnapshots must be an array/u);
+});
+
+// Scenario: A W07 Source snapshot is added, edited, or removed between valid baseline and merged contracts.
+// Purpose: Include exact snapshot registry additions/removals/field paths in both machine-readable and English revision records.
+test('UnitT13_revision_outputs_cover_source_snapshot_add_update_remove', async (t) => {
+  await t.test('addition appears in revision JSON and Markdown', async () => {
+    await withTempRoot(async (root) => {
+      const baseline = copy(fixture);
+      delete baseline.sourceSnapshots;
+      const authoring = copy(baseline);
+      const candidate = copy(baseline);
+      candidate.sourceSnapshots = [makeW07SourceSnapshot('snapshot-w07-added')];
+      assert.equal(validateSourceContract(candidate).valid, true);
+      const built = await buildContractCandidate({ baseline, authoring, candidate, outRoot: path.join(root, 'add') });
+      assert.equal(JSON.parse(built.files.get('technical.json')).sourceSnapshots[0].snapshot.snapshotId, 'snapshot-w07-added');
+      const revision = JSON.parse(built.files.get('source-revision.json'));
+      assert.equal(revision.schema, 'w05-source-revision/2');
+      const legacyV1Address = legacyV1SourceRevisionAddress(baseline, built.contract);
+      assert.notEqual(built.receipt.outputDirectory, legacyV1Address);
+      assert.deepEqual(revision.changes.sourceSnapshots, {
+        added: ['["snapshot-w07-added"]'], removed: [], updated: []
+      });
+      const markdown = built.files.get('source-revision.md').toString('utf8');
+      const tick = String.fromCharCode(96);
+      assert.ok(markdown.includes('## Source snapshots'));
+      assert.ok(markdown.includes('Added ' + tick + '["snapshot-w07-added"]' + tick));
+    });
+  });
+
+  await t.test('field update appears in revision JSON and Markdown', async () => {
+    await withTempRoot(async (root) => {
+      const baseline = copy(fixture);
+      baseline.sourceSnapshots = [makeW07SourceSnapshot('snapshot-w07-updated')];
+      const authoring = copy(baseline);
+      const candidate = copy(baseline);
+      candidate.sourceSnapshots[0].snapshot.contentSha256 = 'c'.repeat(64);
+      assert.equal(validateSourceContract(candidate).valid, true);
+      const built = await buildContractCandidate({ baseline, authoring, candidate, outRoot: path.join(root, 'update') });
+      const revision = JSON.parse(built.files.get('source-revision.json'));
+      assert.deepEqual(revision.changes.sourceSnapshots, {
+        added: [], removed: [], updated: [{ key: '["snapshot-w07-updated"]', fields: ['/snapshot/contentSha256'] }]
+      });
+      const markdown = built.files.get('source-revision.md').toString('utf8');
+      const tick = String.fromCharCode(96);
+      assert.ok(markdown.includes('Updated ' + tick + '["snapshot-w07-updated"]' + tick + ': ' + tick + '/snapshot/contentSha256' + tick));
+    });
+  });
+
+  await t.test('removal appears in revision JSON and Markdown', async () => {
+    await withTempRoot(async (root) => {
+      const baseline = copy(fixture);
+      baseline.sourceSnapshots = [makeW07SourceSnapshot('snapshot-w07-removed')];
+      const authoring = copy(baseline);
+      const candidate = copy(baseline);
+      candidate.sourceSnapshots = [];
+      assert.equal(validateSourceContract(candidate).valid, true);
+      const built = await buildContractCandidate({ baseline, authoring, candidate, outRoot: path.join(root, 'remove') });
+      const revision = JSON.parse(built.files.get('source-revision.json'));
+      assert.deepEqual(revision.changes.sourceSnapshots, {
+        added: [], removed: ['["snapshot-w07-removed"]'], updated: []
+      });
+      const markdown = built.files.get('source-revision.md').toString('utf8');
+      const tick = String.fromCharCode(96);
+      assert.ok(markdown.includes('Removed ' + tick + '["snapshot-w07-removed"]' + tick));
+    });
+  });
+});
+
+// Scenario: Snapshot ordering differs while the semantic registry contents and legacy omission remain identical.
+// Purpose: Canonicalize sourceSnapshots in the merge, revision baseline, and content address without adding an empty legacy registry.
+test('UnitT14_source_snapshot_order_is_canonical_and_legacy_revision_omits_registry', async () => {
+  await withTempRoot(async (root) => {
+    const ordered = copy(fixture);
+    ordered.sourceSnapshots = [makeW07SourceSnapshot('snapshot-w07-alpha'), makeW07SourceSnapshot('snapshot-w07-beta')];
+    const reversed = copy(ordered);
+    reversed.sourceSnapshots.reverse();
+    const orderRoot = path.join(root, 'order');
+    const first = await buildContractCandidate({
+      baseline: ordered, authoring: ordered, candidate: ordered, outRoot: orderRoot
+    });
+    const second = await buildContractCandidate({
+      baseline: reversed, authoring: reversed, candidate: reversed, outRoot: orderRoot
+    });
+    assert.equal(first.receipt.outputDirectory, second.receipt.outputDirectory);
+    for (const [name, bytes] of first.files) assert.deepEqual(bytes, second.files.get(name), 'Snapshot order changed ' + name);
+    assert.equal(JSON.parse(first.files.get('source-revision.json')).schema, 'w05-source-revision/2');
+    assert.deepEqual(JSON.parse(first.files.get('source-revision.json')).changes.sourceSnapshots, {
+      added: [], removed: [], updated: []
+    });
+
+    const legacy = copy(fixture);
+    delete legacy.sourceSnapshots;
+    const legacyBuild = await buildContractCandidate({
+      baseline: legacy, authoring: legacy, candidate: legacy, outRoot: path.join(root, 'legacy')
+    });
+    assert.equal(Object.hasOwn(legacyBuild.contract, 'sourceSnapshots'), false);
+    const legacyRevision = JSON.parse(legacyBuild.files.get('source-revision.json'));
+    assert.equal(legacyRevision.schema, 'w05-source-revision/1');
+    assert.equal(legacyBuild.receipt.outputDirectory, legacyV1SourceRevisionAddress(legacy, legacyBuild.contract));
+    assert.equal(Object.hasOwn(legacyRevision.changes, 'sourceSnapshots'), false);
   });
 });

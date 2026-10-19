@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 const REGISTRY_KEYS = Object.freeze({
   gameReleases: (item) => [requiredString(item.gameReleaseId, 'gameReleaseId')],
+  sourceSnapshots: (item) => [requiredString(item.snapshot && item.snapshot.snapshotId, 'snapshot.snapshotId')],
   sourceRefs: (item) => [requiredString(item.gameReleaseId, 'gameReleaseId'), requiredString(item.sourceId, 'sourceId')],
   records: (item) => [requiredString(item.gameReleaseId, 'gameReleaseId'), requiredString(item.recordId, 'recordId')],
   tombstones: (item) => [requiredString(item.gameReleaseId, 'gameReleaseId'), requiredString(item.recordId, 'recordId')],
@@ -16,6 +17,7 @@ const REGISTRY_KEYS = Object.freeze({
   }
 });
 
+const OPTIONAL_REGISTRIES = new Set(['sourceSnapshots']);
 const UNSAFE_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
 
 function requiredString(value, label) {
@@ -162,6 +164,7 @@ function registryKey(registry, item) {
 }
 
 function registryItems(registry, value, documentName) {
+  if (value === undefined && OPTIONAL_REGISTRIES.has(registry)) return new Map();
   if (!Array.isArray(value)) throw new Error(documentName + '.' + registry + ' must be an array');
   const items = new Map();
   for (const item of value) {
@@ -214,6 +217,7 @@ function assertContractDocument(document, label) {
   if (!isPlainObject(document)) throw new Error(label + ' must be a contract object');
   assertSafeJsonValue(document, label);
   for (const registry of Object.keys(REGISTRY_KEYS)) {
+    if (!Object.hasOwn(document, registry) && OPTIONAL_REGISTRIES.has(registry)) continue;
     if (!Array.isArray(document[registry])) throw new Error(label + '.' + registry + ' must be an array');
     registryItems(registry, document[registry], label);
   }
