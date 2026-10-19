@@ -22,7 +22,48 @@
       "manifestSha256": "f9848201c04ca7433b01491137bd2a324befd48bb8383505e3c7ce1eac19ecfc",
       "contentSha256": "515edda57e47cdbba60013bb0f946b022b985eb65e571bdf4ed79f03aa1363bd"
     },
+    "selectedStaticCodeSnapshot": {
+      "snapshotId": "chainaxe-w07-static-1.13.2-ba6c148",
+      "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e",
+      "manifestSha256": "ccc391d77171da50da9c6448743510a060711d711b1e4cac5dea118d98ad34fc",
+      "contentSha256": "d4f88c5f69e0a0a2d33db7a7808cb69cd55594dd997a069d511473c1e90217ff"
+    },
+    "staticCoverage": {
+      "breedRegistryEntries": 59,
+      "minionBreeds": 52,
+      "excludedNonMinionBreeds": 7,
+      "hitZones": 624,
+      "zoneActors": 1232,
+      "armorEnumIdentities": 8,
+      "minionUsedArmorIdentities": 7,
+      "havocArmorOverrideEntries": 10,
+      "targetProfiles": 52,
+      "staticModifierRules": 3,
+      "selectedAttackProfiles": 16
+    },
+    "attainabilityReview": {
+      "status": "unknown",
+      "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+      "checkedSources": [
+        "scripts/backend/master_data.lua",
+        "scripts/backend/gear.lua",
+        "scripts/backend/crafting.lua",
+        "scripts/backend/master_items.lua",
+        "scripts/backend/store.lua",
+        "scripts/managers/data_service/services/crafting_service.lua",
+        "scripts/managers/data_service/services/store_service.lua",
+        "scripts/settings/equipment/local_items_loader.lua",
+        "scripts/settings/item/crafting_settings.lua",
+        "scripts/settings/item/rank_settings.lua",
+        "scripts/settings/item/rarity_settings.lua",
+        "scripts/utilities/offer.lua"
+      ],
+      "boundary": "The fixed public client source fetches and processes item, gear, catalog, store, and crafting data, but does not define the server-side roll-generation or offer-entitlement range for an actual chainaxe item.",
+      "impact": "No player-attainable rating interval is asserted; server-provided item state can include generated values, and this snapshot does not establish which values a player can obtain."
+    },
+    "staticSourceFactsImporterSha256": "2548e9fb9947464cdf7ad89eff638a4c74ef89c44b1b131feee75d64bf9e1011",
     "selectedSourceRows": 37,
+    "selectedStaticSourceRows": 103,
     "selectedProfiles": 19,
     "selectedAliasTables": 26,
     "selectedActionBindings": {
@@ -38,6 +79,9 @@
       }
     },
     "selectedAttackProfiles": 16,
+    "selectedMinionTargetProfiles": 52,
+    "selectedArmorClasses": 8,
+    "selectedStaticModifierRules": 3,
     "localStickyDefinitions": 6,
     "explicitEmptyTables": 7
   },
@@ -53,28 +97,53 @@
     "stat-definition": 4,
     "stat-curve": 4,
     "damage-profile": 19,
+    "armor-class": 8,
+    "target-profile": 52,
+    "modifier-rule": 3,
     "attack-profile": 16
   },
-  "excluded": [
+  "executionBoundaries": [
     {
-      "field": "finalDamage",
-      "reasonCode": "NOT_IMPORTED"
+      "field": "finalDamageCalculation",
+      "status": "excluded",
+      "reasonCode": "EXECUTION_EXCLUDED"
     },
     {
-      "field": "enemySpecificHitZoneAndCriticalJointMappings",
-      "reasonCode": "NOT_IMPORTED"
+      "field": "LuaConditionAndRuntimeOverrideExecution",
+      "status": "excluded",
+      "reasonCode": "EXECUTION_EXCLUDED"
     },
     {
       "field": "secondaryPushAndDodgeRuntimeResolution",
-      "reasonCode": "NOT_IMPORTED"
-    },
-    {
-      "field": "actionConditionFunctionExecution",
-      "reasonCode": "NOT_IMPORTED"
-    },
+      "status": "excluded",
+      "reasonCode": "EXECUTION_EXCLUDED"
+    }
+  ],
+  "verificationLimits": [
     {
       "field": "SteamBuild",
+      "status": "unverified",
       "value": "UNVERIFIED"
+    },
+    {
+      "field": "serverGeneratedOrPlayerObtainableStatRanges",
+      "status": "unknown",
+      "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+      "checkedSources": [
+        "scripts/backend/master_data.lua",
+        "scripts/backend/gear.lua",
+        "scripts/backend/crafting.lua",
+        "scripts/backend/master_items.lua",
+        "scripts/backend/store.lua",
+        "scripts/managers/data_service/services/crafting_service.lua",
+        "scripts/managers/data_service/services/store_service.lua",
+        "scripts/settings/equipment/local_items_loader.lua",
+        "scripts/settings/item/crafting_settings.lua",
+        "scripts/settings/item/rank_settings.lua",
+        "scripts/settings/item/rarity_settings.lua",
+        "scripts/utilities/offer.lua"
+      ],
+      "impact": "No player-attainable rating interval is asserted; server-provided item state can include generated values, and this snapshot does not establish which values a player can obtain."
     }
   ],
   "review": {

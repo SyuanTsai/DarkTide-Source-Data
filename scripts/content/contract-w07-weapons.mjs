@@ -7,6 +7,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const RELEASE_ID = 'darktide:1.13.2';
 const CURRENT_CODE_COMMIT = 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e';
 const CURRENT_SNAPSHOT_ID = 'chainaxe-weapons-1.13.2-37-files';
+const CURRENT_STATIC_SNAPSHOT_ID = 'chainaxe-w07-static-1.13.2-ba6c148';
+const EXPECTED_STATIC_MANIFEST_SHA256 = 'ccc391d77171da50da9c6448743510a060711d711b1e4cac5dea118d98ad34fc';
+const EXPECTED_STATIC_CONTENT_SHA256 = 'd4f88c5f69e0a0a2d33db7a7808cb69cd55594dd997a069d511473c1e90217ff';
 const APPROVED_ADDITIONAL_SOURCE_IDS = Object.freeze({
   'scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua': 'public-code:w07-common-damage-profile-templates-ba6c148',
   'scripts/settings/damage/power_level_settings.lua': 'public-code:w07-power-level-settings-ba6c148',
@@ -118,13 +121,50 @@ export function validateCuratedWeaponFacts(facts, pinnedSnapshot = facts?.source
   return { valid: true, aliasKeys: [...aliases.reached].sort(), aliasRowCount: [...aliases.rowsByKey.values()].reduce((sum, rows) => sum + rows.length, 0) };
 }
 
+export function validateStaticWeaponFacts(facts, snapshot) {
+  invariant(facts?.schemaVersion === 'w07-static-source-facts/1.0.0', 'Unsupported W07 static source facts schema.');
+  invariant(snapshot?.schemaVersion === 'w07-static-source-snapshot/1.0.0', 'Unsupported W07 static source snapshot schema.');
+  invariant(facts.sourceCommit === CURRENT_CODE_COMMIT && snapshot.currentCommit === CURRENT_CODE_COMMIT, 'W07 static facts must use the pinned public-code commit.');
+  invariant(snapshot.snapshotId === CURRENT_STATIC_SNAPSHOT_ID && facts.sourceSnapshot?.snapshotId === snapshot.snapshotId, 'W07 static supplement snapshot identity differs from its facts.');
+  invariant(facts.sourceSnapshot?.currentCommit === snapshot.currentCommit
+    && facts.sourceSnapshot?.manifestSha256 === snapshot.manifestSha256
+    && facts.sourceSnapshot?.contentSha256 === snapshot.contentSha256, 'W07 static facts and supplement snapshot metadata differ.');
+  invariant(snapshot.files?.length === 103, 'W07 static supplement must contain the exact 103-file source closure.');
+  const rows = snapshot.files.map(({ path: sourcePath, gitBlobSha1, byteCount, artifactSha256 }) => ({ path: sourcePath, gitBlobSha1, byteCount, artifactSha256 }))
+    .sort((left, right) => left.path.localeCompare(right.path, 'en'));
+  invariant(new Set(rows.map((row) => row.path)).size === rows.length, 'W07 static supplement contains duplicate source paths.');
+  invariant(bytesSha256(Buffer.from(JSON.stringify(rows), 'utf8')) === snapshot.manifestSha256, 'W07 static supplement manifest digest does not match its raw Git blob rows.');
+  invariant(bytesSha256(Buffer.from(rows.map((row) => `${row.path}\0${row.artifactSha256}\n`).join(''), 'utf8')) === snapshot.contentSha256, 'W07 static supplement content digest does not match its raw Git blob rows.');
+  invariant(snapshot.manifestSha256 === EXPECTED_STATIC_MANIFEST_SHA256 && snapshot.contentSha256 === EXPECTED_STATIC_CONTENT_SHA256, 'W07 static supplement digest differs from the reviewed pinned set.');
+  invariant(facts.registry?.entryCount === 59 && facts.minions?.length === 52 && facts.excluded?.length === 7 && facts.zoneCount === 624, 'W07 static minion registry closure is incomplete.');
+  invariant(facts.armorEnum?.usedMinionClassKeys?.length === 7 && facts.armorEnum.usedMinionClassKeys.includes('void_shield'), 'W07 static target armor closure must include all seven minion-used armor identities.');
+  invariant(facts.armorEnum?.entries?.length === 8 && stableJson(facts.armorEnum.entries.map((row) => row.classKey)) === stableJson(facts.armorEnum.allEnumKeys), 'W07 static armor enum literals and locators are incomplete.');
+  invariant(facts.inputFacts?.baseTemplateSettings?.actionInputs?.entries?.length === 7
+    && facts.inputFacts?.defaultActionInputSetup?.actionInputs?.entries?.length === 14, 'W07 base/default input setup facts are incomplete.');
+  invariant(facts.inputFacts?.baseTemplateSettings?.actionInputHierarchy?.entries?.length === 0
+    && facts.inputFacts?.defaultActionInputSetup?.actionInputHierarchy?.entries?.length === 0, 'W07 ordered input hierarchies must remain raw and must not be flattened into named fields.');
+  invariant(facts.importer?.sha256 && /^[0-9a-f]{64}$/.test(facts.importer.sha256), 'W07 static importer provenance digest is missing.');
+  return { valid: true, sourceCount: rows.length, minionCount: facts.minions.length, zoneCount: facts.zoneCount };
+}
+
 async function readInputs(root = ROOT) {
-  const facts = JSON.parse(await readFile(path.join(root, 'content/imports/w07/weapon-source-facts.json'), 'utf8'));
-  const snapshot = JSON.parse(await readFile(path.join(root, 'content/imports/w07/source-code-snapshot.json'), 'utf8'));
-  const current = JSON.parse(await readFile(path.join(root, 'content/authoring/v2/w06-skills-blessings.json'), 'utf8'));
-  const w01 = JSON.parse(await readFile(path.join(root, 'content/authoring/w01-real-representative-candidate.json'), 'utf8'));
+  const [factsBytes, snapshotBytes, staticFactsBytes, staticSnapshotBytes, currentBytes, w01Bytes] = await Promise.all([
+    readFile(path.join(root, 'content/imports/w07/weapon-source-facts.json')),
+    readFile(path.join(root, 'content/imports/w07/source-code-snapshot.json')),
+    readFile(path.join(root, 'content/imports/w07/source-static-facts.json')),
+    readFile(path.join(root, 'content/imports/w07/source-static-snapshot.json')),
+    readFile(path.join(root, 'content/authoring/v2/w06-skills-blessings.json')),
+    readFile(path.join(root, 'content/authoring/w01-real-representative-candidate.json'))
+  ]);
+  const facts = JSON.parse(factsBytes.toString('utf8'));
+  const snapshot = JSON.parse(snapshotBytes.toString('utf8'));
+  const staticFacts = JSON.parse(staticFactsBytes.toString('utf8'));
+  const staticSnapshot = JSON.parse(staticSnapshotBytes.toString('utf8'));
+  const current = JSON.parse(currentBytes.toString('utf8'));
+  const w01 = JSON.parse(w01Bytes.toString('utf8'));
   validateCuratedWeaponFacts(facts, snapshot);
-  return { facts, snapshot, current, w01 };
+  validateStaticWeaponFacts(staticFacts, staticSnapshot);
+  return { facts, snapshot, staticFacts, staticSnapshot, current, w01 };
 }
 
 
@@ -139,12 +179,265 @@ function sourceLinkForPath(pathname, state, preferredId) {
   if (existing) return link(existing.sourceId);
   const old = state.sourcesByPath.get(pathname)?.find((source) => source.commit === CURRENT_CODE_COMMIT);
   if (old) return link(old.sourceId);
+  const staticId = state.staticSourceIdByPath?.get(pathname);
+  if (staticId && state.sourcesById.has(staticId)) return link(staticId);
   const ids = sourceIdsForPath(pathname, state.snapshot);
   invariant(ids?.length, 'Selected source path has no stable source ID: ' + pathname);
   const source = ids.map((id) => state.sourcesById.get(id)).find(Boolean);
   invariant(source, 'Selected source path has no declared source record: ' + pathname);
   return link(source.sourceId);
 }
+function makeStaticLocator(row, state, { includeEndLine = false } = {}) {
+  const sourcePath = row?.path ?? row?.sourcePath ?? row?.sourceLocator?.path;
+  const line = row?.line ?? row?.sourceLocator?.line;
+  const endLine = row?.endLine ?? row?.sourceLocator?.endLine;
+  const fieldPath = row?.fieldPath ?? row?.sourceLocator?.fieldPath;
+  invariant(sourcePath && line && fieldPath, 'Static source row lacks an exact source locator.');
+  if (includeEndLine) invariant(endLine && endLine >= line, 'Static range row lacks a valid endLine: ' + sourcePath + ':' + line);
+  return {
+    sourceRef: sourceLinkForPath(sourcePath, state, row?.sourceLocator?.sourceRef?.sourceId),
+    path: sourcePath,
+    line,
+    ...(includeEndLine ? { endLine } : {}),
+    fieldPath
+  };
+}
+function staticRawSource(row, state, { range = false } = {}) {
+  return { rawValue: row.rawValue, sourceLocator: makeStaticLocator(row, state, { includeEndLine: range }) };
+}
+function staticRangeEvidence(row, state) {
+  return { rawValue: row.rawValue, summary: row.summary, sourceLocator: makeStaticLocator(row, state, { includeEndLine: true }) };
+}
+function staticPointEvidence(row, state) {
+  return { rawValue: row.rawValue, summary: row.summary, sourceLocator: makeStaticLocator(row, state) };
+}
+function makeCurveMapping(staticFacts, traitTemplate, property, state) {
+  const { min, max } = traitRangeRows(traitTemplate, state.facts, property);
+  invariant(min && max, 'Curve mapping must retain exact trait parameter endpoints: ' + traitTemplate + ':' + property);
+  const curve = staticFacts.curveSemantics;
+  const selected = Object.values(curve.selectedTweakPath.source);
+  const outerEvidence = relationshipRows(staticFacts, [['scripts/utilities/weapon_stats.lua', 815]])
+    .map((row) => staticRangeEvidence(row, state));
+  return {
+    schemaVersion: 'w07-stat-curve-mapping/1.0.0',
+    outerItemRating: {
+      quantityKind: 'normalized-item-stat-value',
+      unit: 'ratio',
+      panelComparisonRange: {
+        status: 'known', min: '0', max: '1', unit: 'ratio',
+        inclusive: { min: true, max: true }, scope: 'comparison-metadata-only'
+      },
+      obtainableRange: { status: 'unknown', reasonCode: 'NOT_EXPOSED_BY_SOURCE' },
+      sourceLocators: outerEvidence
+    },
+    traitParameter: {
+      quantityKind: 'trait-template-t', unit: 'ratio',
+      range: { status: 'known', min: min.rawValue, max: max.rawValue, unit: 'ratio', inclusive: { min: true, max: true } },
+      sourceLocators: [makeLocator(min, state), makeLocator(max, state)]
+    },
+    rawProfileParameter: {
+      quantityKind: 'normalized-profile-t', unit: 'ratio',
+      referenceEndpoints: {
+        min: '0', max: '1', inclusive: { min: true, max: true }, scope: 'reference-endpoints-only'
+      },
+      callerDomain: { status: 'unknown', reasonCode: 'CALLER_DOMAIN_NOT_PROVEN' },
+      selectedWeaponTweakPath: {
+        status: 'known',
+        accumulatorRange: structuredClone(curve.selectedTweakPath.accumulatorRange),
+        fallbacks: {
+          emptyPath: curve.selectedTweakPath.fallbacks.emptyProfilePath,
+          defaultTraitValue: curve.selectedTweakPath.fallbacks.defaultTraitValue,
+          defaultProfileLerpValue: curve.selectedTweakPath.fallbacks.defaultProfileLerpValue
+        },
+        sourceLocators: selected.map((row) => staticRangeEvidence(row, state))
+      },
+      sourceLocators: [
+        makeStaticLocator(curve.rawProfileFunction, state),
+        makeStaticLocator(curve.lerp, state)
+      ]
+    }
+  };
+}
+function makeStatRangeEvidence(staticFacts, state) {
+  const rows = relationshipRows(staticFacts, [
+    ['scripts/backend/master_items.lua', 91],
+    ['scripts/backend/master_items.lua', 122],
+    ['scripts/backend/master_items.lua', 419],
+    ['scripts/backend/master_data.lua', 183],
+    ['scripts/backend/gear.lua', 36],
+    ['scripts/backend/gear.lua', 92],
+    ['scripts/managers/data_service/services/crafting_service.lua', 262],
+    ['scripts/managers/data_service/services/store_service.lua', 103]
+  ]);
+  return {
+    checkedSources: rows.map((row) => ({ sourceLocator: makeStaticLocator(row, state), summary: row.summary })),
+    serverBoundary: 'The pinned client repository merges cached master item data with overrides and consumes item, crafting and store data from backend interfaces/services. It does not expose the server roll-generation bounds for the selected stat.',
+    impact: 'The panel comparison coordinate and client preview rules are documented separately; actual obtainable minimum/maximum remain unknown because the server-side item roll rules are outside the pinned public client source.'
+  };
+}
+function rangeForStatDefinition(template, property, facts) {
+  const range = traitRange(template, facts, property);
+  if (range.status !== 'known') return range;
+  return { ...range, inclusive: { min: true, max: true } };
+}
+function makeRawProfileStatRecords(mark, weapon, facts, staticFacts, state, claims) {
+  const m1 = weapon.payload.markId === facts.weaponTemplateKeys.m1;
+  const profileKey = m1 ? 'default_light_chainaxe' : 'light_chainaxe_tank';
+  const profile = facts.profileDefinitions.find((item) => item.profileKey === profileKey);
+  invariant(profile, 'Selected chainaxe attack profile source is missing: ' + profileKey);
+  const armorPath = '.targets.1.armor_damage_modifier.attack.[armor_types.armored]';
+  const armorRefRow = profile.rows.find((row) => row.fieldPath.endsWith(armorPath));
+  invariant(armorRefRow, 'Selected profile armored modifier reference is missing: ' + profileKey);
+  const armorAlias = tokenValue(armorRefRow.rawValue);
+  const armorRows = state.aliasState.rowsByKey.get(armorAlias);
+  const curveSpecs = [
+    {
+      suffix: m1 ? 'default-light-attack-power-table' : 'light-chainaxe-tank-attack-power',
+      property: 'power_distribution.attack',
+      outputUnit: 'attack-power-point',
+      traitTemplate: 'damage_trait_templates.default_melee_dps_stat',
+      rows: profile.rows.filter((row) => /\.targets\.1\.power_distribution\.attack\.\d+$/.test(row.fieldPath))
+    },
+    {
+      suffix: m1 ? 'default-light-armored-parameter-table' : 'light-chainaxe-tank-armored-modifier',
+      property: 'armor_damage_modifier.attack[armor_types.armored]',
+      outputUnit: 'ratio',
+      traitTemplate: 'damage_trait_templates.default_armor_pierce_stat',
+      rows: armorRows ?? []
+    }
+  ];
+  const records = [];
+  const replacementById = new Map();
+  for (const spec of curveSpecs) {
+    const sourceRows = [...spec.rows].sort((left, right) => {
+      const ordinal = (row) => Number(row.fieldPath.match(/\.(\d+)$/)?.[1] ?? row.ordinal ?? 0);
+      return ordinal(left) - ordinal(right);
+    });
+    invariant(sourceRows.length === 2 && sourceRows.every((row) => isDecimal(tokenValue(row.rawValue))),
+      'Selected raw stat must retain exactly two numeric source endpoints: ' + profileKey + ':' + spec.property);
+    const definitionId = m1
+      ? 'darktide:stat-definition:chainaxe-p1-m1-' + spec.suffix
+      : 'darktide:stat-definition:chainaxe-p1-m2:' + spec.suffix;
+    const curveId = m1
+      ? 'darktide:stat-curve:chainaxe-p1-m1-' + spec.suffix
+      : 'darktide:stat-curve:chainaxe-p1-m2:' + spec.suffix;
+    const trait = rangeForStatDefinition(spec.traitTemplate, spec.property, facts);
+    invariant(trait.status === 'known', 'Selected curve trait parameter interval is not source-backed: ' + spec.property);
+    const claimRefs = rawProfileClaimRefs(claims, weapon, profileKey, spec.property);
+    const curveMapping = makeCurveMapping(staticFacts, spec.traitTemplate, spec.property, state);
+    const rangeEvidence = makeStatRangeEvidence(staticFacts, state);
+    const sourceRowsForCurve = sourceRows.map((row, index) => ({
+      input: index === 0 ? '0' : '1',
+      output: tokenValue(row.rawValue),
+      sourceOrdinal: index + 1,
+      rawEndpoint: tokenValue(row.rawValue),
+      sourceLocator: makeLocator(row, state)
+    }));
+    const definitionPayload = {
+      quantity: 'damage_templates.' + profileKey + '.targets[1].' + spec.property,
+      inputUnit: 'ratio',
+      outputUnit: spec.outputUnit,
+      panelInputRange: { status: 'not-applicable' },
+      theoreticalInputRange: trait,
+      obtainableInputRange: { status: 'unknown', reasonCode: 'NOT_EXPOSED_BY_SOURCE' },
+      rangeEvidence,
+      curveMapping,
+      curveRef: ref(curveId),
+      claimRefs
+    };
+    const curveFacts = {
+      inputUnit: 'ratio',
+      outputUnit: spec.outputUnit,
+      knots: sourceRowsForCurve,
+      interpolation: { value: 'linear', sourceLocator: makeStaticLocator(staticFacts.curveSemantics.rawProfileFunction, state) },
+      edgePolicy: {
+        value: 'extrapolate', scope: 'math.lerp function only',
+        sourceLocator: makeStaticLocator(staticFacts.curveSemantics.lerp, state)
+      },
+      panelInputRange: { status: 'not-applicable' },
+      callsiteLocators: [
+        makeStaticLocator(staticFacts.curveSemantics.rawProfileFunction, state),
+        makeStaticLocator(staticFacts.curveSemantics.lerp, state)
+      ]
+    };
+    const newDefinition = dataRecord(definitionId, 'stat-definition', definitionPayload,
+      staticRecordSourceRefs(definitionPayload), {
+        dataCoverage: canonicalCoverage('partial', [
+          { field: '/payload/obtainableInputRange', reasonCode: 'NOT_EXPOSED_BY_SOURCE' }
+        ]),
+        reviewTargets: [{ fieldPath: '/payload', dimension: 'technical' }]
+      });
+    const newCurve = dataRecord(curveId, 'stat-curve', curveFacts,
+      staticRecordSourceRefs(curveFacts), {
+        reviewTargets: [{ fieldPath: '/payload', dimension: 'technical' }]
+      });
+    records.push(newDefinition, newCurve);
+    if (m1) {
+      replacementById.set(definitionId, newDefinition);
+      replacementById.set(curveId, newCurve);
+    } else {
+      weapon.payload.statRefs.push(ref(definitionId));
+    }
+  }
+  return { records, replacementById };
+}
+function semanticForStatProperty(property) {
+  if (property.includes('power_distribution.attack')) return { quantityKind: 'attack-power-distribution', unit: 'attack-power-point' };
+  if (property.includes('armor_damage_modifier')) return { quantityKind: 'armor-damage-modifier', unit: 'ratio' };
+  if (property.endsWith('.stamina_modifier')) return { quantityKind: 'stamina-capacity-addition', unit: 'stamina-point' };
+  if (property.endsWith('.sprint_cost_per_second')) return { quantityKind: 'stamina-cost-rate', unit: 'stamina-point-per-second' };
+  if (property.includes('.block_cost_default')) return { quantityKind: 'block-stamina-cost', unit: 'stamina-point' };
+  if (property.endsWith('.push_cost')) return { quantityKind: 'push-stamina-cost', unit: 'stamina-point' };
+  if (property.endsWith('.distance_scale')) return { quantityKind: 'dodge-distance-scale', unit: 'ratio' };
+  if (property.endsWith('.diminishing_return_distance_modifier')) return { quantityKind: 'dodge-distance-diminishing-return', unit: 'ratio' };
+  if (property.endsWith('.diminishing_return_start') || property.endsWith('.diminishing_return_limit')) return { quantityKind: 'dodge-count-parameter', unit: 'dodge-count' };
+  if (property.endsWith('.consecutive_dodges_reset')) return { quantityKind: 'dodge-cooldown-seconds', unit: 's' };
+  if (property.endsWith('.speed_modifier')) return { quantityKind: 'dodge-speed-scale', unit: 'ratio' };
+  if (property.endsWith('.sprint_speed_mod')) return { quantityKind: 'sprint-speed-addend', unit: 'point' };
+  if (/\.sprint_(?:forward|sideway)_(?:acceleration|deceleration)$/.test(property)) return { quantityKind: 'normalized-speed-rate', unit: 'normalized-speed-per-second' };
+  if (property === 'movement_curve_modifier.base.1' || property.endsWith('.movement_curve_modifier.base.1')) return { quantityKind: 'movement-curve-modifier', unit: { status: 'not-applicable' } };
+  return undefined;
+}
+function makeStatTableSemantics(weapon, staticFacts, state) {
+  const semanticGroups = [];
+  for (const group of staticFacts.statGroupDefinitions) {
+    const statBinding = weapon.payload.statBindings.find((item) => item.statKey === group.statKey);
+    invariant(statBinding, 'Stat-table semantic group has no matching weapon stat binding: ' + group.statKey);
+    const properties = [...new Set(statBinding.bindings.map((binding) => binding.property))];
+    const bindings = [];
+    for (const property of properties) {
+      const semantic = semanticForStatProperty(property);
+      if (!semantic) continue;
+      const sourceBinding = statBinding.bindings.find((binding) => binding.property === property);
+      const range = sourceBinding.traitParameterRange?.status === 'known'
+        ? {
+          status: 'known', min: sourceBinding.traitParameterRange.min, max: sourceBinding.traitParameterRange.max,
+          unit: 'ratio', inclusive: { min: true, max: true }
+        }
+        : structuredClone(sourceBinding.traitParameterRange ?? { status: 'unknown', reasonCode: 'NOT_EXPOSED_BY_SOURCE' });
+      const { min, max } = sourceBinding.traitTemplateKey
+        ? traitRangeRows(sourceBinding.traitTemplateKey, state.facts, property)
+        : {};
+      const consumerEvidence = [
+        ...group.consumerEvidence.map((row) => ({
+          sourceLocator: makeStaticLocator(row, state), rawValue: row.rawValue, summary: row.summary
+        })),
+        ...(min ? [{ sourceLocator: makeLocator(min, state), rawValue: min.rawValue, summary: 'Trait-parameter lower endpoint used as t input.' }] : []),
+        ...(max ? [{ sourceLocator: makeLocator(max, state), rawValue: max.rawValue, summary: 'Trait-parameter upper endpoint used as t input.' }] : [])
+      ];
+      bindings.push({
+        property, quantityKind: semantic.quantityKind, unit: semantic.unit,
+        consumerEvidence,
+        theoreticalInputRange: range,
+        obtainableInputRange: { status: 'unknown', reasonCode: 'NOT_EXPOSED_BY_SOURCE' }
+      });
+    }
+    invariant(bindings.length > 0, 'Stat-table semantics must map at least one source-backed property: ' + group.statKey);
+    semanticGroups.push({ statKey: group.statKey, groupKey: group.groupKey, bindings });
+  }
+  return semanticGroups;
+}
+
 function makeLocator(row, state, preferredId) {
   invariant(row?.sourcePath && row.line && row.fieldPath, 'Curated row lacks an exact source locator.');
   return {
@@ -306,7 +599,7 @@ function rangeKnown(decimal, unit) {
   return { status: 'known', decimal: String(decimal), unit };
 }
 function tableUnit(key) {
-  if (/(?:cleave)$/.test(key)) return { status: 'unknown', reasonCode: 'NOT_VERIFIED' };
+  if (/(?:cleave)$/.test(key)) return 'ratio';
   return 'ratio';
 }
 function mapAliasTable(key, rows, state) {
@@ -345,8 +638,8 @@ function mapNumericProfileTable(quantity, rows, state) {
   const unit = /power_distribution\.attack$/.test(quantity) ? 'attack-power-point'
     : /(?:power_distribution\.impact|\.impact)$/.test(quantity) ? 'impact'
       : /(?:armor_damage_modifier\.impact\.\[armor_types\.super_armor\]|boost_curve_multiplier_finesse|power_level_multiplier)$/.test(quantity) ? 'ratio'
-        : /stagger_duration_modifier$/.test(quantity) ? { status: 'unknown', reasonCode: 'NOT_VERIFIED' }
-          : { status: 'unknown', reasonCode: 'NOT_VERIFIED' };
+        : /stagger_duration_modifier$/.test(quantity) ? 's'
+          : { status: 'unknown', reasonCode: 'NOT_EXPOSED_BY_SOURCE' };
   return {
     tableKey: quantity,
     quantity,
@@ -399,17 +692,38 @@ function profileDependencyTables(profile, aliasState, state) {
     if (tokenValue(row.rawValue) !== 'PowerLevelSettings.boost_curves.default') continue;
     const sourceTable = state.facts.outputTableFacts.find((item) => item.tableKey === 'power_level_settings.boost_curves.default');
     invariant(sourceTable?.rows?.length === 5, 'Referenced default boost curve must retain its five pinned source points.');
+    const interpolation = state.staticFacts.relationshipEvidence.find((item) => item.path === 'scripts/utilities/attack/damage_calculation.lua' && item.line === 208);
+    const caller = state.staticFacts.relationshipEvidence.find((item) => item.path === 'scripts/utilities/attack/damage_calculation.lua' && item.line === 700);
+    invariant(interpolation?.endLine === 217 && caller?.endLine === 704,
+      'Default boost curve interpolation and selected-caller bounds must retain the pinned source spans.');
     tables.push({
       tableKey: 'PowerLevelSettings.boost_curves.default',
       quantity: 'PowerLevelSettings.boost_curves.default',
-      unit: { status: 'unknown', reasonCode: 'NOT_VERIFIED' },
+      unit: 'ratio',
       sourceLocator: makeLocator(sourceTable.rows[0], state),
       orderedValues: sourceTable.rows.map((point, index) => ({
         ordinal: index + 1,
         rawValue: point.rawValue,
         ...(isDecimal(point.rawValue) ? { decimal: point.rawValue } : {}),
         sourceLocator: makeLocator(point, state)
-      }))
+      })),
+      curveSemantics: {
+        schemaVersion: 'w07-boost-curve-semantics/1.0.0',
+        referenceAxis: {
+          min: '0', max: '1', minInclusive: true, maxInclusive: true, unit: 'ratio',
+          sourceLocators: [makeStaticLocator(interpolation, state, { includeEndLine: true })]
+        },
+        knots: ['0', '0.25', '0.5', '0.75', '1'].map((input, index) => ({ sourceOrdinal: index + 1, input })),
+        interpolation: {
+          value: 'piecewise-linear',
+          sourceLocator: makeStaticLocator(interpolation, state, { includeEndLine: true })
+        },
+        callerInput: {
+          min: '0', minInclusive: false, max: '1', maxInclusive: true, unit: 'ratio',
+          predicate: 'finesse_boost_amount > 0', transform: 'math.min(finesse_boost_amount, 1)',
+          sourceLocators: [makeStaticLocator(caller, state, { includeEndLine: true })]
+        }
+      }
     });
   }
   return { tables, reachable };
@@ -455,14 +769,12 @@ function makeProfileRecords(facts, state) {
       targetOrder: [...targetOrderByKey.values()].sort((a, b) => a.sourceOrdinal - b.sourceOrdinal),
       ...(emptyTables.length ? { emptyTables } : {})
     };
+    const dependencySourceRefs = [...collectEmbeddedSourceLinks(dependency.tables).values()].map((item) => link(item.sourceId));
     records.push(dataRecord(profileId(profile.profileKey), 'damage-profile', {
       profileKey: profile.profileKey,
       rawSourceDefinition
-    }, [...rowRefs, ...dependency.tables.flatMap((table) => [table.sourceLocator.sourceRef])], {
-      dataCoverage: canonicalCoverage('partial', [
-        { field: '/payload/rawSourceDefinition.finalDamage', reasonCode: 'NOT_IMPORTED' },
-        { field: '/payload/rawSourceDefinition.runtimeOverrideResolution', reasonCode: 'NOT_IMPORTED' }
-      ]),
+    }, [...rowRefs, ...dependencySourceRefs], {
+      dataCoverage: canonicalCoverage(),
       reviewTargets: [
         { fieldPath: '/payload/profileKey', dimension: 'identity' },
         { fieldPath: '/payload/rawSourceDefinition/leaves', dimension: 'technical' },
@@ -711,14 +1023,48 @@ function tablePropertyName(tableKey, row) {
   return parts.join('.') || 'value';
 }
 function unitForOutputProperty(property) {
-  if (property === 'stamina_modifier' || property === 'push_cost' || property === 'block_cost_default'
-    || property === 'block_cost_default.inner' || property === 'block_cost_default.outer') return 'stamina-point';
+  if (property === 'stamina_modifier' || property === 'push_cost'
+    || property === 'block_cost_default' || property === 'block_cost_default.inner'
+    || property === 'block_cost_default.outer') return 'stamina-point';
   if (property === 'sprint_cost_per_second') return 'stamina-point-per-second';
-  if (property === 'dodge_count' || property === 'diminishing_return_start') return 'dodge-count';
-  if (property === 'distance_scale' || property === 'speed_modifier' || property === 'sprint_speed_mod') return 'ratio';
-  return { status: 'unknown', reasonCode: 'NOT_VERIFIED' };
+  if (property === 'dodge_count' || property === 'diminishing_return_start'
+    || property === 'diminishing_return_limit') return 'dodge-count';
+  if (property === 'consecutive_dodges_reset') return 's';
+  if (property === 'sprint_speed_mod') return 'point';
+  if (/sprint_(?:forward|sideway)_(?:acceleration|deceleration)$/.test(property)) return 'normalized-speed-per-second';
+  if (property === 'modifier') return { status: 'not-applicable' };
+  if (property === 'distance_scale' || property === 'diminishing_return_distance_modifier'
+    || property === 'speed_modifier') return 'ratio';
+  return { status: 'unknown', reasonCode: 'NOT_EXPOSED_BY_SOURCE' };
 }
 function mapOutputTable(fact, statKey, state) {
+  if (fact.tableKey === 'movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat') {
+    const modifier = fact.rows.find((row) => row.fieldPath.endsWith('.1.1'));
+    const minimum = fact.rows.find((row) => row.fieldPath.endsWith('.1.2.min'));
+    const maximum = fact.rows.find((row) => row.fieldPath.endsWith('.1.2.max'));
+    invariant(modifier && minimum && maximum && isDecimal(minimum.rawValue) && isDecimal(maximum.rawValue),
+      'Movement curve modifier selector and normalized trait endpoints are required.');
+    return {
+      statKey, tableKey: fact.tableKey, sourceLocator: makeLocator(modifier, state),
+      properties: [
+        {
+          property: 'modifier',
+          unit: { status: 'not-applicable' },
+          sourceLocator: makeLocator(modifier, state),
+          orderedValues: [{ key: 'value', rawValue: modifier.rawValue, line: modifier.line, fieldPath: modifier.fieldPath }]
+        },
+        {
+          property: 'modifier.traitParameterRange',
+          unit: 'ratio',
+          sourceLocator: makeLocator(minimum, state),
+          orderedValues: [minimum, maximum].map((row) => ({
+            key: row === minimum ? 'min' : 'max', rawValue: row.rawValue, decimal: row.rawValue,
+            line: row.line, fieldPath: row.fieldPath
+          }))
+        }
+      ]
+    };
+  }
   const root = fact.tableKey + '.';
   const groups = new Map();
   for (const row of fact.rows) {
@@ -781,9 +1127,57 @@ function traitRangeGroup(template, property) {
   };
   return byProperty[template]?.[lastTwo] ?? byProperty[template]?.[last];
 }
+function damageTraitPathGroups(template, facts) {
+  const source = facts.traitTemplateFacts.find((item) => item.templateKey === template);
+  if (!source || !template.startsWith('damage_trait_templates.')) return [];
+  const prefix = template + '.';
+  const segmentsByGroup = new Map();
+  for (const row of source.rows) {
+    if (!row.fieldPath.startsWith(prefix)) continue;
+    const match = row.fieldPath.slice(prefix.length).match(/^(\d+)\.(\d+)$/);
+    if (!match) continue;
+    const groupIndex = Number(match[1]);
+    const segmentIndex = Number(match[2]);
+    const segments = segmentsByGroup.get(groupIndex) ?? new Map();
+    segments.set(segmentIndex, tokenValue(row.rawValue));
+    segmentsByGroup.set(groupIndex, segments);
+  }
+  return [...segmentsByGroup.entries()].sort((a, b) => a[0] - b[0]).map(([groupIndex, segments]) => {
+    const indexes = [...segments.keys()].sort((a, b) => a - b);
+    invariant(indexes.length > 0 && indexes.every((value, index) => value === index + 1),
+      'Damage-trait path segments must be a contiguous source sequence: ' + template + ':' + groupIndex);
+    const values = indexes.map((index) => segments.get(index));
+    invariant(values.every((value) => value && !/^[-\d.]+$/.test(value) || /^\d+$/.test(value)),
+      'Damage-trait path contains an unsupported raw segment: ' + template + ':' + groupIndex);
+    const sourceSuffix = values.map((value, index) => {
+      if (index === 0) return value;
+      if (/^\d+$/.test(value)) return '.' + value;
+      if (value.startsWith('armor_types.')) return '.[' + value + ']';
+      return '.' + value;
+    }).join('');
+    const displaySuffix = values.map((value, index) => {
+      if (index === 0) return value;
+      if (/^\d+$/.test(value) || value.startsWith('armor_types.')) return '[' + value + ']';
+      return '.' + value;
+    }).join('');
+    const rangeRows = source.rows.filter((row) => row.fieldPath.startsWith(prefix + groupIndex + '.')
+      && /\.(?:min|max)$/.test(row.fieldPath));
+    const min = rangeRows.find((row) => row.fieldPath.endsWith('.min'));
+    const max = rangeRows.find((row) => row.fieldPath.endsWith('.max'));
+    invariant(min && max && isDecimal(min.rawValue) && isDecimal(max.rawValue),
+      'Damage-trait path group lacks its source min/max parameter range: ' + template + ':' + groupIndex);
+    return { groupIndex, sourceSuffix, displaySuffix, source, min, max };
+  });
+}
 function traitRangeRows(template, facts, property) {
   const source = facts.traitTemplateFacts.find((item) => item.templateKey === template);
   if (!source) return {};
+  if (template.startsWith('damage_trait_templates.')) {
+    const groups = damageTraitPathGroups(template, facts);
+    const matched = groups.find((item) => String(property ?? '').endsWith(item.displaySuffix));
+    if (matched) return { source, min: matched.min, max: matched.max };
+    if (groups.length) return { source, min: groups[0].min, max: groups[0].max };
+  }
   const group = traitRangeGroup(template, property);
   const prefix = group === undefined ? template + '.' : template + '.' + group + '.';
   const min = source.rows.find((row) => row.fieldPath.startsWith(prefix) && row.fieldPath.endsWith('.min'));
@@ -797,8 +1191,25 @@ function traitRange(template, facts, property) {
   if (!min || !max || !isDecimal(min.rawValue) || !isDecimal(max.rawValue)) return { status: 'unknown', reasonCode: 'NOT_VERIFIED' };
   return { status: 'known', min: min.rawValue, max: max.rawValue, unit: 'ratio' };
 }
-function profileKeysForAction(mark, action) {
-  return new Set();
+function profileKeysForAction(mark, action, facts) {
+  const bindings = facts.actionBindings[mark]?.profileBindings ?? [];
+  return [...new Set(bindings.filter((row) => profileBindingAction(row)?.action === action)
+    .map((row) => row.profileKey).filter(Boolean))];
+}
+function profileSourceForDamagePath(profileKey, sourceSuffix, facts) {
+  const visited = new Set();
+  let current = profileKey;
+  while (current) {
+    invariant(!visited.has(current), 'Damage-profile parent cycle while resolving trait property: ' + profileKey);
+    visited.add(current);
+    const profile = facts.profileDefinitions.find((item) => item.profileKey === current);
+    invariant(profile, 'Trait binding references a profile outside the selected static closure: ' + current);
+    const prefix = 'damage_templates.' + current + '.' + sourceSuffix;
+    if (profile.rows.some((row) => row.fieldPath === prefix || row.fieldPath.startsWith(prefix + '.'))) return current;
+    const parent = profile.rows.find((row) => row.fieldPath.endsWith('.parent_template_name'));
+    current = parent ? tokenValue(parent.rawValue) : undefined;
+  }
+  return undefined;
 }
 function makeWeaponStatBindings(w01Records, weaponRecord, facts, mark, state) {
   const claims = w01Records.filter((record) => record.kind === 'claim' && record.payload.context?.weaponRef === weaponRecord.recordId);
@@ -817,6 +1228,41 @@ function makeWeaponStatBindings(w01Records, weaponRecord, facts, mark, state) {
     if (!traitFact) continue;
     const list = bindingsByStat.get(statKey) ?? [];
     const mode = action ? actionMode(action) : undefined;
+    if (actionMatch && template.startsWith('damage_trait_templates.')) {
+      const effectiveProfiles = overrideProfile ? [overrideProfile] : profileKeysForAction(mark, action, facts);
+      invariant(effectiveProfiles.length > 0,
+        'Damage-trait vector has no statically declared action profile: ' + row.fieldPath);
+      const pathGroups = damageTraitPathGroups(template, facts);
+      invariant(pathGroups.length > 0, 'Damage-trait vector has no path groups: ' + template);
+      for (const effectiveProfile of effectiveProfiles) {
+        let profileBindingCount = 0;
+        for (const pathGroup of pathGroups) {
+          const sourceProfile = profileSourceForDamagePath(effectiveProfile, pathGroup.sourceSuffix, facts);
+          if (!sourceProfile) continue;
+          const property = 'damage_templates.' + sourceProfile + '.' + pathGroup.displaySuffix;
+          const claimRefs = claims.filter((claim) => {
+            const context = claim.payload.context ?? {};
+            if (context.weaponStat !== statKey || context.profile !== effectiveProfile || context.attackMode !== mode) return false;
+            if (context.armorClass && !property.endsWith('[armor_types.' + context.armorClass + ']')) return false;
+            return claim.payload.property === property;
+          }).map((claim) => ref(claim.recordId));
+          list.push({
+            property, action, mode, profileKey: effectiveProfile,
+            weaponLocator: makeLocator(row, state),
+            traitTemplateKey: template,
+            traitLocator: makeLocator(pathGroup.min, state),
+            traitParameterRange: { status: 'known', min: pathGroup.min.rawValue, max: pathGroup.max.rawValue, unit: 'ratio' },
+            ...(claimRefs.length ? { claimRefs } : {})
+          });
+          profileBindingCount++;
+        }
+        invariant(profileBindingCount > 0,
+          'Damage-trait vector has no concrete target property in a selected profile path: '
+            + row.fieldPath + ':' + effectiveProfile);
+      }
+      bindingsByStat.set(statKey, list);
+      continue;
+    }
     if (baseMatch) {
       const tableRoot = template.startsWith('stamina_trait_templates.') ? 'weapon_stamina_templates.'
         : template.startsWith('dodge_trait_templates.') ? 'weapon_dodge_templates.'
@@ -896,7 +1342,7 @@ function makeWeaponStatBindings(w01Records, weaponRecord, facts, mark, state) {
         ? ctx.profile === overrideProfile
         : facts.actionBindings[mark].profileBindings.some((binding) =>
           binding.fieldPath.startsWith('weapon_template.actions.' + action + '.') &&
-          tokenValue(binding.rawValue ?? binding.profileKey).includes(ctx.profile ?? '__never__'));
+          binding.profileKey === ctx.profile);
       if (ctx.profile && !profileMatch) continue;
       list.push({
         property: group.claim.payload.property,
@@ -980,6 +1426,12 @@ function makeSourceState(inputs, closure, mapperSha256) {
     manifestSha256: inputs.snapshot.manifestSha256,
     contentSha256: inputs.snapshot.contentSha256
   };
+  const staticSnapshot = {
+    snapshotId: inputs.staticSnapshot.snapshotId,
+    commit: CURRENT_CODE_COMMIT,
+    manifestSha256: inputs.staticSnapshot.manifestSha256,
+    contentSha256: inputs.staticSnapshot.contentSha256
+  };
   const mapperTool = {
     name: 'w07-weapons-contract-mapper',
     version: '1.0.0',
@@ -1039,6 +1491,23 @@ function makeSourceState(inputs, closure, mapperSha256) {
     };
     appendSource(source, false);
   }
+  const staticSourceIdByPath = new Map();
+  for (const file of inputs.staticSnapshot.files) {
+    const existingForPath = sourcesByPath.get(file.path)?.find((source) =>
+      source.commit === CURRENT_CODE_COMMIT && source.artifactSha256 === file.artifactSha256);
+    if (existingForPath) continue;
+    const sourceId = 'public-code:w07-static-ba6c148-' + bytesSha256(Buffer.from(file.path, 'utf8')).slice(0, 16);
+    const source = {
+      sourceId, gameReleaseId: RELEASE_ID, sourceKind: 'public-code',
+      repository: 'https://github.com/Aussiemon/Darktide-Source-Code',
+      publicUrl: 'https://github.com/Aussiemon/Darktide-Source-Code/blob/' + CURRENT_CODE_COMMIT + '/' + file.path,
+      commit: CURRENT_CODE_COMMIT, path: file.path, gameBuild: release.gameBuild,
+      snapshot: structuredClone(staticSnapshot), tool: mapperTool, artifactSha256: file.artifactSha256,
+      safeSummary: 'Pinned public-code Git blob ' + file.gitBlobSha1 + ' at ' + file.path + '. W07 static import facts were extracted by scripts/content/imports/w07-static-facts.cjs (sha256 ' + inputs.staticFacts.importer.sha256 + '); this source does not establish runtime execution or player attainability.'
+    };
+    appendSource(source, false);
+    staticSourceIdByPath.set(file.path, sourceId);
+  }
   const sources = [...sourcesById.values()];
   const sourceIdsByPath = {};
   for (const [sourcePath, values] of sourcesByPath) sourceIdsByPath[sourcePath] = values.map((source) => source.sourceId);
@@ -1056,6 +1525,8 @@ function makeSourceState(inputs, closure, mapperSha256) {
     sourcesByPath,
     sourceIdsByPath,
     snapshot,
+    staticSnapshot,
+    staticSourceIdByPath,
     mapperTool,
     profileIds,
     markIdByKey,
@@ -1063,6 +1534,139 @@ function makeSourceState(inputs, closure, mapperSha256) {
     aliasState
   };
 }
+function staticRecordSourceRefs(payload) {
+  return [...collectEmbeddedSourceLinks(payload).values()].map((item) => link(item.sourceId));
+}
+function staticArmorClassId(classKey) {
+  return 'darktide:armor-class:w07-static:' + classKey;
+}
+function staticTargetProfileId(breedKey) {
+  return 'darktide:target-profile:w07-minion:' + breedKey;
+}
+function staticRuleId(relationKey) {
+  return 'darktide:modifier-rule:w07-static:' + relationKey;
+}
+function makeStaticArmorAndTargetRecords(facts, state) {
+  const armorByKey = new Map();
+  const armorRecords = facts.armorEnum.entries.map((entry) => {
+    const locator = makeStaticLocator(entry.sourceLocator, state);
+    const payload = { sourceStatic: {
+      schemaVersion: 'armor-class-static/1', classKey: entry.classKey,
+      enumRawValue: entry.enumRawValue, sourceLocator: locator
+    }};
+    const record = dataRecord(staticArmorClassId(entry.classKey), 'armor-class', payload,
+      [locator.sourceRef], { reviewTargets: [{ fieldPath: '/payload/sourceStatic', dimension: 'technical' }] });
+    armorByKey.set(entry.classKey, ref(record.recordId));
+    return record;
+  });
+  const targetRecords = facts.minions.map((breed) => {
+    const breedPath = breed.path;
+    const baseArmorKey = tokenValue(breed.fields.armorType.rawValue).match(/^armor_types\.([A-Za-z0-9_]+)$/)?.[1];
+    invariant(baseArmorKey && armorByKey.has(baseArmorKey), 'Minion base armor identity has no declared armor-class record: ' + breed.breedKey);
+    const hitZones = breed.zones.map((zone) => ({
+      zoneId: zone.zoneId,
+      rawSource: { rawValue: zone.source.rawValue, sourceLocator: makeStaticLocator({ path: breedPath, line: zone.source.line, fieldPath: 'breed_data.hit_zones.' + zone.zoneId }, state) },
+      actors: zone.actors,
+      actorsRawValue: zone.actorsRawValue,
+      actorsLocator: makeStaticLocator({ path: breedPath, line: zone.actorsSourceLine, fieldPath: 'breed_data.hit_zones.' + zone.zoneId + '.actors' }, state),
+      otherRawFields: zone.otherRawFields.map((field) => ({ fieldPath: field.fieldPath, rawValue: field.rawValue,
+        sourceLocator: makeStaticLocator({ path: breedPath, line: field.line, fieldPath: field.fieldPath }, state) }))
+    }));
+    const weakspotTypes = breed.weakspotTypes.map((row) => ({
+      zoneId: row.zoneId, weakspotType: row.value, rawValue: row.rawValue,
+      sourceLocator: makeStaticLocator({ path: breedPath, line: row.line, fieldPath: 'breed_data.hit_zone_weakspot_types.' + row.zoneId }, state)
+    }));
+    const armorOverrides = breed.armorOverrides.map((row) => {
+      const classKey = row.value;
+      invariant(armorByKey.has(classKey), 'Minion hit-zone armor override has no armor-class record: ' + breed.breedKey + ':' + classKey);
+      return { zoneId: row.zoneId, armorClassRef: armorByKey.get(classKey), rawValue: 'armor_types.' + classKey,
+        sourceLocator: makeStaticLocator({ path: breedPath, line: row.line, fieldPath: 'breed_data.hitzone_armor_override.' + row.zoneId }, state) };
+    });
+    const damageMultipliers = breed.damageMultipliers.map((row) => ({
+      attackType: row.attackType, zoneId: row.zoneId, decimal: row.decimal, rawValue: row.rawValue,
+      ...(row.resolvedConstant ? { resolvedConstant: {
+        symbol: row.resolvedConstant.symbol, decimal: row.resolvedConstant.decimal, rawValue: row.resolvedConstant.rawValue,
+        sourceLocator: makeStaticLocator(row.resolvedConstant.sourceLocator, state)
+      } } : {}),
+      sourceLocator: makeStaticLocator({ path: breedPath, line: row.line, fieldPath: 'breed_data.hitzone_damage_multiplier.' + row.attackType + '.' + row.zoneId }, state)
+    }));
+    const zoneIds = new Set(hitZones.map((zone) => zone.zoneId));
+    const unresolvedZoneReferences = [
+      ...weakspotTypes.filter((row) => !zoneIds.has(row.zoneId)).map((row) => ({ fieldPath: 'hit_zone_weakspot_types', zoneId: row.zoneId, rawValue: row.rawValue, sourceLocator: row.sourceLocator })),
+      ...armorOverrides.filter((row) => !zoneIds.has(row.zoneId)).map((row) => ({ fieldPath: 'hitzone_armor_override', zoneId: row.zoneId, rawValue: row.rawValue, sourceLocator: row.sourceLocator })),
+      ...damageMultipliers.filter((row) => !zoneIds.has(row.zoneId)).map((row) => ({ fieldPath: 'hitzone_damage_multiplier', zoneId: row.zoneId, rawValue: row.rawValue, sourceLocator: row.sourceLocator }))
+    ];
+    for (const orphan of breed.unmatchedZoneReferences) {
+      const row = unresolvedZoneReferences.find((candidate) => candidate.fieldPath === orphan.field
+        && candidate.zoneId === orphan.zoneId && candidate.rawValue === orphan.rawValue);
+      invariant(row, 'Unmatched raw hit-zone reference was not preserved by typed static mapping: ' + breed.breedKey + ':' + orphan.zoneId);
+    }
+    const sourceStatic = {
+      schemaVersion: 'minion-hit-schema/1.0.0', breedKey: breed.breedKey, breedType: 'minion',
+      registryLocator: makeStaticLocator({ path: facts.registry.path, line: breed.registryLine, fieldPath: 'breeds.registry.' + breed.breedKey }, state),
+      registryRawValue: breed.registryRawValue,
+      breedLocator: makeStaticLocator({ path: breedPath, line: breed.breedNameLine, fieldPath: 'breed_data.name' }, state),
+      baseArmorClassRef: armorByKey.get(baseArmorKey),
+      baseArmorRawValue: breed.fields.armorType.rawValue,
+      baseArmorLocator: makeStaticLocator({ path: breedPath, line: breed.fields.armorType.line, fieldPath: breed.fields.armorType.fieldPath }, state),
+      rawHitZones: { rawValue: breed.fields.hitZones.rawValue,
+        sourceLocator: makeStaticLocator({ path: breedPath, line: breed.fields.hitZones.line, fieldPath: breed.fields.hitZones.fieldPath }, state) },
+      hitZones, weakspotTypes, armorOverrides, damageMultipliers, unresolvedZoneReferences
+    };
+    if (breed.fields.toughnessArmor) {
+      const toughnessKey = tokenValue(breed.fields.toughnessArmor.rawValue).match(/^armor_types\.([A-Za-z0-9_]+)$/)?.[1];
+      invariant(toughnessKey && armorByKey.has(toughnessKey), 'Minion toughness armor identity has no armor-class record: ' + breed.breedKey);
+      sourceStatic.toughnessArmorClassRef = armorByKey.get(toughnessKey);
+      sourceStatic.toughnessArmorRawValue = breed.fields.toughnessArmor.rawValue;
+      sourceStatic.toughnessArmorLocator = makeStaticLocator({ path: breedPath, line: breed.fields.toughnessArmor.line,
+        fieldPath: breed.fields.toughnessArmor.fieldPath }, state);
+    }
+    const payload = { sourceStatic };
+    return dataRecord(staticTargetProfileId(breed.breedKey), 'target-profile', payload,
+      staticRecordSourceRefs(payload), { reviewTargets: [{ fieldPath: '/payload/sourceStatic', dimension: 'technical' }] });
+  });
+  return { armorRecords, targetRecords, armorByKey };
+}
+function relationshipRows(facts, pathsAndLines) {
+  return pathsAndLines.map(([path, line]) => {
+    const row = facts.relationshipEvidence.find((item) => item.path === path && item.line === line);
+    invariant(row, 'Static relation dependency evidence is missing: ' + path + ':' + line);
+    return row;
+  });
+}
+function makeStaticModifierRuleRecords(facts, state, armorByKey) {
+  const required = {
+    'armor-type-resolution': [['scripts/utilities/attack/armor.lua', 25], ['scripts/settings/havoc/havoc_mutator_local_settings.lua', 514]],
+    'weakspot-type-resolution': [['scripts/utilities/attack/weakspot.lua', 9], ['scripts/settings/damage/weakspot_settings.lua', 4]],
+    'finesse-crit-boost': [
+      ['scripts/utilities/attack/damage_calculation.lua', 672], ['scripts/settings/damage/weakspot_settings.lua', 4],
+      ['scripts/settings/damage/power_level_settings.lua', 142], ['scripts/settings/damage/power_level_settings.lua', 172],
+      ['scripts/settings/damage/power_level_settings.lua', 123], ['scripts/utilities/attack/damage_calculation.lua', 208],
+      ['scripts/utilities/attack/damage_calculation.lua', 700], ['scripts/utilities/attack/damage_calculation.lua', 795]
+    ]
+  };
+  const sourceKey = { 'armor-type-resolution': 'armor', 'weakspot-type-resolution': 'weakspot', 'finesse-crit-boost': 'finesseCrit' };
+  return Object.keys(required).map((relationKey) => {
+    const source = facts.staticCombatRelations[sourceKey[relationKey]];
+    const rawDependencies = relationshipRows(facts, required[relationKey]).map((row) => staticRawSource(row, state, { range: true }));
+    const sourceBranchModel = {
+      schemaVersion: 'static-combat-relations/1', relationKey,
+      sourceFunction: staticRawSource(source.source, state),
+      conditionRows: source.conditionRows.map((row) => staticRawSource({ ...row, path: source.source.path }, state)),
+      rawDependencies,
+      havocOverrides: relationKey === 'armor-type-resolution' ? source.havocArmorOverrides.map((row) => {
+        invariant(armorByKey.has(row.armorClassKey), 'Havoc armor identity has no armor-class record: ' + row.armorClassKey);
+        return { zoneId: row.zoneId, armorClassRef: armorByKey.get(row.armorClassKey), rawValue: row.rawValue,
+          sourceLocator: makeStaticLocator(row, state) };
+      }) : [],
+      executionPolicy: 'static-only'
+    };
+    const payload = { sourceBranchModel };
+    return dataRecord(staticRuleId(relationKey), 'modifier-rule', payload,
+      staticRecordSourceRefs(payload), { reviewTargets: [{ fieldPath: '/payload/sourceBranchModel', dimension: 'technical' }] });
+  });
+}
+
 function sourceRefsForRecords(records, state) {
   const ids = new Set(records.flatMap((record) => record.sourceRefs ?? []));
   return [...ids].map((id) => {
@@ -1076,6 +1680,24 @@ function sourceRefsForProfileRows(rows, state) {
 }
 function profileRecordMap(records) {
   return new Map(records.map((record) => [record.payload.profileKey, record.recordId]));
+}
+function correctSprintSpeedClaims(records) {
+  const claims = records.filter((record) => record.kind === 'claim'
+    && record.payload.property === 'weapon_sprint_templates.default.sprint_speed_mod');
+  invariant(claims.length === 4, 'The W07 candidate must retain all four selected sprint speed comparison claims.');
+  const evidenceIds = new Set();
+  for (const claim of claims) {
+    invariant(claim.payload.value.status === 'known' && ['0.09', '0.27'].includes(claim.payload.value.decimal),
+      'The selected sprint speed comparisons must preserve their known 0.09 and 0.27 values.');
+    claim.payload.value.unit = 'point';
+    if (claim.payload.displayValue?.status === 'known') claim.payload.displayValue.unit = 'point';
+    for (const evidenceRef of claim.payload.evidenceRefs ?? []) evidenceIds.add(evidenceRef.recordId);
+  }
+  for (const evidence of records) {
+    if (evidence.kind !== 'evidence' || !evidenceIds.has(evidence.recordId)) continue;
+    evidence.payload.safeSummary = evidence.payload.safeSummary
+      .replace('raw ratios 0.09/0.27', 'raw additive parameter points 0.09/0.27; the pinned source does not expose a physical speed unit');
+  }
 }
 function mapW01ClaimsWithProfileRefs(records, profileRecordIds) {
   for (const record of records) {
@@ -1098,6 +1720,231 @@ function collectEmbeddedSourceLinks(value, result = new Map()) {
   for (const child of Object.values(value)) collectEmbeddedSourceLinks(child, result);
   return result;
 }
+function staticFieldLocator(pathname, line, fieldPath, state, endLine) {
+  return makeStaticLocator({ path: pathname, line, ...(endLine ? { endLine } : {}), fieldPath }, state, { includeEndLine: Boolean(endLine) });
+}
+function sourceRangeForStatic(pathname, line, endLine, fieldPath, state) {
+  return staticFieldLocator(pathname, line, fieldPath, state, endLine);
+}
+function makePanelPreviewRules(facts, state) {
+  const rules = facts.panelPreviewRules;
+  const evidence = (row) => staticRangeEvidence(row, state);
+  return {
+    schemaVersion: rules.schemaVersion,
+    scope: rules.scope,
+    perStatIncrementCap: {
+      decimal: rules.perStatIncrementCap.decimal,
+      unit: rules.perStatIncrementCap.unit,
+      sourceLocators: [evidence(rules.perStatIncrementCap.source), evidence(rules.perStatIncrementCap.consumer)],
+      override: {
+        fieldPath: rules.perStatIncrementCap.override.fieldPath,
+        rawValue: rules.perStatIncrementCap.override.rawValue,
+        panelCaller: { sourceLocators: [evidence(rules.perStatIncrementCap.override.panelCaller)] }
+      }
+    },
+    itemBudget: { decimal: rules.itemBudget.decimal, unit: rules.itemBudget.unit, sourceLocators: [evidence(rules.itemBudget.source)] },
+    expertiseBudget: {
+      formula: rules.expertiseBudget.formula,
+      expertiseMultiplier: { decimal: rules.expertiseBudget.expertiseMultiplier.decimal, unit: rules.expertiseBudget.expertiseMultiplier.unit, sourceLocators: [evidence(rules.expertiseBudget.expertiseMultiplier.source)] },
+      maxExpertise: { decimal: rules.expertiseBudget.maxExpertise.decimal, unit: rules.expertiseBudget.maxExpertise.unit, sourceLocators: [evidence(rules.expertiseBudget.maxExpertise.source)] },
+      capByRemainingItemBudget: rules.expertiseBudget.capByRemainingItemBudget,
+      lowerBound: rules.expertiseBudget.lowerBound,
+      sourceLocators: [evidence(rules.expertiseBudget.source)]
+    },
+    displayCap: {
+      decimal: rules.displayCap.decimal, unit: rules.displayCap.unit, formula: rules.displayCap.formula,
+      sourceLocators: [evidence(rules.displayCap.source), evidence(rules.displayCap.panelSource)]
+    },
+    rounding: { rawValue: rules.rounding.rawValue, sourceLocators: [evidence(rules.rounding.source)] },
+    conditionalBranches: rules.conditionalBranches.map((branch) => ({
+      key: branch.key, rawValue: branch.rawValue, behavior: branch.behavior, sourceLocators: [evidence(branch.source)]
+    })),
+    storedExpertiseOverride: {
+      rawValue: rules.storedExpertiseOverride.rawValue, behavior: rules.storedExpertiseOverride.behavior,
+      sourceLocators: [evidence(rules.storedExpertiseOverride.source)]
+    },
+    obtainableRange: {
+      status: rules.attainability.status, reasonCode: rules.attainability.reasonCode,
+      sourceLocators: [evidence(rules.attainability.source)]
+    }
+  };
+}
+function makeWeaponActionProfileResolution(staticFacts, markFacts, weapon, attackResult, state) {
+  const inputFacts = staticFacts.inputFacts;
+  const base = inputFacts.baseTemplateSettings;
+  const defaults = inputFacts.defaultActionInputSetup;
+  const markPath = markFacts.path;
+  const inputEntries = [];
+  const seenInputs = new Set();
+  const addInputs = (source, origin, sourcePath, prefix) => {
+    for (const row of source.entries) {
+      invariant(!seenInputs.has(row.key), 'Input setup source contains duplicate merged key: ' + row.key);
+      seenInputs.add(row.key);
+      inputEntries.push({
+        inputKey: row.key, origin, rawValue: row.rawValue,
+        sourceLocator: staticFieldLocator(sourcePath, row.line, prefix + '.' + row.key, state)
+      });
+    }
+  };
+  addInputs(base.actionInputs, 'base-template', base.path, 'base_template_settings.action_inputs');
+  addInputs(defaults.actionInputs, 'default-setup', defaults.path, 'default_melee_action_input_setup.action_inputs');
+  invariant(inputEntries.length === 21, 'Merged W07 base/default input setup must contain exactly 21 distinct keys.');
+  const assignments = markFacts.inputAssignments;
+  for (const assignment of assignments) {
+    const override = assignment.fieldPath.match(/^weapon_template\.action_inputs\.([A-Za-z0-9_]+)\.buffer_time$/);
+    if (!override) continue;
+    const index = inputEntries.findIndex((entry) => entry.inputKey === override[1]);
+    invariant(index >= 0, 'Weapon input override does not resolve to the merged setup: ' + assignment.fieldPath);
+    const inheritedDefinition = { rawValue: inputEntries[index].rawValue, sourceLocator: inputEntries[index].sourceLocator };
+    inputEntries[index] = {
+      inputKey: override[1], origin: 'weapon-mid-setup', rawValue: assignment.rawValue,
+      sourceLocator: staticFieldLocator(markPath, assignment.line, assignment.fieldPath, state), inheritedDefinition
+    };
+  }
+  const setupSources = [
+    staticRawSource({ path: base.path, line: base.actionInputs.line, fieldPath: 'base_template_settings.action_inputs', rawValue: base.actionInputs.rawValue }, state),
+    staticRawSource({ path: base.path, line: base.actionInputHierarchy.line, fieldPath: 'base_template_settings.action_input_hierarchy', rawValue: base.actionInputHierarchy.rawValue }, state),
+    staticRawSource({ path: defaults.path, line: defaults.actionInputs.line, fieldPath: 'default_melee_action_input_setup.action_inputs', rawValue: defaults.actionInputs.rawValue }, state),
+    staticRawSource({ path: defaults.path, line: defaults.actionInputHierarchy.line, fieldPath: 'default_melee_action_input_setup.action_input_hierarchy', rawValue: defaults.actionInputHierarchy.rawValue }, state),
+    staticRawSource({ ...defaults.rawMidSetup, fieldPath: 'melee_action_input_setup_mid' }, state),
+    ...assignments.map((row) => staticRawSource({ path: markPath, line: row.line, fieldPath: row.fieldPath, rawValue: row.rawValue }, state))
+  ];
+  const hierarchy = defaults.actionInputHierarchy;
+  const localActions = markFacts.localActions.map((row) => {
+    const actionFieldPath = 'weapon_template.actions.' + row.key;
+    const startMatch = row.rawValue.match(/\bstart_input\s*=\s*"([^"]+)"/);
+    let startInput = null;
+    if (startMatch) {
+      const offset = row.rawValue.indexOf(startMatch[0]);
+      const line = row.line + (row.rawValue.slice(0, offset).match(/\n/g) ?? []).length;
+      startInput = {
+        inputKey: startMatch[1],
+        sourceLocator: staticFieldLocator(markPath, line, actionFieldPath + '.start_input', state)
+      };
+    }
+    return {
+      action: row.key, startInput,
+      rawSource: staticRawSource({ path: markPath, line: row.line, fieldPath: actionFieldPath, rawValue: row.rawValue }, state),
+      sourceRange: sourceRangeForStatic(markPath, row.line, row.endLine, actionFieldPath, state)
+    };
+  });
+  const fallbackActions = base.actions.entries.map((row) => {
+    const fieldPath = 'base_template_settings.actions.' + row.key;
+    const endLine = row.endLine ?? row.line + (row.rawValue.match(/\n/g) ?? []).length;
+    return {
+      action: row.key, origin: 'base-template-settings',
+      rawSource: staticRawSource({ path: base.path, line: row.line, fieldPath, rawValue: row.rawValue }, state),
+      sourceRange: sourceRangeForStatic(base.path, row.line, endLine, fieldPath, state)
+    };
+  });
+  const generatedActionKey = {
+    generate_unwield_action: 'action_unwield',
+    generate_wield_chain_actions: 'wield',
+    generate_inspect_action: 'action_inspect',
+    generate_inspect_3p_action: 'action_inspect_3p'
+  };
+  const actionGenerators = inputFacts.actionGenerators.map((generator) => ({
+    generatorKey: generator.generatorKey,
+    effectiveDefinitionIndex: generator.effectiveDefinitionIndex,
+    definitions: generator.definitions.map((definition) => {
+      const line = definition.sourceLocator.line;
+      const endLine = line + (definition.rawValue.match(/\n/g) ?? []).length;
+      return {
+        generatorKey: generator.generatorKey,
+        definitionIndex: definition.definitionIndex,
+        endLine,
+        sourceLocator: makeStaticLocator(definition.sourceLocator, state),
+        rawValue: definition.rawValue,
+        returnKind: definition.returnKind,
+        generatedActions: (definition.generatedActionFacts ?? []).map((generated) => ({
+          actionKey: generatedActionKey[generator.generatorKey],
+          ...(generated.startInput ? { startInput: generated.startInput } : {}),
+          ...(generated.stopInput ? { stopInput: generated.stopInput } : {}),
+          continuationEdges: generated.continuationEdges.map((edge) => ({
+            inputKey: edge.inputKey, actionKey: edge.actionKey, chainTimeRawValue: edge.chainTimeRawValue,
+            sourceLocator: makeStaticLocator(edge.sourceLocator, state)
+          }))
+        })),
+        generatedContinuations: definition.generatedContinuations.map((edge) => ({
+          actionKey: edge.actionKey,
+          ...(edge.inputKey ? { inputKey: edge.inputKey } : {}),
+          chainTimeRawValue: edge.chainTimeRawValue,
+          sourceLocator: makeStaticLocator(edge.sourceLocator, state)
+        }))
+      };
+    })
+  }));
+  const generatorBindings = [...inputFacts.baseGeneratorBindings, ...markFacts.generatorBindings].map((binding) => ({
+    generatorKey: binding.generatorKey,
+    callsite: { sourceLocator: makeStaticLocator(binding.callsite.sourceLocator, state), rawValue: binding.callsite.rawValue },
+    ownerAction: binding.ownerAction,
+    ownerActionRange: makeStaticLocator(binding.ownerActionRange, state, { includeEndLine: true }),
+    assignedActionKey: binding.assignedActionKey,
+    returnKind: binding.returnKind,
+    ...(binding.additionalSettingsRawValue ? { additionalSettingsRawValue: binding.additionalSettingsRawValue } : {})
+  }));
+  let generatedActionSettingsCount = 0;
+  let generatedContinuationEdgeCount = 0;
+  for (const binding of generatorBindings) {
+    const group = actionGenerators.find((item) => item.generatorKey === binding.generatorKey);
+    const definition = group?.definitions.find((item) => item.definitionIndex === group.effectiveDefinitionIndex);
+    invariant(definition, 'Generator binding has no effective static definition: ' + binding.generatorKey);
+    if (binding.returnKind === 'continuation-list') {
+      generatedContinuationEdgeCount += definition.generatedContinuations.length;
+    } else {
+      generatedActionSettingsCount += definition.generatedActions.length;
+      generatedContinuationEdgeCount += definition.generatedActions.reduce((total, action) => total + action.continuationEdges.length, 0);
+    }
+  }
+  const profileBindingCount = attackResult.records.reduce((total, record) => total + record.payload.sourceBindings.length, 0);
+  const resolution = {
+    inputSetup: {
+      setupKey: 'melee_action_input_setup_mid',
+      inheritedSetupKey: 'default_melee_action_input_setup',
+      inputEntries,
+      hierarchyRaw: staticRawSource({ path: defaults.path, line: hierarchy.line, fieldPath: 'default_melee_action_input_setup.action_input_hierarchy', rawValue: hierarchy.rawValue }, state),
+      setupSources
+    },
+    localActions, fallbackActions, actionGenerators, generatorBindings,
+    staticClosure: {
+      localActionCount: localActions.length,
+      fallbackActionCount: fallbackActions.length,
+      profileBindingCount,
+      literalContinuationEdgeCount: attackResult.edgeRows.length,
+      generatedActionSettingsCount,
+      generatedContinuationEdgeCount,
+      inputEntryCount: inputEntries.length
+    },
+    executionPolicy: 'static-only; functions not executed'
+  };
+  return resolution;
+}
+function makeAttackActionResolution(attack, weapon, state) {
+  const actionName = attack.payload.action;
+  const actionRow = weapon.payload.actionProfileResolution.localActions.find((row) => row.action === actionName)
+    ?? weapon.payload.actionProfileResolution.fallbackActions.find((row) => row.action === actionName);
+  invariant(actionRow, 'Attack profile action is absent from its static local/fallback closure: ' + actionName);
+  const origin = weapon.payload.actionProfileResolution.localActions.includes(actionRow) ? 'weapon-template' : 'base-template-settings';
+  const startInput = actionRow.startInput ?? null;
+  const inputBindings = [];
+  if (startInput) inputBindings.push({ inputKey: startInput.inputKey, role: 'start-input', sourceLocator: startInput.sourceLocator });
+  const seenContinuationInputs = new Set();
+  for (const edge of attack.payload.continuations ?? []) {
+    if (seenContinuationInputs.has(edge.inputKey)) continue;
+    seenContinuationInputs.add(edge.inputKey);
+    inputBindings.push({ inputKey: edge.inputKey, role: 'continuation', sourceLocator: edge.sourceLocator });
+  }
+  const entryBindings = weapon.payload.actionContinuations.filter((edge) => edge.toAction === actionName);
+  const runtimeConditions = (attack.payload.continuations ?? []).flatMap((edge) => edge.conditions.map((condition) => ({
+    fieldPath: condition.fieldPath, rawValue: condition.rawValue, sourceLocator: condition.sourceLocator, execution: 'not-evaluated'
+  })));
+  return {
+    origin, startInput, inputBindings, entryBindings,
+    branchBindings: attack.payload.sourceBindings,
+    runtimeConditions,
+    targetApplicability: 'all-static-registry-minion-hit-schemas'
+  };
+}
 function appendWeaponSourceFacts(weapon, facts, mark, state, attackResult) {
   const markId = weapon.payload.markId;
   const markFacts = facts.weaponStatFacts[mark];
@@ -1111,6 +1958,7 @@ function appendWeaponSourceFacts(weapon, facts, mark, state, attackResult) {
   weapon.payload.statTables = facts.outputTableFacts
     .filter((table) => statKeyByTable[table.tableKey])
     .map((table) => mapOutputTable(table, statKeyByTable[table.tableKey], state));
+  weapon.payload.statTableSemantics = makeStatTableSemantics(weapon, state.staticFacts, state);
   weapon.payload.sourceRows = mapWeaponSourceRows(facts, mark, state);
   weapon.payload.emptyTables = mapWeaponEmptyTables(facts, mark, state);
   weapon.payload.actionContinuations = attackResult.edgeRows;
@@ -1136,83 +1984,8 @@ function rawProfileClaimRefs(claims, weapon, profileKey, property) {
     claim.payload.context?.profile === profileKey &&
     claim.payload.property.includes(property)).map((claim) => ref(claim.recordId));
 }
-function m2RawStatRecords(facts, weapon, state, claims) {
-  if (weapon.payload.markId !== facts.weaponTemplateKeys.m2) return [];
-  const profileKey = 'light_chainaxe_tank';
-  const profile = facts.profileDefinitions.find((item) => item.profileKey === profileKey);
-  invariant(profile, 'Mk XII selected attack profile source is missing.');
-  const statRecords = [];
-  const curveSpecs = [
-    {
-      suffix: 'light-chainaxe-tank-attack-power',
-      property: 'power_distribution.attack',
-      unit: 'attack-power-point',
-      rows: profile.rows.filter((row) => /\.targets\.1\.power_distribution\.attack\.\d+$/.test(row.fieldPath))
-    },
-    {
-      suffix: 'light-chainaxe-tank-armored-modifier',
-      property: 'armor_damage_modifier.attack[armor_types.armored]',
-      unit: 'ratio',
-      rows: (() => {
-        const refRow = profile.rows.find((row) => row.fieldPath.endsWith('.targets.1.armor_damage_modifier.attack.[armor_types.armored]'));
-        if (!refRow) return [];
-        const key = tokenValue(refRow.rawValue);
-        const tableRows = state.aliasState.rowsByKey.get(key);
-        return tableRows ?? [];
-      })()
-    }
-  ];
-  for (const spec of curveSpecs) {
-    invariant(spec.rows.length === 2, 'Mk XII selected raw stat must retain its exact two source points: ' + spec.property);
-    const definitionId = 'darktide:stat-definition:chainaxe-p1-m2:' + spec.suffix;
-    const curveId = 'darktide:stat-curve:chainaxe-p1-m2:' + spec.suffix;
-    const sourceRows = spec.rows;
-    const knots = sourceRows.map((row, index) => ({
-      input: String(index + 1),
-      output: tokenValue(row.rawValue)
-    }));
-    const statClaims = rawProfileClaimRefs(claims, weapon, profileKey, spec.property);
-    const sourceLinks = sourceRefsForProfileRows(sourceRows, state);
-    const definition = dataRecord(definitionId, 'stat-definition', {
-      quantity: 'damage_templates.' + profileKey + '.targets[1].' + spec.property,
-      inputUnit: 'point',
-      outputUnit: spec.unit,
-      panelInputRange: { status: 'not-applicable' },
-      theoreticalInputRange: {
-        status: 'known',
-        min: '1',
-        max: '2',
-        unit: 'point',
-        step: '1',
-        inclusive: { min: true, max: true }
-      },
-      obtainableInputRange: { status: 'unknown', reasonCode: 'NOT_VERIFIED' },
-      curveRef: ref(curveId),
-      claimRefs: statClaims
-    }, sourceLinks, {
-      dataCoverage: canonicalCoverage('partial', [
-        { field: '/payload/obtainableInputRange', reasonCode: 'NOT_VERIFIED' },
-        { field: '/payload/panelInputRange', reasonCode: 'NOT_EXPOSED_BY_SOURCE' }
-      ]),
-      reviewTargets: [{ fieldPath: '/payload', dimension: 'technical' }]
-    });
-    const curve = dataRecord(curveId, 'stat-curve', {
-      inputUnit: 'point',
-      outputUnit: spec.unit,
-      knots,
-      interpolation: { status: 'unknown', reasonCode: 'NOT_VERIFIED' },
-      edgePolicy: { status: 'unknown', reasonCode: 'NOT_VERIFIED' }
-    }, sourceLinks, {
-      dataCoverage: canonicalCoverage('partial', [
-        { field: '/payload/interpolation', reasonCode: 'NOT_VERIFIED' },
-        { field: '/payload/edgePolicy', reasonCode: 'NOT_VERIFIED' }
-      ]),
-      reviewTargets: [{ fieldPath: '/payload', dimension: 'technical' }]
-    });
-    weapon.payload.statRefs.push(ref(definitionId));
-    statRecords.push(definition, curve);
-  }
-  return statRecords;
+function makeRawProfileStatRecordsForMark(mark, weapon, facts, staticFacts, state, claims) {
+  return makeRawProfileStatRecords(mark, weapon, facts, staticFacts, state, claims);
 }
 function makeW07Bundle(inputs, state) {
   const closure = state.closure;
@@ -1220,31 +1993,77 @@ function makeW07Bundle(inputs, state) {
   const weaponSourceRows = closure.weapons.map((raw) => mapW01Record(raw, sourceById));
   const weaponByMark = new Map(weaponSourceRows.map((record) => [record.payload.markId, record]));
   const profileRecords = makeProfileRecords(inputs.facts, state);
+  const { armorRecords, targetRecords, armorByKey } = makeStaticArmorAndTargetRecords(inputs.staticFacts, state);
+  const modifierRuleRecords = makeStaticModifierRuleRecords(inputs.staticFacts, state, armorByKey);
+  const targetRefs = targetRecords.map((record) => ref(record.recordId));
+  const armorRefs = [...new Map(targetRecords.flatMap((record) => {
+    const source = record.payload.sourceStatic;
+    return [source.baseArmorClassRef, ...(source.toughnessArmorClassRef ? [source.toughnessArmorClassRef] : []), ...source.armorOverrides.map((row) => row.armorClassRef)];
+  }).map((item) => [item.recordId, item])).values()];
+  const modifierRefs = modifierRuleRecords.map((record) => ref(record.recordId));
   const profileRecordIds = new Map(profileRecords.map((record) => [record.payload.profileKey, record.recordId]));
   const attackRecords = [];
   const attackResultsByMark = new Map();
   for (const [mark, markId] of Object.entries(inputs.facts.weaponTemplateKeys)) {
-    const result = makeAttackProfiles(inputs.facts, mark, weaponByMark.get(markId), state);
+    const weapon = weaponByMark.get(markId);
+    const result = makeAttackProfiles(inputs.facts, mark, weapon, state);
+    const markFacts = inputs.staticFacts.inputFacts.marks.find((item) => item.markId === markId);
+    invariant(markFacts, 'Static action/input facts are missing for selected chainaxe mark: ' + markId);
+    weapon.payload.actionContinuations = result.edgeRows;
+    weapon.payload.actionProfileResolution = makeWeaponActionProfileResolution(inputs.staticFacts, markFacts, weapon, result, state);
+    weapon.payload.panelPreviewRules = makePanelPreviewRules(inputs.staticFacts, state);
+    weapon.dataCoverage.missing = (weapon.dataCoverage.missing ?? []).filter((item) => item.field !== '/payload/actionProfileResolution');
+    if (weapon.dataCoverage.missing.length === 0) weapon.dataCoverage.status = 'complete';
+    weapon.reviewTargets.push(
+      { fieldPath: '/payload/actionProfileResolution', dimension: 'technical' },
+      { fieldPath: '/payload/actionContinuations', dimension: 'technical' },
+      { fieldPath: '/payload/panelPreviewRules', dimension: 'technical' },
+      { fieldPath: '/payload/statTableSemantics', dimension: 'technical' }
+    );
+    for (const attack of result.records) {
+      attack.payload.actionResolution = makeAttackActionResolution(attack, weapon, state);
+      attack.payload.targetProfileRefs = targetRefs;
+      attack.payload.armorClassRefs = armorRefs;
+      attack.payload.modifierRuleRefs = modifierRefs;
+      attack.reviewTargets.push(
+        { fieldPath: '/payload/targetProfileRefs', dimension: 'technical' },
+        { fieldPath: '/payload/armorClassRefs', dimension: 'technical' },
+        { fieldPath: '/payload/modifierRuleRefs', dimension: 'technical' },
+        { fieldPath: '/payload/actionResolution', dimension: 'technical' }
+      );
+      attack.dataCoverage = canonicalCoverage();
+      attack.sourceRefs = staticRecordSourceRefs(attack.payload);
+    }
     attackRecords.push(...result.records);
     attackResultsByMark.set(mark, result);
     weaponByMark.get(markId).payload.attackProfileRefs = result.records.map((record) => ref(record.recordId));
   }
+  const rawStatsByMark = new Map();
+  for (const [mark, markId] of Object.entries(inputs.facts.weaponTemplateKeys)) {
+    const weapon = weaponByMark.get(markId);
+    rawStatsByMark.set(mark, makeRawProfileStatRecordsForMark(mark, weapon, inputs.facts, inputs.staticFacts, state, closure.claims));
+  }
+  const replacements = new Map([...rawStatsByMark.values()].flatMap((result) => [...result.replacementById.entries()]));
   const mappedW01Records = closure.records
     .filter((record) => record.kind !== 'weapon')
-    .map((record) => mapW01Record(record, sourceById));
+    .map((record) => {
+      const mapped = mapW01Record(record, sourceById);
+      return replacements.get(mapped.recordId) ?? mapped;
+    });
   mapW01ClaimsWithProfileRefs(mappedW01Records, profileRecordIds);
+  correctSprintSpeedClaims(mappedW01Records);
   for (const [mark, markId] of Object.entries(inputs.facts.weaponTemplateKeys)) {
     const weapon = weaponByMark.get(markId);
     appendWeaponSourceFacts(weapon, inputs.facts, mark, state, attackResultsByMark.get(mark));
   }
-  const newStatRecords = [];
-  for (const weapon of weaponByMark.values()) {
-    newStatRecords.push(...m2RawStatRecords(inputs.facts, weapon, state, closure.claims));
-  }
+  const newStatRecords = rawStatsByMark.get('m2').records;
   const allNewRecords = [
     ...weaponSourceRows,
     ...mappedW01Records,
     ...profileRecords,
+    ...armorRecords,
+    ...targetRecords,
+    ...modifierRuleRecords,
     ...attackRecords,
     ...newStatRecords
   ];
@@ -1264,7 +2083,8 @@ function makeW07Bundle(inputs, state) {
   candidate.records = [...inputs.current.records, ...allNewRecords];
   candidate.sourceSnapshots = [
     ...(candidate.sourceSnapshots ?? []),
-    { gameReleaseId: RELEASE_ID, snapshot: structuredClone(state.snapshot) }
+    { gameReleaseId: RELEASE_ID, snapshot: structuredClone(state.snapshot) },
+    { gameReleaseId: RELEASE_ID, snapshot: structuredClone(state.staticSnapshot) }
   ];
   candidate.fixtureOnly = false;
   candidate.publicationEligible = false;
@@ -1282,11 +2102,37 @@ function makeW07Bundle(inputs, state) {
         gameBuild: 'UNVERIFIED',
         includedW01Closure: { total: closure.records.length, weapons: closure.weapons.length, claims: closure.claims.length, evidence: closure.evidence.length, statDefinitions: closure.statDefinitions.length, statCurves: closure.curves.length },
         selectedCodeSnapshot: structuredClone(state.snapshot),
+        selectedStaticCodeSnapshot: structuredClone(state.staticSnapshot),
+        staticCoverage: {
+          breedRegistryEntries: inputs.staticFacts.registry.entryCount,
+          minionBreeds: inputs.staticFacts.minions.length,
+          excludedNonMinionBreeds: inputs.staticFacts.excluded.length,
+          hitZones: inputs.staticFacts.zoneCount,
+          zoneActors: inputs.staticFacts.minions.reduce((total, breed) => total + breed.zones.reduce((sum, zone) => sum + zone.actors.length, 0), 0),
+          armorEnumIdentities: inputs.staticFacts.armorEnum.entries.length,
+          minionUsedArmorIdentities: inputs.staticFacts.armorEnum.usedMinionClassKeys.length,
+          havocArmorOverrideEntries: inputs.staticFacts.havocArmorOverrides.length,
+          targetProfiles: targetRecords.length,
+          staticModifierRules: modifierRuleRecords.length,
+          selectedAttackProfiles: attackRecords.length
+        },
+        attainabilityReview: {
+          status: inputs.staticFacts.availabilityConclusion.status,
+          reasonCode: inputs.staticFacts.availabilityConclusion.reasonCode,
+          checkedSources: structuredClone(inputs.staticFacts.checkedAvailabilitySources),
+          boundary: inputs.staticFacts.availabilityConclusion.boundary,
+          impact: inputs.staticFacts.availabilityConclusion.impact
+        },
+        staticSourceFactsImporterSha256: inputs.staticFacts.importer.sha256,
         selectedSourceRows: inputs.snapshot.files.length,
+        selectedStaticSourceRows: inputs.staticSnapshot.files.length,
         selectedProfiles: inputs.facts.profileKeys.length,
         selectedAliasTables: state.aliasState.rowsByKey.size,
         selectedActionBindings: Object.fromEntries(Object.entries(inputs.facts.actionBindings).map(([key, item]) => [key, { profiles: item.profileBindings.length, actionEdges: item.actionEdges.length, stickyBindings: item.stickyBindings.length }])),
         selectedAttackProfiles: attackRecords.length,
+        selectedMinionTargetProfiles: targetRecords.length,
+        selectedArmorClasses: armorRecords.length,
+        selectedStaticModifierRules: modifierRuleRecords.length,
         localStickyDefinitions: inputs.facts.localStickyDefinitions.length,
         explicitEmptyTables: inputs.facts.explicitEmptyTables.length
       },
@@ -1294,12 +2140,20 @@ function makeW07Bundle(inputs, state) {
         result[record.kind] = (result[record.kind] ?? 0) + 1;
         return result;
       }, {}),
-      excluded: [
-        { field: 'finalDamage', reasonCode: 'NOT_IMPORTED' },
-        { field: 'enemySpecificHitZoneAndCriticalJointMappings', reasonCode: 'NOT_IMPORTED' },
-        { field: 'secondaryPushAndDodgeRuntimeResolution', reasonCode: 'NOT_IMPORTED' },
-        { field: 'actionConditionFunctionExecution', reasonCode: 'NOT_IMPORTED' },
-        { field: 'SteamBuild', value: 'UNVERIFIED' }
+      executionBoundaries: [
+        { field: 'finalDamageCalculation', status: 'excluded', reasonCode: 'EXECUTION_EXCLUDED' },
+        { field: 'LuaConditionAndRuntimeOverrideExecution', status: 'excluded', reasonCode: 'EXECUTION_EXCLUDED' },
+        { field: 'secondaryPushAndDodgeRuntimeResolution', status: 'excluded', reasonCode: 'EXECUTION_EXCLUDED' }
+      ],
+      verificationLimits: [
+        { field: 'SteamBuild', status: 'unverified', value: 'UNVERIFIED' },
+        {
+          field: 'serverGeneratedOrPlayerObtainableStatRanges',
+          status: inputs.staticFacts.availabilityConclusion.status,
+          reasonCode: inputs.staticFacts.availabilityConclusion.reasonCode,
+          checkedSources: structuredClone(inputs.staticFacts.checkedAvailabilitySources),
+          impact: inputs.staticFacts.availabilityConclusion.impact
+        }
       ],
       review: { reviewReceipts: 0, allNewRecordsPending: true, priorW06RecordsRetained: inputs.current.records.length }
     }
@@ -1327,22 +2181,33 @@ function jsonBytes(value) {
   return Buffer.from(JSON.stringify(value, null, 2) + '\n', 'utf8');
 }
 function markdownForManifest(manifest) {
+  const input = manifest.sourceInput;
+  const coverage = input.staticCoverage;
+  const markRows = Object.entries(input.selectedActionBindings)
+    .map(([mark, binding]) => mark + ': ' + binding.profiles + ' literal profile assignments (including local sticky tables), ' + binding.actionEdges + ' literal continuation edges')
+    .join('; ');
+  const tick = String.fromCharCode(96);
+  const checked = input.attainabilityReview.checkedSources.map((source) => tick + source + tick).join(', ');
   return [
     '# W07 Source weapon import candidate',
     '',
-    'Status: pending human review. Publication eligibility is false and no review receipts are included.',
+    'Status: pending human review. Publication eligibility is false and no review receipts are included. This is a static-source import candidate, not an official game update or publication.',
     '',
-    'The bundle extends the fixed W06 Source contract and imports the complete selected W01 chainaxe P1 closure: 2 weapons, 76 claims, 12 evidence records, and the original 2 stat definitions with their 2 curves.',
+    'The bundle extends the fixed W06 Source contract and retains the selected W01 chainaxe P1 closure: ' + input.includedW01Closure.weapons + ' weapons, ' + input.includedW01Closure.claims + ' claims, ' + input.includedW01Closure.evidence + ' evidence records, ' + input.includedW01Closure.statDefinitions + ' stat definitions, and ' + input.includedW01Closure.statCurves + ' stat curves.',
     '',
-    'The current-code snapshot is the independently fixed 37-file manifest at commit ' + CURRENT_CODE_COMMIT + '. It is an expanded selected-input snapshot, not a claim that all game code was imported. Steam build remains UNVERIFIED.',
+    'Source inputs are pinned to public-code commit ' + input.selectedCodeSnapshot.commit + '. The prior selected-code snapshot contains ' + input.selectedSourceRows + ' files; the W07 static supplement contains ' + input.selectedStaticSourceRows + ' files. These are bounded, reviewable source closures, not a claim that all game code was imported. Steam build remains UNVERIFIED.',
     '',
-    'The curated bundle contains ' + manifest.sourceInput.selectedProfiles + ' damage profiles, ' + manifest.sourceInput.selectedAliasTables + ' referenced alias tables, ' + manifest.sourceInput.selectedAttackProfiles + ' action-specific attack profiles, all declared continuation rows, six local sticky definitions, and seven explicitly empty source tables.',
+    'Static combat coverage includes ' + coverage.breedRegistryEntries + ' registry entries, ' + coverage.minionBreeds + ' minion hit schemas, ' + coverage.excludedNonMinionBreeds + ' explicitly excluded non-minion entries, ' + coverage.hitZones + ' hit zones, and ' + coverage.zoneActors + ' zone actor entries. The candidate includes ' + coverage.armorEnumIdentities + ' armor identities (' + coverage.minionUsedArmorIdentities + ' used by the selected minion schemas), ' + coverage.havocArmorOverrideEntries + ' fixed Havoc armor override entries, ' + coverage.staticModifierRules + ' static combat-relation records, and ' + coverage.targetProfiles + ' target profiles. Target applicability describes the fixed registry schemas; it does not establish spawn availability or player attainability.',
     '',
-    'The pinned movement code subtracts sticky start time from elapsed time and compares the result with each movement-curve t coordinate, so t is seconds while modifiers are ratios ([movement update, lines 30–40](https://github.com/Aussiemon/Darktide-Source-Code/blob/' + CURRENT_CODE_COMMIT + '/scripts/extension_systems/weapon/weapon_action_movement.lua#L30-L40), [sticky start-time setup, lines 15–29](https://github.com/Aussiemon/Darktide-Source-Code/blob/' + CURRENT_CODE_COMMIT + '/scripts/extension_systems/weapon/weapon_action_movement_shared.lua#L15-L29)). These links document unit interpretation; the selected 37-file snapshot remains a bounded input set, not all source code.',
+    'Action/profile coverage includes ' + coverage.selectedAttackProfiles + ' selected attack profiles and preserves each mark’s static action/input relationships. ' + markRows + '. Raw conditions, parent/override relationships, and generator definitions remain source descriptions; the pipeline does not execute Lua or resolve runtime conditions.',
     '',
-    'Raw action and profile tables remain source descriptions. The mapper does not execute Lua conditions or profile overrides and does not calculate final damage. Enemy-specific hit-zone and critical/weakspot joint mappings are NOT_IMPORTED; secondary push/dodge runtime resolution is also NOT_IMPORTED.',
+    'The four selected profile curves retain their raw endpoints and source order. The imported mapping separates the raw normalized profile axis, the trait parameter, and the outer item-stat value. The boost table records its five-point piecewise-linear source mapping and the selected caller bound. Client preview rules are documented separately from player-obtainable ranges.',
     '',
-    'The exact selected rows and locator paths are retained in the JSON contract and source import manifest. All new records are pending review; no human approval is asserted.',
+    'Server-generated and player-obtainable stat ranges remain unknown because the fixed public client sources checked here do not define that server-side range. Checked source paths: ' + checked + '. ' + input.attainabilityReview.impact,
+    '',
+    'Execution boundaries: final damage arithmetic, Lua condition execution, runtime override execution, and secondary push/dodge runtime resolution are excluded. Static enemy hit-zone, armor, weakspot, multiplier, and action/profile relationships are imported and source-linked.',
+    '',
+    'The exact source rows, digests, and locators are retained in the JSON contract and import manifest. New records remain pending review; no human approval is asserted.',
     ''
   ].join('\n');
 }

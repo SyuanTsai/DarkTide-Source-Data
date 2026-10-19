@@ -454,6 +454,40 @@ test('UnitT15_w07-profile-table-clone-aliases-are-closed-and-bound', async () =>
   }
 });
 
+// Scenario: A damage-trait stat row has several declared profile branches, while the archived claim set covers only some branches.
+// Purpose: Keep every exact source branch and concrete profile property without joining claims to substring-similar profiles.
+test('UnitT35_w07-damage-trait-rows-retain-the-full-exact-profile-closure', async () => {
+  const { buildW07WeaponBundle } = await import('../scripts/content/contract-w07-weapons.mjs');
+  const facts = JSON.parse(await readFile(new URL('../content/imports/w07/weapon-source-facts.json', import.meta.url), 'utf8'));
+  const { candidate } = await buildW07WeaponBundle();
+  const weapons = new Map(candidate.records.filter((record) => record.kind === 'weapon')
+    .map((record) => [record.payload.markId, record]));
+  let checkedRows = 0;
+  for (const mark of ['m1', 'm2']) {
+    const weapon = weapons.get(facts.weaponTemplateKeys[mark]);
+    for (const row of facts.weaponStatFacts[mark].rows.filter((item) =>
+      item.fieldPath.includes('.damage.action_') && item.rawValue.startsWith('damage_trait_templates.'))) {
+      checkedRows++;
+      const segments = row.fieldPath.split('.damage.')[1].split('.');
+      const action = segments[0];
+      const overrideProfile = segments[1] === 'overrides' ? segments[2] : undefined;
+      const expectedProfiles = overrideProfile
+        ? [overrideProfile]
+        : [...new Set(facts.actionBindings[mark].profileBindings
+          .filter((binding) => binding.fieldPath.startsWith('weapon_template.actions.' + action + '.'))
+          .map((binding) => binding.profileKey).filter(Boolean))];
+      const stat = weapon.payload.statBindings.find((group) => group.statKey === row.statKey);
+      const mapped = stat.bindings.filter((binding) => binding.weaponLocator.fieldPath === row.fieldPath);
+      const actualProfiles = [...new Set(mapped.map((binding) => binding.profileKey))];
+      assert.deepEqual(actualProfiles.sort(), expectedProfiles.sort(), mark + ':' + row.fieldPath);
+      assert.ok(mapped.length > 0, 'Every selected profile must resolve at least one concrete trait target: ' + row.fieldPath);
+      assert.ok(mapped.every((binding) => binding.property.startsWith('damage_templates.')),
+        'Trait rows must not leave a marker or weapon-template path: ' + row.fieldPath);
+    }
+  }
+  assert.equal(checkedRows, 66);
+});
+
 // Scenario: A W07 stat mapping locator uses an adjacent action field name with the mapped action as a prefix.
 // Purpose: Require exact action path segments and a supported action slot for template-bound weapon mappings.
 test('UnitT16_w07-stat-action-locator-rejects-adjacent-action-prefix', async () => {
@@ -593,7 +627,13 @@ test('UnitT22_w07-trait-ranges-and-output-units-remain-property-specific', async
     assert.equal(tableProperties.get('push_cost').unit, 'stamina-point');
     assert.equal(tableProperties.get('stamina_modifier').unit, 'stamina-point');
     assert.equal(tableProperties.get('diminishing_return_start').unit, 'dodge-count');
-    assert.deepEqual(tableProperties.get('sprint_forward_acceleration').unit, { status: 'unknown', reasonCode: 'NOT_VERIFIED' });
+    assert.equal(tableProperties.get('sprint_forward_acceleration').unit, 'normalized-speed-per-second');
+    const movementTable = weapon.payload.statTables.find((table) => table.tableKey === 'movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat');
+    assert.ok(movementTable);
+    assert.deepEqual(movementTable.properties.find((property) => property.property === 'modifier').unit, { status: 'not-applicable' });
+    const movementRange = movementTable.properties.find((property) => property.property === 'modifier.traitParameterRange');
+    assert.equal(movementRange.unit, 'ratio');
+    assert.deepEqual(movementRange.orderedValues.map((row) => [row.key, row.decimal]), [['min', '0.05'], ['max', '0.95']]);
 
     const mobility = weapon.payload.statBindings.find((group) => group.statKey === 'chainaxe_mobility_stat').bindings;
     assert.ok(mobility.some((binding) => binding.traitTemplateKey === 'dodge_trait_templates.default_dodge_stat'
@@ -638,7 +678,7 @@ test('UnitT23_w07-retains-all-twelve-additional-profile-vectors', async () => {
       fieldPath: point.sourceLocator.fieldPath
     })), expectedRows);
     if (group.tableKey.endsWith('.stagger_duration_modifier')) {
-      assert.deepEqual(table.unit, { status: 'unknown', reasonCode: 'NOT_VERIFIED' });
+      assert.equal(table.unit, 's');
     } else {
       assert.equal(table.unit, 'ratio');
     }
@@ -788,14 +828,14 @@ test('UnitT28_w07-derived-damage-profile-keeps-parent-table-numeric-dependency',
 });
 
 // Scenario: Every declared W07 review target is resolved against the real weapon candidate.
-// Purpose: Ensure all 662 targets can produce deterministic digests and in-memory synthetic receipts before any human review begins.
+// Purpose: Ensure all 797 targets can produce deterministic digests and in-memory synthetic receipts before any human review begins.
 test('UnitT29_w07-all-real-review-targets-resolve-and-create-synthetic-receipts', () => {
   const targets = w07Weapons.records.flatMap((record) => (record.reviewTargets ?? []).map((target) => ({
     recordId: record.recordId,
     gameReleaseId: record.gameReleaseId,
     ...target
   })));
-  assert.equal(targets.length, 662, 'The pinned W07 candidate must retain all 662 review targets');
+  assert.equal(targets.length, 797, 'The pinned W07 candidate must retain all 797 review targets');
 
   const receipts = targets.map((target) => createReviewReceipt(w07Weapons, target, {
     reviewer: { kind: 'human', id: 'synthetic-red-green-probe-only' },
@@ -886,4 +926,175 @@ test('UnitT30_w07-verified-public-code-commit-rebase-keeps-review-digest-stable'
   const fragmentChanged = structuredClone(fragmentBase);
   fragmentChanged.sourceRefs[sourceIndex].publicUrl = fragmentChanged.sourceRefs[sourceIndex].publicUrl.replace('#L120', '#L121');
   assert.notDeepEqual(computeReviewDigests(fragmentChanged, target), fragmentDigest, 'Permalink line fragments must remain reviewable');
+});
+
+
+
+// Scenario: W07 imports the exact static minion hit-schema closure and resolves each chainaxe action against input, fallback and damage-profile data.
+// Purpose: Reject the previous W07 shape with empty target refs and no static action/input resolution.
+test('UnitT31_w07-action-input-and-target-static-closure-is-complete', async () => {
+  const { buildW07WeaponBundle } = await import('../scripts/content/contract-w07-weapons.mjs');
+  const { candidate } = await buildW07WeaponBundle();
+  const weapons = candidate.records.filter((record) => record.kind === 'weapon' && record.payload.markId?.startsWith('chainaxe_p1_m'));
+  const targets = candidate.records.filter((record) => record.kind === 'target-profile' && record.payload.sourceStatic);
+  const attacks = candidate.records.filter((record) => record.kind === 'attack-profile' && record.payload.markId?.startsWith('chainaxe_p1_m'));
+
+  assert.equal(weapons.length, 2);
+  assert.equal(targets.length, 52, 'Every registry minion needs a typed static hit-schema record');
+  assert.equal(attacks.length, 16);
+  for (const weapon of weapons) {
+    const closure = weapon.payload.actionProfileResolution;
+    assert.ok(closure, 'Each chainaxe weapon needs actionProfileResolution');
+    assert.equal(closure.inputSetup.setupKey, 'melee_action_input_setup_mid');
+    assert.ok(closure.inputSetup.inputEntries.length > 0);
+    assert.ok(closure.inputSetup.hierarchyRaw.rawValue.length > 0);
+    assert.ok(closure.localActions.length > 0);
+    assert.ok(closure.fallbackActions.length > 0);
+    assert.equal(weapon.payload.actionContinuations.length, closure.staticClosure.literalContinuationEdgeCount);
+  }
+  for (const attack of attacks) {
+    assert.equal(attack.payload.targetProfileRefs.length, 52);
+    assert.equal(attack.payload.actionResolution.startInput, null, 'These 16 damage-bound action rows do not declare a direct start_input');
+    assert.ok(attack.payload.actionResolution.entryBindings.length > 0, 'Each damage-bound action must retain its exact incoming continuation rows');
+    assert.deepEqual(attack.payload.actionResolution.entryBindings, candidate.records
+      .find((record) => record.kind === 'weapon' && record.payload.markId === attack.payload.markId).payload.actionContinuations
+      .filter((edge) => edge.toAction === attack.payload.action));
+    assert.ok(attack.payload.actionResolution.branchBindings.length > 0);
+    assert.equal(attack.payload.actionResolution.targetApplicability, 'all-static-registry-minion-hit-schemas');
+  }
+  for (const target of targets) {
+    const sourceStatic = target.payload.sourceStatic;
+    assert.equal(sourceStatic.breedType, 'minion');
+    assert.ok(sourceStatic.registryLocator.path.endsWith('/breeds.lua'));
+    assert.ok(sourceStatic.rawHitZones.rawValue.length > 0);
+    assert.ok(sourceStatic.hitZones.length > 0);
+    assert.ok(sourceStatic.hitZones.every((zone) => Array.isArray(zone.actors) && typeof zone.actorsRawValue === 'string' && zone.rawSource.rawValue.length > 0 && zone.actorsLocator.path));
+    assert.ok(sourceStatic.baseArmorClassRef.recordId);
+  }
+});
+
+// Scenario: Four W07 source curves use normalized parameter endpoints while preserving raw source ordinals and endpoint tokens.
+// Purpose: Prevent raw array slots 1/2 from being misrepresented as player input values or as the item-stat range.
+test('UnitT32_w07-curves-preserve-normalized-axis-and-source-boundary-provenance', async () => {
+  const { buildW07WeaponBundle } = await import('../scripts/content/contract-w07-weapons.mjs');
+  const { candidate } = await buildW07WeaponBundle();
+  const curves = candidate.records.filter((record) => record.kind === 'stat-curve' && record.recordId.includes('chainaxe-p1'));
+  assert.equal(curves.length, 4);
+  for (const curve of curves) {
+    assert.equal(curve.payload.inputUnit, 'ratio');
+    assert.deepEqual(curve.payload.knots.map((knot) => knot.input), ['0', '1']);
+    assert.deepEqual(curve.payload.knots.map((knot) => knot.sourceOrdinal), [1, 2]);
+    assert.deepEqual(curve.payload.knots.map((knot) => knot.rawEndpoint), curve.payload.knots.map((knot) => knot.output));
+    assert.equal(curve.payload.interpolation.value, 'linear');
+    assert.equal(curve.payload.edgePolicy.value, 'extrapolate');
+    assert.ok(curve.payload.callsiteLocators.some((locator) => locator.path.endsWith('/math.lua')));
+  }
+  const boostTables = candidate.records.filter((record) => record.kind === 'damage-profile').flatMap((record) => record.payload.rawSourceDefinition.tables.filter((table) => table.tableKey === 'PowerLevelSettings.boost_curves.default'));
+  assert.ok(boostTables.length > 0);
+  for (const table of boostTables) {
+    assert.equal(table.unit, 'ratio');
+    assert.deepEqual(table.curveSemantics.knots.map((knot) => [knot.sourceOrdinal, knot.input]), [[1, '0'], [2, '0.25'], [3, '0.5'], [4, '0.75'], [5, '1']]);
+    assert.deepEqual(Object.fromEntries(['min', 'max', 'minInclusive', 'maxInclusive', 'unit'].map((key) => [key, table.curveSemantics.referenceAxis[key]])),
+      { min: '0', max: '1', minInclusive: true, maxInclusive: true, unit: 'ratio' });
+    assert.deepEqual(Object.fromEntries(['min', 'minInclusive', 'max', 'maxInclusive', 'unit', 'predicate', 'transform']
+      .map((key) => [key, table.curveSemantics.callerInput[key]])),
+    { min: '0', minInclusive: false, max: '1', maxInclusive: true, unit: 'ratio', predicate: 'finesse_boost_amount > 0', transform: 'math.min(finesse_boost_amount, 1)' });
+    assert.equal(table.curveSemantics.interpolation.value, 'piecewise-linear');
+    assert.deepEqual(table.curveSemantics.referenceAxis.sourceLocators.map(({ path, line, endLine }) => ({ path, line, endLine })), [
+      { path: 'scripts/utilities/attack/damage_calculation.lua', line: 208, endLine: 217 }
+    ]);
+    assert.deepEqual(table.curveSemantics.interpolation.sourceLocator, table.curveSemantics.referenceAxis.sourceLocators[0]);
+    assert.deepEqual(table.curveSemantics.callerInput.sourceLocators.map(({ path, line, endLine }) => ({ path, line, endLine })), [
+      { path: 'scripts/utilities/attack/damage_calculation.lua', line: 700, endLine: 704 }
+    ]);
+  }
+  const definitions = candidate.records.filter((record) => record.kind === 'stat-definition' && record.payload.curveRef?.recordId.includes('chainaxe-p1'));
+  assert.equal(definitions.length, 4);
+  for (const definition of definitions) {
+    assert.equal(definition.payload.panelInputRange.status, 'not-applicable');
+    assert.equal(definition.payload.obtainableInputRange.reasonCode, 'NOT_EXPOSED_BY_SOURCE');
+    assert.ok(definition.payload.rangeEvidence.checkedSources.length > 0);
+    assert.match(definition.payload.rangeEvidence.serverBoundary, /server/i);
+  }
+});
+
+
+
+// Scenario: Static action input assignment rows point to the preceding blank line rather than their exact source lines.
+// Purpose: Keep source locators attached to the real pinned assignment bytes for both chainaxe marks.
+test('UnitT33_w07-input-setup-assignment-locators-point-to-the-exact-lines', async () => {
+  const { buildW07WeaponBundle } = await import('../scripts/content/contract-w07-weapons.mjs');
+  const { candidate } = await buildW07WeaponBundle();
+  const expected = {
+    chainaxe_p1_m1: { action_inputs: 33, action_input_hierarchy: 34, 'action_inputs.start_attack.buffer_time': 35 },
+    chainaxe_p1_m2: { action_inputs: 31, action_input_hierarchy: 32 }
+  };
+  for (const weapon of candidate.records.filter((record) => record.kind === 'weapon' && expected[record.payload.markId])) {
+    const rows = weapon.payload.actionProfileResolution.inputSetup.setupSources.filter((row) => row.sourceLocator.path.endsWith('/' + weapon.payload.markId + '.lua'));
+    for (const [suffix, line] of Object.entries(expected[weapon.payload.markId])) {
+      const row = rows.find((item) => item.sourceLocator.fieldPath === 'weapon_template.' + suffix);
+      assert.ok(row, 'Missing input setup source ' + suffix);
+      assert.equal(row.sourceLocator.line, line);
+      assert.ok(row.rawValue.startsWith('weapon_template.' + suffix + ' ='));
+    }
+  }
+});
+
+// Scenario: Stat-table bindings with a stat-data vector but no W01 display claim retain unresolved marker paths.
+// Purpose: Resolve each pinned action/profile or override/template path into its concrete damage-profile property.
+test('UnitT34_w07-stat-table-semantics-covers-every-binding-property', async () => {
+  const { buildW07WeaponBundle } = await import('../scripts/content/contract-w07-weapons.mjs');
+  const { candidate } = await buildW07WeaponBundle();
+  const weapons = candidate.records.filter((record) => record.kind === 'weapon' && record.payload.markId?.startsWith('chainaxe_p1_m'));
+  for (const weapon of weapons) {
+    for (const stat of weapon.payload.statBindings) {
+      const semantics = weapon.payload.statTableSemantics.find((group) => group.statKey === stat.statKey);
+      assert.ok(semantics, 'Missing semantic group for ' + stat.statKey);
+      const uniqueProperties = new Set(stat.bindings.map((binding) => binding.property));
+      for (const property of uniqueProperties) assert.equal(semantics.bindings.filter((binding) => binding.property === property).length, 1, 'Property must have exactly one semantic row: ' + stat.statKey + ':' + property);
+      assert.ok(![...uniqueProperties].some((property) => /^damage\.action_/.test(property)), 'Raw trait-vector marker must resolve to a profile property');
+    }
+    const dps = weapon.payload.statBindings.find((group) => group.statKey === 'chainaxe_dps_stat');
+    const ap = weapon.payload.statBindings.find((group) => group.statKey === 'chainaxe_armor_pierce_stat');
+    const saw = weapon.payload.statBindings.find((group) => group.statKey === 'chainaxe_sawing_stat');
+    const normalPushProfile = weapon.payload.markId.endsWith('_m1') ? 'light_chainaxe_pushfollowup_tank' : 'chainaxe_light_stab';
+    assert.ok(dps.bindings.some((binding) => binding.profileKey === normalPushProfile
+      && binding.property.includes('.targets[1].power_distribution.attack')));
+    assert.ok(ap.bindings.some((binding) => binding.profileKey === normalPushProfile
+      && binding.property.includes('.targets[1].armor_damage_modifier.attack[armor_types.armored]')));
+    assert.ok(saw.bindings.some((binding) => binding.profileKey === 'light_chainaxe_sticky'
+      && binding.property === 'damage_templates.default_light_chainaxe.targets[1].power_distribution.attack'));
+  }
+});
+
+// Scenario: The generated W07 manifest distinguishes imported static enemy/action coverage from excluded execution and checked server-attainability limits.
+// Purpose: Prevent a stale NOT_IMPORTED statement from hiding completed static facts or making client preview imply player-obtainable ranges.
+test('UnitT36_w07-manifest-separates-static-coverage-from-execution-and-attainability', async () => {
+  const { buildW07WeaponBundle } = await import('../scripts/content/contract-w07-weapons.mjs');
+  const { manifest } = await buildW07WeaponBundle();
+  assert.deepEqual(manifest.sourceInput.staticCoverage, {
+    breedRegistryEntries: 59,
+    minionBreeds: 52,
+    excludedNonMinionBreeds: 7,
+    hitZones: 624,
+    zoneActors: 1232,
+    armorEnumIdentities: 8,
+    minionUsedArmorIdentities: 7,
+    havocArmorOverrideEntries: 10,
+    targetProfiles: 52,
+    staticModifierRules: 3,
+    selectedAttackProfiles: 16
+  });
+  assert.equal(manifest.executionBoundaries.length, 3);
+  assert.equal(manifest.executionBoundaries.some((item) => /enemy|hit.?zone|weakspot/i.test(item.field)), false);
+  const attainable = manifest.verificationLimits.find((item) => item.field === 'serverGeneratedOrPlayerObtainableStatRanges');
+  assert.equal(attainable.status, 'unknown');
+  assert.equal(attainable.reasonCode, 'NOT_EXPOSED_BY_SOURCE');
+  assert.ok(attainable.checkedSources.includes('scripts/managers/data_service/services/crafting_service.lua'));
+  assert.ok(attainable.checkedSources.includes('scripts/managers/data_service/services/store_service.lua'));
+  const markdown = await readFile(new URL('../docs/contracts/w07/source-import.md', import.meta.url), 'utf8');
+  assert.match(markdown, /52 minion hit schemas/);
+  assert.match(markdown, /Server-generated and player-obtainable stat ranges remain unknown/);
+  assert.match(markdown, /Static enemy hit-zone, armor, weakspot, multiplier, and .*relationships are imported/);
+  assert.doesNotMatch(markdown, /Enemy-specific hit-zone.*NOT_IMPORTED/u);
 });
