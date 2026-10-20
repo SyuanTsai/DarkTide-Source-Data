@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "2.0.0",
+  "fixtureOnly": false,
+  "gameReleaseId": "darktide:1.13.2",
+  "gameVersion": "1.13.2",
+  "sourceRefs": [
+    {
+      "sourceId": "public-code:psyker-talents-ba6c148",
+      "fixtureOnly": false,
+      "safeSummary": "Fixed public upstream commit connects loc_talent_psyker_brain_burst_improved_description to the Psyker brain-burst-improved buff template; no runtime result is asserted.",
+      "repository": "https://github.com/Aussiemon/Darktide-Source-Code",
+      "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e",
+      "path": "scripts/settings/ability/archetype_talents/talents/psyker_talents.lua",
+      "snapshot": {
+        "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e"
+      }
+    },
+    {
+      "sourceId": "public-code:psyker-buff-templates-ba6c148",
+      "fixtureOnly": false,
+      "safeSummary": "Fixed public upstream commit blob a4c87abf254c520ad57bd09df718d6ac458dd7d5 assigns decimal literal 1.5 to stat_buffs.smite_damage_multiplier in the psyker_brain_burst_improved template.",
+      "repository": "https://github.com/Aussiemon/Darktide-Source-Code",
+      "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e",
+      "path": "scripts/settings/buff/archetype_buff_templates/psyker_buff_templates.lua",
+      "snapshot": {
+        "commit": "ba6c148f3c2768ca3ce20d846a12e56e2f433f3e"
+      }
+    }
+  ],
+  "records": [
+    {
+      "recordId": "darktide:term:psyker:smite-damage-multiplier-parameter",
+      "owner": "source",
+      "kind": "term",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "termKey": "smite_damage_multiplier",
+        "contextKey": "psyker_brain_burst_improved.stat_buffs",
+        "technicalDefinitionEn": "The stat_buffs parameter key used by the Psyker brain-burst-improved buff template. This is a code-level label and does not define downstream damage resolution.",
+        "claimRefs": [
+          "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier"
+        ]
+      },
+      "sourceRefs": [
+        "public-code:psyker-buff-templates-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:skill:psyker:brain-burst-improved",
+      "owner": "source",
+      "kind": "skill",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "termRef": "darktide:term:psyker:smite-damage-multiplier-parameter",
+        "claimRefs": [
+          "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier"
+        ]
+      },
+      "sourceRefs": [
+        "public-code:psyker-talents-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier",
+      "owner": "source",
+      "kind": "claim",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "targetRef": "darktide:skill:psyker:brain-burst-improved",
+        "property": "template.stat_buffs.smite_damage_multiplier",
+        "value": {
+          "status": "known",
+          "decimal": "1.5",
+          "unit": "ratio"
+        },
+        "context": {},
+        "basis": "code-observed",
+        "evidenceRefs": [
+          "darktide:evidence:psyker:brain-burst-improved-smite-damage-multiplier-code"
+        ]
+      },
+      "sourceRefs": [
+        "public-code:psyker-buff-templates-ba6c148"
+      ],
+      "reviewState": "pending"
+    },
+    {
+      "recordId": "darktide:evidence:psyker:brain-burst-improved-smite-damage-multiplier-code",
+      "owner": "source",
+      "kind": "evidence",
+      "gameReleaseId": "darktide:1.13.2",
+      "payload": {
+        "sourceRef": "public-code:psyker-buff-templates-ba6c148",
+        "safeSummary": "At the fixed upstream commit, the psyker_brain_burst_improved template assigns the code literal 1.5 to stat_buffs[stat_buffs.smite_damage_multiplier]. This evidence supports only the parameter value; downstream damage outcome and runtime application are unverified."
+      },
+      "sourceRefs": [
+        "public-code:psyker-buff-templates-ba6c148"
+      ],
+      "reviewState": "pending"
+    }
+  ],
+  "gameChanges": [],
+  "reviewReceipts": []
+}

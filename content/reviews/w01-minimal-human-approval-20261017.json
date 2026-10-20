@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "1.0.0",
+  "kind": "source-human-approval-audit",
+  "workPackage": {
+    "id": "W01",
+    "requirements": [
+      "R03",
+      "R06",
+      "R11"
+    ],
+    "paths": [
+      "P02",
+      "P03"
+    ]
+  },
+  "sourceInput": {
+    "repository": "https://github.com/SyuanTsai/DarkTide-Source-Data",
+    "commit": "285a06c8939ac505ac48e4d0e93b939a2b959211",
+    "sourceRevision": "3af04f0212a88e6b29f91f397178dd6d22c0c27d40566088eca8f8f06d4845c1",
+    "candidatePath": "content/authoring/w01-real-representative-candidate.json",
+    "candidateSha256": "b12a582fbf3440e23334729a847435c12fcaa16fd3ce7189411e9bc18f1915e0"
+  },
+  "approval": {
+    "decision": "核准最小內容與 W01 驗收，完成後停在 W01",
+    "reviewer": "human-user via Codex session 01a14842-ad81-75d0-bd22-40d29f63b61a explicit approval",
+    "recordedAt": "2026-10-17T08:23:07Z",
+    "provenance": {
+      "issueKey": "SYP-333",
+      "commentId": "11851",
+      "commentUrl": "https://syuantsai.atlassian.net/browse/SYP-333?focusedCommentId=11851",
+      "localHumanBindingCaptureSha256": "751c0dca73df0f1a0963f1b44e423fcd2421f7fd94e41ae003114535133fbbe1",
+      "classification": "human approval provenance; not a GitHub or Atlassian pull-request review"
+    },
+    "scope": {
+      "approvedSourceTargetIds": [
+        "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier",
+        "darktide:claim:psyker:brain-burst-improved-description-display-percent"
+      ],
+      "approvedMeaning": "The Brain Burst Improved multiplier and its corresponding 50 percent display value, limited to the cited ability; this does not generalize the bonus to all Psyker attacks.",
+      "webFragment": {
+        "repository": "https://github.com/SyuanTsai/DarkTide-Web",
+        "commit": "d0b39c44df0905783d24e1dd1aa5ab0306a18d55",
+        "contentVersion": "0.0.16",
+        "dataRevision": "b225a0f02a5ca7e87a407603615e842ade19d230d8448f1e2f01a7dae2536b9a",
+        "manifestSha256": "fb2921e1411658275a3ff110f7804d3ee295a24548d2c8e4289b8bafdfde54a0",
+        "sourceLock": {
+          "commit": "285a06c8939ac505ac48e4d0e93b939a2b959211",
+          "sourceRevision": "3af04f0212a88e6b29f91f397178dd6d22c0c27d40566088eca8f8f06d4845c1"
+        },
+        "recordId": "web:presentation:psyker-brain-burst-improved",
+        "itemId": "psyker-description-damage-parameter",
+        "authoringPointer": "/records/0/payload/detailSections/effects/1",
+        "compiledOutputPath": "data/b225a0f02a5ca7e87a407603615e842ade19d230d8448f1e2f01a7dae2536b9a/skills.json",
+        "compiledOutputSha256": "92f6200cb01c8a57a8e37a846f142ca80b25df6d58e1fa9aa4552f2ce645ecb8",
+        "claimRefs": [
+          "darktide:claim:psyker:brain-burst-improved-description-display-percent",
+          "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier"
+        ],
+        "rawTextUtf8Sha256": "a1b96e19d326e7fccc51ded47e825c911ef6cbb5ca8692f2687e3e6003cbf4ad",
+        "canonicalItemSha256": "bec968c8a89a3184c9fa4529ec3e37c3fa1f74e41a73fd3420faaa721eb4e1b7",
+        "renderedTextUtf8Sha256": "a1b96e19d326e7fccc51ded47e825c911ef6cbb5ca8692f2687e3e6003cbf4ad",
+        "rawEqualsRendered": true
+      }
+    }
+  },
+  "reviewReceipts": [
+    {
+      "targetId": "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier",
+      "targetDigest": "120d9caf0fecfcdc36b876bf2d9403e0a70634413c57d02c1d24b611eeec32c2",
+      "dependenciesDigest": "038aba0cfa658b15d27160782ec7d943d103ef72babbb516e6f56e4c45d8ebca",
+      "reviewer": "human-user via Codex session 01a14842-ad81-75d0-bd22-40d29f63b61a explicit approval",
+      "reviewedAt": "2026-10-17T08:23:07Z",
+      "dimensions": [
+        "content-accuracy",
+        "scope"
+      ]
+    },
+    {
+      "targetId": "darktide:claim:psyker:brain-burst-improved-description-display-percent",
+      "targetDigest": "dbf329662ede810fa0f81de3c3a1bb093cfc11840de4f4d7e0ce8850a3293a04",
+      "dependenciesDigest": "6abb38a7bb8544421fd199ff002cdadbc24d0ae531523ac3f3a34f2fcd67295f",
+      "reviewer": "human-user via Codex session 01a14842-ad81-75d0-bd22-40d29f63b61a explicit approval",
+      "reviewedAt": "2026-10-17T08:23:07Z",
+      "dimensions": [
+        "content-accuracy",
+        "scope"
+      ]
+    }
+  ],
+  "contractSmoke": {
+    "method": "Existing scripts/content/compile.mjs compileSource() invoked in memory with the two review receipts; no candidate, fixture, build, or CI input was modified.",
+    "baseline": {
+      "totalRecords": 125,
+      "pending": 125,
+      "approved": 0,
+      "publicationEligible": false
+    },
+    "withReceipts": {
+      "totalRecords": 125,
+      "pending": 123,
+      "approved": 2,
+      "approvedIds": [
+        "darktide:claim:psyker:brain-burst-improved-description-display-percent",
+        "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier"
+      ],
+      "publicationEligible": false
+    },
+    "targetMutation": {
+      "changedTarget": "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier",
+      "resultingStates": {
+        "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier": "stale",
+        "darktide:claim:psyker:brain-burst-improved-description-display-percent": "stale"
+      }
+    },
+    "dependencyMutation": {
+      "dependencyRecordId": "darktide:evidence:psyker:brain-burst-improved-smite-damage-multiplier-code",
+      "dependentTarget": "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier",
+      "resultingStates": {
+        "darktide:claim:psyker:brain-burst-improved-smite-damage-multiplier": "stale",
+        "darktide:claim:psyker:brain-burst-improved-description-display-percent": "stale"
+      }
+    },
+    "privateSafeReceiptSha256": "986cef854a8c03d966e5eb13ee26334679f69abf7b0f6b9dcb8e3014851102c2"
+  },
+  "limits": [
+    "Only the two listed Source claims and the exact bound Web fragment are in scope.",
+    "The Web fragment remains owned by DarkTide-Web; this audit stores only its exact pointer and hashes, not its sentence text.",
+    "The two claims share a skill dependency closure, so a target or shared dependency edit makes both receipts stale under the existing compiler contract.",
+    "The other 123 Source records remain pending and publicationEligible remains false; this does not approve the whole presentation or authorize publication, W02, or any other pending content.",
+    "The receipts are recorded here only; the candidate authoring file remains unchanged."
+  ],
+  "applicationStatus": {
+    "sidecarAutoLoadedByCompiler": false,
+    "candidateReviewReceiptsCount": 0,
+    "unchangedCandidateBaseline": {
+      "sourceRevision": "3af04f0212a88e6b29f91f397178dd6d22c0c27d40566088eca8f8f06d4845c1",
+      "totalRecords": 125,
+      "pending": 125,
+      "approved": 0,
+      "publicationEligible": false
+    },
+    "receiptContractSmoke": "The 2-approved/123-pending result was produced only by applying these receipts to an in-memory copy for compileSource() validation; it is not a rewritten candidate or generated CLI artifact.",
+    "reviewedDataInputCommit": "285a06c8939ac505ac48e4d0e93b939a2b959211",
+    "futureAuditCommitNote": "A later repository PR HEAD that carries this sidecar records the approval audit; it must not be confused with the frozen Source data-input commit above or claimed to change the bound SourceRevision."
+  }
+}

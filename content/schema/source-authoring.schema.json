@@ -1,0 +1,1355 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/SyuanTsai/DarkTide-Source-Data/content/schema/source-authoring.schema.json",
+  "title": "DarkTide Source Data authoring contract",
+  "description": "W01 fixture-only public POC subset of v17-A. It is not the complete formal schema or a privacy scanner.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "gameReleaseId",
+    "gameVersion",
+    "sourceRefs",
+    "records"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "2.0.0"
+    },
+    "fixtureOnly": {
+      "type": "boolean"
+    },
+    "gameReleaseId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "gameVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceRefs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sourceRef"
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/record"
+      }
+    },
+    "gameChanges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/gameChange"
+      }
+    },
+    "reviewReceipts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/reviewReceipt"
+      }
+    }
+  },
+  "$defs": {
+    "sourceRef": {
+      "type": "object",
+      "required": [
+        "sourceId"
+      ],
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fixtureOnly": {
+          "type": "boolean"
+        },
+        "safeSummary": {
+          "type": "string"
+        },
+        "repository": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gameBuild": {
+          "type": "string"
+        },
+        "snapshot": {
+          "type": "object",
+          "properties": {
+            "build": {
+              "type": "string"
+            },
+            "commit": {
+              "type": "string"
+            },
+            "manifestSha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "contentSha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "decimal": {
+      "type": "string",
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+    },
+    "unit": {
+      "enum": [
+        "ratio",
+        "percent",
+        "s",
+        "m",
+        "damage",
+        "impact",
+        "point",
+        "rating",
+        "attack-power-point",
+        "stamina-point",
+        "stamina-point-per-second",
+        "dodge-count"
+      ]
+    },
+    "typedValue": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "decimal",
+            "unit"
+          ],
+          "properties": {
+            "status": {
+              "const": "known"
+            },
+            "decimal": {
+              "$ref": "#/$defs/decimal"
+            },
+            "unit": {
+              "$ref": "#/$defs/unit"
+            },
+            "step": {
+              "$ref": "#/$defs/decimal"
+            },
+            "inclusive": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "min",
+            "max",
+            "unit"
+          ],
+          "properties": {
+            "status": {
+              "const": "known"
+            },
+            "min": {
+              "$ref": "#/$defs/decimal"
+            },
+            "max": {
+              "$ref": "#/$defs/decimal"
+            },
+            "unit": {
+              "$ref": "#/$defs/unit"
+            },
+            "step": {
+              "$ref": "#/$defs/decimal"
+            },
+            "inclusive": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "reasonCode"
+          ],
+          "properties": {
+            "status": {
+              "const": "unknown"
+            },
+            "reasonCode": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "const": "not-applicable"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "refList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "displayedAttackSegment": {
+      "type": "object",
+      "required": [
+        "index",
+        "attackType",
+        "targetRole",
+        "roleProfileKey"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "attackType": {
+          "enum": [
+            "linesman",
+            "ninja_fencer",
+            "smiter",
+            "tank"
+          ]
+        },
+        "targetRole": {
+          "enum": [
+            "single-target",
+            "multi-target-cleave"
+          ]
+        },
+        "roleProfileKey": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "displayedAttack": {
+      "type": "object",
+      "required": [
+        "key",
+        "mode",
+        "displayedType",
+        "scope",
+        "segments",
+        "sourceRefs",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "key": {
+          "enum": [
+            "primary",
+            "secondary"
+          ]
+        },
+        "mode": {
+          "enum": [
+            "light",
+            "heavy"
+          ]
+        },
+        "displayedType": {
+          "enum": [
+            "linesman",
+            "ninja_fencer",
+            "smiter",
+            "tank"
+          ]
+        },
+        "scope": {
+          "const": "display-summary"
+        },
+        "segments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/displayedAttackSegment"
+          }
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/refList",
+          "minItems": 1
+        },
+        "evidenceRefs": {
+          "$ref": "#/$defs/refList",
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "weaponRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "attackMode": {
+          "enum": [
+            "light",
+            "heavy"
+          ]
+        },
+        "charge": {
+          "$ref": "#/$defs/typedValue"
+        },
+        "armorClass": {
+          "enum": [
+            "armored",
+            "berserker",
+            "disgustingly_resilient",
+            "resistant",
+            "super_armor",
+            "unarmored"
+          ]
+        },
+        "targetId": {
+          "type": "string"
+        },
+        "hitZone": {
+          "type": "string"
+        },
+        "critical": {
+          "type": "boolean"
+        },
+        "weakspot": {
+          "type": "boolean"
+        },
+        "distance": {
+          "$ref": "#/$defs/typedValue"
+        },
+        "weaponStat": {
+          "type": "string",
+          "minLength": 1
+        },
+        "comparisonStat": {
+          "type": "object",
+          "required": [
+            "status",
+            "decimal",
+            "unit"
+          ],
+          "properties": {
+            "status": {
+              "const": "known"
+            },
+            "decimal": {
+              "$ref": "#/$defs/decimal"
+            },
+            "unit": {
+              "const": "percent"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "dependentRequired": {
+        "weaponStat": [
+          "comparisonStat"
+        ],
+        "comparisonStat": [
+          "weaponStat"
+        ]
+      },
+      "additionalProperties": false
+    },
+    "dataCoverage": {
+      "type": "object",
+      "required": [
+        "status",
+        "missing"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "complete",
+            "partial",
+            "unknown"
+          ]
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "field",
+              "reasonCode"
+            ],
+            "properties": {
+              "field": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reasonCode": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceRef": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "reasonCode"
+          ],
+          "properties": {
+            "status": {
+              "const": "unknown"
+            },
+            "reasonCode": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "value"
+          ],
+          "properties": {
+            "status": {
+              "const": "known"
+            },
+            "value": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "record": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "recordId",
+            "owner",
+            "kind",
+            "gameReleaseId",
+            "payload",
+            "sourceRefs",
+            "reviewState"
+          ],
+          "properties": {
+            "recordId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner": {
+              "const": "source"
+            },
+            "kind": {
+              "const": "skill"
+            },
+            "gameReleaseId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "payload": {
+              "$ref": "#/$defs/skillPayload"
+            },
+            "sourceRefs": {
+              "$ref": "#/$defs/refList"
+            },
+            "reviewState": {
+              "enum": [
+                "draft",
+                "pending",
+                "approved",
+                "rejected",
+                "stale"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "recordId",
+            "owner",
+            "kind",
+            "gameReleaseId",
+            "payload",
+            "sourceRefs",
+            "reviewState"
+          ],
+          "properties": {
+            "recordId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner": {
+              "const": "source"
+            },
+            "kind": {
+              "const": "claim"
+            },
+            "gameReleaseId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "payload": {
+              "$ref": "#/$defs/claimPayload"
+            },
+            "sourceRefs": {
+              "$ref": "#/$defs/refList"
+            },
+            "reviewState": {
+              "enum": [
+                "draft",
+                "pending",
+                "approved",
+                "rejected",
+                "stale"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "recordId",
+            "owner",
+            "kind",
+            "gameReleaseId",
+            "payload",
+            "sourceRefs",
+            "reviewState"
+          ],
+          "properties": {
+            "recordId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner": {
+              "const": "source"
+            },
+            "kind": {
+              "const": "evidence"
+            },
+            "gameReleaseId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "payload": {
+              "$ref": "#/$defs/evidencePayload"
+            },
+            "sourceRefs": {
+              "$ref": "#/$defs/refList"
+            },
+            "reviewState": {
+              "enum": [
+                "draft",
+                "pending",
+                "approved",
+                "rejected",
+                "stale"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "recordId",
+            "owner",
+            "kind",
+            "gameReleaseId",
+            "payload",
+            "sourceRefs",
+            "reviewState"
+          ],
+          "properties": {
+            "recordId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner": {
+              "const": "source"
+            },
+            "kind": {
+              "const": "blessing"
+            },
+            "gameReleaseId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "payload": {
+              "$ref": "#/$defs/blessingPayload"
+            },
+            "sourceRefs": {
+              "$ref": "#/$defs/refList"
+            },
+            "reviewState": {
+              "enum": [
+                "draft",
+                "pending",
+                "approved",
+                "rejected",
+                "stale"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "recordId",
+            "owner",
+            "kind",
+            "gameReleaseId",
+            "payload",
+            "sourceRefs",
+            "reviewState"
+          ],
+          "properties": {
+            "recordId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner": {
+              "const": "source"
+            },
+            "kind": {
+              "const": "blessing-variant"
+            },
+            "gameReleaseId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "payload": {
+              "$ref": "#/$defs/blessingVariantPayload"
+            },
+            "sourceRefs": {
+              "$ref": "#/$defs/refList"
+            },
+            "reviewState": {
+              "enum": [
+                "draft",
+                "pending",
+                "approved",
+                "rejected",
+                "stale"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "recordId",
+            "owner",
+            "kind",
+            "gameReleaseId",
+            "payload",
+            "sourceRefs",
+            "reviewState"
+          ],
+          "properties": {
+            "recordId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner": {
+              "const": "source"
+            },
+            "kind": {
+              "const": "weapon"
+            },
+            "gameReleaseId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "payload": {
+              "$ref": "#/$defs/weaponPayload"
+            },
+            "sourceRefs": {
+              "$ref": "#/$defs/refList"
+            },
+            "reviewState": {
+              "enum": [
+                "draft",
+                "pending",
+                "approved",
+                "rejected",
+                "stale"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "recordId",
+            "owner",
+            "kind",
+            "gameReleaseId",
+            "payload",
+            "sourceRefs",
+            "reviewState"
+          ],
+          "properties": {
+            "recordId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner": {
+              "const": "source"
+            },
+            "kind": {
+              "const": "stat-definition"
+            },
+            "gameReleaseId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "payload": {
+              "$ref": "#/$defs/statDefinitionPayload"
+            },
+            "sourceRefs": {
+              "$ref": "#/$defs/refList"
+            },
+            "reviewState": {
+              "enum": [
+                "draft",
+                "pending",
+                "approved",
+                "rejected",
+                "stale"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "recordId",
+            "owner",
+            "kind",
+            "gameReleaseId",
+            "payload",
+            "sourceRefs",
+            "reviewState"
+          ],
+          "properties": {
+            "recordId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner": {
+              "const": "source"
+            },
+            "kind": {
+              "const": "stat-curve"
+            },
+            "gameReleaseId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "payload": {
+              "$ref": "#/$defs/statCurvePayload"
+            },
+            "sourceRefs": {
+              "$ref": "#/$defs/refList"
+            },
+            "reviewState": {
+              "enum": [
+                "draft",
+                "pending",
+                "approved",
+                "rejected",
+                "stale"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "recordId",
+            "owner",
+            "kind",
+            "gameReleaseId",
+            "payload",
+            "sourceRefs",
+            "reviewState"
+          ],
+          "properties": {
+            "recordId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner": {
+              "const": "source"
+            },
+            "kind": {
+              "const": "term"
+            },
+            "gameReleaseId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "payload": {
+              "$ref": "#/$defs/termPayload"
+            },
+            "sourceRefs": {
+              "$ref": "#/$defs/refList"
+            },
+            "reviewState": {
+              "enum": [
+                "draft",
+                "pending",
+                "approved",
+                "rejected",
+                "stale"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "gameChange": {
+      "type": "object",
+      "required": [
+        "changeId",
+        "owner",
+        "gameReleaseId",
+        "entityKind",
+        "operation",
+        "evidenceRefs",
+        "verificationMethod",
+        "reviewState"
+      ],
+      "properties": {
+        "changeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "const": "source"
+        },
+        "gameReleaseId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entityKind": {
+          "enum": [
+            "skill",
+            "claim",
+            "blessing",
+            "blessing-variant",
+            "weapon",
+            "stat-definition",
+            "stat-curve",
+            "term"
+          ]
+        },
+        "recordId": {
+          "type": "string"
+        },
+        "operation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "comparison": {
+          "type": "object",
+          "properties": {
+            "fromGameVersion": {
+              "type": "string"
+            },
+            "toGameVersion": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "changedFields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "field"
+            ],
+            "properties": {
+              "field": {
+                "type": "string",
+                "minLength": 1
+              },
+              "before": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/typedValue"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "after": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/typedValue"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "evidenceRefs": {
+          "$ref": "#/$defs/refList"
+        },
+        "verificationMethod": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewState": {
+          "enum": [
+            "draft",
+            "pending",
+            "approved",
+            "rejected",
+            "stale"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "reviewReceipt": {
+      "type": "object",
+      "required": [
+        "targetId",
+        "targetDigest",
+        "dependenciesDigest",
+        "reviewer",
+        "reviewedAt",
+        "dimensions"
+      ],
+      "properties": {
+        "targetId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "dependenciesDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "reviewer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewedAt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dimensions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "skillPayload": {
+      "type": "object",
+      "properties": {
+        "termRef": {
+          "type": "string"
+        },
+        "claimRefs": {
+          "$ref": "#/$defs/refList"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "termRef"
+          ]
+        },
+        {
+          "required": [
+            "claimRefs"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "claimPayload": {
+      "type": "object",
+      "required": [
+        "targetRef",
+        "property",
+        "value",
+        "context",
+        "basis",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "targetRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "property": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "$ref": "#/$defs/typedValue"
+        },
+        "displayValue": {
+          "$ref": "#/$defs/typedValue"
+        },
+        "displayFormat": {
+          "enum": [
+            "fixed-2",
+            "fixed-2-signed",
+            "percentage-fixed-2",
+            "multiplier-percent-fixed-2-signed",
+            "floor-fixed-2"
+          ]
+        },
+        "context": {
+          "$ref": "#/$defs/context"
+        },
+        "basis": {
+          "enum": [
+            "code-observed",
+            "code-derived",
+            "game-tested",
+            "unknown"
+          ]
+        },
+        "evidenceRefs": {
+          "$ref": "#/$defs/refList"
+        }
+      },
+      "dependentRequired": {
+        "displayValue": [
+          "displayFormat"
+        ],
+        "displayFormat": [
+          "displayValue"
+        ]
+      },
+      "additionalProperties": false
+    },
+    "evidencePayload": {
+      "type": "object",
+      "required": [
+        "sourceRef",
+        "safeSummary"
+      ],
+      "properties": {
+        "sourceRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "safeSummary": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "blessingPayload": {
+      "type": "object",
+      "required": [
+        "variantRefs"
+      ],
+      "properties": {
+        "variantRefs": {
+          "$ref": "#/$defs/refList"
+        }
+      },
+      "additionalProperties": false
+    },
+    "blessingVariantPayload": {
+      "type": "object",
+      "required": [
+        "blessingRef",
+        "weaponRefs",
+        "definedTiers",
+        "obtainableTiers",
+        "tierValues"
+      ],
+      "properties": {
+        "blessingRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weaponRefs": {
+          "$ref": "#/$defs/refList"
+        },
+        "definedTiers": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "obtainableTiers": {
+          "$ref": "#/$defs/typedValue"
+        },
+        "tierValues": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "tier",
+              "value"
+            ],
+            "properties": {
+              "tier": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "value": {
+                "$ref": "#/$defs/typedValue"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "weaponPayload": {
+      "type": "object",
+      "required": [
+        "familyId",
+        "markId",
+        "templateKey",
+        "statRefs",
+        "attackProfileRefs",
+        "dataCoverage"
+      ],
+      "properties": {
+        "familyId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "markId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "templateKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "statRefs": {
+          "$ref": "#/$defs/refList"
+        },
+        "claimRefs": {
+          "$ref": "#/$defs/refList"
+        },
+        "attackProfileRefs": {
+          "$ref": "#/$defs/refList"
+        },
+        "displayedAttacks": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/displayedAttack"
+          }
+        },
+        "dataCoverage": {
+          "$ref": "#/$defs/dataCoverage"
+        },
+        "armorRefs": {
+          "$ref": "#/$defs/refList"
+        },
+        "theoreticalInputRange": {
+          "$ref": "#/$defs/typedValue"
+        }
+      },
+      "additionalProperties": false
+    },
+    "statDefinitionPayload": {
+      "type": "object",
+      "required": [
+        "quantity",
+        "inputUnit",
+        "outputUnit",
+        "theoreticalInputRange",
+        "obtainableInputRange",
+        "curveRef"
+      ],
+      "properties": {
+        "quantity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputUnit": {
+          "$ref": "#/$defs/unit"
+        },
+        "outputUnit": {
+          "$ref": "#/$defs/unit"
+        },
+        "theoreticalInputRange": {
+          "$ref": "#/$defs/typedValue"
+        },
+        "obtainableInputRange": {
+          "$ref": "#/$defs/typedValue"
+        },
+        "curveRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claimRefs": {
+          "$ref": "#/$defs/refList"
+        }
+      },
+      "additionalProperties": false
+    },
+    "statCurvePayload": {
+      "type": "object",
+      "required": [
+        "inputUnit",
+        "outputUnit",
+        "knots",
+        "interpolation",
+        "edgePolicy"
+      ],
+      "properties": {
+        "inputUnit": {
+          "$ref": "#/$defs/unit"
+        },
+        "outputUnit": {
+          "$ref": "#/$defs/unit"
+        },
+        "knots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "x",
+              "y"
+            ],
+            "properties": {
+              "x": {
+                "$ref": "#/$defs/decimal"
+              },
+              "y": {
+                "$ref": "#/$defs/decimal"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "interpolation": {
+          "$ref": "#/$defs/policy"
+        },
+        "edgePolicy": {
+          "$ref": "#/$defs/policy"
+        }
+      },
+      "additionalProperties": false
+    },
+    "termPayload": {
+      "type": "object",
+      "required": [
+        "termKey",
+        "contextKey",
+        "technicalDefinitionEn",
+        "claimRefs"
+      ],
+      "properties": {
+        "termKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contextKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "technicalDefinitionEn": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claimRefs": {
+          "$ref": "#/$defs/refList"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
