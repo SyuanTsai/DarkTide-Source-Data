@@ -481,7 +481,10 @@ async function assertSourceRepository(sourceRoot, expectedCommit) {
   const topLevel = await realpath(gitText(absoluteRoot, ['rev-parse', '--show-toplevel']));
   if (topLevel !== absoluteRoot) throw new Error('sourceRoot must be the Source Git repository root');
   const origin = gitText(absoluteRoot, ['remote', 'get-url', 'origin']).replace(/\/$/u, '');
-  if (origin !== W09_SOURCE_ORIGIN) throw new Error(`Source origin must be the fixed official repository ${W09_SOURCE_ORIGIN}`);
+  const officialOriginWithoutGitSuffix = W09_SOURCE_ORIGIN.slice(0, -'.git'.length);
+  if (origin !== W09_SOURCE_ORIGIN && origin !== officialOriginWithoutGitSuffix) {
+    throw new Error(`Source origin must be the fixed official repository ${W09_SOURCE_ORIGIN}`);
+  }
   const currentCommit = gitText(absoluteRoot, ['rev-parse', 'HEAD']);
   if (!COMMIT_RE.test(currentCommit)) throw new Error('Source HEAD is not a full Git commit SHA');
   if (gitText(absoluteRoot, ['status', '--porcelain', '--untracked-files=no']).length > 0) {

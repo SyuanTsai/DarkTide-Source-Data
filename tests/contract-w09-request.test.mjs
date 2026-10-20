@@ -302,7 +302,7 @@ test('UnitT10_workflow_is_readonly_and_formal_dispatch_is_explicitly_gated', asy
 
 // Scenario: An existing W09 request is retried from a later metadata-only Source commit.
 // Purpose: Reuse the original commit/input provenance and resolve the same immutable public archive rather than creating a conflicting request.
-test('InterT02_metadata_only_retry_reuses_original_request_and_archive', async () => {
+test('InterT02_metadata_only_retry_reuses_original_request_and_archive_from_official_no_git_origin', async () => {
   const prepare = requireExport('prepareW09SourceHandoff');
   const createArchive = requireExport('createW09SourceArchive');
   const verifyPublishedArchive = requireExport('verifyPublishedW09SourceArchive');
@@ -313,16 +313,22 @@ test('InterT02_metadata_only_retry_reuses_original_request_and_archive', async (
   try {
     const clone = spawnSync('git', ['clone', '--no-hardlinks', sourceRoot, cloneRoot], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
     assert.equal(clone.status, 0, clone.stderr);
-    const wrongOrigin = spawnSync('git', ['-C', cloneRoot, 'remote', 'set-url', 'origin', 'https://example.invalid/unrelated.git'], { encoding: 'utf8' });
+    const wrongOrigin = spawnSync('git', ['-C', cloneRoot, 'remote', 'set-url', 'origin', 'https://github.com/Other/Source-Data'], { encoding: 'utf8' });
     assert.equal(wrongOrigin.status, 0, wrongOrigin.stderr);
     await assert.rejects(prepare({ sourceRoot: cloneRoot, outputRoot, mode: 'candidate' }), /official repository|origin/iu);
-    const setOrigin = spawnSync('git', ['-C', cloneRoot, 'remote', 'set-url', 'origin', 'https://github.com/SyuanTsai/DarkTide-Source-Data.git'], { encoding: 'utf8' });
+    const wrongHost = spawnSync('git', ['-C', cloneRoot, 'remote', 'set-url', 'origin', 'https://example.invalid/SyuanTsai/DarkTide-Source-Data'], { encoding: 'utf8' });
+    assert.equal(wrongHost.status, 0, wrongHost.stderr);
+    await assert.rejects(prepare({ sourceRoot: cloneRoot, outputRoot, mode: 'candidate' }), /official repository|origin/iu);
+    const setOrigin = spawnSync('git', ['-C', cloneRoot, 'remote', 'set-url', 'origin', 'https://github.com/SyuanTsai/DarkTide-Source-Data'], { encoding: 'utf8' });
     assert.equal(setOrigin.status, 0, setOrigin.stderr);
     const firstCommit = spawnSync('git', ['-C', cloneRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
     assert.equal(firstCommit.status, 0, firstCommit.stderr);
     const first = await prepare({ sourceRoot: cloneRoot, outputRoot, mode: 'candidate', expectedCommit: firstCommit.stdout.trim() });
     const firstRequest = first.requests[0];
     const firstPacketDir = path.join(outputRoot, 'packets', firstRequest.sourceRevision);
+    const trailingSlashOrigin = spawnSync('git', ['-C', cloneRoot, 'remote', 'set-url', 'origin', 'https://github.com/SyuanTsai/DarkTide-Source-Data/'], { encoding: 'utf8' });
+    assert.equal(trailingSlashOrigin.status, 0, trailingSlashOrigin.stderr);
+    await assert.doesNotReject(verifyRevision({ request: firstRequest, packetDir: firstPacketDir, sourceRoot: cloneRoot, expectedCommit: firstCommit.stdout.trim() }));
     const archiveBefore = await createArchive({ request: firstRequest, packetDir: firstPacketDir });
 
     const emptyCommit = spawnSync('git', [
