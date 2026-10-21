@@ -715,6 +715,7 @@ test('InterT05_historical_request_replays_after_a_comment_only_w05_commit', asyn
 test('InterT06_partial_archive_checkpoints_resume_from_the_verified_tag_commit', async () => {
   const prepare = requireExport('prepareW09SourceHandoff');
   const publishArchive = requireExport('publishW09SourceArchive');
+  const createArchive = requireExport('createW09SourceArchive');
   const root = await mkdtemp(path.join(os.tmpdir(), 'w09-partial-archive-'));
   const cloneRoot = path.join(root, 'source');
   try {
@@ -904,6 +905,111 @@ test('InterT06_partial_archive_checkpoints_resume_from_the_verified_tag_commit',
     };
     await assert.rejects(publishArchive({ request: firstAtH1, packetDir: firstPacketH1, sourceRoot: cloneRoot, expectedCommit: h1, token: 'unit-test-token', fetchImpl: conflictFetch }), /archive|asset|bytes|gzip|hash/iu);
     assert.equal(conflictWrites, 0, 'a conflicting pre-existing asset must never be overwritten or published');
+
+    const h1Readme = await readFile(readmePath, 'utf8');
+    await writeFile(readmePath, h1Readme + '\n<!-- metadata-only W09 retry H2 -->\n', 'utf8');
+    const h2Add = spawnSync('git', ['-C', cloneRoot, 'add', 'README.md'], { encoding: 'utf8' });
+    assert.equal(h2Add.status, 0, h2Add.stderr);
+    const h2Commit = spawnSync('git', [
+      '-C', cloneRoot, '-c', 'user.name=W09 test', '-c', 'user.email=w09-test@example.invalid',
+      'commit', '-m', 'SYP-341\n\nAdd second README-only retry metadata'
+    ], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    assert.equal(h2Commit.status, 0, h2Commit.stderr);
+    const h2Result = spawnSync('git', ['-C', cloneRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
+    assert.equal(h2Result.status, 0, h2Result.stderr);
+    const h2 = h2Result.stdout.trim();
+    assert.notEqual(h2, h1);
+    const retryRefsH2 = [
+      { role: 'baseline', commit: h1, path: api.W09_SOURCE_INPUT_PATHS.w07, sha256: inputSha },
+      { role: 'authoring', commit: h2, path: api.W09_SOURCE_INPUT_PATHS.w07, sha256: inputSha },
+      { role: 'candidate', commit: h2, path: api.W09_SOURCE_INPUT_PATHS.w07, sha256: inputSha }
+    ];
+    const outputH2 = path.join(root, 'fresh-runner-handoff-h2');
+    const retriedH2 = await prepare({ sourceRoot: cloneRoot, outputRoot: outputH2, mode: 'formal', expectedCommit: h2, inputRefs: retryRefsH2 });
+    const firstAtH2 = retriedH2.requests.find((item) => item.gameReleaseId === firstAtH0.gameReleaseId);
+    const secondAtH2 = retriedH2.requests.find((item) => item.gameReleaseId === secondAtH0.gameReleaseId);
+    assert.ok(firstAtH2 && secondAtH2);
+    assert.equal(firstAtH2.requestId, firstAtH0.requestId);
+    assert.equal(secondAtH2.requestId, secondAtH0.requestId);
+    assert.equal(firstAtH2.sourceInputs.find((item) => item.role === 'baseline').commit, h1);
+    assert.equal(firstAtH2.sourceCommit, h2);
+    const firstPacketH2 = path.join(outputH2, 'packets', firstAtH2.sourceRevision);
+    const secondPacketH2 = path.join(outputH2, 'packets', secondAtH2.sourceRevision);
+    const firstArchiveH0 = await createArchive({ request: firstAtH0, packetDir: firstPacketH0 });
+    const secondArchiveH0 = await createArchive({ request: secondAtH0, packetDir: secondPacketH0 });
+
+    const makeStoredArchiveProvider = (request, bytes, { draft }) => {
+      const releaseTag = api.w09SourceArchiveTag(request.releaseId);
+      const assetName = api.w09SourceArchiveAssetName(request.releaseId);
+      const id = request.gameReleaseId.endsWith('1.13.1') ? 111 : 112;
+      const assetUrl = 'https://api.github.com/repos/' + api.W09_SOURCE_REPOSITORY + '/releases/assets/' + id;
+      const tagUrl = 'https://api.github.com/repos/' + api.W09_SOURCE_REPOSITORY + '/releases/tags/' + encodeURIComponent(releaseTag);
+      const refUrl = 'https://api.github.com/repos/' + api.W09_SOURCE_REPOSITORY + '/git/ref/tags/' + encodeURIComponent(releaseTag);
+      const state = {
+        tagCommit: h0,
+        bytes: Buffer.from(bytes),
+        release: {
+          id,
+          tag_name: releaseTag,
+          draft,
+          prerelease: true,
+          immutable: false,
+          assets: [{ id, name: assetName, state: 'uploaded', url: assetUrl }]
+        },
+        postCalls: 0,
+        patchCalls: 0,
+        assetReads: 0
+      };
+      const fetchImpl = async (url, options = {}) => {
+        if (url === tagUrl && (options.method ?? 'GET') === 'GET') {
+          return Response.json(state.release);
+        }
+        if (url === refUrl && (options.method ?? 'GET') === 'GET') {
+          return Response.json({ ref: 'refs/tags/' + releaseTag, object: { type: 'commit', sha: state.tagCommit } });
+        }
+        if (url === assetUrl && (options.method ?? 'GET') === 'GET') {
+          state.assetReads += 1;
+          return new Response(state.bytes, { status: 200 });
+        }
+        if (url === 'https://api.github.com/repos/' + api.W09_SOURCE_REPOSITORY + '/releases/' + id && options.method === 'PATCH') {
+          state.patchCalls += 1;
+          state.release = { ...state.release, draft: false };
+          return Response.json(state.release);
+        }
+        if (options.method === 'POST') {
+          state.postCalls += 1;
+          return new Response('unexpected archive mutation', { status: 409 });
+        }
+        throw new Error('unexpected stored-archive request: ' + (options.method ?? 'GET') + ' ' + url);
+      };
+      return { state, fetchImpl };
+    };
+
+    const publishedStore = makeStoredArchiveProvider(firstAtH0, firstArchiveH0, { draft: false });
+    const publishedRetry = await publishArchive({
+      request: firstAtH2, packetDir: firstPacketH2, sourceRoot: cloneRoot, expectedCommit: h2,
+      token: 'unit-test-token', fetchImpl: publishedStore.fetchImpl
+    });
+    assert.equal(publishedRetry.status, 'reused');
+    assert.equal(publishedRetry.sourceCommit, h0);
+    assert.equal(publishedRetry.request.sourceCommit, h0);
+    assert.equal(publishedStore.state.tagCommit, h0);
+    assert.equal(publishedStore.state.patchCalls, 0, 'a published archive retry must be read-only');
+    assert.equal(publishedStore.state.postCalls, 0, 'a published archive retry must not create or upload anything');
+    assert.ok(publishedStore.state.assetReads > 0);
+
+    const draftStore = makeStoredArchiveProvider(secondAtH0, secondArchiveH0, { draft: true });
+    const draftRetry = await publishArchive({
+      request: secondAtH2, packetDir: secondPacketH2, sourceRoot: cloneRoot, expectedCommit: h2,
+      token: 'unit-test-token', fetchImpl: draftStore.fetchImpl
+    });
+    assert.equal(draftRetry.status, 'published');
+    assert.equal(draftRetry.sourceCommit, h0);
+    assert.equal(draftRetry.request.sourceCommit, h0);
+    assert.equal(draftStore.state.tagCommit, h0);
+    assert.equal(draftStore.state.patchCalls, 1, 'an uploaded draft retry only publishes the existing archive');
+    assert.equal(draftStore.state.postCalls, 0, 'an uploaded draft retry must not create a tag, release, or asset');
+    assert.ok(draftStore.state.assetReads > 0);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
