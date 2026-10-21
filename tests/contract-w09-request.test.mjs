@@ -626,6 +626,289 @@ test('InterT03_formal_archive_and_dispatch_require_verified_content_addressed_re
   }
 });
 
+// Scenario: A Source working commit changes the W05 builder or validator to execute a harmless local canary during import.
+// Purpose: Verify the W09 runtime loader rejects unapproved Git blobs before importing any Source build module.
+test('InterT04_unapproved_builder_and_validator_blobs_are_rejected_before_import', async () => {
+  const prepare = requireExport('prepareW09SourceHandoff');
+  const root = await mkdtemp(path.join(os.tmpdir(), 'w09-runtime-pin-'));
+  try {
+    for (const relativePath of ['scripts/content/contract-w05-build.mjs', 'scripts/content/contract-validator.mjs']) {
+      const caseRoot = path.join(root, relativePath.includes('validator') ? 'modified-validator' : 'modified-builder');
+      const caseClone = spawnSync('git', ['clone', '--no-hardlinks', sourceRoot, caseRoot], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+      assert.equal(caseClone.status, 0, caseClone.stderr);
+      const setOrigin = spawnSync('git', ['-C', caseRoot, 'remote', 'set-url', 'origin', api.W09_SOURCE_ORIGIN], { encoding: 'utf8' });
+      assert.equal(setOrigin.status, 0, setOrigin.stderr);
+      const canaryPath = path.join(root, relativePath.includes('validator') ? 'validator-imported.txt' : 'builder-imported.txt');
+      const modulePath = path.join(caseRoot, relativePath);
+      const original = await readFile(modulePath, 'utf8');
+      await writeFile(modulePath, `${original}\nawait (await import('node:fs/promises')).writeFile(${JSON.stringify(canaryPath)}, 'executed', 'utf8');\n`, 'utf8');
+      const add = spawnSync('git', ['-C', caseRoot, 'add', relativePath], { encoding: 'utf8' });
+      assert.equal(add.status, 0, add.stderr);
+      const commit = spawnSync('git', [
+        '-C', caseRoot, '-c', 'user.name=W09 test', '-c', 'user.email=w09-test@example.invalid',
+        'commit', '-m', 'SYP-341\n\nTest unapproved runtime canary'
+      ], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+      assert.equal(commit.status, 0, commit.stderr);
+      const current = spawnSync('git', ['-C', caseRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
+      assert.equal(current.status, 0, current.stderr);
+      let prepareError;
+      try {
+        await prepare({ sourceRoot: caseRoot, outputRoot: path.join(root, `handoff-${path.basename(caseRoot)}`), mode: 'candidate', expectedCommit: current.stdout.trim() });
+      } catch (error) {
+        prepareError = error;
+      }
+      await assert.rejects(readFile(canaryPath), { code: 'ENOENT' }, 'no canary side effect may run before all runtime pins pass');
+      assert.ok(prepareError, 'an unapproved W05 runtime must be rejected');
+      assert.match(prepareError.message, /approved Source runtime|pinned Source runtime|runtime pin|runtime hash/iu);
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+// Scenario: A valid request is created at H0, then the W05 builder receives only a comment and HEAD advances to H1.
+// Purpose: Replay the historical request with its approved Git blobs instead of requiring the working tree to equal old code.
+test('InterT05_historical_request_replays_after_a_comment_only_w05_commit', async () => {
+  const prepare = requireExport('prepareW09SourceHandoff');
+  const verifyRevision = requireExport('verifyW09SourceRevision');
+  const root = await mkdtemp(path.join(os.tmpdir(), 'w09-historical-runtime-'));
+  const cloneRoot = path.join(root, 'source');
+  const outputRoot = path.join(root, 'handoff-h0');
+  try {
+    const clone = spawnSync('git', ['clone', '--no-hardlinks', sourceRoot, cloneRoot], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    assert.equal(clone.status, 0, clone.stderr);
+    const setOrigin = spawnSync('git', ['-C', cloneRoot, 'remote', 'set-url', 'origin', api.W09_SOURCE_ORIGIN], { encoding: 'utf8' });
+    assert.equal(setOrigin.status, 0, setOrigin.stderr);
+    const h0Result = spawnSync('git', ['-C', cloneRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
+    assert.equal(h0Result.status, 0, h0Result.stderr);
+    const h0 = h0Result.stdout.trim();
+    const prepared = await prepare({ sourceRoot: cloneRoot, outputRoot, mode: 'candidate', expectedCommit: h0 });
+    const request = prepared.requests[0];
+    const packetDir = path.join(outputRoot, 'packets', request.sourceRevision);
+    const builderPath = path.join(cloneRoot, 'scripts/content/contract-w05-build.mjs');
+    const builderBytes = await readFile(builderPath, 'utf8');
+    await writeFile(builderPath, `${builderBytes}\n// Comment-only W09 historical replay fixture.\n`, 'utf8');
+    const add = spawnSync('git', ['-C', cloneRoot, 'add', 'scripts/content/contract-w05-build.mjs'], { encoding: 'utf8' });
+    assert.equal(add.status, 0, add.stderr);
+    const commit = spawnSync('git', [
+      '-C', cloneRoot, '-c', 'user.name=W09 test', '-c', 'user.email=w09-test@example.invalid',
+      'commit', '-m', 'SYP-341\n\nAdd a comment to the W05 historical replay fixture'
+    ], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    assert.equal(commit.status, 0, commit.stderr);
+    const h1Result = spawnSync('git', ['-C', cloneRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
+    assert.equal(h1Result.status, 0, h1Result.stderr);
+    const h1 = h1Result.stdout.trim();
+    assert.notEqual(h1, h0);
+    assert.equal(request.sourceCommit, h0);
+    await assert.doesNotReject(verifyRevision({ request, packetDir, sourceRoot: cloneRoot, expectedCommit: h0 }));
+    const headAfter = spawnSync('git', ['-C', cloneRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
+    assert.equal(headAfter.stdout.trim(), h1, 'historical replay must not checkout or reset the Source working tree');
+    const status = spawnSync('git', ['-C', cloneRoot, 'status', '--porcelain', '--untracked-files=no'], { encoding: 'utf8' });
+    assert.equal(status.stdout, '');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+// Scenario: A formal release attempt leaves either a tag without a release or an empty draft, then only README metadata advances HEAD.
+// Purpose: Recover the tag-anchored original request from pinned inputs, resume exact bytes, and fail closed on a conflicting asset.
+test('InterT06_partial_archive_checkpoints_resume_from_the_verified_tag_commit', async () => {
+  const prepare = requireExport('prepareW09SourceHandoff');
+  const publishArchive = requireExport('publishW09SourceArchive');
+  const root = await mkdtemp(path.join(os.tmpdir(), 'w09-partial-archive-'));
+  const cloneRoot = path.join(root, 'source');
+  try {
+    const clone = spawnSync('git', ['clone', '--no-hardlinks', sourceRoot, cloneRoot], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    assert.equal(clone.status, 0, clone.stderr);
+    const setOrigin = spawnSync('git', ['-C', cloneRoot, 'remote', 'set-url', 'origin', api.W09_SOURCE_ORIGIN], { encoding: 'utf8' });
+    assert.equal(setOrigin.status, 0, setOrigin.stderr);
+
+    const contract = await loadRepresentativeFixture();
+    contract.fixtureOnly = false;
+    for (const record of [...contract.records, ...contract.tombstones]) {
+      for (const target of record.reviewTargets) {
+        contract.reviewReceipts.push(createReviewReceipt(contract, {
+          recordId: record.recordId,
+          gameReleaseId: record.gameReleaseId,
+          ...target
+        }, {
+          reviewer: { kind: 'human', id: 'test-fixture-reviewer' },
+          reviewedAt: '2026-10-20T00:00:00Z'
+        }));
+      }
+      record.reviewState = 'approved';
+    }
+    contract.publicationEligible = true;
+    const inputPath = path.join(cloneRoot, api.W09_SOURCE_INPUT_PATHS.w07);
+    await writeFile(inputPath, `${JSON.stringify(contract, null, 2)}\n`, 'utf8');
+    const add = spawnSync('git', ['-C', cloneRoot, 'add', api.W09_SOURCE_INPUT_PATHS.w07], { encoding: 'utf8' });
+    assert.equal(add.status, 0, add.stderr);
+    const fixtureCommit = spawnSync('git', [
+      '-C', cloneRoot, '-c', 'user.name=W09 test', '-c', 'user.email=w09-test@example.invalid',
+      'commit', '-m', 'SYP-341\n\nCreate isolated formal Source archive fixture'
+    ], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    assert.equal(fixtureCommit.status, 0, fixtureCommit.stderr);
+    const h0Result = spawnSync('git', ['-C', cloneRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
+    assert.equal(h0Result.status, 0, h0Result.stderr);
+    const h0 = h0Result.stdout.trim();
+    const inputSha = sha256(await readFile(inputPath));
+    const initialRefs = ['baseline', 'authoring', 'candidate'].map((role) => ({
+      role, commit: h0, path: api.W09_SOURCE_INPUT_PATHS.w07, sha256: inputSha
+    }));
+    const outputH0 = path.join(root, 'handoff-h0');
+    const initial = await prepare({ sourceRoot: cloneRoot, outputRoot: outputH0, mode: 'formal', expectedCommit: h0, inputRefs: initialRefs });
+    assert.equal(initial.requests.length, 2);
+    assert.ok(initial.requests.every((request) => request.eligibility.status === 'eligible'));
+    const firstAtH0 = initial.requests[0];
+    const secondAtH0 = initial.requests[1];
+
+    const makePartialProvider = (request, { failCreate = false, failUpload = false } = {}) => {
+      const tagName = api.w09SourceArchiveTag(request.releaseId);
+      const assetName = api.w09SourceArchiveAssetName(request.releaseId);
+      const assetUrl = `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/releases/assets/${request.gameReleaseId.endsWith('1.13.1') ? 81 : 82}`;
+      const tagRefUrl = `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/git/ref/tags/${encodeURIComponent(tagName)}`;
+      const state = { tagCommit: null, release: null, bytes: null, createCalls: 0, uploadCalls: 0, patchCalls: 0, tagCreateCalls: 0, failedCreate: false, failedUpload: false };
+      const fetchImpl = async (url, options = {}) => {
+        if (url === `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/releases/tags/${encodeURIComponent(tagName)}`) {
+          return state.release
+            ? new Response(JSON.stringify(state.release), { status: 200, headers: { 'content-type': 'application/json' } })
+            : new Response('', { status: 404 });
+        }
+        if (url === tagRefUrl && options.method === 'GET') {
+          return state.tagCommit
+            ? new Response(JSON.stringify({ ref: `refs/tags/${tagName}`, object: { type: 'commit', sha: state.tagCommit } }), { status: 200 })
+            : new Response('', { status: 404 });
+        }
+        if (url === `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/git/refs` && options.method === 'POST') {
+          const body = JSON.parse(options.body);
+          assert.equal(body.ref, `refs/tags/${tagName}`);
+          assert.equal(body.sha, h0);
+          state.tagCommit = body.sha;
+          state.tagCreateCalls += 1;
+          return new Response(JSON.stringify({ ref: body.ref, object: { type: 'commit', sha: body.sha } }), { status: 201 });
+        }
+        if (url === `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/releases` && options.method === 'POST') {
+          state.createCalls += 1;
+          const body = JSON.parse(options.body);
+          assert.equal(body.tag_name, tagName);
+          assert.equal(body.target_commitish, h0, 'partial publication recovery must retain the verified tag commit');
+          assert.equal(body.draft, true);
+          if (failCreate && !state.failedCreate) {
+            state.failedCreate = true;
+            return new Response('temporary test failure', { status: 502 });
+          }
+          state.release = { id: request.gameReleaseId.endsWith('1.13.1') ? 81 : 82, tag_name: tagName, draft: true, prerelease: true, immutable: false, assets: [] };
+          return new Response(JSON.stringify(state.release), { status: 201, headers: { 'content-type': 'application/json' } });
+        }
+        if (url.startsWith('https://uploads.github.com/repos/') && options.method === 'POST') {
+          state.uploadCalls += 1;
+          if (failUpload && !state.failedUpload) {
+            state.failedUpload = true;
+            return new Response('temporary upload failure', { status: 502 });
+          }
+          state.bytes = Buffer.from(options.body);
+          state.release.assets = [{ id: request.gameReleaseId.endsWith('1.13.1') ? 81 : 82, name: assetName, state: 'uploaded', url: assetUrl }];
+          return new Response(JSON.stringify(state.release.assets[0]), { status: 201 });
+        }
+        if (url === assetUrl && options.method === 'GET') return new Response(state.bytes, { status: 200 });
+        if (url === `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/releases/${request.gameReleaseId.endsWith('1.13.1') ? 81 : 82}` && options.method === 'PATCH') {
+          state.patchCalls += 1;
+          state.release = { ...state.release, draft: false };
+          return new Response(JSON.stringify(state.release), { status: 200, headers: { 'content-type': 'application/json' } });
+        }
+        throw new Error(`unexpected partial-archive test request: ${options.method ?? 'GET'} ${url}`);
+      };
+      return { state, fetchImpl };
+    };
+
+    const tagOnly = makePartialProvider(firstAtH0, { failCreate: true });
+    const firstPacketH0 = path.join(outputH0, 'packets', firstAtH0.sourceRevision);
+    await assert.rejects(publishArchive({ request: firstAtH0, packetDir: firstPacketH0, sourceRoot: cloneRoot, expectedCommit: h0, token: 'unit-test-token', fetchImpl: tagOnly.fetchImpl }), /release creation failed with HTTP 502/u);
+    assert.equal(tagOnly.state.tagCommit, h0);
+    assert.equal(tagOnly.state.release, null, 'the first checkpoint contains a tag but no release');
+
+    const emptyDraft = makePartialProvider(secondAtH0, { failUpload: true });
+    const secondPacketH0 = path.join(outputH0, 'packets', secondAtH0.sourceRevision);
+    await assert.rejects(publishArchive({ request: secondAtH0, packetDir: secondPacketH0, sourceRoot: cloneRoot, expectedCommit: h0, token: 'unit-test-token', fetchImpl: emptyDraft.fetchImpl }), /upload failed with HTTP 502/u);
+    assert.equal(emptyDraft.state.tagCommit, h0);
+    assert.equal(emptyDraft.state.release?.draft, true);
+    assert.deepEqual(emptyDraft.state.release?.assets, [], 'the second checkpoint contains an empty draft');
+
+    const readmePath = path.join(cloneRoot, 'README.md');
+    const readme = await readFile(readmePath, 'utf8');
+    await writeFile(readmePath, `${readme}\n<!-- metadata-only W09 retry fixture -->\n`, 'utf8');
+    const readmeAdd = spawnSync('git', ['-C', cloneRoot, 'add', 'README.md'], { encoding: 'utf8' });
+    assert.equal(readmeAdd.status, 0, readmeAdd.stderr);
+    const metadataCommit = spawnSync('git', [
+      '-C', cloneRoot, '-c', 'user.name=W09 test', '-c', 'user.email=w09-test@example.invalid',
+      'commit', '-m', 'SYP-341\n\nAdd README-only retry metadata'
+    ], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    assert.equal(metadataCommit.status, 0, metadataCommit.stderr);
+    const h1Result = spawnSync('git', ['-C', cloneRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
+    assert.equal(h1Result.status, 0, h1Result.stderr);
+    const h1 = h1Result.stdout.trim();
+    assert.notEqual(h1, h0);
+    const retryRefs = [
+      { role: 'baseline', commit: h0, path: api.W09_SOURCE_INPUT_PATHS.w07, sha256: inputSha },
+      { role: 'authoring', commit: h1, path: api.W09_SOURCE_INPUT_PATHS.w07, sha256: inputSha },
+      { role: 'candidate', commit: h1, path: api.W09_SOURCE_INPUT_PATHS.w07, sha256: inputSha }
+    ];
+    const outputH1 = path.join(root, 'fresh-runner-handoff-h1');
+    const retried = await prepare({ sourceRoot: cloneRoot, outputRoot: outputH1, mode: 'formal', expectedCommit: h1, inputRefs: retryRefs });
+    const firstAtH1 = retried.requests.find((item) => item.gameReleaseId === firstAtH0.gameReleaseId);
+    const allCurrentRefs = ['baseline', 'authoring', 'candidate'].map((role) => ({
+      role, commit: h1, path: api.W09_SOURCE_INPUT_PATHS.w07, sha256: inputSha
+    }));
+    const allCurrentRoot = path.join(root, 'all-current-handoff-h1');
+    const allCurrent = await prepare({ sourceRoot: cloneRoot, outputRoot: allCurrentRoot, mode: 'formal', expectedCommit: h1, inputRefs: allCurrentRefs });
+    const secondAtH1 = allCurrent.requests.find((item) => item.gameReleaseId === secondAtH0.gameReleaseId);
+    assert.ok(firstAtH1 && secondAtH1);
+    assert.equal(firstAtH1.requestId, firstAtH0.requestId);
+    assert.equal(secondAtH1.requestId, secondAtH0.requestId);
+    assert.notEqual(firstAtH1.sourceCommit, firstAtH0.sourceCommit);
+    assert.equal(secondAtH1.sourceInputs.find((item) => item.role === 'baseline').commit, h1);
+    const firstPacketH1 = path.join(outputH1, 'packets', firstAtH1.sourceRevision);
+    const secondPacketH1 = path.join(allCurrentRoot, 'packets', secondAtH1.sourceRevision);
+
+    const resumedTagOnly = await publishArchive({ request: firstAtH1, packetDir: firstPacketH1, sourceRoot: cloneRoot, expectedCommit: h1, token: 'unit-test-token', fetchImpl: tagOnly.fetchImpl });
+    assert.equal(resumedTagOnly.status, 'published');
+    assert.equal(resumedTagOnly.request.sourceCommit, h0);
+    assert.equal(tagOnly.state.tagCreateCalls, 1, 'recovery must not recreate or move the existing tag');
+    assert.equal(tagOnly.state.createCalls, 2);
+    assert.equal(tagOnly.state.uploadCalls, 1);
+    assert.equal(tagOnly.state.patchCalls, 1);
+
+    const resumedDraft = await publishArchive({ request: secondAtH1, packetDir: secondPacketH1, sourceRoot: cloneRoot, expectedCommit: h1, token: 'unit-test-token', fetchImpl: emptyDraft.fetchImpl });
+    assert.equal(resumedDraft.status, 'published');
+    assert.equal(resumedDraft.request.sourceCommit, h0);
+    assert.equal(emptyDraft.state.tagCreateCalls, 1, 'draft recovery must preserve the original tag');
+    assert.equal(emptyDraft.state.createCalls, 1, 'an existing draft must be reused');
+    assert.equal(emptyDraft.state.uploadCalls, 2);
+    assert.equal(emptyDraft.state.patchCalls, 1);
+    assert.ok(emptyDraft.state.bytes?.length > 0);
+
+    const conflict = makePartialProvider(firstAtH0);
+    conflict.state.tagCommit = h0;
+    conflict.state.release = {
+      id: 91, tag_name: api.w09SourceArchiveTag(firstAtH0.releaseId), draft: true, prerelease: true, immutable: false,
+      assets: [{ id: 92, name: api.w09SourceArchiveAssetName(firstAtH0.releaseId), state: 'uploaded', url: `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/releases/assets/92` }]
+    };
+    const conflictingAssetUrl = conflict.state.release.assets[0].url;
+    let conflictWrites = 0;
+    const conflictFetch = async (url, options = {}) => {
+      if (url.endsWith(`/releases/tags/${encodeURIComponent(api.w09SourceArchiveTag(firstAtH0.releaseId))}`)) return new Response(JSON.stringify(conflict.state.release), { status: 200, headers: { 'content-type': 'application/json' } });
+      if (url.endsWith(`/git/ref/tags/${encodeURIComponent(api.w09SourceArchiveTag(firstAtH0.releaseId))}`)) return new Response(JSON.stringify({ ref: `refs/tags/${api.w09SourceArchiveTag(firstAtH0.releaseId)}`, object: { type: 'commit', sha: h0 } }), { status: 200 });
+      if (url === conflictingAssetUrl && options.method === 'GET') return new Response('conflicting asset bytes', { status: 200 });
+      if (options.method === 'POST' || options.method === 'PATCH') conflictWrites += 1;
+      throw new Error('no release mutation is permitted after an asset conflict');
+    };
+    await assert.rejects(publishArchive({ request: firstAtH1, packetDir: firstPacketH1, sourceRoot: cloneRoot, expectedCommit: h1, token: 'unit-test-token', fetchImpl: conflictFetch }), /archive|asset|bytes|gzip|hash/iu);
+    assert.equal(conflictWrites, 0, 'a conflicting pre-existing asset must never be overwritten or published');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 // Scenario: A W05 revision adds or updates claims, removes a previously typed claim, and removes a record with no typed baseline kind.
 // Purpose: Preserve every changed record tuple while deriving claim invalidation only from verified kind data, never an ID prefix.
 test('UnitT11_changed_record_derivation_preserves_all_tuples_without_guessing_kind', () => {
