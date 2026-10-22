@@ -1,0 +1,90 @@
+name: W09 Source release handoff
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      release_id:
+        description: Derived W09 release ID from a verified formal Source request
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: w09-source-handoff-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+jobs:
+  source-validation:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Check out Source without persisted credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Set up Node.js 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Run Source contract tests
+        run: npm test
+      - name: Prepare a pending candidate request for review
+        run: node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode candidate --input-preset acceptedW07
+      - name: Upload the request and packet for workflow diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: w09-source-handoff-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/w09-source-handoff/packets/*/*
+            ${{ runner.temp }}/w09-source-handoff/requests/*.json
+          if-no-files-found: ignore
+          retention-days: 7
+  formal-handoff:
+    if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Check out Source without persisted credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Set up Node.js 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Run Source contract tests
+        run: npm test
+      - name: Publish or reuse the immutable Source archive, then dispatch only its release ID
+        env:
+          SOURCE_EVENT_NAME: ${{ github.event_name }}
+          REQUESTED_RELEASE_ID: ${{ inputs.release_id }}
+          SOURCE_ARCHIVE_TOKEN: ${{ github.token }}
+          WEB_HANDOFF_TOKEN: ${{ secrets.WEB_HANDOFF_TOKEN }}
+        run: |
+          if [ "$SOURCE_EVENT_NAME" = "workflow_dispatch" ]; then
+            node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode formal --input-preset acceptedW07 --fallback-candidate --publish-archive --dispatch --release-id "$REQUESTED_RELEASE_ID"
+          else
+            node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode formal --input-preset acceptedW07 --fallback-candidate --publish-archive --dispatch --all-releases
+          fi
+      - name: Upload the request and packet for workflow diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: w09-formal-handoff-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/w09-source-handoff/packets/*/*
+            ${{ runner.temp }}/w09-source-handoff/requests/*.json
+          if-no-files-found: ignore
+          retention-days: 7
