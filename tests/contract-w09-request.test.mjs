@@ -315,6 +315,8 @@ test('InterT02_metadata_only_retry_reuses_original_request_and_archive_from_offi
   try {
     const clone = spawnSync('git', ['clone', '--no-hardlinks', sourceRoot, cloneRoot], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
     assert.equal(clone.status, 0, clone.stderr);
+    const pinBaseline = spawnSync('git', ['-C', cloneRoot, 'checkout', '--detach', api.W09_ACCEPTED_W07_BASELINE_COMMIT], { encoding: 'utf8' });
+    assert.equal(pinBaseline.status, 0, pinBaseline.stderr);
     const wrongOrigin = spawnSync('git', ['-C', cloneRoot, 'remote', 'set-url', 'origin', 'https://github.com/Other/Source-Data'], { encoding: 'utf8' });
     assert.equal(wrongOrigin.status, 0, wrongOrigin.stderr);
     await assert.rejects(prepare({ sourceRoot: cloneRoot, outputRoot, mode: 'candidate' }), /official repository|origin/iu);
@@ -668,7 +670,7 @@ test('InterT04_unapproved_builder_and_validator_blobs_are_rejected_before_import
   }
 });
 
-// Scenario: A valid request is created at H0, then the W05 builder receives only a comment and HEAD advances to H1.
+// Scenario: A valid request is created at the accepted W07 H0, then the W05 builder receives only a comment and HEAD advances to H1.
 // Purpose: Replay the historical request with its approved Git blobs instead of requiring the working tree to equal old code.
 test('InterT05_historical_request_replays_after_a_comment_only_w05_commit', async () => {
   const prepare = requireExport('prepareW09SourceHandoff');
@@ -679,6 +681,8 @@ test('InterT05_historical_request_replays_after_a_comment_only_w05_commit', asyn
   try {
     const clone = spawnSync('git', ['clone', '--no-hardlinks', sourceRoot, cloneRoot], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
     assert.equal(clone.status, 0, clone.stderr);
+    const pinBaseline = spawnSync('git', ['-C', cloneRoot, 'checkout', '--detach', api.W09_ACCEPTED_W07_BASELINE_COMMIT], { encoding: 'utf8' });
+    assert.equal(pinBaseline.status, 0, pinBaseline.stderr);
     const setOrigin = spawnSync('git', ['-C', cloneRoot, 'remote', 'set-url', 'origin', api.W09_SOURCE_ORIGIN], { encoding: 'utf8' });
     assert.equal(setOrigin.status, 0, setOrigin.stderr);
     const h0Result = spawnSync('git', ['-C', cloneRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
