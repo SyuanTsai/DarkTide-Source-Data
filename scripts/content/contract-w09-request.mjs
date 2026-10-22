@@ -788,9 +788,27 @@ async function fetchSourceRelease({ releaseId, fetchImpl, token, allowDraft = fa
   const response = await fetchImpl(`${SOURCE_RELEASES_ENDPOINT}/tags/${encodeURIComponent(tagName)}`, {
     method: 'GET', headers: githubHeaders(token), redirect: 'error'
   });
-  if (response?.status === 404) return null;
-  if (!response || response.ok !== true) throw new Error(`Source release lookup failed with HTTP ${response?.status ?? 'unknown'}`);
-  const release = await responseJson(response, 'Source release lookup');
+  let release;
+  if (response?.status === 404) {
+    if (!allowDraft) return null;
+    const matches = [];
+    for (let page = 1; ; page += 1) {
+      const listed = await fetchImpl(`${SOURCE_RELEASES_ENDPOINT}?per_page=100&page=${page}`, {
+        method: 'GET', headers: githubHeaders(token), redirect: 'error'
+      });
+      if (!listed || listed.ok !== true) throw new Error(`Source draft release lookup failed with HTTP ${listed?.status ?? 'unknown'}`);
+      const releases = await responseJson(listed, 'Source draft release lookup');
+      if (!Array.isArray(releases)) throw new Error('Source draft release lookup must return an array');
+      matches.push(...releases.filter((item) => item?.tag_name === tagName));
+      if (matches.length > 1) throw new Error('Source draft release lookup returned duplicate matching tags');
+      if (releases.length < 100) break;
+    }
+    if (matches.length === 0) return null;
+    [release] = matches;
+  } else {
+    if (!response || response.ok !== true) throw new Error(`Source release lookup failed with HTTP ${response?.status ?? 'unknown'}`);
+    release = await responseJson(response, 'Source release lookup');
+  }
   const draftAllowed = allowDraft && release?.draft === true;
   if (!isPlainObject(release) || release.tag_name !== tagName || (!draftAllowed && release.draft !== false) || release.prerelease !== true
       || !Number.isSafeInteger(release.id) || release.id <= 0 || !Array.isArray(release.assets)) {

@@ -375,8 +375,8 @@ test('InterT02_metadata_only_retry_reuses_original_request_and_archive_from_offi
   }
 });
 
-// Scenario: A formally eligible, test-only representative contract passes the verified Source archive and dispatch route.
-// Purpose: Exercise draft creation, exact asset upload, publish verification, idempotent reuse, and a release_id-only Web event with stubbed HTTP.
+// Scenario: A formally eligible representative contract reaches a provider that hides drafts from tag lookup but exposes them through authenticated release listing.
+// Purpose: Recover the exact uploaded draft before publishing, preserve archive bytes and tag pins, and keep public resolution restricted to published releases.
 test('InterT03_formal_archive_and_dispatch_require_verified_content_addressed_release', async () => {
   const prepare = requireExport('prepareW09SourceHandoff');
   const publishArchive = requireExport('publishW09SourceArchive');
@@ -442,9 +442,13 @@ test('InterT03_formal_archive_and_dispatch_require_verified_content_addressed_re
     let dispatchBody;
     const fetchImpl = async (url, options = {}) => {
       if (url.endsWith(`/releases/tags/${encodeURIComponent(tagName)}`)) {
-        return release
+        return release && release.draft === false
           ? new Response(JSON.stringify(release), { status: 200, headers: { 'content-type': 'application/json' } })
           : new Response('', { status: 404 });
+      }
+      if (url === `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/releases?per_page=100&page=1`) {
+        assert.equal(options.headers.Authorization, 'Bearer unit-test-token');
+        return new Response(JSON.stringify(release ? [release] : []), { status: 200, headers: { 'content-type': 'application/json' } });
       }
       if (url === `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/git/ref/tags/${encodeURIComponent(tagName)}` && options.method === 'GET') {
         return tagCommit
@@ -497,6 +501,7 @@ test('InterT03_formal_archive_and_dispatch_require_verified_content_addressed_re
     let conflictingTagReleaseCreates = 0;
     const conflictingTagFetch = async (url, options = {}) => {
       if (url.endsWith(`/releases/tags/${encodeURIComponent(tagName)}`)) return new Response('', { status: 404 });
+      if (url === `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/releases?per_page=100&page=1`) return new Response('[]', { status: 200 });
       if (url === tagRefUrl) {
         return new Response(JSON.stringify({ ref: `refs/tags/${tagName}`, object: { type: 'commit', sha: 'f'.repeat(40) } }), { status: 200 });
       }
@@ -561,6 +566,48 @@ test('InterT03_formal_archive_and_dispatch_require_verified_content_addressed_re
     assert.equal(creationCount, 1);
     assert.equal(uploadCount, 1);
     assert.equal(publishCount, 1);
+
+    // The public receiver must not discover an unpublished draft through the authenticated fallback.
+    release = { ...release, draft: true };
+    const draftBytes = Buffer.from(archiveBytes);
+    const hiddenDraft = await resolveArchive({ releaseId: request.releaseId, fetchImpl });
+    assert.equal(hiddenDraft.status, 'pending');
+    const listUrl = `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/releases?per_page=100&page=`;
+    for (const scenario of [
+      { name: 'duplicate tag', response: () => new Response(JSON.stringify([release, { ...release, id: 73 }]), { status: 200 }), error: /duplicate matching tags/u },
+      { name: 'permission failure', response: () => new Response('', { status: 403 }), error: /draft release lookup failed with HTTP 403/u },
+      { name: 'malformed list', response: () => new Response('{}', { status: 200 }), error: /must return an array/u },
+    ]) {
+      let mutations = 0;
+      const rejectedLookup = async (url, options = {}) => {
+        if (url === listUrl + '1') return scenario.response();
+        if (options.method !== 'GET') mutations += 1;
+        return fetchImpl(url, options);
+      };
+      await assert.rejects(publishArchive({ request, packetDir, sourceRoot: fixtureSourceRoot, expectedCommit, token: 'unit-test-token', fetchImpl: rejectedLookup }), scenario.error, scenario.name);
+      assert.equal(mutations, 0, scenario.name + ' must reject before provider writes');
+    }
+    const pages = [];
+    const pagedLookup = async (url, options = {}) => {
+      if (url.startsWith(listUrl)) {
+        assert.equal(options.headers.Authorization, 'Bearer unit-test-token');
+        const page = Number(url.slice(listUrl.length));
+        pages.push(page);
+        const rows = page === 1
+          ? Array.from({ length: 100 }, (_, index) => ({ id: 1000 + index, tag_name: 'unrelated-' + index, draft: false }))
+          : page === 2 ? [release] : [];
+        return new Response(JSON.stringify(rows), { status: 200 });
+      }
+      return fetchImpl(url, options);
+    };
+    const resumedDraft = await publishArchive({ request, packetDir, sourceRoot: fixtureSourceRoot, expectedCommit, token: 'unit-test-token', fetchImpl: pagedLookup });
+    assert.equal(resumedDraft.status, 'published');
+    assert.deepEqual(pages, [1, 2]);
+    assert.equal(creationCount, 1);
+    assert.equal(uploadCount, 1);
+    assert.equal(publishCount, 2);
+    assert.equal(tagCommit, request.sourceCommit);
+    assert.ok(archiveBytes.equals(draftBytes), 'draft recovery must retain the original uploaded archive bytes');
 
     const publicRelease = { ...release, assets: [{ id: 72, name: assetName, state: 'uploaded', url: assetUrl }] };
     let hostileFollowups = 0;
@@ -777,9 +824,12 @@ test('InterT06_partial_archive_checkpoints_resume_from_the_verified_tag_commit',
       const state = { tagCommit: null, release: null, bytes: null, createCalls: 0, uploadCalls: 0, patchCalls: 0, tagCreateCalls: 0, failedCreate: false, failedUpload: false };
       const fetchImpl = async (url, options = {}) => {
         if (url === `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/releases/tags/${encodeURIComponent(tagName)}`) {
-          return state.release
+          return state.release && state.release.draft === false
             ? new Response(JSON.stringify(state.release), { status: 200, headers: { 'content-type': 'application/json' } })
             : new Response('', { status: 404 });
+        }
+        if (url === `https://api.github.com/repos/${api.W09_SOURCE_REPOSITORY}/releases?per_page=100&page=1`) {
+          return new Response(JSON.stringify(state.release ? [state.release] : []), { status: 200 });
         }
         if (url === tagRefUrl && options.method === 'GET') {
           return state.tagCommit
