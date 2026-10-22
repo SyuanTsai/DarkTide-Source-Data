@@ -157,8 +157,8 @@ test('UnitT06_packet_verifier_requires_exact_files_and_raw_bytes', async () => {
   }
 });
 
-// Scenario: A handoff is prepared from the fixed Source authoring inputs at the current commit.
-// Purpose: Rebuild and semantically validate the real candidate, bind all three raw Git blobs, and keep unapproved data pending.
+// Scenario: A handoff replays the accepted, unapproved W07 baseline even after current authoring receives human approval.
+// Purpose: Keep the historical candidate hashes and pending gate fixed without coupling this regression to mutable main data.
 test('InterT01_prepare_binds_fixed_git_inputs_and_replays_w05_candidate', async () => {
   requireExport('prepareW09SourceHandoff');
   const verifyRevision = requireExport('verifyW09SourceRevision');
@@ -171,6 +171,8 @@ test('InterT01_prepare_binds_fixed_git_inputs_and_replays_w05_candidate', async 
   const outputRoot = path.join(fixtureRoot, 'handoff');
   const clone = spawnSync('git', ['clone', '--no-hardlinks', sourceRoot, fixtureSourceRoot], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
   assert.equal(clone.status, 0, clone.stderr);
+  const pinBaseline = spawnSync('git', ['-C', fixtureSourceRoot, 'checkout', '--detach', api.W09_ACCEPTED_W07_BASELINE_COMMIT], { encoding: 'utf8' });
+  assert.equal(pinBaseline.status, 0, pinBaseline.stderr);
   const setOrigin = spawnSync('git', ['-C', fixtureSourceRoot, 'remote', 'set-url', 'origin', 'https://github.com/SyuanTsai/DarkTide-Source-Data.git'], { encoding: 'utf8' });
   assert.equal(setOrigin.status, 0, setOrigin.stderr);
   const headResult = spawnSync('git', ['-C', fixtureSourceRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
