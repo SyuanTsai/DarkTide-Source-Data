@@ -14,6 +14,12 @@ const fixture = await loadRepresentativeFixture();
 const w01 = JSON.parse(await readFile(new URL('../content/authoring/w01-real-representative-candidate.json', import.meta.url), 'utf8'));
 const w07Weapons = JSON.parse(await readFile(new URL('../content/authoring/v2/w07-weapons.json', import.meta.url), 'utf8'));
 const validate = (candidate) => validateSourceContract(candidate, { schema });
+const isW13RangedRecord = (record) => record.recordId === 'darktide:weapon:lasgun:p1-m1'
+  || record.recordId === 'darktide:damage-profile:lasgun-p1:default_lasgun_killshot'
+  || record.recordId === 'darktide:damage-profile:lasgun-p1:lasgun_p1_m1_killshot'
+  || record.recordId.startsWith('darktide:attack-profile:lasgun:p1:lasgun_p1_m1:')
+  || record.recordId.startsWith('darktide:stat-curve:lasgun-p1-m1-ammo-')
+  || record.recordId.startsWith('darktide:stat-definition:lasgun-p1-m1-ammo-');
 const selectedCodeSnapshot = (snapshotId = 'fixture-selected-code-snapshot') => ({
   snapshotId,
   commit: 'a'.repeat(40),
@@ -827,10 +833,10 @@ test('UnitT28_w07-derived-damage-profile-keeps-parent-table-numeric-dependency',
   assert.notEqual(after.dependenciesDigest, before.dependenciesDigest);
 });
 
-// Scenario: Every declared W07 review target is resolved against the real weapon candidate.
-// Purpose: Ensure all 797 targets can produce deterministic digests and in-memory synthetic receipts before any human review begins.
-test('UnitT29_w07-all-real-review-targets-resolve-and-create-synthetic-receipts', () => {
-  const targets = w07Weapons.records.flatMap((record) => (record.reviewTargets ?? []).map((target) => ({
+// Scenario: Every legacy W07 review target is resolved after the separate W13 ranged addition.
+// Purpose: Keep the exact 797 approved/legacy review targets stable without creating synthetic W13 approvals.
+test('UnitT29_w07-legacy-review-targets-resolve-and-create-synthetic-receipts', () => {
+  const targets = w07Weapons.records.filter((record) => !isW13RangedRecord(record)).flatMap((record) => (record.reviewTargets ?? []).map((target) => ({
     recordId: record.recordId,
     gameReleaseId: record.gameReleaseId,
     ...target
@@ -1097,4 +1103,45 @@ test('UnitT36_w07-manifest-separates-static-coverage-from-execution-and-attainab
   assert.match(markdown, /Server-generated and player-obtainable stat ranges remain unknown/);
   assert.match(markdown, /Static enemy hit-zone, armor, weakspot, multiplier, and .*relationships are imported/);
   assert.doesNotMatch(markdown, /Enemy-specific hit-zone.*NOT_IMPORTED/u);
+});
+
+// Scenario: The fixed W13 lasgun addition is either still pending or has current human review receipts.
+// Purpose: Keep the new 9 records and 26 targets separate from the exact legacy W07 set across later approval.
+test('UnitT37_w13-ranged-review-targets-remain-current-and-separate-from-legacy-set', () => {
+  const records = w07Weapons.records.filter(isW13RangedRecord);
+  const targets = records.flatMap((record) => (record.reviewTargets ?? []).map((target) => ({
+    recordId: record.recordId,
+    gameReleaseId: record.gameReleaseId,
+    ...target
+  })));
+  assert.equal(records.length, 9);
+  assert.equal(targets.length, 26);
+  assert.ok(records.every((record) => record.gameReleaseId === 'darktide:1.13.2'
+    && ['pending', 'approved', 'rejected', 'stale'].includes(record.reviewState)));
+
+  const targetKeys = new Set(targets.map((target) => `${target.gameReleaseId}\0${target.recordId}\0${target.fieldPath}\0${target.dimension}`));
+  const receipts = w07Weapons.reviewReceipts.filter((receipt) => isW13RangedRecord({ recordId: receipt.target.recordId }));
+  const recordsById = new Map(records.map((record) => [record.recordId, record]));
+  assert.ok(receipts.every((receipt) => targetKeys.has(`${receipt.target.gameReleaseId}\0${receipt.target.recordId}\0${receipt.target.fieldPath}\0${receipt.target.dimension}`)));
+  assert.equal(new Set(receipts.map((receipt) => `${receipt.target.gameReleaseId}\0${receipt.target.recordId}\0${receipt.target.fieldPath}\0${receipt.target.dimension}`)).size, receipts.length);
+  assert.ok(receipts.every((receipt) => ['approved', 'rejected'].includes(receipt.decision) && receipt.reviewer.kind === 'human'
+    && !/synthetic|probe|fixture/iu.test(receipt.reviewer.id)));
+  for (const receipt of receipts) {
+    if (recordsById.get(receipt.target.recordId)?.reviewState === 'approved') {
+      assert.equal(receipt.decision, 'approved');
+      assert.deepEqual(computeReviewDigests(w07Weapons, receipt.target), {
+        targetDigest: receipt.targetDigest,
+        dependenciesDigest: receipt.dependenciesDigest
+      });
+    }
+  }
+  for (const record of records.filter((item) => item.reviewState === 'approved')) {
+    const recordReceipts = receipts.filter((receipt) => receipt.target.recordId === record.recordId);
+    assert.equal(recordReceipts.length, record.reviewTargets.length);
+    assert.ok(recordReceipts.every((receipt) => receipt.decision === 'approved'));
+  }
+  const expectedPublicationState = !w07Weapons.fixtureOnly
+    && w07Weapons.records.every((record) => record.reviewState === 'approved')
+    && w07Weapons.tombstones.every((item) => item.reviewState === 'approved');
+  assert.equal(w07Weapons.publicationEligible, expectedPublicationState);
 });
