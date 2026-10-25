@@ -116,7 +116,7 @@ test('InterT10_rejects_dirty_compiler_provenance_without_writing_request', async
     execFileSync('git', ['config', 'core.autocrlf', 'false'], { cwd: temporaryRoot, encoding: 'utf8' });
     execFileSync('git', ['config', 'user.name', 'Source request integration test'], { cwd: temporaryRoot, encoding: 'utf8' });
     execFileSync('git', ['config', 'user.email', 'source-request-test@example.invalid'], { cwd: temporaryRoot, encoding: 'utf8' });
-    execFileSync('git', ['add', '--all'], { cwd: temporaryRoot, encoding: 'utf8' });
+    execFileSync('git', ['-c', 'core.longpaths=true', 'add', '--all'], { cwd: temporaryRoot, encoding: 'utf8' });
     execFileSync('git', ['commit', '--quiet', '-m', 'temporary test fixture'], { cwd: temporaryRoot, encoding: 'utf8' });
     execFileSync('git', ['remote', 'add', 'origin', SOURCE_REPOSITORY], { cwd: temporaryRoot, encoding: 'utf8' });
 
