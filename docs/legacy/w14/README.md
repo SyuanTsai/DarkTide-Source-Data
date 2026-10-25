@@ -9,10 +9,10 @@ The archive is read-only historical material. Current technical and localized ow
 To reproduce the archive from the fixed Extension object store:
 
 ```powershell
-node scripts/content/w14-archive-extension.mjs --extension-git-root <clean-extension-clone>
+node scripts/content/w14-archive-extension.mjs --extension-git-root <clean-extension-clone> --output <new-output-directory>
 ```
 
-The command reads only commits and paths listed in [`extension-source-inventory.json`](extension-source-inventory.json), validates the Git blob identity and SHA-256 before archiving, writes a deterministic gzip package, then verifies the package by reading it back.
+Use a new output directory that does not already exist; the command does not overwrite an archive. It reads only commits and paths listed in [`extension-source-inventory.json`](extension-source-inventory.json), validates the Git blob identity and SHA-256 before archiving, writes a deterministic gzip package, then verifies the package by reading it back.
 
 ## M01: public Mods analysis, historical only
 
@@ -30,3 +30,15 @@ node scripts/content/contract-w14-m01-archive.mjs --verify
 ```
 
 The archive command accepts only the fixed inventory SHA-256, checks the fixed repository origin and commit, reads blobs with `git cat-file` (not checkout/worktree files), and verifies every output byte before reporting success. The archive root is fixed to `content/legacy/mods/241ad76/`; the existing Extension-specific `psyker/` archive is preserved.
+
+## W03 extension-additional-data preservation
+
+The separate [`extension-additional-source-inventory.json`](extension-additional-source-inventory.json) pins nine additional Extension Git blobs listed by W03 `extension-additional-data` at commit `b18f5ee2d7c9886b1d9ecb56f7ece8fca5d32c9a`. They account for 100,477 W03 rows and 8,075,596 raw bytes. Their compressed byte-preservation archive is under [`content/legacy/w14/extension-additional-inputs/`](../../../content/legacy/w14/extension-additional-inputs/). The inventory binds each file to its full Git blob ID, raw SHA-256, size, and W03 row count. These are pinned historical inputs, not current approval; no game release is inferred from their filenames. This batch is separate from the original 26-file archive and M01 archive.
+
+Rebuild this batch from the pinned Extension Git object database with:
+
+```powershell
+node scripts/content/w14-archive-extension.mjs --extension-git-root <clean-extension-clone> --inventory docs/legacy/w14/extension-additional-source-inventory.json --output <new-output-directory>
+```
+
+Use a new output directory that does not already exist. Compare its manifest SHA-256 and raw file pins with the committed archive rather than overwriting the archive.
