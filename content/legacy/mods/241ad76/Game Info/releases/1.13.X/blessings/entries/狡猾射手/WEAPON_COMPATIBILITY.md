@@ -1,0 +1,11 @@
+# 狡猾射手：武器與型號
+
+[玩家說明](README.md)｜[來源索引](SOURCE_INDEX.md)｜[武器查詢](../../weapons/README.md)｜[共用資料](../../data/BLESSING_WEAPON_MAP.json)
+
+| 武器 | 適用型號 | 等級 | 效果差異 | 實作及來源 |
+|---|---|---|---|---|
+| 電能步槍 | 電能步槍 布蘭克斯 Mk CV | I–IV | 腰射或瞄準 hitscan 射擊至少有一個目標被判為弱點且仍手持時加一層遠程威力；每層 I–IV +4.5%／+5%／+5.5%／+6%，最多5層，合格弱點射擊刷新3.5秒期限。 | [weapon_trait_bespoke_galvanic_rifle_p1_chained_weakspot_hits_increases_power](weapon_trait_bespoke_galvanic_rifle_p1_chained_weakspot_hits_increases_power.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/galvanic_rifle/galvanic_rifle_p1_m1.lua#L17)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/galvanic_rifle/galvanic_rifle_p1_m1.lua#L863-L865) |
+| 快拔左輪手槍 | 快拔左輪手槍 紮羅娜 Mk IIa | I–IV | 腰射或瞄準 hitscan 射擊至少有一個目標被判為弱點且仍手持時加一層遠程威力；每層 I–IV +4.5%／+5%／+5.5%／+6%，最多5層，合格弱點射擊刷新3.5秒期限。 | [weapon_trait_bespoke_stubrevolver_p1_chained_weakspot_hits_increases_power](weapon_trait_bespoke_stubrevolver_p1_chained_weakspot_hits_increases_power.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/stub_pistols/stubrevolver_p1_m1.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/stub_pistols/stubrevolver_p1_m1.lua#L982-L984) |
+| 快拔左輪手槍 | 快拔左輪手槍 阿格里皮娜 Mk XIV | I–IV | 腰射或瞄準 hitscan 射擊至少有一個目標被判為弱點且仍手持時加一層遠程威力；每層 I–IV +4.5%／+5%／+5.5%／+6%，最多5層，合格弱點射擊刷新3.5秒期限。 | [weapon_trait_bespoke_stubrevolver_p1_chained_weakspot_hits_increases_power](weapon_trait_bespoke_stubrevolver_p1_chained_weakspot_hits_increases_power.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/stub_pistols/stubrevolver_p1_m2.lua#L15)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/stub_pistols/stubrevolver_p1_m2.lua#L885-L887) |
+
+- 每條型號關聯核對玩家UI、MasterItems類別與限制、固定Git模板匯入及trait接入。

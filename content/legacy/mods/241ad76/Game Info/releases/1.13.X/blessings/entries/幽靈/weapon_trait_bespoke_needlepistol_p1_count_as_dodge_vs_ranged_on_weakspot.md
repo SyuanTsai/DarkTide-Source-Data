@@ -1,0 +1,25 @@
+# 幽靈(Ghost)：針彈手槍實作
+
+[玩家說明](README.md)｜[來源索引](SOURCE_INDEX.md)｜[型號對應](WEAPON_COMPATIBILITY.md)
+
+- 實作：`weapon_trait_bespoke_needlepistol_p1_count_as_dodge_vs_ranged_on_weakspot`。
+- 等級覆寫：[trait](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_needlepistol_p1.lua#L114-L143)。
+- Buff接入：[繼承與覆寫](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/buff/weapon_traits_buff_templates/weapon_traits_bespoke_needlepistol_p1_buff_templates.lua#L15)。
+- 適用型號：針彈手槍 布蘭克斯 MkVI、針彈手槍 布蘭克斯 MKII。
+
+## 機制與公式
+
+- 共用觸發、狀態與完整公式見[本祝福來源與公式](SOURCE_INDEX.md)。
+
+- 普通及化學配置均可用直擊觸發；模式切換不攻擊。化學爆炸依自己的命中部位判定；毒素跳傷不具匹配的針彈來源。
+- 本變體數值與共通觸發條件見集中頁；以下逐型號動作來源核對本變體的差異。
+- [Needle Pistol P1 M1 hipfire normal/chemical hit-scan configurations](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/needlepistols/needlepistol_p1_m1.lua#L228-L284)。
+- [Needle Pistol P1 M1 aimed normal/chemical hit-scan configurations](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/needlepistols/needlepistol_p1_m1.lua#L313-L368)。
+- [Needle Pistol P1 M1 chemical toggle and toxin equip buff](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/needlepistols/needlepistol_p1_m1.lua#L519-L590)。
+- [Needle Pistol P1 M2 hipfire normal/chemical hit-scan configurations](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/needlepistols/needlepistol_p1_m2.lua#L228-L284)。
+- [Needle Pistol P1 M2 aimed normal/chemical hit-scan configurations](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/needlepistols/needlepistol_p1_m2.lua#L313-L368)。
+- [Needle Pistol P1 M2 chemical toggle and toxin equip buff](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/needlepistols/needlepistol_p1_m2.lua#L516-L587)。
+
+- 等級與數值：[集中等級表](TIER_VALUES.md)。
+- 結算與算例：[百分比檢核](DAMAGE_PERCENTAGE_REVIEW.md)。
+- 原文比較：[同一名稱與描述鍵](LOCALIZATION_COMPARISON.md)。

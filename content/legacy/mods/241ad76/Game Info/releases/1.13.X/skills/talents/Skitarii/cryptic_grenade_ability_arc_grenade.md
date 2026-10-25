@@ -1,0 +1,58 @@
+# 電弧手榴彈(Arc Grenades)：原始碼依據
+
+[English](en/cryptic_grenade_ability_arc_grenade.md)
+
+[返回玩家說明](README.md#cryptic_grenade_ability_arc_grenade)｜[技術索引](SOURCE_INDEX.md)｜[原文比對](LOCALIZATION_COMPARISON.md#cryptic_grenade_ability_arc_grenade)
+
+- 來源版本：Release 1.13.1；固定 SHA：`7e662fcda16219d775b84af50322be2e9cd9d62e`。
+- 天賦：`cryptic_grenade_ability_arc_grenade`；名稱鍵：`loc_talent_cryptic_arc_grenades`；描述鍵：`loc_talent_cryptic_arc_grenades_capacitance_gain_desc`。
+- 節點：`node_a09226d4-6e29-4806-982f-f00da2c2ec60`；分類：閃擊；每節點一點。
+- 證據程度：原始碼確認／程式推導；以下算例屬程式推導，未進行遊戲內測試。
+
+## 原始碼確認與程式推導
+
+- 基礎天賦將 PlayerAbilities.arc_grenade 裝入閃擊欄位，能力設定 max_charges=3、每次使用消耗1次，並以 extra_max_amount_of_grenades 作為上限屬性。arc_grenade 爆炸範圍由 talent_settings.cryptic.arc_grenade.radius=10 設定；起始目標上限來自 base_num_arcs=4。Explosion template 依序優先部分重型／專家品種、帶 elite 標籤者，再以其他有效敵人填補目標數；每個入選目標啟動 arc_grenade_chain_lightning_source。每條鏈的 chain_settings 為12公尺半徑、最多5次跳躍、每次跳躍1個目標。被動 cryptic_arc_grenades_capacitance_generation 只接受精英或專家擊殺，且 damage_profile.name 必須是 arc_grenade、arc_grenade_chain_jump_damage 或 cryptic_arc_grenade_shock_damage；每次符合條件的擊殺呼叫 restore_ability_charge_percentage(combat_ability, 0.04)，即恢復0.04份戰鬥技能電容量。 爆炸初選使用breed.breed_tags.elite、鏈跳使用breed.tags.elite，兩處欄位名稱不同，特定4品種優先則明確一致；不將所有披甲與專家一概寫為同一優先級。arc_grenade能力為only_uses_charges，設定檔的cooldown=75未接到能力資源倒數，不採用75秒自然補充。
+- 範圍爆炸模板 `arc_grenade` 使用固定威力等級 500，並引用 `DamageProfileTemplates.arc_grenade`；傷害設定為 attack 0、impact 50，護甲對應值另列於傷害設定檔。每次跳弧則引用 `arc_grenade_chain_jump_damage`，設定 attack 0、impact 10，另掛 `arc_chain_damage`。鏈路節點加入時會套用 `arc_grenade_electrocution` 及目標標記；電擊模板為單層、duration 1.1、interval 0.2、套用時啟動間隔並使用 frame offset。伺服器端對仍存活且非「已被擊倒的瘟疫行者轟炸兵」執行 `cryptic_arc_grenade_shock_damage`，其設定由 `cryptic_discharge_shock_damage` 複製，將 `skip_on_hit_proc=true`，並設定 power distribution attack 600、impact 100；原始碼未單憑這些欄位直接給出任一敵人固定的生命扣除值，仍須考慮傷害結算、敵人、護甲與命中階段。武器故障模板的條件只接受存活目標且傷害設定檔名稱為 `arc_grenade` 或 `arc_grenade_chain_jump_damage`；共用 Attack 流程僅在 damage profile 未設 `skip_on_hit_proc` 時送出 on_hit，因此持續電擊的傷害命中不會觸發此故障效果。
+
+## 原始碼依據
+
+- [scripts/settings/ability/archetype_talents/talents/cryptic_talents.lua：920–961](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/cryptic_talents.lua#L920-L961)
+- [scripts/settings/talent/talent_settings_cryptic.lua：185–194](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/talent/talent_settings_cryptic.lua#L185-L194)
+- [scripts/settings/ability/player_abilities/abilities/cryptic_abilities.lua：195–208](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/player_abilities/abilities/cryptic_abilities.lua#L195-L208)
+- [scripts/settings/damage/explosion_templates/player_grenade_explosion_templates.lua：482–545](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/damage/explosion_templates/player_grenade_explosion_templates.lua#L482-L545)
+- [scripts/settings/fx/effect_templates/arc_chain_lightning_source/arc_grenade_chain_lightning_source.lua：21–56](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/fx/effect_templates/arc_chain_lightning_source/arc_grenade_chain_lightning_source.lua#L21-L56)
+- [scripts/settings/fx/effect_templates/arc_chain_lightning_source/arc_grenade_chain_lightning_source.lua：58–124](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/fx/effect_templates/arc_chain_lightning_source/arc_grenade_chain_lightning_source.lua#L58-L124)
+- [scripts/settings/buff/archetype_buff_templates/cryptic_buff_templates.lua：1301–1331](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/buff/archetype_buff_templates/cryptic_buff_templates.lua#L1301-L1331)
+- [scripts/settings/damage/explosion_templates/player_grenade_explosion_templates.lua：532–600](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/damage/explosion_templates/player_grenade_explosion_templates.lua#L532-L600)
+- [scripts/settings/damage/explosion_templates/player_grenade_explosion_templates.lua：482–520](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/damage/explosion_templates/player_grenade_explosion_templates.lua#L482-L520)
+- [scripts/settings/damage/damage_profiles/demolitions_damage_profile_templates.lua：1204–1250](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/damage/damage_profiles/demolitions_damage_profile_templates.lua#L1204-L1250)
+- [scripts/settings/damage/damage_profiles/demolitions_damage_profile_templates.lua：1724–1819](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/damage/damage_profiles/demolitions_damage_profile_templates.lua#L1724-L1819)
+- [scripts/settings/fx/effect_templates/arc_chain_lightning_source/arc_grenade_chain_lightning_source.lua：59–80](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/fx/effect_templates/arc_chain_lightning_source/arc_grenade_chain_lightning_source.lua#L59-L80)
+- [scripts/settings/buff/weapon_buff_templates.lua：2689–2733](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/buff/weapon_buff_templates.lua#L2689-L2733)
+- [scripts/settings/buff/archetype_buff_templates/cryptic_buff_templates.lua：1332–1343](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/buff/archetype_buff_templates/cryptic_buff_templates.lua#L1332-L1343)
+- [scripts/utilities/attack/attack.lua：577–622](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/utilities/attack/attack.lua#L577-L622)
+- [scripts/settings/ability/archetype_talents/talents/cryptic_talents.lua：920–961](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/cryptic_talents.lua#L920-L961)
+- [scripts/ui/views/talent_builder_view/layouts/cryptic_tree.lua：1649–1677](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/ui/views/talent_builder_view/layouts/cryptic_tree.lua#L1649-L1677)
+
+## 算例條件與待確認事項
+
+- 3次精英／專家擊殺的電弧手榴彈命中事件各恢復0.04份，合計0.12份電容量。若3次手雷使用次數已耗盡，這項恢復仍然是戰鬥技能電容量，而非手雷次數。
+- 4是爆炸後可建立的起始電弧目標數上限，不保證每次都有4個目標；沒有合格敵人時不會補足命中。
+- 每條電弧的連鎖最多5次跳躍、每跳一個目標；實際鏈長受敵人位置、存活與電擊鏈目標條件影響。
+- 電容量只由指定傷害來源造成的精英或專家擊殺恢復；一般敵人擊殺不會觸發。
+- 傷害設定中的 attack／impact power distribution、威力等級及護甲修正不能直接視為對所有敵人固定扣除的生命值。若要給具名敵人的實際數值，需另追該敵人的護甲、命中部位及完整傷害結算。
+- duration 1.1 與 interval 0.2 足以確認是重複結算，但不能只用兩數相除宣稱固定觸發次數；伺服器更新時序亦會影響最後次結算。
+- 此補充說明電弧手榴彈的傷害結構及其對武器故障觸發的限制；不是遊戲內實測。
+- 遊戲原文：1.13.1／Steam Build 25606770 的 ui 資源。描述與實作的差異仍需遊戲內核對；省略細節不列為繁中誤譯。
+
+## 原文核對
+
+- 對應 hash：`22344160`。
+- 繁中與英文都概括優先披甲與專家；固定程式先指定4個品種，再篩精英及其他目標，兩處精英判斷的欄位亦不同。先記錄來源差異，不單獨判定繁中錯譯。電弧數與擊殺電容量相符。
+
+## 圖示來源
+
+[原圖](https://gameslantern.com/storage/sites/darktide/exporter/talents/cryptic/tactical/cryptic_grenade_ability_arc_grenade.webp)｜[圖片來源 Issue](https://github.com/SyuanTsai/Media-Assets/issues/13#issuecomment-5935585681)｜[圖片附件](https://github.com/user-attachments/assets/6a4875ee-4056-4964-ae36-846e598954bc)
+
+圖片僅供技能辨識，不作機制證據。
+

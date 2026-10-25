@@ -1,0 +1,12 @@
+# 撕碎：武器與型號
+
+[玩家說明](README.md)｜[來源索引](SOURCE_INDEX.md)｜[武器查詢](../../weapons/README.md)｜[共用資料](../../data/BLESSING_WEAPON_MAP.json)
+
+| 武器 | 適用型號 | 等級 | 效果差異 | 實作及來源 |
+|---|---|---|---|---|
+| 戰刃 | 戰刃 卡塔昌 Mk III | I–IV | 符合條件的非弱點近戰命中依等級對目標施加1／2／3／4層流血。 | [weapon_trait_bespoke_combatknife_p1_bleed_on_non_weakspot_hit](weapon_trait_bespoke_combatknife_p1_bleed_on_non_weakspot_hit.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_knives/combatknife_p1_m1.lua#L15)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_knives/combatknife_p1_m1.lua#L1434-L1436) |
+| 戰刃 | 戰刃 卡塔昌 Mk VI | I–IV | 符合條件的非弱點近戰命中依等級對目標施加1／2／3／4層流血。 | [weapon_trait_bespoke_combatknife_p1_bleed_on_non_weakspot_hit](weapon_trait_bespoke_combatknife_p1_bleed_on_non_weakspot_hit.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_knives/combatknife_p1_m2.lua#L15)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_knives/combatknife_p1_m2.lua#L1524-L1526) |
+| 短刀 | 短刀 臨時拼湊 型號1 | I–IV | 符合條件的非弱點近戰命中依等級對目標施加1／2／3／4層流血。 | [weapon_trait_bespoke_dual_shivs_p1_bleed_on_non_weakspot_hit](weapon_trait_bespoke_dual_shivs_p1_bleed_on_non_weakspot_hit.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/dual_shivs/dual_shivs_p1_m1.lua#L14)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/dual_shivs/dual_shivs_p1_m1.lua#L1500-L1502) |
+| 短刀 | 短刀 臨時拼湊 型號3 | I–IV | 符合條件的非弱點近戰命中依等級對目標施加1／2／3／4層流血。 | [weapon_trait_bespoke_dual_shivs_p1_bleed_on_non_weakspot_hit](weapon_trait_bespoke_dual_shivs_p1_bleed_on_non_weakspot_hit.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/dual_shivs/dual_shivs_p1_m2.lua#L14)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/dual_shivs/dual_shivs_p1_m2.lua#L1579-L1581) |
+
+- 每條型號關聯核對玩家UI、MasterItems類別與限制、固定Git模板匯入及trait接入。

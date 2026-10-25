@@ -1,0 +1,20 @@
+# 雷鳴(Thunderous)：碾壓者實作
+
+[玩家說明](README.md)｜[來源索引](SOURCE_INDEX.md)｜[型號對應](WEAPON_COMPATIBILITY.md)
+
+- 實作：`weapon_trait_bespoke_powermaul_2h_p1_targets_receive_rending_debuff`。
+- 等級覆寫：[trait](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_powermaul_2h_p1.lua#L296-L366)。
+- Buff接入：[繼承與覆寫](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/buff/weapon_traits_buff_templates/weapon_traits_bespoke_powermaul_2h_p1_buff_templates.lua#L17)。
+- 適用型號：碾壓者 憤怒 Mk IVe、碾壓者 克魯克 Mk VII。
+
+## 機制與公式
+
+- 共用觸發、狀態與完整公式見[本祝福來源與公式](SOURCE_INDEX.md)。
+
+- 實際型號：碾壓者 憤怒 Mk IVe、碾壓者 克魯克 Mk VII。所有列出的 Mark 共用已核對的普通 on-hit wrapper 與 I–IV 疊層數。
+- 兩個實際型號含直接輕／重／蓄力與推擊後掃掠；啟用特殊後另有保留原武器物品的爆炸命中，符合條件時可獨立增加目標層數。
+- [完整說明](README.md)
+
+- 等級與數值：[集中等級表](TIER_VALUES.md)。
+- 結算與算例：[百分比檢核](DAMAGE_PERCENTAGE_REVIEW.md)。
+- 原文比較：[同一名稱與描述鍵](LOCALIZATION_COMPARISON.md)。

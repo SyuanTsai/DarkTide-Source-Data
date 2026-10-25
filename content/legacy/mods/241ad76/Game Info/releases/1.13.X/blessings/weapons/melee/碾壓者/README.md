@@ -1,0 +1,23 @@
+# 碾壓者(Crusher)：對應祝福
+
+[武器索引](../../README.md)｜[全部祝福](../../../README.md)
+
+| 祝福 | 本武器主要效果 | 分類 |
+|---|---|---|
+| <img src="https://github.com/user-attachments/assets/e292ed7d-8b36-4da5-9f39-528bed983004" width="32" height="32" alt="機會主義者祝福圖示"> [機會主義者](../../../entries/機會主義者/README.md)<br>- Opportunist<br>[完整說明](../../../entries/機會主義者/README.md) | <ul><li>對傷害結算前已踉蹌或被視為踉蹌的敵人，I–IV提供10%／15%／20%／25%近戰撕裂；本擊才造成踉蹌不回溯加成。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/3a924413-234e-4bef-a8eb-1effc40b59ee" width="32" height="32" alt="創傷祝福圖示"> [創傷](../../../entries/創傷/README.md)<br>- Trauma<br>[完整說明](../../../entries/創傷/README.md) | <ul><li>每層近戰衝擊修正+14%／+16%／+18%／+20%（I–IV），最多5層；2秒期限；另有每層×1.1一般踉蹌時間倍率。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/82bed9ff-831f-4905-bcc5-3101a43fa29c" width="32" height="32" alt="推進祝福圖示"> [推進](../../../entries/推進/README.md)<br>- Thrust<br>[完整說明](../../../entries/推進/README.md) | <ul><li>每次蓄力事件增加一層近戰力量修正，最多三層；I–IV 每層分別增加 5／10／15／20 個百分點，三層上限為 15／30／45／60 個百分點。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/49d940eb-8e9b-4d06-b9ea-f8692ee158ef" width="32" height="32" alt="殺戮者祝福圖示"> [殺戮者](../../../entries/殺戮者/README.md)<br>- Slaughterer<br>[完整說明](../../../entries/殺戮者/README.md) | <ul><li>強化直接揮擊的合格近戰擊殺可增加層數；另行結算的範圍爆炸可受既有層數加成，但其擊殺不會增加層數。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/bdf43380-ae08-4838-9db7-bef2a972e2cb" width="32" height="32" alt="雷鳴祝福圖示"> [雷鳴](../../../entries/雷鳴/README.md)<br>- Thunderous<br>[完整說明](../../../entries/雷鳴/README.md) | <ul><li>符合條件的每次命中對該目標增加 I–IV 1/2/3/4 層脆弱（每層 2.5%，最多 16 層，5 秒）；重擊特殊另有攜帶原武器物品的爆炸 Attack；詳見型號差異。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/309e0a2e-5b01-4af4-bde2-cddcbd580233" width="32" height="32" alt="錘擊祝福圖示"> [錘擊](../../../entries/錘擊/README.md)<br>- Hammerblow<br>[完整說明](../../../entries/錘擊/README.md) | <ul><li>符合來源物品／持用與 profile 事件條件的命中可增加一個有效層；實際純推擊也可送 on_hit，但 push 本身不使用 melee_impact_modifier。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/d1d3d38b-e78c-45b5-ae2e-cb3d99140195" width="32" height="32" alt="碎顱者祝福圖示"> [碎顱者](../../../entries/碎顱者/README.md)<br>- Skullcrusher<br>[完整說明](../../../entries/碎顱者/README.md) | <ul><li>來源武器命中仍存活且符合 Minion 判定、事件處理時正踉蹌的目標，並通過來源物品與持用條件時，Tier I–IV 分別請求 1／2／3／4 層。每個有效層使目標踉蹌傷害池中的 damage_vs_staggered 加 10%，目標 stat 最多按 8 層計算。效果持續 5 秒；每次符合條件的命中都刷新期限，即使 helper 的 31 層原始累積上限令本次新增 0 層也會刷新。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/c6dfcb90-96c4-4417-8bf7-711560dd47e2" width="32" height="32" alt="雷霆打擊祝福圖示"> [雷霆打擊](../../../entries/雷霆打擊/README.md)<br>- Thunderstrike<br>[完整說明](../../../entries/雷霆打擊/README.md) | <ul><li>碾壓者 憤怒 Mk IVe、碾壓者 克魯克 Mk VII：每次符合條件的命中依 I–IV 請求加入 1–4 個目標端衝擊層；各有效層 +10%，最多計入 8 層。目標效果持續 5 秒；helper 原始請求到 31 後，符合條件但新增量為 0 的事件仍會刷新這 5 秒。</li></ul> | 近戰 |
+
+## 逐型號對應
+
+| 型號 | 祝福實作 | 等級 |
+|---|---|---|
+| 碾壓者 憤怒 Mk IVe | [機會主義者](../../../entries/機會主義者/weapon_trait_bespoke_powermaul_2h_p1_rending_vs_staggered.md)、[創傷](../../../entries/創傷/weapon_trait_bespoke_powermaul_2h_p1_consecutive_hits_increases_stagger.md)、[推進](../../../entries/推進/weapon_trait_bespoke_powermaul_2h_p1_windup_increases_power.md)、[殺戮者](../../../entries/殺戮者/weapon_trait_bespoke_powermaul_2h_p1_increase_power_on_kill.md)、[雷鳴](../../../entries/雷鳴/weapon_trait_bespoke_powermaul_2h_p1_targets_receive_rending_debuff.md)、[錘擊](../../../entries/錘擊/weapon_trait_bespoke_powermaul_2h_p1_stacking_increase_impact_on_hit.md)、[碎顱者](../../../entries/碎顱者/weapon_trait_bespoke_powermaul_2h_p1_staggered_targets_receive_increased_damage_debuff.md)、[雷霆打擊](../../../entries/雷霆打擊/weapon_trait_bespoke_powermaul_2h_p1_staggered_targets_receive_increased_stagger_debuff.md) | I–IV |
+| 碾壓者 克魯克 Mk VII | [機會主義者](../../../entries/機會主義者/weapon_trait_bespoke_powermaul_2h_p1_rending_vs_staggered.md)、[創傷](../../../entries/創傷/weapon_trait_bespoke_powermaul_2h_p1_consecutive_hits_increases_stagger.md)、[推進](../../../entries/推進/weapon_trait_bespoke_powermaul_2h_p1_windup_increases_power.md)、[殺戮者](../../../entries/殺戮者/weapon_trait_bespoke_powermaul_2h_p1_increase_power_on_kill.md)、[雷鳴](../../../entries/雷鳴/weapon_trait_bespoke_powermaul_2h_p1_targets_receive_rending_debuff.md)、[錘擊](../../../entries/錘擊/weapon_trait_bespoke_powermaul_2h_p1_stacking_increase_impact_on_hit.md)、[碎顱者](../../../entries/碎顱者/weapon_trait_bespoke_powermaul_2h_p1_staggered_targets_receive_increased_damage_debuff.md)、[雷霆打擊](../../../entries/雷霆打擊/weapon_trait_bespoke_powermaul_2h_p1_staggered_targets_receive_increased_stagger_debuff.md) | I–IV |
+
+表內依各型號列出對應祝福；各祝福的等級為I–IV。

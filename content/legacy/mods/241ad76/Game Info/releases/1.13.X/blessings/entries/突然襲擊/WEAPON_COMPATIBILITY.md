@@ -1,0 +1,11 @@
+# 突然襲擊：武器與型號
+
+[玩家說明](README.md)｜[來源索引](SOURCE_INDEX.md)｜[武器查詢](../../weapons/README.md)｜[共用資料](../../data/BLESSING_WEAPON_MAP.json)
+
+| 武器 | 適用型號 | 等級 | 效果差異 | 實作及來源 |
+|---|---|---|---|---|
+| 廁所鏟 | 廁所鏟 兇殘 Mk III | I–IV | 持用裝有本祝福的廁所鏟，以近戰特殊攻擊命中後，近戰暴擊機率提高 I級 +7.5、II級 +10、III級 +12.5、IV級 +15 個百分點，持續3秒；Mk III使用特殊上勾拳，Mk XIX與Mk V使用折疊模式近戰特殊攻擊。 | [weapon_trait_bespoke_ogryn_club_p1_increased_crit_chance_on_weapon_special_hit](weapon_trait_bespoke_ogryn_club_p1_increased_crit_chance_on_weapon_special_hit.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p1_m1.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p1_m1.lua#L1395-L1397) |
+| 廁所鏟 | 廁所鏟 兇殘 Mk XIX | I–IV | 持用裝有本祝福的廁所鏟，以近戰特殊攻擊命中後，近戰暴擊機率提高 I級 +7.5、II級 +10、III級 +12.5、IV級 +15 個百分點，持續3秒；Mk III使用特殊上勾拳，Mk XIX與Mk V使用折疊模式近戰特殊攻擊。 | [weapon_trait_bespoke_ogryn_club_p1_increased_crit_chance_on_weapon_special_hit](weapon_trait_bespoke_ogryn_club_p1_increased_crit_chance_on_weapon_special_hit.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p1_m2.lua#L17)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p1_m2.lua#L1668-L1670) |
+| 廁所鏟 | 廁所鏟 兇殘 Mk V | I–IV | 持用裝有本祝福的廁所鏟，以近戰特殊攻擊命中後，近戰暴擊機率提高 I級 +7.5、II級 +10、III級 +12.5、IV級 +15 個百分點，持續3秒；Mk III使用特殊上勾拳，Mk XIX與Mk V使用折疊模式近戰特殊攻擊。 | [weapon_trait_bespoke_ogryn_club_p1_increased_crit_chance_on_weapon_special_hit](weapon_trait_bespoke_ogryn_club_p1_increased_crit_chance_on_weapon_special_hit.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p1_m3.lua#L17)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p1_m3.lua#L1657-L1659) |
+
+- 每條型號關聯核對玩家UI、MasterItems類別與限制、固定Git模板匯入及trait接入。

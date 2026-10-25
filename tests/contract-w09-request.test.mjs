@@ -685,7 +685,7 @@ test('InterT04_unapproved_builder_and_validator_blobs_are_rejected_before_import
   try {
     for (const relativePath of ['scripts/content/contract-w05-build.mjs', 'scripts/content/contract-validator.mjs']) {
       const caseRoot = path.join(root, relativePath.includes('validator') ? 'modified-validator' : 'modified-builder');
-      const caseClone = spawnSync('git', ['clone', '--no-hardlinks', sourceRoot, caseRoot], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+      const caseClone = spawnSync('git', ['-c', 'core.longpaths=true', 'clone', '--no-hardlinks', sourceRoot, caseRoot], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
       assert.equal(caseClone.status, 0, caseClone.stderr);
       const setOrigin = spawnSync('git', ['-C', caseRoot, 'remote', 'set-url', 'origin', api.W09_SOURCE_ORIGIN], { encoding: 'utf8' });
       assert.equal(setOrigin.status, 0, setOrigin.stderr);
