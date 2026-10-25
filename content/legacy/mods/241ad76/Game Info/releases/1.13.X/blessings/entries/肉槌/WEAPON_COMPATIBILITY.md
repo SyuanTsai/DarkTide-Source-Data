@@ -1,0 +1,11 @@
+# 肉槌：武器與型號
+
+[玩家說明](README.md)｜[來源索引](SOURCE_INDEX.md)｜[武器查詢](../../weapons/README.md)｜[共用資料](../../data/BLESSING_WEAPON_MAP.json)
+
+| 武器 | 適用型號 | 等級 | 效果差異 | 實作及來源 |
+|---|---|---|---|---|
+| 砍刀 | 砍刀 克魯克 Mk VI | I–IV | 持用三個實際砍刀型號之一，並以特殊上勾命中敵人後啟用近戰威力加成I–IV +15／20／25／30%；計數依掃掠結束，純推擊不受益。 | [weapon_trait_bespoke_ogryn_combatblade_p1_increased_power_on_weapon_special_follow_up_hits](weapon_trait_bespoke_ogryn_combatblade_p1_increased_power_on_weapon_special_follow_up_hits.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_blades/ogryn_combatblade_p1_m1.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_blades/ogryn_combatblade_p1_m1.lua#L1331-L1333) |
+| 砍刀 | 砍刀 蠻牛屠夫 Mk III | I–IV | 持用三個實際砍刀型號之一，並以特殊上勾命中敵人後啟用近戰威力加成I–IV +15／20／25／30%；計數依掃掠結束，純推擊不受益。 | [weapon_trait_bespoke_ogryn_combatblade_p1_increased_power_on_weapon_special_follow_up_hits](weapon_trait_bespoke_ogryn_combatblade_p1_increased_power_on_weapon_special_follow_up_hits.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_blades/ogryn_combatblade_p1_m2.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_blades/ogryn_combatblade_p1_m2.lua#L1365-L1367) |
+| 砍刀 | 砍刀 克魯克 Mk IV | I–IV | 持用三個實際砍刀型號之一，並以特殊上勾命中敵人後啟用近戰威力加成I–IV +15／20／25／30%；計數依掃掠結束，純推擊不受益。 | [weapon_trait_bespoke_ogryn_combatblade_p1_increased_power_on_weapon_special_follow_up_hits](weapon_trait_bespoke_ogryn_combatblade_p1_increased_power_on_weapon_special_follow_up_hits.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_blades/ogryn_combatblade_p1_m3.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_blades/ogryn_combatblade_p1_m3.lua#L1309-L1311) |
+
+- 每條型號關聯核對玩家UI、MasterItems類別與限制、固定Git模板匯入及trait接入。

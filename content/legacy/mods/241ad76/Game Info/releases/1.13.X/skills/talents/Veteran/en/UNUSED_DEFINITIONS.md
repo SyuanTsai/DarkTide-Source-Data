@@ -1,0 +1,37 @@
+# Veteran: definitions without independent current tree nodes
+
+[繁體中文](../UNUSED_DEFINITIONS.md) | [Technical index](SOURCE_INDEX.md) | [Player descriptions](README.md)
+
+This classification compares the Veteran tree, class base talents and talent definitions at fixed SHA `7e662fcda16219d775b84af50322be2e9cd9d62e`. It means that no independent current tree node directly references the listed talent ID. It does not mean the corresponding effect or its underlying buff is entirely unused.
+
+The current tree has 74 Veteran-specific definitions and 3 shared stat definitions, for 77 nodes. There are 99 Veteran-specific talent definitions: 74 are referenced by tree nodes, 6 are supplied by class base talents, and the other 19 are listed below. Starting abilities are already included in the 77 nodes and are not counted again.
+
+| Talent ID | Classification | Definition source |
+|---|---|---|
+| `veteran_combat_ability_reloads_secondary_weapon` | No current tree node; not a class base talent | [Lines 279–289](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L279-L289) |
+| `veteran_combat_ability_melee_and_ranged_damage_to_coherency` | No current tree node; not a class base talent | [Lines 430–479](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L430-L479) |
+| `veteran_combat_ability_outlined_kills_extends_duration` | No current tree node; not a class base talent | [Lines 518–537](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L518-L537) |
+| `veteran_increase_crit_chance` | No current tree node; not a class base talent | [Lines 917–942](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L917-L942) |
+| `veteran_coherency_aura_size_increase` | No current tree node; not a class base talent | [Lines 1225–1251](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L1225-L1251) |
+| `veteran_reduced_threat_when_still` | No current tree node; not a class base talent | [Lines 1252–1267](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L1252-L1267) |
+| `veteran_increased_explosion_radius` | No current tree node; not a class base talent | [Lines 1504–1529](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L1504-L1529) |
+| `veteran_extra_grenade_throw_chance` | No current tree node; not a class base talent | [Lines 1562–1587](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L1562-L1587) |
+| `veteran_movement_speed_on_toughness_broken` | No current tree node; not a class base talent | [Lines 1638–1671](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L1638-L1671) |
+| `veteran_movement_bonuses_on_toughness_broken` | No current tree node; not a class base talent | [Lines 1672–1708](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L1672-L1708) |
+| `veteran_reduce_sprinting_cost` | No current tree node; not a class base talent | [Lines 1871–1897](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L1871-L1897) |
+| `veteran_damage_bonus_leaving_invisibility` | No current tree node; not a class base talent | [Lines 2114–2154](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L2114-L2154) |
+| `veteran_block_break_gives_tdr` | No current tree node; not a class base talent | [Lines 2212–2244](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L2212-L2244) |
+| `veteran_plasma_proficiency` | No current tree node; not a class base talent | [Lines 2403–2432](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L2403-L2432) |
+| `veteran_bolter_proficiency` | No current tree node; not a class base talent | [Lines 2457–2502](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L2457-L2502) |
+| `veteran_power_proficiency` | No current tree node; not a class base talent | [Lines 2527–2550](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L2527-L2550) |
+| `veteran_snipers_focus_stacks_on_still` | No current tree node; not a class base talent | [Lines 2677–2696](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L2677-L2696) |
+| `veteran_weapon_switch_reload_speed` | No current tree node; not a class base talent | [Lines 2889–2921](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L2889-L2921) |
+| `veteran_weapon_switch_stamina_reduction` | No current tree node; not a class base talent | [Lines 2922–2957](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L2922-L2957) |
+
+## Interpretation limits
+
+- `veteran_extra_grenade_throw_chance` has no independent node, but [Grenadier](README.md#veteran_extra_grenade) already installs the same-named additional-grenade buff. The effect must not be classified as inactive on that basis.
+- `veteran_combat_ability_outlined_kills_extends_duration` has no independent node. The absence of that old node does not determine whether [Executioner's Stance](README.md#veteran_combat_ability_elite_and_special_outlines) has a duration-extension mechanism; its own implementation must be considered separately.
+- This table does not assert that other modes, test tools or future releases cannot reference these definitions. No cross-version comparison was performed.
+
+[Class base talents](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/archetype/archetypes/veteran_archetype.lua#L50-L74) | [Grenadier loads both buffs](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/ability/archetype_talents/talents/veteran_talents.lua#L115-L127)

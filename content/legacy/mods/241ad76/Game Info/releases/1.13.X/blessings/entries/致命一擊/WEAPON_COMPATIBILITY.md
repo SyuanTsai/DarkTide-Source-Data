@@ -1,0 +1,11 @@
+# 致命一擊：武器與型號
+
+[玩家說明](README.md)｜[來源索引](SOURCE_INDEX.md)｜[武器查詢](../../weapons/README.md)｜[共用資料](../../data/BLESSING_WEAPON_MAP.json)
+
+| 武器 | 適用型號 | 等級 | 效果差異 | 實作及來源 |
+|---|---|---|---|---|
+| 重劍 | 重劍 圖妥斯基 Mk VI | I–IV | 持用圖妥斯基重劍時，I–IV 增加近戰弱點傷害修正 7.5%／10%／12.5%／15%；每次揮擊前三個角色擊殺中的非歐格林弱點擊殺，可在傷害結算後回退該目標的命中質量並解除後續中止。 | [weapon_trait_bespoke_combatsword_p2_infinite_melee_cleave_on_weakspot_kill](weapon_trait_bespoke_combatsword_p2_infinite_melee_cleave_on_weakspot_kill.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p2_m1.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p2_m1.lua#L1597-L1599) |
+| 重劍 | 重劍 圖妥斯基 Mk VII | I–IV | 持用圖妥斯基重劍時，I–IV 增加近戰弱點傷害修正 7.5%／10%／12.5%／15%；每次揮擊前三個角色擊殺中的非歐格林弱點擊殺，可在傷害結算後回退該目標的命中質量並解除後續中止。 | [weapon_trait_bespoke_combatsword_p2_infinite_melee_cleave_on_weakspot_kill](weapon_trait_bespoke_combatsword_p2_infinite_melee_cleave_on_weakspot_kill.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p2_m2.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p2_m2.lua#L1581-L1583) |
+| 重劍 | 重劍 圖妥斯基 Mk IX | I–IV | 持用圖妥斯基重劍時，I–IV 增加近戰弱點傷害修正 7.5%／10%／12.5%／15%；每次揮擊前三個角色擊殺中的非歐格林弱點擊殺，可在傷害結算後回退該目標的命中質量並解除後續中止。 | [weapon_trait_bespoke_combatsword_p2_infinite_melee_cleave_on_weakspot_kill](weapon_trait_bespoke_combatsword_p2_infinite_melee_cleave_on_weakspot_kill.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p2_m3.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p2_m3.lua#L1669-L1671) |
+
+- 每條型號關聯核對玩家UI、MasterItems類別與限制、固定Git模板匯入及trait接入。

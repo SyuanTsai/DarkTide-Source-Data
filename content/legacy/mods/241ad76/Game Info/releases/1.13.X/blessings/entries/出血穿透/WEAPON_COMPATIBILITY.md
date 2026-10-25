@@ -1,0 +1,12 @@
+# 出血穿透：武器與型號
+
+[玩家說明](README.md)｜[來源索引](SOURCE_INDEX.md)｜[武器查詢](../../weapons/README.md)｜[共用資料](../../data/BLESSING_WEAPON_MAP.json)
+
+| 武器 | 適用型號 | 等級 | 效果差異 | 實作及來源 |
+|---|---|---|---|---|
+| 矛頭爆矢槍 | 矛頭爆矢槍 洛克 Mk IIb | I–IV | 遠程直接命中造成傷害時施加1／2／3／4層流血；不要求暴擊或穿透，子爆炸與近戰推擊不觸發，最多16層。 | [weapon_trait_bespoke_bolter_p1_bleed_on_ranged](weapon_trait_bespoke_bolter_p1_bleed_on_ranged.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/bolters/bolter_p1_m1.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/bolters/bolter_p1_m1.lua#L762-L764) |
+| 矛頭爆矢槍 | 矛頭爆矢槍 洛克 Mk III | I–IV | 遠程直接命中造成傷害時施加1／2／3／4層流血；不要求暴擊或穿透，子爆炸與近戰推擊不觸發，最多16層。 | [weapon_trait_bespoke_bolter_p1_bleed_on_ranged](weapon_trait_bespoke_bolter_p1_bleed_on_ranged.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/bolters/bolter_p1_m2.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/bolters/bolter_p1_m2.lua#L757-L759) |
+| 爆彈手槍 | 爆彈手槍 戈德溫–布蘭克斯 Mk IV | I–IV | 遠程直接命中造成傷害時施加1／2／3／4層流血；不要求暴擊或穿透，子爆炸與近戰推擊不觸發，最多16層。 | [weapon_trait_bespoke_boltpistol_p1_bleed_on_ranged](weapon_trait_bespoke_boltpistol_p1_bleed_on_ranged.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/bolt_pistols/boltpistol_p1_m1.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/bolt_pistols/boltpistol_p1_m1.lua#L769-L771) |
+| 爆彈手槍 | 爆彈手槍 戈德溫–布蘭克斯 Mk VI | I–IV | 遠程直接命中造成傷害時施加1／2／3／4層流血；不要求暴擊或穿透，子爆炸與近戰推擊不觸發，最多16層。 | [weapon_trait_bespoke_boltpistol_p1_bleed_on_ranged](weapon_trait_bespoke_boltpistol_p1_bleed_on_ranged.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/bolt_pistols/boltpistol_p1_m2.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/bolt_pistols/boltpistol_p1_m2.lua#L769-L771) |
+
+- 每條型號關聯核對玩家UI、MasterItems類別與限制、固定Git模板匯入及trait接入。

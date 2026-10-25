@@ -1,0 +1,15 @@
+# 達姆彈(Dumdum)：步兵自動槍實作
+
+[玩家說明](README.md)｜[來源索引](SOURCE_INDEX.md)｜[型號對應](WEAPON_COMPATIBILITY.md)
+
+實作`weapon_trait_bespoke_autogun_p1_consecutive_hits_increases_close_damage`。[trait](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_autogun_p1.lua#L14-L63) → [Buff接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/buff/weapon_traits_buff_templates/weapon_traits_bespoke_autogun_p1_buff_templates.lua#L12-L14)。
+
+父Buff用target_number類別，條件為持用、本武器匹配及非Buff命中，沒有同目標、近距離或必須正傷害的檢查。wrapper修正共用父Buff的child_buff_template為damage_near子Buff。[base](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/buff/weapon_traits_buff_templates/base_weapon_trait_buff_templates.lua#L1737-L1761)、[匹配](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/buff/helper_functions/check_proc_functions.lua#L721-L727)。BuffUtils只排除target_number>1；本hitscan未傳該參數，Attack預設0，所以穿透後續合格目標也會計數。[hitscan](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/utilities/attack/hit_scan.lua#L215-L240)、[預設](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/utilities/attack/attack.lua#L92-L100)。
+
+首次number_of_hits未定義時設0；第二次變1仍無有效層；第三次變2，目標層數floor((hits−1)/1)=1。取得有效層後每次命中刷新last_hit_time；滿層仍刷新。逾期只在內部子層>1時清有效層並將number_of_hits設0，故逾期後第二次合格命中取得1層。射空沒有on_hit，不直接清層；初始前兩次計數沒有有效層期限，不能聲稱所有命中都要在2秒內。[計數](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/buff/buff_utils.lua#L92-L114)、[期限](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/extension_systems/buff/buffs/weapon_trait_target_number_parent_proc_buff.lua#L14-L49)。此特定初始化差異是靜態推導，待遊戲內核對。
+
+子層stack_offset−1、最多5有效層，持用時加入damage_near；普通切出保留on_equip而期限繼續。on_hit在傷害之後送出，新層數不回溯當次傷害。[事件](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/utilities/attack/attack.lua#L581-L621)。
+
+設距離d公尺，x=clamp((d−12.5)/17.5,0,1)，本祝福在傷害加成階段的額外比例為`n×v×(1−sqrt(x))`，已有同階段s時倍率`1+s+n×v×(1−sqrt(x))`。[距離](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/utilities/attack/damage_calculation.lua#L284-L297)、[常數](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/damage/damage_settings.lua#L18-L26)。原值100點、n=5、v=.06：d≤12.5得130點，d=16.875得115點，d≥30得100點；s=.20且近距離則120→150點，相對25%。距離為攻擊者與目標位置距離。[測距](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/utilities/attack/attack.lua#L335-L342)。
+
+固定SHA `7e662fcda16219d775b84af50322be2e9cd9d62e`，以上為靜態原始碼推導，未遊戲內驗證。MasterItems138291的Steam Build歸屬與後端可取得等級未知；其他武器的同名變體未核對。

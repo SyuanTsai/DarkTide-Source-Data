@@ -1,0 +1,24 @@
+# 短刀(Shivs)：對應祝福
+
+[武器索引](../../README.md)｜[全部祝福](../../../README.md)
+
+| 祝福 | 本武器主要效果 | 分類 |
+|---|---|---|
+| <img src="https://github.com/user-attachments/assets/5fb9da44-aabb-4e67-94b0-caa0a9d335a8" width="32" height="32" alt="血肉撕裂者祝福圖示"> [血肉撕裂者](../../../entries/血肉撕裂者/README.md)<br>- Flesh Tearer<br>[完整說明](../../../entries/血肉撕裂者/README.md) | <ul><li>近戰暴擊命中對目標施加5／6／7／8層流血，最多16層；流血每約0.5秒跳傷，停止施加約1.5秒後逐次退1層。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/c3b80cbc-5c0a-4281-abc5-14ab66716a72" width="32" height="32" alt="撕碎祝福圖示"> [撕碎](../../../entries/撕碎/README.md)<br>- Lacerate<br>[完整說明](../../../entries/撕碎/README.md) | <ul><li>符合條件的非弱點近戰命中依等級對目標施加1／2／3／4層流血。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/6b4dbf18-065c-4d5f-af6e-a06a6bb4adca" width="32" height="32" alt="行刑者祝福圖示"> [行刑者](../../../entries/行刑者/README.md)<br>- Executor<br>[完整說明](../../../entries/行刑者/README.md) | <ul><li>近戰弱點命中每次獲得1層威力；I–IV每層+4.5%／5%／5.5%／6%，最多5層，含滿層命中刷新2.5秒；首個近戰目標未命中弱點會清層。投擲不加層，但沿用開始投擲時的既有威力。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/0ca33a46-e0ab-4da3-abb3-ae014acaa376" width="32" height="32" alt="還擊祝福圖示"> [還擊](../../../entries/還擊/README.md)<br>- Riposte<br>[完整說明](../../../entries/還擊/README.md) | <ul><li>成功閃避敵方攻擊後，提高12.5／15／17.5／20個百分點的爆擊率，持續6秒；再次合格閃避刷新，切出時加成暫停、期限繼續。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/9a361b5a-a825-4cb1-a115-953bdc3075e6" width="32" height="32" alt="未卜先知祝福圖示"> [未卜先知](../../../entries/未卜先知/README.md)<br>- Precognition<br>[完整說明](../../../entries/未卜先知/README.md) | <ul><li>成功閃避後，2秒內使暴擊或弱點命中的 Finesse 傷害組件提高30／35／40／45%；總命中增幅取決於 Finesse 組件比例。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/b9fd0379-1424-48e1-8f8b-d7fbef8c9388" width="32" height="32" alt="仁慈殺手祝福圖示"> [仁慈殺手](../../../entries/仁慈殺手/README.md)<br>- Mercy Killer<br>[完整說明](../../../entries/仁慈殺手/README.md) | <ul><li>持用時對已有流血狀態的目標造成近戰弱點命中，I–IV 向弱點／精準額外傷害乘區加入 52.5%／55%／57.5%／60%；流血層數不縮放這個加值，最終傷害增幅另按公式計算。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/9a68dfab-1a01-42c6-a9fa-ffe4d8295036" width="32" height="32" alt="強力一擊祝福圖示"> [強力一擊](../../../entries/強力一擊/README.md)<br>- Haymaker<br>[完整說明](../../../entries/強力一擊/README.md) | <ul><li>持用此武器，以重擊命中後增加一層；合格重擊按已有層數取得每層 1／2／3／4 個百分點的秒殺機率，最多五層、上限 5%／10%／15%／20%。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/fa42d7e1-e0d1-4701-bcc5-04caada37d5c" width="32" height="32" alt="無情背刺祝福圖示"> [無情背刺](../../../entries/無情背刺/README.md)<br>- Ruthless Backstab<br>[完整說明](../../../entries/無情背刺/README.md) | <ul><li>短刀 臨時拼湊 型號1／型號3：只有符合近戰有效背刺幾何條件且持用此武器時，套用 I–IV 級 +70%／+80%／+90%／+100% 背刺撕裂加算。純推擊不符合；特殊投擲是遠程攻擊，不符合近戰背刺條件。</li></ul> | 近戰 |
+| <img src="https://github.com/user-attachments/assets/8b38db40-8dbe-4da9-9a0a-618e356a1966" width="32" height="32" alt="詭異打擊祝福圖示"> [詭異打擊](../../../entries/詭異打擊/README.md)<br>- Uncanny Strike<br>[完整說明](../../../entries/詭異打擊/README.md) | <ul><li>此系每次合格弱點命中增加 1／2／3／4 層目標脆弱；每層 2.5 個百分點，最多 16 層，持續 5 秒。</li></ul> | 近戰 |
+
+## 逐型號對應
+
+| 型號 | 祝福實作 | 等級 |
+|---|---|---|
+| 短刀 臨時拼湊 型號1 | [血肉撕裂者](../../../entries/血肉撕裂者/weapon_trait_bespoke_dual_shivs_p1_bleed_on_crit.md)、[撕碎](../../../entries/撕碎/weapon_trait_bespoke_dual_shivs_p1_bleed_on_non_weakspot_hit.md)、[行刑者](../../../entries/行刑者/weapon_trait_bespoke_dual_shivs_p1_chained_weakspot_hits_increases_power.md)、[還擊](../../../entries/還擊/weapon_trait_bespoke_dual_shivs_p1_dodge_grants_critical_strike_chance.md)、[未卜先知](../../../entries/未卜先知/weapon_trait_bespoke_dual_shivs_p1_dodge_grants_finesse_bonus.md)、[仁慈殺手](../../../entries/仁慈殺手/weapon_trait_bespoke_dual_shivs_p1_increased_weakspot_damage_against_bleeding.md)、[強力一擊](../../../entries/強力一擊/weapon_trait_bespoke_dual_shivs_p1_heavy_chained_hits_increases_killing_blow_chance.md)、[無情背刺](../../../entries/無情背刺/weapon_trait_bespoke_dual_shivs_p1_rending_on_backstab.md)、[詭異打擊](../../../entries/詭異打擊/weapon_trait_bespoke_dual_shivs_p1_stacking_rending_on_weakspot.md) | I–IV |
+| 短刀 臨時拼湊 型號3 | [血肉撕裂者](../../../entries/血肉撕裂者/weapon_trait_bespoke_dual_shivs_p1_bleed_on_crit.md)、[撕碎](../../../entries/撕碎/weapon_trait_bespoke_dual_shivs_p1_bleed_on_non_weakspot_hit.md)、[行刑者](../../../entries/行刑者/weapon_trait_bespoke_dual_shivs_p1_chained_weakspot_hits_increases_power.md)、[還擊](../../../entries/還擊/weapon_trait_bespoke_dual_shivs_p1_dodge_grants_critical_strike_chance.md)、[未卜先知](../../../entries/未卜先知/weapon_trait_bespoke_dual_shivs_p1_dodge_grants_finesse_bonus.md)、[仁慈殺手](../../../entries/仁慈殺手/weapon_trait_bespoke_dual_shivs_p1_increased_weakspot_damage_against_bleeding.md)、[強力一擊](../../../entries/強力一擊/weapon_trait_bespoke_dual_shivs_p1_heavy_chained_hits_increases_killing_blow_chance.md)、[無情背刺](../../../entries/無情背刺/weapon_trait_bespoke_dual_shivs_p1_rending_on_backstab.md)、[詭異打擊](../../../entries/詭異打擊/weapon_trait_bespoke_dual_shivs_p1_stacking_rending_on_weakspot.md) | I–IV |
+
+表內依各型號列出對應祝福；各祝福的等級為I–IV。

@@ -1,0 +1,25 @@
+# 重型鐳射手槍(Heavy Laspistol)：對應祝福
+
+[武器索引](../../README.md)｜[全部祝福](../../../README.md)
+
+| 祝福 | 本武器主要效果 | 分類 |
+|---|---|---|
+| <img src="https://github.com/user-attachments/assets/a11fa52e-95d6-46e4-bfd1-5fb7bb132120" width="32" height="32" alt="達姆彈祝福圖示"> [達姆彈](../../../entries/達姆彈/README.md)<br>- Dumdum<br>[完整說明](../../../entries/達姆彈/README.md) | <ul><li>每層4.5／5／5.5／6%，5層，距離衰減相同</li></ul> | 遠程 |
+| <img src="https://github.com/user-attachments/assets/8ad696a1-e0d1-4a5b-a352-4597b5c71b90" width="32" height="32" alt="掃射祝福圖示"> [掃射](../../../entries/掃射/README.md)<br>- Raking Fire<br>[完整說明](../../../entries/掃射/README.md) | <ul><li>從敵人背面半圈射擊時，I–IV傷害增加32.5%／35%／37.5%／40%；持用期間逐次判定，沒有疊層或倒數。</li></ul> | 遠程 |
+| <img src="https://github.com/user-attachments/assets/c00f0d06-a32b-43c4-a438-76598dd7c8f9" width="32" height="32" alt="連跑帶打祝福圖示"> [連跑帶打](../../../entries/連跑帶打/README.md)<br>- Run 'n' Gun<br>[完整說明](../../../entries/連跑帶打/README.md) | <ul><li>可在衝刺時腰射；I–IV衝刺近距離傷害+6%／9%／12%／15%；散布常駐減少30%。</li></ul> | 遠程 |
+| <img src="https://github.com/user-attachments/assets/35d32d65-5cd0-478f-ad49-38860d19a111" width="32" height="32" alt="煉獄祝福圖示"> [煉獄](../../../entries/煉獄/README.md)<br>- Infernus<br>[完整說明](../../../entries/煉獄/README.md) | <ul><li>遠程暴擊造成正傷害時，每次新增1／2／3／4層燃燒，上限3／6／9／12層；添層或剛好滿層再觸發時刷新基礎4秒期限，之後每0.5秒節拍移除一層。</li></ul> | 遠程 |
+| <img src="https://github.com/user-attachments/assets/6b238342-7828-4bb3-af20-1e092a318887" width="32" height="32" alt="幽靈祝福圖示"> [幽靈](../../../entries/幽靈/README.md)<br>- Ghost<br>[完整說明](../../../entries/幽靈/README.md) | <ul><li>持用時，以該武器命中弱點觸發 0.6／0.8／1.0／1.2 秒的遠程攻擊閃避效果；只有實際可閃避的遠程攻擊會被視為閃避。</li></ul> | 遠程 |
+| <img src="https://github.com/user-attachments/assets/f38673e8-c0ad-4bfb-801b-05501784a1a5" width="32" height="32" alt="亡命之徒祝福圖示"> [亡命之徒](../../../entries/亡命之徒/README.md)<br>- Desperado<br>[完整說明](../../../entries/亡命之徒/README.md) | <ul><li>成功閃避後，爆擊率提高 12.5／15／17.5／20 個百分點，持續 6 秒；四級數值各自為 I／II／III／IV。</li></ul> | 遠程 |
+| <img src="https://github.com/user-attachments/assets/b66dd253-275d-4c41-8ec0-8543458fa629" width="32" height="32" alt="集中火力祝福圖示"> [集中火力](../../../entries/集中火力/README.md)<br>- Concentrated Fire<br>[完整說明](../../../entries/集中火力/README.md) | <ul><li>奧克塔蘭MG Mk II：每次遠程弱點射擊結果加一層；依 I–IV 每層 +2/+3/+4/+5 個百分點，最多五層。下一個非弱點射擊結果重設；無時間衰減。</li></ul> | 遠程 |
+| <img src="https://github.com/user-attachments/assets/ed5c7d7f-02a2-4bea-9463-c4380478a244" width="32" height="32" alt="快速裝彈祝福圖示"> [快速裝彈](../../../entries/快速裝彈/README.md)<br>- Speedload<br>[完整說明](../../../entries/快速裝彈/README.md) | <ul><li>近距離遠程擊殺通過實際事件條件後，每個有效層加 7/8/9/10% 裝填速度；最多5層，每次合格事件後3秒到期。</li></ul> | 遠程 |
+| <img src="https://github.com/user-attachments/assets/22eb124d-e729-4b45-b8ed-31e47d3e1085" width="32" height="32" alt="慰藉精準祝福圖示"> [慰藉精準](../../../entries/慰藉精準/README.md)<br>- Reassuringly Accurate<br>[完整說明](../../../entries/慰藉精準/README.md) | <ul><li>奧克塔蘭MG Mk II 的一般與瞄準射擊都走命中掃描；只有同一件武器的實際致命一擊擊殺才回復韌性。</li></ul> | 遠程 |
+| <img src="https://github.com/user-attachments/assets/8c0a5c18-354f-4503-aa10-004d7e6ef333" width="32" height="32" alt="正中眉心祝福圖示"> [正中眉心](../../../entries/正中眉心/README.md)<br>- Between the Eyes<br>[完整說明](../../../entries/正中眉心/README.md) | <ul><li>同一武器命中實際弱點後清除持用者壓制並刷新單一壓制免疫計時窗；I–IV 持續 2.4／2.8／3.2／3.6 秒。</li></ul> | 遠程 |
+
+## 逐型號對應
+
+| 型號 | 祝福實作 | 等級 |
+|---|---|---|
+| 重型鐳射手槍 奧克塔蘭MG Mk II | [達姆彈](../../../entries/達姆彈/weapon_trait_bespoke_laspistol_p1_consecutive_hits_increases_close_damage.md)、[掃射](../../../entries/掃射/weapon_trait_bespoke_laspistol_p1_allow_flanking_and_increased_damage_when_flanking.md)、[連跑帶打](../../../entries/連跑帶打/weapon_trait_bespoke_laspistol_p1_hipfire_while_sprinting.md)、[煉獄](../../../entries/煉獄/weapon_trait_bespoke_laspistol_p1_burninating_on_crit.md)、[幽靈](../../../entries/幽靈/weapon_trait_bespoke_laspistol_p1_count_as_dodge_vs_ranged_on_weakspot.md)、[亡命之徒](../../../entries/亡命之徒/weapon_trait_bespoke_laspistol_p1_dodge_grants_critical_strike_chance.md)、[集中火力](../../../entries/集中火力/weapon_trait_bespoke_laspistol_p1_chained_weakspot_hits_increases_crit_chance.md)、[快速裝彈](../../../entries/快速裝彈/weapon_trait_bespoke_laspistol_p1_reload_speed_on_slide.md)、[慰藉精準](../../../entries/慰藉精準/weapon_trait_bespoke_laspistol_p1_toughness_on_crit_kills.md)、[正中眉心](../../../entries/正中眉心/weapon_trait_bespoke_laspistol_p1_suppression_negation_on_weakspot.md) | I–IV |
+| 重型鐳射手槍 卡特雷爾 Mk X | [達姆彈](../../../entries/達姆彈/weapon_trait_bespoke_laspistol_p1_consecutive_hits_increases_close_damage.md)、[掃射](../../../entries/掃射/weapon_trait_bespoke_laspistol_p1_allow_flanking_and_increased_damage_when_flanking.md)、[連跑帶打](../../../entries/連跑帶打/weapon_trait_bespoke_laspistol_p1_hipfire_while_sprinting.md)、[煉獄](../../../entries/煉獄/weapon_trait_bespoke_laspistol_p1_burninating_on_crit.md)、[幽靈](../../../entries/幽靈/weapon_trait_bespoke_laspistol_p1_count_as_dodge_vs_ranged_on_weakspot.md)、[快速裝彈](../../../entries/快速裝彈/weapon_trait_bespoke_laspistol_p1_reload_speed_on_slide.md)、[正中眉心](../../../entries/正中眉心/weapon_trait_bespoke_laspistol_p1_suppression_negation_on_weakspot.md) | I–IV |
+
+表內依各型號列出對應祝福；各祝福的等級為I–IV。

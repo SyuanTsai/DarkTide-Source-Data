@@ -1,0 +1,13 @@
+# 粉碎(Shred)：戰鬥斧實作
+
+[玩家說明](README.md)｜[來源索引](SOURCE_INDEX.md)｜[型號對應](WEAPON_COMPATIBILITY.md)
+
+實作`weapon_trait_bespoke_combataxe_p1_chained_hits_increases_crit_chance`。[trait](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_combataxe_p1.lua#L64-L113) → [Buff接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/buff/weapon_traits_buff_templates/weapon_traits_bespoke_combataxe_p1_buff_templates.lua#L19-L21)。
+
+共用父Buff監聽on_sweep_finish，只看num_hit_units>0，不比較combo_count或目標身分。初始化占位1層，stack_offset−1使起始有效0層；每次合格揮擊加1，最多內部6／有效5層。揮空移除有效層，滿層呼叫加0層仍刷新共同3.5秒期限。[觸發](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/buff/weapon_traits_buff_templates/base_weapon_trait_buff_templates.lua#L98-L131)、[類別](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/extension_systems/buff/buffs/weapon_trait_activated_parent_proc_buff.lua#L49-L76)、[期限](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/extension_systems/buff/buffs/weapon_trait_parent_proc_buff.lua#L92-L163)。
+
+ActionSweep.start先判定暴擊，揮擊結束事件才增加本祝福層數；所以新層數不回溯改變當次暴擊。[開始](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/extension_systems/weapon/actions/action_sweep.lua#L207-L245)、[結束](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/extension_systems/weapon/actions/action_sweep.lua#L944-L961)。此trait為on_equip；一般切出不移除父Buff，只停止條件效果，期限繼續；切回期限內層數恢復。[生命週期](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/extension_systems/weapon/player_unit_weapon_extension.lua#L633-L661)、[切出](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/extension_systems/weapon/player_unit_weapon_extension.lua#L743-L785)。
+
+爆擊率先加算角色基礎、祝福、近戰及武器處理加成，再限制到0–100%；若有爆擊率轉傷害則另外減少機率。公式`clamp(c + s + n×v, 0, 1)`適用於沒有轉換的例子。[chance](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/utilities/attack/critical_strike.lua#L13-L39)。假設c=.05、s=0、第四組v=.04、n=5，結果`.05+5×.04=.25=25%`；已有s=.10時為35%。玩家意義是增加機率百分點，不是提高整次傷害20%。判定前機率四捨五入到小數第二位，使用偽隨機分布；不把未取整機率當長期實測。[is_critical_strike](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/utilities/attack/critical_strike.lua#L5-L10)。
+
+固定SHA `7e662fcda16219d775b84af50322be2e9cd9d62e`，以上為靜態原始碼推導，未遊戲內驗證。MasterItems138291的Steam Build歸屬與後端可取得等級未知；其他武器的同名變體未核對。

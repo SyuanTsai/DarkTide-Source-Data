@@ -1,0 +1,11 @@
+# 集中火力：武器與型號
+
+[玩家說明](README.md)｜[來源索引](SOURCE_INDEX.md)｜[武器查詢](../../weapons/README.md)｜[共用資料](../../data/BLESSING_WEAPON_MAP.json)
+
+| 武器 | 適用型號 | 等級 | 效果差異 | 實作及來源 |
+|---|---|---|---|---|
+| 重型鐳射手槍 | 重型鐳射手槍 奧克塔蘭MG Mk II | I–IV | 奧克塔蘭MG Mk II：每次遠程弱點射擊結果加一層；依 I–IV 每層 +2/+3/+4/+5 個百分點，最多五層。下一個非弱點射擊結果重設；無時間衰減。 | [weapon_trait_bespoke_laspistol_p1_chained_weakspot_hits_increases_crit_chance](weapon_trait_bespoke_laspistol_p1_chained_weakspot_hits_increases_crit_chance.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/laspistols/laspistol_p1_m1.lua#L16)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/laspistols/laspistol_p1_m1.lua#L858-L860) |
+| 針彈手槍 | 針彈手槍 布蘭克斯 MkVI | I–IV | 布蘭克斯 MkVI 與 MKII：普通、瞄準及化學模式射擊依每發弱點結果加一層，I–IV 每層 +2/+3/+4/+5 個百分點，最多五層。下一個非弱點射擊結果重設；無時間衰減。 | [weapon_trait_bespoke_needlepistol_p1_chained_weakspot_hits_increases_crit_chance](weapon_trait_bespoke_needlepistol_p1_chained_weakspot_hits_increases_crit_chance.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/needlepistols/needlepistol_p1_m1.lua#L17)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/needlepistols/needlepistol_p1_m1.lua#L791-L793) |
+| 針彈手槍 | 針彈手槍 布蘭克斯 MKII | I–IV | 布蘭克斯 MkVI 與 MKII：普通、瞄準及化學模式射擊依每發弱點結果加一層，I–IV 每層 +2/+3/+4/+5 個百分點，最多五層。下一個非弱點射擊結果重設；無時間衰減。 | [weapon_trait_bespoke_needlepistol_p1_chained_weakspot_hits_increases_crit_chance](weapon_trait_bespoke_needlepistol_p1_chained_weakspot_hits_increases_crit_chance.md)；[匯入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/needlepistols/needlepistol_p1_m2.lua#L17)、[接入](https://github.com/Aussiemon/Darktide-Source-Code/blob/7e662fcda16219d775b84af50322be2e9cd9d62e/scripts/settings/equipment/weapon_templates/needlepistols/needlepistol_p1_m2.lua#L788-L790) |
+
+- 每條型號關聯核對玩家UI、MasterItems類別與限制、固定Git模板匯入及trait接入。
