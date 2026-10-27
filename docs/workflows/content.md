@@ -36,3 +36,29 @@ Run `npm run content:w12:changes -- --package-dir <W05-package-directory> --to-r
 The [formal W12 baseline log](../analysis/w12/1fdd0881633c623ed8f5ad294613a0747d675e1dad2266b844ce42bf72f73520/game-changes.md) was generated from the already-approved W05 package. It reports no new confirmed game changes and retains the original source revision; it is not a new Source archive or a Web publication receipt.
 
 The automatic `main` formal-handoff workflow runs only for changes beneath `content/` or to `scripts/content/contract-*.mjs`. W12 helper, tests, documentation, package-script, and workflow-metadata changes are validated by the pull-request test job without automatically requesting a new Source archive. The existing manual dispatch remains available for an explicitly selected existing release ID.
+
+## Game info source workflow handoff
+
+The historical `AI Prompt/Game-Info-Workflow.md` is a source reference, not an executable approval or release instruction. For current technical authoring, follow the checked-in [Source content workflow](content.md), the versioned authoring schema, and the W08 compiler. Keep stable game facts, numeric values, explicit unknowns, source references, and dependency receipts in this repository; player wording, errata, localized terms, and official announcements belong to DarkTide-Web. A publication date or a dated announcement does not establish a game release or build. Run the existing validators and compiler for the changed Source-owned fields; compiler output does not create human review receipts.
+
+## W15 terminology reference handoff
+
+[The W15 term reference candidate](../references/w15/term-candidates.json) is a reference-only, pending projection of the fixed W03 M08 rows assigned to Source. It retains the exact Mods commit, path, selector, fragment hash, and Source-owned context for each row. It is not part of `content/`, has no game release assignment, creates no approval receipt, and is not publication eligible. Review and promote any technical term through the existing Source authoring and receipt workflow; Web-owned Traditional Chinese labels remain in Web's separate pending candidate.
+
+To regenerate or verify this file, run the W15 Web migration report from its repository root and pass this Source checkout as the output root:
+
+```powershell
+node scripts/content/w15-migration-report.mjs --write-source-m08 <Source-repository-root>
+node scripts/content/w15-migration-report.mjs --verify-source-m08 <Source-repository-root>
+```
+
+## Local Game Info Markdown-reference check
+
+The fixed M07 `scripts/game-info/validate_game_info.py` checks local Markdown links, image paths, and fragment anchors. It reads only the supplied local directory, does not request remote URLs, and is not a gameplay schema validator or evidence/review tool. By default it skips `vendor` and extracted-text directories; use repeated `--exclude-dir` options for other local snapshots. Remote references are counted but not fetched or asserted.
+
+```powershell
+python scripts/game-info/validate_game_info.py --root "<local Game Info directory>"
+python -m unittest discover -s scripts/game-info/tests -p test_validate_game_info.py -v
+```
+
+The two synthetic tests cover explicit snapshot exclusions and the separate `--include-local-source` switch. This check replaces only the legacy local-link/anchor check in its documented scope; the W08 compiler and existing typed-content validators remain responsible for Source records and references.
