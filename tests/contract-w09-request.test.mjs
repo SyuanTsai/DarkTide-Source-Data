@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
@@ -712,6 +712,75 @@ test('InterT04_unapproved_builder_and_validator_blobs_are_rejected_before_import
       assert.ok(prepareError, 'an unapproved W05 runtime must be rejected');
       assert.match(prepareError.message, /approved Source runtime|pinned Source runtime|runtime pin|runtime hash/iu);
     }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+// Scenario: The Source owner advances only the fixed W09 validator and schema pins while retaining the W05 build tools.
+// Purpose: Accept either complete approved runtime set and reject a mixed old/new set before importing it.
+test('InterT07_exact_runtime_pin_sets_accept_old_and_new_but_reject_mixed', async () => {
+  const loadRuntime = requireExport('loadW09ApprovedSourceRuntime');
+  const cleanupRuntime = requireExport('cleanupW09ApprovedSourceRuntime');
+  const root = await mkdtemp(path.join(os.tmpdir(), 'w09-runtime-pin-sets-'));
+  const fixtureRoot = path.join(root, 'source');
+  const git = (args, { binary = false } = {}) => {
+    const result = spawnSync('git', ['-C', fixtureRoot, ...args], {
+      encoding: binary ? undefined : 'utf8',
+      maxBuffer: 32 * 1024 * 1024
+    });
+    assert.equal(result.status, 0, result.stderr?.toString?.() ?? result.stderr ?? result.stdout?.toString?.());
+    return result.stdout;
+  };
+  const sourceBlob = (commit, relativePath) => {
+    const result = spawnSync('git', ['-C', sourceRoot, 'show', `${commit}:${relativePath}`], { maxBuffer: 32 * 1024 * 1024 });
+    assert.equal(result.status, 0, result.stderr?.toString?.() ?? 'fixed runtime source blob must exist');
+    return result.stdout;
+  };
+  const writePinSet = async (files, commit) => {
+    for (const file of files) {
+      const destination = path.join(fixtureRoot, ...file.path.split('/'));
+      await mkdir(path.dirname(destination), { recursive: true });
+      await writeFile(destination, sourceBlob(commit, file.path));
+    }
+    git(['add', '--all']);
+    const committed = spawnSync('git', [
+      '-C', fixtureRoot, '-c', 'user.name=W09 test', '-c', 'user.email=w09-test@example.invalid',
+      'commit', '-m', 'W09 approved runtime pin-set fixture'
+    ], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    assert.equal(committed.status, 0, committed.stderr);
+    return git(['rev-parse', 'HEAD']).trim();
+  };
+
+  try {
+    const initialized = spawnSync('git', ['init', fixtureRoot], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    assert.equal(initialized.status, 0, initialized.stderr);
+    git(['config', 'core.autocrlf', 'false']);
+    git(['remote', 'add', 'origin', api.W09_SOURCE_ORIGIN]);
+
+    const oldCommit = await writePinSet(api.W09_APPROVED_SOURCE_RUNTIME_FILES, api.W09_APPROVED_SOURCE_RUNTIME_COMMIT);
+    const oldRuntime = await loadRuntime({ sourceRoot: fixtureRoot, sourceCommit: oldCommit });
+    try { assert.equal(oldRuntime.identity.approvedAtCommit, api.W09_APPROVED_SOURCE_RUNTIME_COMMIT); }
+    finally { await cleanupRuntime(oldRuntime); }
+
+    const newCommit = await writePinSet(api.W09_APPROVED_SOURCE_RUNTIME_NEXT_FILES, api.W09_APPROVED_SOURCE_RUNTIME_NEXT_COMMIT);
+    const newRuntime = await loadRuntime({ sourceRoot: fixtureRoot, sourceCommit: newCommit });
+    try { assert.equal(newRuntime.identity.approvedAtCommit, api.W09_APPROVED_SOURCE_RUNTIME_NEXT_COMMIT); }
+    finally { await cleanupRuntime(newRuntime); }
+
+    const oldValidator = sourceBlob(api.W09_APPROVED_SOURCE_RUNTIME_COMMIT, 'scripts/content/contract-validator.mjs');
+    await writeFile(path.join(fixtureRoot, 'scripts/content/contract-validator.mjs'), oldValidator);
+    git(['add', 'scripts/content/contract-validator.mjs']);
+    const mixedCommitResult = spawnSync('git', [
+      '-C', fixtureRoot, '-c', 'user.name=W09 test', '-c', 'user.email=w09-test@example.invalid',
+      'commit', '-m', 'W09 mixed runtime pin-set fixture'
+    ], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    assert.equal(mixedCommitResult.status, 0, mixedCommitResult.stderr);
+    const mixedCommit = git(['rev-parse', 'HEAD']).trim();
+    await assert.rejects(
+      loadRuntime({ sourceRoot: fixtureRoot, sourceCommit: mixedCommit }),
+      /exact approved W09 code hash set/u
+    );
   } finally {
     await rm(root, { recursive: true, force: true });
   }
