@@ -1785,8 +1785,11 @@ function validateReferences(contract, releaseMap, recordMap, sourceMap, issues) 
       if (!target) { issues.push({ path: base, code: 'dangling-record-ref', message: `Unknown record ref ${ref.gameReleaseId}:${ref.recordId}` }); continue; }
       const wrongKind = expectedKindIssue(field, target.kind);
       if (wrongKind) issues.push({ path: base, code: 'wrong-kind-ref', message: wrongKind });
-      if (target.gameReleaseId !== record.gameReleaseId) validateCompatibility(ref.compatibilityRef, record.gameReleaseId, target.gameReleaseId, contract, releaseMap, issues, base);
-      else if (ref.compatibilityRef) issues.push({ path: base, code: 'unneeded-compatibility', message: 'Same-release record refs must not carry compatibilityRef' });
+      const isComparedRuleValue = record.kind === 'game-change'
+        && record.payload.changedFields?.some((changedField) => changedField.valueKind === 'modifier-rule-reference'
+          && (changedField.before === ref || changedField.after === ref));
+      if (target.gameReleaseId !== record.gameReleaseId && !isComparedRuleValue) validateCompatibility(ref.compatibilityRef, record.gameReleaseId, target.gameReleaseId, contract, releaseMap, issues, base);
+      else if (ref.compatibilityRef) issues.push({ path: base, code: 'unneeded-compatibility', message: 'Same-release refs and exact game-change comparison refs must not carry compatibilityRef' });
     }
     const sourceLinks = collectSourceLinks(record);
     for (const link of sourceLinks) {
@@ -1850,8 +1853,32 @@ function validateCompatibilityAndChanges(contract, releaseMap, recordMap, issues
           issues.push({ path: `${base}/payload/comparison`, code: 'invalid-change-snapshot', message: 'Game change must compare distinct snapshots with different manifest or content digests' });
         }
       }
-      if (record.payload.operation === 'modified') for (const [fieldIndex, field] of record.payload.changedFields.entries()) {
-        if (typedValueEqual(field.before, field.after)) issues.push({ path: `${base}/payload/changedFields/${fieldIndex}`, code: 'unchanged-game-change-field', message: 'A modified game-change field must have distinct before and after values' });
+      for (const [fieldIndex, field] of record.payload.changedFields.entries()) {
+        const fieldPath = `${base}/payload/changedFields/${fieldIndex}`;
+        if (field.valueKind === 'modifier-rule-reference') {
+          const beforeRule = recordMap.get(recordKey(field.before?.recordId, field.before?.gameReleaseId));
+          const afterRule = recordMap.get(recordKey(field.after?.recordId, field.after?.gameReleaseId));
+          if (record.payload.operation !== 'modified') {
+            issues.push({ path: fieldPath, code: 'game-change-rule-operation', message: 'Modifier-rule references describe a modified rule and cannot be used for added or removed game-change operations' });
+          }
+          if (field.before?.gameReleaseId !== compare.fromGameReleaseId || field.after?.gameReleaseId !== compare.toGameReleaseId) {
+            issues.push({ path: fieldPath, code: 'game-change-rule-release', message: 'Modifier-rule references must bind the exact before and after comparison releases' });
+          }
+          if (beforeRule?.kind !== 'modifier-rule' || afterRule?.kind !== 'modifier-rule') {
+            issues.push({ path: fieldPath, code: 'game-change-rule-kind', message: 'Rule-reference game changes must resolve both values to modifier-rule records' });
+          } else {
+            const semanticPayload = (rule) => {
+              const payload = structuredClone(rule.payload);
+              delete payload.evidenceRefs;
+              return payload;
+            };
+            if (jsonEqual(semanticPayload(beforeRule), semanticPayload(afterRule))) {
+              issues.push({ path: fieldPath, code: 'unchanged-game-change-rule', message: 'A rule-reference game change must compare distinct modifier-rule content, not only record identities' });
+            }
+          }
+        } else if (record.payload.operation === 'modified' && typedValueEqual(field.before, field.after)) {
+          issues.push({ path: fieldPath, code: 'unchanged-game-change-field', message: 'A modified game-change field must have distinct before and after values' });
+        }
       }
       const entity = record.payload.entityRef && recordMap.get(recordKey(record.payload.entityRef.recordId, record.payload.entityRef.gameReleaseId));
       if (entity && entity.gameReleaseId !== compare.toGameReleaseId) issues.push({ path: `${base}/payload/entityRef`, code: 'change-entity-release', message: 'Game change entity must be resolved at the target game release' });

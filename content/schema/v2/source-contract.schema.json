@@ -3797,29 +3797,30 @@
       }
     },
     "changedField": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "field",
-        "before",
-        "after",
-        "unit"
-      ],
-      "properties": {
-        "field": {
-          "type": "string",
-          "minLength": 1
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [ "field", "before", "after", "unit" ],
+          "properties": {
+            "field": { "type": "string", "minLength": 1 },
+            "before": { "$ref": "#/$defs/typedValue" },
+            "after": { "$ref": "#/$defs/typedValue" },
+            "unit": { "$ref": "#/$defs/unit" }
+          }
         },
-        "before": {
-          "$ref": "#/$defs/typedValue"
-        },
-        "after": {
-          "$ref": "#/$defs/typedValue"
-        },
-        "unit": {
-          "$ref": "#/$defs/unit"
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [ "field", "valueKind", "before", "after" ],
+          "properties": {
+            "field": { "type": "string", "minLength": 1 },
+            "valueKind": { "const": "modifier-rule-reference" },
+            "before": { "$ref": "#/$defs/recordRef" },
+            "after": { "$ref": "#/$defs/recordRef" }
+          }
         }
-      }
+      ]
     },
     "gameChangePayload": {
       "type": "object",
