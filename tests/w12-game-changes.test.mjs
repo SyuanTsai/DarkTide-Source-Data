@@ -5,13 +5,52 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { createReviewReceipt, loadContractSchema, loadRepresentativeFixture } from '../scripts/content/contract-validator.mjs';
+import { createReviewReceipt, loadContractSchema, loadRepresentativeFixture, validateSourceContract } from '../scripts/content/contract-validator.mjs';
 import { analyzeGameChangeTransition, compareSemanticRecords, createTechnicalChangelog, renderTechnicalChangelogMarkdown, verifyW05TechnicalPackage } from '../scripts/content/w12-game-changes.mjs';
 import { buildContractCandidate } from '../scripts/content/contract-w05-build.mjs';
 
 const schema = await loadContractSchema();
 const fixture = await loadRepresentativeFixture();
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+function modifierRuleChangeFixture() {
+  const contract = structuredClone(fixture);
+  const beforeRule = contract.records.find(row => row.kind === 'modifier-rule' && row.gameReleaseId === 'fixture-r1');
+  const afterRule = structuredClone(beforeRule);
+  afterRule.recordId = 'fixture:rule:alpha-r2';
+  afterRule.gameReleaseId = 'fixture-r2';
+  afterRule.payload.triggerText = 'Changed synthetic trigger.';
+  afterRule.payload.evidenceRefs = [{ recordId: 'fixture:evidence:r2', gameReleaseId: 'fixture-r2' }];
+  afterRule.sourceRefs = [{ sourceId: 'fixture-public-code-r2', gameReleaseId: 'fixture-r2' }];
+  contract.records.push(afterRule);
+  const change = contract.records.find(row => row.kind === 'game-change');
+  change.payload.changedFields = [{
+    field: 'rule.triggerText',
+    valueKind: 'modifier-rule-reference',
+    before: { recordId: beforeRule.recordId, gameReleaseId: beforeRule.gameReleaseId },
+    after: { recordId: afterRule.recordId, gameReleaseId: afterRule.gameReleaseId },
+  }];
+  return contract;
+}
+
+function approveFixture(contract) {
+  contract.fixtureOnly = false;
+  contract.publicationEligible = true;
+  for (const row of contract.records) row.reviewState = 'approved';
+  for (const row of contract.tombstones) row.reviewState = 'approved';
+  contract.reviewReceipts = [];
+  for (const row of contract.records) for (const target of row.reviewTargets ?? []) {
+    contract.reviewReceipts.push(createReviewReceipt(contract, {
+      ...target, recordId: row.recordId, gameReleaseId: row.gameReleaseId,
+    }, { reviewer: { kind: 'human', id: 'reviewer:synthetic-test' }, reviewedAt: '2026-01-01T00:00:00Z' }));
+  }
+  for (const row of contract.tombstones) for (const target of row.reviewTargets ?? []) {
+    contract.reviewReceipts.push(createReviewReceipt(contract, {
+      ...target, recordId: row.recordId, gameReleaseId: row.gameReleaseId,
+    }, { reviewer: { kind: 'human', id: 'reviewer:synthetic-test' }, reviewedAt: '2026-01-01T00:00:00Z' }));
+  }
+  return contract;
+}
 
 // Scenario: A first import, unknown comparison, and a source-data correction are inspected.
 // Purpose: Keep baseline, unknown identity, and same-snapshot database edits out of confirmed game changes.
@@ -182,6 +221,71 @@ test('UnitT23_projects_resolved_entity_public_evidence_and_correction_chain', as
   assert.match(markdown, /cccccccccccccccccccccccccccccccccccccccc/u);
   assert.match(markdown, /damage\\\|range\\\\ncondition/u);
   assert.match(markdown, /Code observation \\\| approved second line/u);
+});
+
+// Scenario: A fixed game-change compares two source-owned modifier-rule records across releases.
+// Purpose: Preserve release-bound rule references and their review dependencies without encoding behavior as numbers or executable text.
+// Given a valid two-release Source fixture, When rule-reference changes are validated and projected, Then only a distinct, correctly typed before/after rule pair is publishable.
+test('UnitT25_validates_and_projects_release_bound_modifier_rule_changes', () => {
+  const contract = modifierRuleChangeFixture();
+  const pending = validateSourceContract(contract, { schema });
+  assert.equal(pending.valid, true, JSON.stringify(pending.issues));
+  assert.equal(pending.publicationEligible, false);
+
+  const approved = approveFixture(structuredClone(contract));
+  const validation = validateSourceContract(approved, { schema });
+  assert.equal(validation.valid, true, JSON.stringify(validation.issues));
+  assert.equal(validation.publicationEligible, true);
+  const transition = analyzeGameChangeTransition(approved, {
+    fromGameReleaseId: 'fixture-r1', toGameReleaseId: 'fixture-r2', schema,
+  });
+  assert.equal(transition.confirmedChanges.length, 1);
+  const projectedField = transition.confirmedChanges[0].changedFields[0];
+  assert.equal(projectedField.field, 'rule.triggerText');
+  assert.equal(projectedField.valueKind, 'modifier-rule-reference');
+  assert.deepEqual(projectedField.before, { recordId: 'fixture:rule:alpha', gameReleaseId: 'fixture-r1' });
+  assert.deepEqual(projectedField.after, { recordId: 'fixture:rule:alpha-r2', gameReleaseId: 'fixture-r2' });
+  assert.equal(projectedField.beforeRulePayload.triggerText, 'Synthetic trigger.');
+  assert.equal(projectedField.afterRulePayload.triggerText, 'Changed synthetic trigger.');
+  const markdown = renderTechnicalChangelogMarkdown({
+    sourceRevision: 'fixture-revision', webPublicationState: 'not-web-published',
+    classification: transition.classification, confirmedChanges: transition.confirmedChanges,
+  });
+  assert.match(markdown, /modifier-rule reference \(non-executable\)/u);
+  assert.match(markdown, /fixture:rule:alpha-r2/u);
+  assert.match(markdown, /Changed synthetic trigger\./u);
+
+  const sameRule = modifierRuleChangeFixture();
+  const sameAfter = sameRule.records.find(row => row.recordId === 'fixture:rule:alpha-r2');
+  sameAfter.payload = structuredClone(sameRule.records.find(row => row.recordId === 'fixture:rule:alpha').payload);
+  sameAfter.payload.evidenceRefs = [{ recordId: 'fixture:evidence:r2', gameReleaseId: 'fixture-r2' }];
+  assert.equal(validateSourceContract(sameRule, { schema }).issues.some(issue => issue.code === 'unchanged-game-change-rule'), true);
+
+  const wrongKind = modifierRuleChangeFixture();
+  wrongKind.records.find(row => row.kind === 'game-change').payload.changedFields[0].before = {
+    recordId: 'fixture:claim:damage', gameReleaseId: 'fixture-r1',
+  };
+  assert.equal(validateSourceContract(wrongKind, { schema }).issues.some(issue => issue.code === 'game-change-rule-kind'), true);
+
+  const wrongRelease = modifierRuleChangeFixture();
+  wrongRelease.records.find(row => row.kind === 'game-change').payload.changedFields[0].before.gameReleaseId = 'fixture-r2';
+  assert.equal(validateSourceContract(wrongRelease, { schema }).issues.some(issue => issue.code === 'game-change-rule-release'), true);
+
+  const addedRuleChange = modifierRuleChangeFixture();
+  addedRuleChange.records.find(row => row.kind === 'game-change').payload.operation = 'added';
+  assert.equal(validateSourceContract(addedRuleChange, { schema }).issues.some(issue => issue.code === 'game-change-rule-operation'), true);
+
+  const missingEvidence = modifierRuleChangeFixture();
+  missingEvidence.records.find(row => row.recordId === 'fixture:rule:alpha-r2').payload.evidenceRefs = [];
+  assert.equal(validateSourceContract(missingEvidence, { schema }).valid, false);
+
+  const missingRuleReview = approveFixture(structuredClone(contract));
+  missingRuleReview.reviewReceipts = missingRuleReview.reviewReceipts.filter(receipt => receipt.target?.recordId !== 'fixture:rule:alpha-r2');
+  assert.equal(validateSourceContract(missingRuleReview, { schema }).publicationEligible, false);
+
+  const executable = modifierRuleChangeFixture();
+  executable.records.find(row => row.kind === 'game-change').payload.changedFields[0].script = 'return true';
+  assert.equal(validateSourceContract(executable, { schema }).issues.some(issue => issue.code === 'schema-oneOf'), true);
 });
 
 // Scenario: A synthetic game-change row says approved without a current receipt and the package is fixture-only.

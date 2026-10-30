@@ -246,7 +246,18 @@ export function analyzeGameChangeTransition(contract, {
       entityKind: recordMap.get(`${row.payload.entityRef?.gameReleaseId}\u0000${row.payload.entityRef?.recordId}`)?.kind ?? null,
       entityRef: structuredClone(row.payload.entityRef),
       operation: row.payload.operation,
-      changedFields: structuredClone(row.payload.changedFields ?? []),
+      changedFields: (row.payload.changedFields ?? []).map((field) => {
+        const projected = structuredClone(field);
+        if (field.valueKind === 'modifier-rule-reference') {
+          const beforeRule = recordMap.get(`${field.before.gameReleaseId}\u0000${field.before.recordId}`);
+          const afterRule = recordMap.get(`${field.after.gameReleaseId}\u0000${field.after.recordId}`);
+          if (beforeRule?.kind === 'modifier-rule' && afterRule?.kind === 'modifier-rule') {
+            projected.beforeRulePayload = structuredClone(beforeRule.payload);
+            projected.afterRulePayload = structuredClone(afterRule.payload);
+          }
+        }
+        return projected;
+      }),
       comparison: {
         ...structuredClone(row.payload.comparison),
         fromCommit: from.snapshot.commit,
@@ -391,7 +402,14 @@ export function renderTechnicalChangelogMarkdown(report) {
       `- Source evidence: ${change.evidence.map(renderEvidenceMarkdown).join('; ') || 'none listed'}`,
       '',
       '| Field | Before | After | Unit |', '| --- | --- | --- | --- |');
-    for (const field of change.changedFields) lines.push(`| ${markdownCell(field.field)} | ${markdownCell(field.before)} | ${markdownCell(field.after)} | ${markdownCell(field.unit ?? 'unspecified')} |`);
+    for (const field of change.changedFields) {
+      const renderValue = (value, rulePayload) => field.valueKind === 'modifier-rule-reference'
+        && isObject(value) && typeof value.recordId === 'string' && typeof value.gameReleaseId === 'string'
+        ? `${markdownInline('modifier rule')} ${markdownCode(`${value.gameReleaseId}:${value.recordId}`)} — ${markdownCell(rulePayload)}`
+        : markdownCell(value);
+      const unit = field.valueKind === 'modifier-rule-reference' ? 'modifier-rule reference (non-executable)' : field.unit ?? 'unspecified';
+      lines.push(`| ${markdownCell(field.field)} | ${renderValue(field.before, field.beforeRulePayload)} | ${renderValue(field.after, field.afterRulePayload)} | ${markdownCell(unit)} |`);
+    }
     if (change.supersedesChangeRef) {
       const chain = (change.correctionChain ?? []).map(item => markdownCode(item.changeId)).join(' → ');
       lines.push(`- Supersedes: ${markdownCode(change.supersedesChangeRef.recordId)}; correction chain: ${chain || 'unresolved'}`);

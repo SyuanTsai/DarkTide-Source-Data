@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   loadContractSchema,
   loadRepresentativeFixture,
@@ -11,8 +15,14 @@ import {
 
 const schema = await loadContractSchema();
 const fixture = await loadRepresentativeFixture();
+const SOURCE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const w01 = JSON.parse(await readFile(new URL('../content/authoring/w01-real-representative-candidate.json', import.meta.url), 'utf8'));
 const w07Weapons = JSON.parse(await readFile(new URL('../content/authoring/v2/w07-weapons.json', import.meta.url), 'utf8'));
+const LEGACY_W07_RELEASE_ID = 'darktide:1.13.2';
+const FROZEN_W07_BASE_COMMIT = 'a2f613edb37ea2653ed08d1fc1f65ea62a669528';
+const FROZEN_W07_BASE_PATH = 'content/authoring/v2/w07-weapons.json';
+const FROZEN_W07_BASE_BYTES = 6513034;
+const FROZEN_W07_BASE_SHA256 = 'cc7975845b98eb3b82e24357c29f72e47569f063efd4f4ab10bd701798057d77';
 const validate = (candidate) => validateSourceContract(candidate, { schema });
 const isW13RangedRecord = (record) => record.recordId === 'darktide:weapon:lasgun:p1-m1'
   || record.recordId === 'darktide:damage-profile:lasgun-p1:default_lasgun_killshot'
@@ -836,11 +846,29 @@ test('UnitT28_w07-derived-damage-profile-keeps-parent-table-numeric-dependency',
 // Scenario: Every legacy W07 review target is resolved after the separate W13 ranged addition.
 // Purpose: Keep the exact 797 approved/legacy review targets stable without creating synthetic W13 approvals.
 test('UnitT29_w07-legacy-review-targets-resolve-and-create-synthetic-receipts', () => {
-  const targets = w07Weapons.records.filter((record) => !isW13RangedRecord(record)).flatMap((record) => (record.reviewTargets ?? []).map((target) => ({
+  const frozenBytes = execFileSync('git', ['-C', SOURCE_ROOT, 'show', `${FROZEN_W07_BASE_COMMIT}:${FROZEN_W07_BASE_PATH}`], {
+    encoding: null,
+    maxBuffer: 16 * 1024 * 1024
+  });
+  assert.equal(frozenBytes.byteLength, FROZEN_W07_BASE_BYTES, 'The pinned historical W07 bytes must be complete');
+  assert.equal(createHash('sha256').update(frozenBytes).digest('hex'), FROZEN_W07_BASE_SHA256,
+    'The legacy target scope must come from the exact frozen W07 Git blob');
+  const frozenW07 = JSON.parse(frozenBytes.toString('utf8'));
+  const frozenTargets = frozenW07.records.flatMap((record) => (record.reviewTargets ?? []).map((target) => ({
     recordId: record.recordId,
     gameReleaseId: record.gameReleaseId,
     ...target
   })));
+  assert.equal(frozenTargets.length, 797, 'The frozen W07 Git blob defines exactly 797 legacy review targets');
+
+  const currentRecords = new Map(w07Weapons.records.map((record) => [`${record.gameReleaseId}\0${record.recordId}`, record]));
+  const targets = frozenTargets.map(({ recordId, gameReleaseId, ...target }) => {
+    const currentRecord = currentRecords.get(`${gameReleaseId}\0${recordId}`);
+    assert.ok(currentRecord, `The expanded candidate must retain the frozen W07 record ${gameReleaseId}:${recordId}`);
+    const currentTarget = currentRecord.reviewTargets.find((item) => item.fieldPath === target.fieldPath && item.dimension === target.dimension);
+    assert.deepEqual(currentTarget, target, `The expanded candidate must retain the frozen W07 target ${gameReleaseId}:${recordId}:${target.fieldPath}`);
+    return { recordId, gameReleaseId, ...currentTarget };
+  });
   assert.equal(targets.length, 797, 'The pinned W07 candidate must retain all 797 review targets');
 
   const receipts = targets.map((target) => createReviewReceipt(w07Weapons, target, {
@@ -1108,7 +1136,7 @@ test('UnitT36_w07-manifest-separates-static-coverage-from-execution-and-attainab
 // Scenario: The fixed W13 lasgun addition is either still pending or has current human review receipts.
 // Purpose: Keep the new 9 records and 26 targets separate from the exact legacy W07 set across later approval.
 test('UnitT37_w13-ranged-review-targets-remain-current-and-separate-from-legacy-set', () => {
-  const records = w07Weapons.records.filter(isW13RangedRecord);
+  const records = w07Weapons.records.filter((record) => record.gameReleaseId === LEGACY_W07_RELEASE_ID && isW13RangedRecord(record));
   const targets = records.flatMap((record) => (record.reviewTargets ?? []).map((target) => ({
     recordId: record.recordId,
     gameReleaseId: record.gameReleaseId,
@@ -1116,18 +1144,20 @@ test('UnitT37_w13-ranged-review-targets-remain-current-and-separate-from-legacy-
   })));
   assert.equal(records.length, 9);
   assert.equal(targets.length, 26);
-  assert.ok(records.every((record) => record.gameReleaseId === 'darktide:1.13.2'
+  assert.ok(records.every((record) => record.gameReleaseId === LEGACY_W07_RELEASE_ID
     && ['pending', 'approved', 'rejected', 'stale'].includes(record.reviewState)));
 
   const targetKeys = new Set(targets.map((target) => `${target.gameReleaseId}\0${target.recordId}\0${target.fieldPath}\0${target.dimension}`));
-  const receipts = w07Weapons.reviewReceipts.filter((receipt) => isW13RangedRecord({ recordId: receipt.target.recordId }));
-  const recordsById = new Map(records.map((record) => [record.recordId, record]));
+  const receipts = w07Weapons.reviewReceipts.filter((receipt) => receipt.target.gameReleaseId === LEGACY_W07_RELEASE_ID
+    && isW13RangedRecord({ recordId: receipt.target.recordId }));
+  const recordsById = new Map(records.map((record) => [`${record.gameReleaseId}\0${record.recordId}`, record]));
   assert.ok(receipts.every((receipt) => targetKeys.has(`${receipt.target.gameReleaseId}\0${receipt.target.recordId}\0${receipt.target.fieldPath}\0${receipt.target.dimension}`)));
   assert.equal(new Set(receipts.map((receipt) => `${receipt.target.gameReleaseId}\0${receipt.target.recordId}\0${receipt.target.fieldPath}\0${receipt.target.dimension}`)).size, receipts.length);
   assert.ok(receipts.every((receipt) => ['approved', 'rejected'].includes(receipt.decision) && receipt.reviewer.kind === 'human'
     && !/synthetic|probe|fixture/iu.test(receipt.reviewer.id)));
   for (const receipt of receipts) {
-    if (recordsById.get(receipt.target.recordId)?.reviewState === 'approved') {
+    const recordKey = `${receipt.target.gameReleaseId}\0${receipt.target.recordId}`;
+    if (recordsById.get(recordKey)?.reviewState === 'approved') {
       assert.equal(receipt.decision, 'approved');
       assert.deepEqual(computeReviewDigests(w07Weapons, receipt.target), {
         targetDigest: receipt.targetDigest,
@@ -1136,7 +1166,8 @@ test('UnitT37_w13-ranged-review-targets-remain-current-and-separate-from-legacy-
     }
   }
   for (const record of records.filter((item) => item.reviewState === 'approved')) {
-    const recordReceipts = receipts.filter((receipt) => receipt.target.recordId === record.recordId);
+    const recordReceipts = receipts.filter((receipt) => receipt.target.gameReleaseId === record.gameReleaseId
+      && receipt.target.recordId === record.recordId);
     assert.equal(recordReceipts.length, record.reviewTargets.length);
     assert.ok(recordReceipts.every((receipt) => receipt.decision === 'approved'));
   }
