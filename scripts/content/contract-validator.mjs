@@ -360,7 +360,8 @@ function expectedKindIssue(field, targetKind) {
   return null;
 }
 
-function getReviewNode(contract, target) {
+function getReviewNode(contract, target, reviewNodeMap) {
+  if (reviewNodeMap) return reviewNodeMap.get(recordKey(target.recordId, target.gameReleaseId)) ?? null;
   const record = contract.records.find((item) => item.recordId === target.recordId && item.gameReleaseId === target.gameReleaseId);
   if (record) return { item: record, listName: 'records' };
   const tombstone = contract.tombstones.find((item) => item.recordId === target.recordId && item.gameReleaseId === target.gameReleaseId);
@@ -417,32 +418,62 @@ function dependencyClosure(contract, rootItem, recordMap, sourceMap, releaseMap)
   return [...visited.values()].sort((a, b) => compareLexical(a.key, b.key));
 }
 
-export function computeReviewDigests(contract, target) {
-  const found = getReviewNode(contract, target);
-  if (!found) throw new Error(`Unknown review target ${target.gameReleaseId}:${target.recordId}`);
-  const field = pointerGet(found.item, target.fieldPath);
-  if (!field.exists) throw new Error(`Review field path does not exist: ${target.fieldPath}`);
-  const recordMap = new Map(contract.records.map((item) => [recordKey(item.recordId, item.gameReleaseId), item]));
+function createReviewDigestContext(contract, { recordMap, releaseMap } = {}) {
+  const indexedRecords = recordMap ?? new Map(contract.records.map((item) => [recordKey(item.recordId, item.gameReleaseId), item]));
   const sourceMap = new Map(contract.sourceRefs.map((item) => [`${item.gameReleaseId}\u0000${item.sourceId}`, item]));
-  const releaseMap = new Map(contract.gameReleases.map((release) => [release.gameReleaseId, release]));
-  const deps = dependencyClosure(contract, found.item, recordMap, sourceMap, releaseMap);
-  return {
-    targetDigest: sha256(field.value),
-    dependenciesDigest: sha256(deps.map(({ key, mode, expandsClaimRefs, item, isTombstone, release, sourceRefs }) => ({
-      key,
-      dependencyMode: mode,
-      kind: isTombstone ? 'tombstone' : item.kind,
-      owner: item.owner ?? 'source',
-      payload: mode === 'identity' ? identityPayloadProjection(item) : reviewProjection(item.payload ?? null, { omitClaimRefs: !expandsClaimRefs }),
-      aliases: item.aliases ?? [],
-      sourceLinks: reviewProjection(item.sourceRefs ?? [], { omitClaimRefs: true }),
-      dataCoverage: reviewProjection(item.dataCoverage ?? null, { omitClaimRefs: true }),
-      reviewTargets: item.reviewTargets ?? [],
-      tombstoneReason: item.reason ?? null,
-      release: releaseReviewProjection(release),
-      sourceRefs: sourceRefs.map(sourceReviewProjection)
-    })))
+  const indexedReleases = releaseMap ?? new Map(contract.gameReleases.map((release) => [release.gameReleaseId, release]));
+  const reviewNodeMap = new Map();
+  for (const item of contract.records) {
+    const key = recordKey(item.recordId, item.gameReleaseId);
+    if (!reviewNodeMap.has(key)) reviewNodeMap.set(key, { item, listName: 'records' });
+  }
+  for (const item of contract.tombstones ?? []) {
+    const key = recordKey(item.recordId, item.gameReleaseId);
+    if (!reviewNodeMap.has(key)) reviewNodeMap.set(key, { item, listName: 'tombstones' });
+  }
+
+  // This context is deliberately short-lived: public digest calls create a fresh context,
+  // while validateReceipts shares one only across its synchronous checks of this contract.
+  const digestsByTarget = new Map();
+  const dependencyDigestsByItem = new WeakMap();
+  return (target) => {
+    const key = receiptKey(target);
+    const cached = digestsByTarget.get(key);
+    if (cached) return { ...cached };
+
+    const found = getReviewNode(contract, target, reviewNodeMap);
+    if (!found) throw new Error(`Unknown review target ${target.gameReleaseId}:${target.recordId}`);
+    const field = pointerGet(found.item, target.fieldPath);
+    if (!field.exists) throw new Error(`Review field path does not exist: ${target.fieldPath}`);
+
+    let dependenciesDigest = dependencyDigestsByItem.get(found.item);
+    if (!dependenciesDigest) {
+      const deps = dependencyClosure(contract, found.item, indexedRecords, sourceMap, indexedReleases);
+      dependenciesDigest = sha256(deps.map(({ key: dependencyKey, mode, expandsClaimRefs, item, isTombstone, release, sourceRefs }) => ({
+        key: dependencyKey,
+        dependencyMode: mode,
+        kind: isTombstone ? 'tombstone' : item.kind,
+        owner: item.owner ?? 'source',
+        payload: mode === 'identity' ? identityPayloadProjection(item) : reviewProjection(item.payload ?? null, { omitClaimRefs: !expandsClaimRefs }),
+        aliases: item.aliases ?? [],
+        sourceLinks: reviewProjection(item.sourceRefs ?? [], { omitClaimRefs: true }),
+        dataCoverage: reviewProjection(item.dataCoverage ?? null, { omitClaimRefs: true }),
+        reviewTargets: item.reviewTargets ?? [],
+        tombstoneReason: item.reason ?? null,
+        release: releaseReviewProjection(release),
+        sourceRefs: sourceRefs.map(sourceReviewProjection)
+      })));
+      dependencyDigestsByItem.set(found.item, dependenciesDigest);
+    }
+
+    const result = { targetDigest: sha256(field.value), dependenciesDigest };
+    digestsByTarget.set(key, result);
+    return { ...result };
   };
+}
+
+export function computeReviewDigests(contract, target) {
+  return createReviewDigestContext(contract)(target);
 }
 
 export function createReviewReceipt(contract, target, { decision = 'approved', reviewer, reviewedAt } = {}) {
@@ -452,7 +483,7 @@ export function createReviewReceipt(contract, target, { decision = 'approved', r
   return { target: structuredClone(target), ...digests, decision, reviewer: structuredClone(reviewer), reviewedAt };
 }
 
-function deriveReviewState(item, receiptsByKey, contract, issues, itemPath) {
+function deriveReviewState(item, receiptsByKey, contract, issues, itemPath, digestReviewTarget = (target) => computeReviewDigests(contract, target)) {
   const targets = item.reviewTargets ?? [];
   const wanted = new Map(targets.map((target) => [receiptKey({ recordId: item.recordId, gameReleaseId: item.gameReleaseId, ...target }), target]));
   if (wanted.size !== targets.length) issues.push({ path: `${itemPath}/reviewTargets`, code: 'duplicate-review-target', message: 'Review target pairs must be unique' });
@@ -462,7 +493,7 @@ function deriveReviewState(item, receiptsByKey, contract, issues, itemPath) {
     if (!receipt) { allApproved = false; continue; }
     count += 1;
     try {
-      const actual = computeReviewDigests(contract, { recordId: item.recordId, gameReleaseId: item.gameReleaseId, ...target });
+      const actual = digestReviewTarget({ recordId: item.recordId, gameReleaseId: item.gameReleaseId, ...target });
       if (actual.targetDigest !== receipt.targetDigest || actual.dependenciesDigest !== receipt.dependenciesDigest) stale = true;
     } catch { stale = true; }
     if (receipt.decision === 'rejected') rejected = true;
@@ -1940,6 +1971,7 @@ function validateCoverageAndEmptyCollections(contract, issues) {
 
 function validateReceipts(contract, releaseMap, recordMap, issues) {
   const receiptsByKey = new Map();
+  const digestReviewTarget = createReviewDigestContext(contract, { releaseMap, recordMap });
   for (const [index, receipt] of contract.reviewReceipts.entries()) {
     const base = `/reviewReceipts/${index}`; const key = receiptKey(receipt.target);
     if (receiptsByKey.has(key)) issues.push({ path: base, code: 'duplicate-review-receipt', message: 'Only one current receipt is allowed for each target and dimension' });
@@ -1955,7 +1987,7 @@ function validateReceipts(contract, releaseMap, recordMap, issues) {
       if (!field.exists) issues.push({ path: `${base}/target/fieldPath`, code: 'missing-review-field', message: 'Review fieldPath must resolve within the target' });
       else {
         try {
-          const expected = computeReviewDigests(contract, receipt.target);
+          const expected = digestReviewTarget(receipt.target);
           if (receipt.targetDigest !== expected.targetDigest || receipt.dependenciesDigest !== expected.dependenciesDigest) {
             // Staleness is a state transition, not an invalid receipt shape.
           }
@@ -1965,11 +1997,11 @@ function validateReceipts(contract, releaseMap, recordMap, issues) {
     if (receipt.reviewer.kind !== 'human' || /^(?:system|automation|fixture|ai|assistant)$/iu.test(receipt.reviewer.id)) issues.push({ path: `${base}/reviewer`, code: 'non-human-reviewer', message: 'Review receipts must identify a human reviewer, not a service or fixture' });
   }
   for (const [index, record] of contract.records.entries()) {
-    const base = `/records/${index}`; const derived = deriveReviewState(record, receiptsByKey, contract, issues, base);
+    const base = `/records/${index}`; const derived = deriveReviewState(record, receiptsByKey, contract, issues, base, digestReviewTarget);
     if (record.reviewState !== derived) issues.push({ path: `${base}/reviewState`, code: 'review-state-mismatch', message: `reviewState must be derived as ${derived} from current field/dimension receipts` });
   }
   for (const [index, tombstone] of contract.tombstones.entries()) {
-    const base = `/tombstones/${index}`; const derived = deriveReviewState(tombstone, receiptsByKey, contract, issues, base);
+    const base = `/tombstones/${index}`; const derived = deriveReviewState(tombstone, receiptsByKey, contract, issues, base, digestReviewTarget);
     if (tombstone.reviewState !== derived) issues.push({ path: `${base}/reviewState`, code: 'review-state-mismatch', message: `tombstone reviewState must be derived as ${derived} from current receipts` });
   }
   return receiptsByKey;

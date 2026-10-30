@@ -1392,3 +1392,54 @@ test('UnitT20_w07-finesse-relation-requires-complete-distinct-source-spans', () 
   relation.payload.sourceBranchModel.rawDependencies.splice(3, 1);
   assert.ok(issueCodes(missingPowerMiddle).has('w07-modifier-dependency-coverage'));
 });
+
+// Scenario: One record has several independently reviewed fields that share the same dependency closure.
+// Purpose: Reuse digest work only during one validation call, without weakening the receipt or stale-state checks.
+test('UnitT26_validation-reuses-review-digest-work-within-one-call-only', () => {
+  const countRootPayloadEnumerations = (targetCount) => {
+    const candidate = structuredClone(fixture);
+    const record = candidate.records.find((item) => item.recordId === 'fixture:claim:damage' && item.gameReleaseId === 'fixture-r1');
+    const targets = record.reviewTargets.slice(0, targetCount);
+    record.reviewTargets = targets;
+    record.reviewState = 'approved';
+    candidate.reviewReceipts.push(...targets.map((target) => createReviewReceipt(candidate, {
+      recordId: record.recordId,
+      gameReleaseId: record.gameReleaseId,
+      ...target
+    }, { reviewer: { kind: 'human', id: 'fixture-human-reviewer' }, reviewedAt: '2026-10-18T00:00:00Z' })));
+
+    let ownKeysCount = 0;
+    record.payload = new Proxy(record.payload, {
+      ownKeys(target) {
+        ownKeysCount += 1;
+        return Reflect.ownKeys(target);
+      }
+    });
+    const result = validate(candidate);
+    assert.equal(result.valid, true, JSON.stringify(result.issues, null, 2));
+    return ownKeysCount;
+  };
+
+  const oneTargetCount = countRootPayloadEnumerations(1);
+  const threeTargetCount = countRootPayloadEnumerations(3);
+  assert.equal(threeTargetCount, oneTargetCount,
+    'Additional reviewed fields on the same record must reuse that record dependency digest within validation');
+
+  const target = { recordId: 'fixture:claim:damage', gameReleaseId: 'fixture-r1', fieldPath: '/payload/context', dimension: 'context' };
+  const candidate = structuredClone(fixture);
+  const record = candidate.records.find((item) => item.recordId === target.recordId && item.gameReleaseId === target.gameReleaseId);
+  const oldReceipt = createReviewReceipt(candidate, target, {
+    reviewer: { kind: 'human', id: 'fixture-human-reviewer' }, reviewedAt: '2026-10-18T00:00:00Z'
+  });
+  const before = computeReviewDigests(candidate, target);
+  candidate.reviewReceipts.push(oldReceipt);
+  const dependency = candidate.records.find((item) => item.recordId === 'fixture:stat:damage' && item.gameReleaseId === 'fixture-r1');
+  dependency.payload.panelInputRange.max = '99';
+  const after = computeReviewDigests(candidate, target);
+  assert.notEqual(after.dependenciesDigest, before.dependenciesDigest,
+    'A later public digest call must recompute after dependency mutation');
+  record.reviewState = 'stale';
+  const staleResult = validate(candidate);
+  assert.equal(staleResult.valid, true, JSON.stringify(staleResult.issues, null, 2));
+  assert.equal(record.reviewState, 'stale', 'The old receipt must remain stale after dependency mutation');
+});
