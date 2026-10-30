@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -9,6 +10,9 @@ import { createReviewReceipt } from '../scripts/content/contract-validator.mjs';
 import { buildW13LasgunP1M1Import, EXPECTED_BASE_SHA256, sourceTextSha256, writeW13LasgunP1M1Import } from '../scripts/content/imports/w13-lasgun-p1-m1.mjs';
 
 const SOURCE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const FROZEN_BASE_COMMIT = 'a2f613edb37ea2653ed08d1fc1f65ea62a669528';
+const FROZEN_BASE_PATH = 'content/authoring/v2/w07-weapons.json';
+const FROZEN_BASE_SHA256 = 'cc7975845b98eb3b82e24357c29f72e47569f063efd4f4ab10bd701798057d77';
 const W13_ID_PREFIXES = [
   'darktide:attack-profile:lasgun:p1:lasgun_p1_m1:',
   'darktide:stat-curve:lasgun-p1-m1-ammo-',
@@ -30,35 +34,28 @@ async function makePortableImportRoot() {
   const root = await mkdtemp(path.join(os.tmpdir(), 'w13-source-import-'));
   try {
     const requiredFiles = [
-      'content/authoring/v2/w07-weapons.json',
       'content/imports/w13/closure-inventory.json',
       'content/imports/w13/lasgun-p1-m1-facts.json',
       'content/schema/v2/source-contract.schema.json'
     ];
     for (const relativePath of requiredFiles) await copyRelative(SOURCE_ROOT, root, relativePath);
+    const frozenBaselineBytes = execFileSync('git', ['-C', SOURCE_ROOT, 'show', `${FROZEN_BASE_COMMIT}:${FROZEN_BASE_PATH}`], {
+      encoding: null,
+      maxBuffer: 16 * 1024 * 1024
+    });
+    assert.equal(createHash('sha256').update(frozenBaselineBytes).digest('hex'), FROZEN_BASE_SHA256,
+      'The isolated writer fixture must restore the exact historical W07 authoring blob');
+    const authoringPath = path.join(root, FROZEN_BASE_PATH);
+    await mkdir(path.dirname(authoringPath), { recursive: true });
+    await writeFile(authoringPath, frozenBaselineBytes);
     const rawSource = path.join(SOURCE_ROOT, 'content/imports/w13/raw');
     const rawTarget = path.join(root, 'content/imports/w13/raw');
     await mkdir(rawTarget, { recursive: true });
     for (const name of await readdir(rawSource)) await copyFile(path.join(rawSource, name), path.join(rawTarget, name));
-    const authoringPath = path.join(root, 'content/authoring/v2/w07-weapons.json');
     const authoring = JSON.parse(await readFile(authoringPath, 'utf8'));
-    if (authoring.records.some(isW13Record)) {
-      const w13RecordIds = new Set(authoring.records.filter(isW13Record).map((record) => record.recordId));
-      const snapshotId = 'lasgun-p1-m1-w13-1.13.2-16-files';
-      const w13SourceIds = new Set(authoring.sourceRefs
-        .filter((source) => source.snapshot?.snapshotId === snapshotId)
-        .map((source) => source.sourceId));
-      const preservedReceipts = authoring.reviewReceipts.filter((receipt) => !w13RecordIds.has(receipt.target.recordId));
-      authoring.records = authoring.records.filter((record) => !w13RecordIds.has(record.recordId));
-      authoring.sourceRefs = authoring.sourceRefs.filter((source) => !w13SourceIds.has(source.sourceId));
-      authoring.sourceSnapshots = authoring.sourceSnapshots.filter((source) => source.snapshot.snapshotId !== snapshotId);
-      authoring.reviewReceipts = preservedReceipts;
-      authoring.publicationEligible = true;
-      await writeFile(authoringPath, `${JSON.stringify(authoring, null, 2)}\n`);
-    }
     const baselineBytes = await readFile(authoringPath);
     assert.equal(createHash('sha256').update(baselineBytes).digest('hex'), EXPECTED_BASE_SHA256,
-      'The isolated writer root must restore the exact approved W07 baseline while preserving its old receipts');
+      'The frozen historical Git blob must match the exact approved W07 baseline bytes');
     assert.ok(!authoring.records.some(isW13Record), 'The isolated writer root must not contain W13 records before apply');
     return root;
   } catch (error) {
@@ -70,48 +67,53 @@ async function makePortableImportRoot() {
 // Scenario: The pinned public-code closure contains one same-release ranged weapon candidate.
 // Purpose: Protect the W13 addition from becoming an unpinned or publication-ready data copy.
 test('UnitT10_w13-lasgun-import-retains-pinned-ranged-candidate', async () => {
-  const result = await buildW13LasgunP1M1Import();
-  const w13Records = result.candidate.records.filter(isW13Record);
-  const weapon = w13Records.find((record) => record.recordId === 'darktide:weapon:lasgun:p1-m1');
-  const attackProfiles = w13Records.filter((record) => record.kind === 'attack-profile');
-  const m1Profile = w13Records.find((record) => record.recordId === 'darktide:damage-profile:lasgun-p1:lasgun_p1_m1_killshot');
-  const parentProfile = w13Records.find((record) => record.recordId === 'darktide:damage-profile:lasgun-p1:default_lasgun_killshot');
+  const root = await makePortableImportRoot();
+  try {
+    const result = await buildW13LasgunP1M1Import({ root });
+    const w13Records = result.candidate.records.filter(isW13Record);
+    const weapon = w13Records.find((record) => record.recordId === 'darktide:weapon:lasgun:p1-m1');
+    const attackProfiles = w13Records.filter((record) => record.kind === 'attack-profile');
+    const m1Profile = w13Records.find((record) => record.recordId === 'darktide:damage-profile:lasgun-p1:lasgun_p1_m1_killshot');
+    const parentProfile = w13Records.find((record) => record.recordId === 'darktide:damage-profile:lasgun-p1:default_lasgun_killshot');
 
-  assert.ok(weapon, 'The importer must produce the selected real lasgun record');
-  assert.equal(weapon.gameReleaseId, 'darktide:1.13.2');
-  assert.ok(['pending', 'approved', 'rejected', 'stale'].includes(weapon.reviewState));
-  assert.equal(result.validation.valid, true);
-  assert.equal(result.validation.publicationEligible, result.candidate.publicationEligible);
-  assert.equal(result.delta.sourceSnapshot.snapshot.snapshotId, 'lasgun-p1-m1-w13-1.13.2-16-files');
-  assert.equal(result.sourceByteCount, 244937);
-  assert.equal(result.delta.sourceRefs.length, 16);
-  assert.ok(result.delta.sourceRefs.every((source) => source.commit === 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e'
-    && source.gameReleaseId === 'darktide:1.13.2' && source.snapshot.snapshotId === result.delta.sourceSnapshot.snapshot.snapshotId));
-  assert.ok(w13Records.every((record) => ['pending', 'approved', 'rejected', 'stale'].includes(record.reviewState)
-    && record.gameReleaseId === 'darktide:1.13.2'));
-  assert.deepEqual(attackProfiles.map(({ payload }) => [payload.action, payload.mode]), [
-    ['action_shoot_hip', 'hipfire'],
-    ['action_shoot_zoomed', 'ads']
-  ]);
-  assert.deepEqual(weapon.payload.attackProfileRefs.map((ref) => ref.recordId), attackProfiles.map((record) => record.recordId));
-  assert.deepEqual(weapon.payload.statTables.map((table) => table.properties[0].orderedValues.map((value) => value.rawValue)), [
-    ['80', '120'],
-    ['480', '960']
-  ]);
-  assert.deepEqual(weapon.payload.statRefs.map((ref) => ref.gameReleaseId), ['darktide:1.13.2', 'darktide:1.13.2']);
-  assert.ok(m1Profile && parentProfile, 'The candidate must preserve the M1 override and its parent profile separately');
-  assert.deepEqual(m1Profile.payload.rawSourceDefinition.parentProfileRef, {
-    recordId: 'darktide:damage-profile:lasgun-p1:default_lasgun_killshot',
-    gameReleaseId: 'darktide:1.13.2'
-  });
-  const parentNearResistant = parentProfile.payload.rawSourceDefinition.tables
-    .find((table) => table.tableKey === 'lasgun_armor_mod_default.near.attack').orderedValues
-    .find((point) => point.sourceLocator.fieldPath.endsWith('.resistant'));
-  const m1NearResistant = m1Profile.payload.rawSourceDefinition.tables
-    .find((table) => table.tableKey === 'lasgun_p1_m1_killshot.armor_damage_modifier_ranged.near.attack').orderedValues[0];
-  assert.equal(parentNearResistant.rawValue, 'damage_lerp_values.lerp_0_4');
-  assert.equal(m1NearResistant.rawValue, 'damage_lerp_values.lerp_0_75');
-  assert.equal(result.reviewState.split(',').every((state) => ['pending', 'approved', 'rejected', 'stale'].includes(state)), true);
+    assert.ok(weapon, 'The importer must produce the selected real lasgun record');
+    assert.equal(weapon.gameReleaseId, 'darktide:1.13.2');
+    assert.ok(['pending', 'approved', 'rejected', 'stale'].includes(weapon.reviewState));
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.validation.publicationEligible, result.candidate.publicationEligible);
+    assert.equal(result.delta.sourceSnapshot.snapshot.snapshotId, 'lasgun-p1-m1-w13-1.13.2-16-files');
+    assert.equal(result.sourceByteCount, 244937);
+    assert.equal(result.delta.sourceRefs.length, 16);
+    assert.ok(result.delta.sourceRefs.every((source) => source.commit === 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e'
+      && source.gameReleaseId === 'darktide:1.13.2' && source.snapshot.snapshotId === result.delta.sourceSnapshot.snapshot.snapshotId));
+    assert.ok(w13Records.every((record) => ['pending', 'approved', 'rejected', 'stale'].includes(record.reviewState)
+      && record.gameReleaseId === 'darktide:1.13.2'));
+    assert.deepEqual(attackProfiles.map(({ payload }) => [payload.action, payload.mode]), [
+      ['action_shoot_hip', 'hipfire'],
+      ['action_shoot_zoomed', 'ads']
+    ]);
+    assert.deepEqual(weapon.payload.attackProfileRefs.map((ref) => ref.recordId), attackProfiles.map((record) => record.recordId));
+    assert.deepEqual(weapon.payload.statTables.map((table) => table.properties[0].orderedValues.map((value) => value.rawValue)), [
+      ['80', '120'],
+      ['480', '960']
+    ]);
+    assert.deepEqual(weapon.payload.statRefs.map((ref) => ref.gameReleaseId), ['darktide:1.13.2', 'darktide:1.13.2']);
+    assert.ok(m1Profile && parentProfile, 'The candidate must preserve the M1 override and its parent profile separately');
+    assert.deepEqual(m1Profile.payload.rawSourceDefinition.parentProfileRef, {
+      recordId: 'darktide:damage-profile:lasgun-p1:default_lasgun_killshot',
+      gameReleaseId: 'darktide:1.13.2'
+    });
+    const parentNearResistant = parentProfile.payload.rawSourceDefinition.tables
+      .find((table) => table.tableKey === 'lasgun_armor_mod_default.near.attack').orderedValues
+      .find((point) => point.sourceLocator.fieldPath.endsWith('.resistant'));
+    const m1NearResistant = m1Profile.payload.rawSourceDefinition.tables
+      .find((table) => table.tableKey === 'lasgun_p1_m1_killshot.armor_damage_modifier_ranged.near.attack').orderedValues[0];
+    assert.equal(parentNearResistant.rawValue, 'damage_lerp_values.lerp_0_4');
+    assert.equal(m1NearResistant.rawValue, 'damage_lerp_values.lerp_0_75');
+    assert.equal(result.reviewState.split(',').every((state) => ['pending', 'approved', 'rejected', 'stale'].includes(state)), true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 // Scenario: The W13 importer is checked out with CRLF on Windows or LF in a clean clone.
