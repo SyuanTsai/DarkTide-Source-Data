@@ -717,9 +717,9 @@ test('InterT04_unapproved_builder_and_validator_blobs_are_rejected_before_import
   }
 });
 
-// Scenario: The Source owner advances only the fixed W09 validator and schema pins while retaining the W05 build tools.
-// Purpose: Accept either complete approved runtime set and reject a mixed old/new set before importing it.
-test('InterT07_exact_runtime_pin_sets_accept_old_and_new_but_reject_mixed', async () => {
+// Scenario: The Source owner advances the fixed W09 validator/schema pins while preserving two historical runtime sets.
+// Purpose: Accept only one of three complete approved hash sets and reject a mixed runtime before importing it.
+test('InterT07_exact_runtime_pin_sets_accept_all_complete_sets_but_reject_mixed', async () => {
   const loadRuntime = requireExport('loadW09ApprovedSourceRuntime');
   const cleanupRuntime = requireExport('cleanupW09ApprovedSourceRuntime');
   const root = await mkdtemp(path.join(os.tmpdir(), 'w09-runtime-pin-sets-'));
@@ -767,6 +767,37 @@ test('InterT07_exact_runtime_pin_sets_accept_old_and_new_but_reject_mixed', asyn
     const newRuntime = await loadRuntime({ sourceRoot: fixtureRoot, sourceCommit: newCommit });
     try { assert.equal(newRuntime.identity.approvedAtCommit, api.W09_APPROVED_SOURCE_RUNTIME_NEXT_COMMIT); }
     finally { await cleanupRuntime(newRuntime); }
+
+    const thirdCommit = api.W09_APPROVED_SOURCE_RUNTIME_THIRD_COMMIT;
+    const thirdRuntimeCommit = await writePinSet(api.W09_APPROVED_SOURCE_RUNTIME_THIRD_FILES, thirdCommit);
+    const thirdRuntime = await loadRuntime({ sourceRoot: fixtureRoot, sourceCommit: thirdRuntimeCommit });
+    try { assert.equal(thirdRuntime.identity.approvedAtCommit, thirdCommit); }
+    finally { await cleanupRuntime(thirdRuntime); }
+
+    const builderRelativePath = 'scripts/content/contract-w05-build.mjs';
+    const builderPath = path.join(fixtureRoot, ...builderRelativePath.split('/'));
+    const pinnedBuilderBytes = await readFile(builderPath);
+    await writeFile(builderPath, Buffer.concat([pinnedBuilderBytes, Buffer.from('\n// unapproved runtime pin test drift\n')]));
+    git(['add', builderRelativePath]);
+    const unknownCommitResult = spawnSync('git', [
+      '-C', fixtureRoot, '-c', 'user.name=W09 test', '-c', 'user.email=w09-test@example.invalid',
+      'commit', '-m', 'W09 unknown runtime pin fixture'
+    ], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    assert.equal(unknownCommitResult.status, 0, unknownCommitResult.stderr);
+    const unknownCommit = git(['rev-parse', 'HEAD']).trim();
+    await assert.rejects(loadRuntime({ sourceRoot: fixtureRoot, sourceCommit: unknownCommit }), /exact approved W09 code hash set/u);
+
+    await writeFile(builderPath, pinnedBuilderBytes);
+    git(['add', builderRelativePath]);
+    const restoreCommitResult = spawnSync('git', [
+      '-C', fixtureRoot, '-c', 'user.name=W09 test', '-c', 'user.email=w09-test@example.invalid',
+      'commit', '-m', 'Restore exact W09 runtime pin fixture'
+    ], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    assert.equal(restoreCommitResult.status, 0, restoreCommitResult.stderr);
+    const restoredCommit = git(['rev-parse', 'HEAD']).trim();
+    const restoredRuntime = await loadRuntime({ sourceRoot: fixtureRoot, sourceCommit: restoredCommit });
+    try { assert.equal(restoredRuntime.identity.approvedAtCommit, thirdCommit); }
+    finally { await cleanupRuntime(restoredRuntime); }
 
     const oldValidator = sourceBlob(api.W09_APPROVED_SOURCE_RUNTIME_COMMIT, 'scripts/content/contract-validator.mjs');
     await writeFile(path.join(fixtureRoot, 'scripts/content/contract-validator.mjs'), oldValidator);
