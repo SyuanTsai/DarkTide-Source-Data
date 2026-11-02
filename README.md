@@ -28,17 +28,3 @@ node scripts/content/imports/generic-blessings.mjs `
 ```
 
 Integration tests use that local path by default. Set `DARKTIDE_SOURCE_CODE_REPO` to another clone containing the pinned commit; tests skip with an explanatory message when the clone or commit is unavailable.
-
-## Generic weapon-template import
-
-The generic weapon-template importer uses the same pinned, Git-only source boundary. It statically records action tables, literal continuations, displayed attacks, direct damage-profile bindings, and source-backed trait ranges without executing Lua functions. Its candidate contains field patches for existing weapons plus only new pending profile, stat, and evidence records; the approved records themselves are not copied.
-
-```powershell
-$env:DARKTIDE_SOURCE_CODE_REPO = 'C:\src\Darktide-Source-Code'
-node scripts/content/imports/generic-weapon-templates.mjs `
-  --source-code-repo $env:DARKTIDE_SOURCE_CODE_REPO `
-  --commit e46b8926cfa3fa35503e4b80b15aab7a804314e4 `
-  --output-dir content/imports/generic
-```
-
-The command writes `weapon-template-candidates.json` and `weapons-snapshot.json`, then validates an in-memory merge with the authoring bundle before returning successfully.
