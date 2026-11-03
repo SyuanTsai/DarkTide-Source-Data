@@ -74,6 +74,14 @@ const ARCHIVE_REQUEST_HEADERS = Object.freeze({
 });
 const DEFAULT_MODE = 'candidate';
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+// W05 replays already proven equal in this process, keyed by commit, pinned inputs, mode, and packet bytes.
+// A formal --all-releases run verifies every request against the same packet several times; one replay per key is enough.
+const verifiedW05Replays = new Set();
+let w05ReplayCount = 0;
+
+export function w09SourceReplayCount() {
+  return w05ReplayCount;
+}
 
 function isPlainObject(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
@@ -763,28 +771,39 @@ export async function verifyW09SourceRevision({ request, packetDir, sourceRoot, 
       throw new Error(`pinned ${input.role} input hash does not match the request`);
     }
   }
-  const runtime = await loadW09ApprovedSourceRuntime({ sourceRoot: repository.sourceRoot, sourceCommit: expectedCommit });
-  let replayRoot;
-  try {
-    replayRoot = await mkdtemp(path.join(os.tmpdir(), 'w09-revision-replay-'));
-    const replay = await runtime.builder.buildContractCandidate({
-      baseline: sourceInputs.find((item) => item.role === 'baseline').document,
-      authoring: sourceInputs.find((item) => item.role === 'authoring').document,
-      candidate: sourceInputs.find((item) => item.role === 'candidate').document,
-      outRoot: replayRoot,
-      mode: bundle.manifest.mode
-    });
-    for (const fileName of W09_SOURCE_PACKET_FILES) {
-      const replayBytes = replay.files.get(fileName);
-      const packetBytes = bundle.files.get(fileName);
-      if (!replayBytes || !packetBytes.equals(replayBytes)) throw new Error(`W05 replay bytes differ from packet file ${fileName}`);
-    }
-  } finally {
+  const replayKey = canonicalJson({
+    sourceRoot: repository.sourceRoot,
+    sourceCommit: expectedCommit,
+    mode: bundle.manifest.mode,
+    inputs: sourceInputs.map(({ role, commit, path: inputPath, sha256: digest }) => ({ role, commit, path: inputPath, sha256: digest })),
+    packet: W09_SOURCE_PACKET_FILES.map((fileName) => [fileName, sha256(bundle.files.get(fileName))])
+  });
+  if (!verifiedW05Replays.has(replayKey)) {
+    const runtime = await loadW09ApprovedSourceRuntime({ sourceRoot: repository.sourceRoot, sourceCommit: expectedCommit });
+    let replayRoot;
     try {
-      if (replayRoot) await rm(replayRoot, { recursive: true, force: true });
+      replayRoot = await mkdtemp(path.join(os.tmpdir(), 'w09-revision-replay-'));
+      w05ReplayCount += 1;
+      const replay = await runtime.builder.buildContractCandidate({
+        baseline: sourceInputs.find((item) => item.role === 'baseline').document,
+        authoring: sourceInputs.find((item) => item.role === 'authoring').document,
+        candidate: sourceInputs.find((item) => item.role === 'candidate').document,
+        outRoot: replayRoot,
+        mode: bundle.manifest.mode
+      });
+      for (const fileName of W09_SOURCE_PACKET_FILES) {
+        const replayBytes = replay.files.get(fileName);
+        const packetBytes = bundle.files.get(fileName);
+        if (!replayBytes || !packetBytes.equals(replayBytes)) throw new Error(`W05 replay bytes differ from packet file ${fileName}`);
+      }
     } finally {
-      await runtime.cleanup();
+      try {
+        if (replayRoot) await rm(replayRoot, { recursive: true, force: true });
+      } finally {
+        await runtime.cleanup();
+      }
     }
+    verifiedW05Replays.add(replayKey);
   }
   const expectedRequests = buildRequestsFromBundle({
     bundle,
