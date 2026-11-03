@@ -193,6 +193,7 @@ test('InterT01_prepare_binds_fixed_git_inputs_and_replays_w05_candidate', async 
       summary: item,
       request: JSON.parse(await readFile(path.join(outputRoot, 'requests', `${item.requestId}.json`), 'utf8'))
     })));
+    const replaysBefore = api.w09SourceReplayCount();
     for (const { summary: requestSummary, request } of requestRows) {
       assert.equal(request.sourceCommit, expectedCommit);
       assert.equal(request.sourceRevision, 'fa83649a220c3593d6bc9bda6c05b71fdb30f60783fb0b37c11298ab19ba0662');
@@ -229,6 +230,8 @@ test('InterT01_prepare_binds_fixed_git_inputs_and_replays_w05_candidate', async 
       }
       assert.equal(requestSummary.eligibility.status, 'pending');
     }
+    assert.equal(api.w09SourceReplayCount() - replaysBefore, 1,
+      'every request, dispatch, and publish check on one packet and commit shares a single W05 replay');
   } finally {
     await rm(fixtureRoot, { recursive: true, force: true });
   }
