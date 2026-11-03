@@ -3264,7 +3264,7 @@
                   "index": 3,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "light_grenadier_gauntlet_tank"
+                  "roleProfileKey": "light_grenadier_gauntlet_smiter"
                 }
               ],
               "sourceRefs": [
@@ -3274,6 +3274,18 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-ogryn_gauntlet_p1_m1-e46b8926cfa3-grenadier_gauntlet_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -3294,13 +3306,13 @@
                   "index": 1,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "light_grenadier_gauntlet_tank"
+                  "roleProfileKey": "heavy_grenadier_gauntlet_smiter"
                 },
                 {
                   "index": 2,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "light_grenadier_gauntlet_tank"
+                  "roleProfileKey": "heavy_grenadier_gauntlet_tank"
                 }
               ],
               "sourceRefs": [
@@ -3310,6 +3322,18 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-ogryn_gauntlet_p1_m1-e46b8926cfa3-grenadier_gauntlet_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -3340,6 +3364,18 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-ogryn_gauntlet_p1_m1-e46b8926cfa3-grenadier_gauntlet_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -3644,6 +3680,10 @@
           "value": [
             {
               "recordId": "darktide:stat-definition:ogryn_gauntlet_p1_m1-action_swing-attack-power-source-curve-e46",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:b825521431f44551",
               "gameReleaseId": "darktide:1.13.4"
             },
             {
@@ -4477,6 +4517,50 @@
           "fieldPath": "/payload/statTables",
           "value": [
             {
+              "statKey": "ogryn_gauntlet_p1_m1_ammo",
+              "templateKey": "ogryn_gauntlet_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+                "line": 279,
+                "fieldPath": "weapon_ammo_templates.ogryn_gauntlet_p1_m1.ammunition_reserve.lerp_basic"
+              },
+              "properties": [
+                {
+                  "property": "weapon_ammo_templates.ogryn_gauntlet_p1_m1.ammunition_reserve",
+                  "unit": "instance-count",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+                    "line": 278,
+                    "fieldPath": "weapon_ammo_templates.ogryn_gauntlet_p1_m1.ammunition_reserve"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "32",
+                      "decimal": "32",
+                      "line": 279,
+                      "fieldPath": "weapon_ammo_templates.ogryn_gauntlet_p1_m1.ammunition_reserve.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "55",
+                      "decimal": "55",
+                      "line": 280,
+                      "fieldPath": "weapon_ammo_templates.ogryn_gauntlet_p1_m1.ammunition_reserve.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "statKey": "ogryn_gauntlet_p1_m1_dps_stat",
               "tableKey": "light_grenadier_gauntlet_tank",
               "sourceLocator": {
@@ -4909,6 +4993,18 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:w07-static-ba6c148-996c0bf10f0855d4",
           "gameReleaseId": "darktide:1.13.4"
         },
@@ -4922,6 +5018,14 @@
         },
         {
           "sourceId": "public-code:damage-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-dcbabcf0bbbb54e7",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -5125,6 +5229,14 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-template-ogryn_gauntlet_p1_m1-e46b8926cfa3",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/attackProfileRefs/supportFiles/dcbabcf0bbbb54e7",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-dcbabcf0bbbb54e7",
               "gameReleaseId": "darktide:1.13.4"
             }
           }
@@ -8155,53 +8267,6 @@
                     "path": "scripts/settings/equipment/weapon_templates/grenadier_gauntlets/settings_templates/grenadier_gauntlet_damage_profile_templates.lua",
                     "line": 293,
                     "fieldPath": "overrides.heavy_grenadier_gauntlet_smiter.overrides.3.6"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "damage_lerp_values.lerp_0_75",
-              "quantity": "damage_lerp_values.lerp_0_75",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:damage-profile-settings-ba6c148",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/damage/damage_profile_settings.lua",
-                "line": 65,
-                "fieldPath": "damage_lerp_values.lerp_0_75.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "0.48",
-                  "decimal": "0.48",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:damage-profile-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profile_settings.lua",
-                    "line": 65,
-                    "fieldPath": "damage_lerp_values.lerp_0_75.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "1.02",
-                  "decimal": "1.02",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:damage-profile-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profile_settings.lua",
-                    "line": 66,
-                    "fieldPath": "damage_lerp_values.lerp_0_75.2"
                   }
                 }
               ]
@@ -16396,6 +16461,93 @@
       ]
     },
     {
+      "recordId": "darktide:stat-curve:generic:b825521431f44551",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "knots": [
+          {
+            "input": "0",
+            "output": "32",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "32",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 279,
+              "fieldPath": "weapon_ammo_templates.ogryn_gauntlet_p1_m1.ammunition_reserve.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "55",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "55",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 280,
+              "fieldPath": "weapon_ammo_templates.ogryn_gauntlet_p1_m1.ammunition_reserve.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-curve:generic:d8c4d7e9802a6fad",
       "kind": "stat-curve",
       "owner": "source",
@@ -17206,6 +17358,73 @@
             "reasonCode": "NOT_IMPORTED",
             "sourceRef": {
               "sourceId": "public-code:weapon-source-ogryn_gauntlet_p1_m1-e46b8926cfa3-grenadier_gauntlet_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-definition:generic:b825521431f44551",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_ammo_templates.ogryn_gauntlet_p1_m1.ammunition_reserve",
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:b825521431f44551",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
               "gameReleaseId": "darktide:1.13.4"
             }
           }

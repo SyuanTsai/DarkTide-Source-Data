@@ -1521,7 +1521,7 @@
             "staticClosure": {
               "localActionCount": 12,
               "fallbackActionCount": 3,
-              "profileBindingCount": 2,
+              "profileBindingCount": 3,
               "literalContinuationEdgeCount": 32,
               "generatedActionSettingsCount": 2,
               "generatedContinuationEdgeCount": 28,
@@ -2697,6 +2697,10 @@
           "value": [
             {
               "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m1:action_shoot_hip",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:attack-profile:generic:autogun-p3-m1:action_shoot_zoomed",
               "gameReleaseId": "darktide:1.13.4"
             },
             {
@@ -4483,7 +4487,7 @@
             "staticClosure": {
               "localActionCount": 14,
               "fallbackActionCount": 3,
-              "profileBindingCount": 2,
+              "profileBindingCount": 3,
               "literalContinuationEdgeCount": 37,
               "generatedActionSettingsCount": 2,
               "generatedContinuationEdgeCount": 34,
@@ -5720,6 +5724,10 @@
           "value": [
             {
               "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m2:action_shoot_hip",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:attack-profile:generic:autogun-p3-m2:action_shoot_zoomed",
               "gameReleaseId": "darktide:1.13.4"
             },
             {
@@ -7348,7 +7356,7 @@
             "staticClosure": {
               "localActionCount": 12,
               "fallbackActionCount": 3,
-              "profileBindingCount": 2,
+              "profileBindingCount": 3,
               "literalContinuationEdgeCount": 33,
               "generatedActionSettingsCount": 2,
               "generatedContinuationEdgeCount": 28,
@@ -8542,6 +8550,10 @@
               "gameReleaseId": "darktide:1.13.4"
             },
             {
+              "recordId": "darktide:attack-profile:generic:autogun-p3-m3:action_shoot_zoomed",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
               "recordId": "darktide:attack-profile:generic:autogun-p3-m3:action_bash",
               "gameReleaseId": "darktide:1.13.4"
             },
@@ -8864,6 +8876,115 @@
       ]
     },
     {
+      "recordId": "darktide:attack-profile:generic:autogun-p3-m1:action_shoot_zoomed",
+      "kind": "attack-profile",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "familyId": "autogun_p3",
+        "markId": "autogun_p3_m1",
+        "templateKey": "autogun_p3_m1",
+        "action": "action_shoot_zoomed",
+        "mode": "ads",
+        "weaponRef": {
+          "recordId": "darktide:weapon:autogun:p3-m1:e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "damageProfileRefs": [
+          {
+            "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m1:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "targetProfileRefs": [],
+        "contexts": [
+          {
+            "weaponRef": {
+              "recordId": "darktide:weapon:autogun:p3-m1:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "templateKey": "autogun_p3_m1",
+            "markKey": "autogun_p3_m1",
+            "action": "action_shoot_zoomed",
+            "mode": "ads",
+            "damageProfileRef": {
+              "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m1:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ],
+        "sourceBindings": [
+          {
+            "branch": "normal",
+            "profileRef": {
+              "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m1:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "rawValue": "autogun_p3_m1",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 97,
+              "fieldPath": "hitscan_templates.autogun_p3_m1_bullet.damage.impact.damage_profile"
+            }
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/targetProfileRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/actionResolution",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/action",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/mode",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/damageProfileRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/sourceBindings",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:attack-profile:generic:autogun-p3-m2:action_bash",
       "kind": "attack-profile",
       "owner": "source",
@@ -9029,6 +9150,115 @@
       "sourceRefs": [
         {
           "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/targetProfileRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/actionResolution",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/action",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/mode",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/damageProfileRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/sourceBindings",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:attack-profile:generic:autogun-p3-m2:action_shoot_zoomed",
+      "kind": "attack-profile",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "familyId": "autogun_p3",
+        "markId": "autogun_p3_m2",
+        "templateKey": "autogun_p3_m2",
+        "action": "action_shoot_zoomed",
+        "mode": "ads",
+        "weaponRef": {
+          "recordId": "darktide:weapon:autogun:p3-m2:e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "damageProfileRefs": [
+          {
+            "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m2:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "targetProfileRefs": [],
+        "contexts": [
+          {
+            "weaponRef": {
+              "recordId": "darktide:weapon:autogun:p3-m2:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "templateKey": "autogun_p3_m2",
+            "markKey": "autogun_p3_m2",
+            "action": "action_shoot_zoomed",
+            "mode": "ads",
+            "damageProfileRef": {
+              "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m2:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ],
+        "sourceBindings": [
+          {
+            "branch": "normal",
+            "profileRef": {
+              "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m2:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "rawValue": "autogun_p3_m2",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 118,
+              "fieldPath": "hitscan_templates.autogun_p3_m2_bullet.damage.impact.damage_profile"
+            }
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -9284,1325 +9514,111 @@
       ]
     },
     {
-      "recordId": "darktide:damage-profile:generic:autogun-weapon-special-bash-heavy",
-      "kind": "damage-profile",
+      "recordId": "darktide:attack-profile:generic:autogun-p3-m3:action_shoot_zoomed",
+      "kind": "attack-profile",
       "owner": "source",
       "gameReleaseId": "darktide:1.13.4",
       "payload": {
-        "profileKey": "autogun_weapon_special_bash_heavy",
-        "rawSourceDefinition": {
-          "sourceRef": {
-            "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+        "familyId": "autogun_p3",
+        "markId": "autogun_p3_m3",
+        "templateKey": "autogun_p3_m3",
+        "action": "action_shoot_zoomed",
+        "mode": "ads",
+        "weaponRef": {
+          "recordId": "darktide:weapon:autogun:p3-m3:e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "damageProfileRefs": [
+          {
+            "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m3:e46",
             "gameReleaseId": "darktide:1.13.4"
-          },
-          "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-          "line": 936,
-          "fieldPath": "overrides.autogun_weapon_special_bash_heavy",
-          "leaves": [
-            {
-              "line": 892,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.ignore_stagger_reduction",
-              "rawValue": "true",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
+          }
+        ],
+        "targetProfileRefs": [],
+        "contexts": [
+          {
+            "weaponRef": {
+              "recordId": "darktide:weapon:autogun:p3-m3:e46",
+              "gameReleaseId": "darktide:1.13.4"
             },
-            {
-              "line": 893,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.is_push",
-              "rawValue": "true",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 894,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.ragdoll_push_force",
-              "rawValue": "100",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 895,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.stagger_category",
-              "rawValue": "\"melee\"",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 896,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.weakspot_stagger_resistance_modifier",
-              "rawValue": "0.2",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 899,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.unarmored]",
-              "rawValue": "0.8",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 900,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.armored]",
-              "rawValue": "0.3",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 901,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.resistant]",
-              "rawValue": "0.5",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 902,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.player]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 903,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.berserker]",
-              "rawValue": "0.6",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 904,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.super_armor]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 905,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.disgustingly_resilient]",
-              "rawValue": "1",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 906,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.void_shield]",
-              "rawValue": "0.1",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 909,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.unarmored]",
-              "rawValue": "1.25",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 910,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.armored]",
-              "rawValue": "1",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 911,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.resistant]",
-              "rawValue": "0.25",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 912,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.player]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 913,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.berserker]",
-              "rawValue": "0.5",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 914,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.super_armor]",
-              "rawValue": "0.5",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 915,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.disgustingly_resilient]",
-              "rawValue": "1",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 916,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.void_shield]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 919,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.gibbing_power",
-              "rawValue": "GibbingPower.always",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 920,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.gibbing_type",
-              "rawValue": "gibbing_types.default",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 925,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.attack.1",
-              "rawValue": "25",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 926,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.attack.2",
-              "rawValue": "75",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 929,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.impact.1",
-              "rawValue": "5",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 930,
-              "fieldPath": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.impact.2",
-              "rawValue": "10",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 940,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.1",
-              "rawValue": "\"targets\"",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 941,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.2",
-              "rawValue": "\"default_target\"",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 942,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.3",
-              "rawValue": "\"power_distribution\"",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 943,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.4",
-              "rawValue": "\"attack\"",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 945,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.5.1",
-              "rawValue": "50",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 946,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.5.2",
-              "rawValue": "150",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 950,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.1",
-              "rawValue": "\"targets\"",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 951,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.2",
-              "rawValue": "\"default_target\"",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 952,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.3",
-              "rawValue": "\"power_distribution\"",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 953,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.4",
-              "rawValue": "\"impact\"",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 955,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.5.1",
-              "rawValue": "5",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 956,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.5.2",
-              "rawValue": "10",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 960,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.3.1",
-              "rawValue": "\"weakspot_stagger_resistance_modifier\"",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 961,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.3.2",
-              "rawValue": "0.1",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 964,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.4.1",
-              "rawValue": "\"ragdoll_push_force\"",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
-            },
-            {
-              "line": 965,
-              "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.4.2",
-              "rawValue": "400",
-              "sourceRef": {
-                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua"
+            "templateKey": "autogun_p3_m3",
+            "markKey": "autogun_p3_m3",
+            "action": "action_shoot_zoomed",
+            "mode": "ads",
+            "damageProfileRef": {
+              "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m3:e46",
+              "gameReleaseId": "darktide:1.13.4"
             }
-          ],
-          "tables": [
-            {
-              "tableKey": "damage_templates.autogun_weapon_special_bash",
-              "quantity": "damage_templates.autogun_weapon_special_bash",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 892,
-                "fieldPath": "damage_templates.autogun_weapon_special_bash.ignore_stagger_reduction"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "true",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 892,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.ignore_stagger_reduction"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "true",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 893,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.is_push"
-                  }
-                },
-                {
-                  "ordinal": 3,
-                  "rawValue": "100",
-                  "decimal": "100",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 894,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.ragdoll_push_force"
-                  }
-                },
-                {
-                  "ordinal": 4,
-                  "rawValue": "\"melee\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 895,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.stagger_category"
-                  }
-                },
-                {
-                  "ordinal": 5,
-                  "rawValue": "0.2",
-                  "decimal": "0.2",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 896,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.weakspot_stagger_resistance_modifier"
-                  }
-                },
-                {
-                  "ordinal": 6,
-                  "rawValue": "GibbingPower.always",
-                  "tableRefKey": "GibbingPower.always",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 919,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.gibbing_power"
-                  }
-                },
-                {
-                  "ordinal": 7,
-                  "rawValue": "gibbing_types.default",
-                  "tableRefKey": "gibbing_types.default",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 920,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.gibbing_type"
-                  }
-                }
-              ]
+          }
+        ],
+        "sourceBindings": [
+          {
+            "branch": "normal",
+            "profileRef": {
+              "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m3:e46",
+              "gameReleaseId": "darktide:1.13.4"
             },
-            {
-              "tableKey": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack",
-              "quantity": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack",
-              "unit": "ratio",
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 899,
-                "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.unarmored]"
+            "rawValue": "autogun_p3_m3",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
               },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "0.8",
-                  "decimal": "0.8",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 899,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.unarmored]"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "0.3",
-                  "decimal": "0.3",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 900,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.armored]"
-                  }
-                },
-                {
-                  "ordinal": 3,
-                  "rawValue": "0.5",
-                  "decimal": "0.5",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 901,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.resistant]"
-                  }
-                },
-                {
-                  "ordinal": 4,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 902,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.player]"
-                  }
-                },
-                {
-                  "ordinal": 5,
-                  "rawValue": "0.6",
-                  "decimal": "0.6",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 903,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.berserker]"
-                  }
-                },
-                {
-                  "ordinal": 6,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 904,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.super_armor]"
-                  }
-                },
-                {
-                  "ordinal": 7,
-                  "rawValue": "1",
-                  "decimal": "1",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 905,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.disgustingly_resilient]"
-                  }
-                },
-                {
-                  "ordinal": 8,
-                  "rawValue": "0.1",
-                  "decimal": "0.1",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 906,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.attack.[armor_types.void_shield]"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact",
-              "quantity": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact",
-              "unit": "ratio",
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 909,
-                "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.unarmored]"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "1.25",
-                  "decimal": "1.25",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 909,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.unarmored]"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "1",
-                  "decimal": "1",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 910,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.armored]"
-                  }
-                },
-                {
-                  "ordinal": 3,
-                  "rawValue": "0.25",
-                  "decimal": "0.25",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 911,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.resistant]"
-                  }
-                },
-                {
-                  "ordinal": 4,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 912,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.player]"
-                  }
-                },
-                {
-                  "ordinal": 5,
-                  "rawValue": "0.5",
-                  "decimal": "0.5",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 913,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.berserker]"
-                  }
-                },
-                {
-                  "ordinal": 6,
-                  "rawValue": "0.5",
-                  "decimal": "0.5",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 914,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.super_armor]"
-                  }
-                },
-                {
-                  "ordinal": 7,
-                  "rawValue": "1",
-                  "decimal": "1",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 915,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.disgustingly_resilient]"
-                  }
-                },
-                {
-                  "ordinal": 8,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 916,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.armor_damage_modifier.impact.[armor_types.void_shield]"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.attack",
-              "quantity": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.attack",
-              "unit": "attack-power-point",
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 925,
-                "fieldPath": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.attack.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "25",
-                  "decimal": "25",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 925,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.attack.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "75",
-                  "decimal": "75",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 926,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.attack.2"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.impact",
-              "quantity": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.impact",
-              "unit": "impact",
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 929,
-                "fieldPath": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.impact.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "5",
-                  "decimal": "5",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 929,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.impact.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "10",
-                  "decimal": "10",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 930,
-                    "fieldPath": "damage_templates.autogun_weapon_special_bash.targets.default_target.power_distribution.impact.2"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "overrides.autogun_weapon_special_bash_heavy",
-              "quantity": "overrides.autogun_weapon_special_bash_heavy",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 937,
-                "fieldPath": "overrides.autogun_weapon_special_bash_heavy.parent_template_name"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "\"autogun_weapon_special_bash\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 937,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.parent_template_name"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "overrides.autogun_weapon_special_bash_heavy.overrides.1",
-              "quantity": "overrides.autogun_weapon_special_bash_heavy.overrides.1",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 940,
-                "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "\"targets\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 940,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "\"default_target\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 941,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.2"
-                  }
-                },
-                {
-                  "ordinal": 3,
-                  "rawValue": "\"power_distribution\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 942,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.3"
-                  }
-                },
-                {
-                  "ordinal": 4,
-                  "rawValue": "\"attack\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 943,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.4"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "overrides.autogun_weapon_special_bash_heavy.overrides.1.5",
-              "quantity": "overrides.autogun_weapon_special_bash_heavy.overrides.1.5",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 945,
-                "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.5.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "50",
-                  "decimal": "50",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 945,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.5.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "150",
-                  "decimal": "150",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 946,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.1.5.2"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "overrides.autogun_weapon_special_bash_heavy.overrides.2",
-              "quantity": "overrides.autogun_weapon_special_bash_heavy.overrides.2",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 950,
-                "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "\"targets\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 950,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "\"default_target\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 951,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.2"
-                  }
-                },
-                {
-                  "ordinal": 3,
-                  "rawValue": "\"power_distribution\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 952,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.3"
-                  }
-                },
-                {
-                  "ordinal": 4,
-                  "rawValue": "\"impact\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 953,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.4"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "overrides.autogun_weapon_special_bash_heavy.overrides.2.5",
-              "quantity": "overrides.autogun_weapon_special_bash_heavy.overrides.2.5",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 955,
-                "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.5.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "5",
-                  "decimal": "5",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 955,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.5.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "10",
-                  "decimal": "10",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 956,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.2.5.2"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "overrides.autogun_weapon_special_bash_heavy.overrides.3",
-              "quantity": "overrides.autogun_weapon_special_bash_heavy.overrides.3",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 960,
-                "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.3.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "\"weakspot_stagger_resistance_modifier\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 960,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.3.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "0.1",
-                  "decimal": "0.1",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 961,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.3.2"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "overrides.autogun_weapon_special_bash_heavy.overrides.4",
-              "quantity": "overrides.autogun_weapon_special_bash_heavy.overrides.4",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 964,
-                "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.4.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "\"ragdoll_push_force\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 964,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.4.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "400",
-                  "decimal": "400",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 965,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.overrides.4.2"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "overrides.autogun_weapon_special_bash_heavy.parent_template_name",
-              "quantity": "profile-parent-inheritance",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                "line": 937,
-                "fieldPath": "overrides.autogun_weapon_special_bash_heavy.parent_template_name"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "\"autogun_weapon_special_bash\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
-                    "line": 937,
-                    "fieldPath": "overrides.autogun_weapon_special_bash_heavy.parent_template_name"
-                  }
-                }
-              ]
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 139,
+              "fieldPath": "hitscan_templates.autogun_p3_m3_bullet.damage.impact.damage_profile"
             }
-          ]
-        }
+          }
+        ]
       },
       "sourceRefs": [
         {
-          "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+          "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
       "dataCoverage": {
-        "status": "complete",
-        "missing": []
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/targetProfileRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/actionResolution",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
       },
       "reviewState": "pending",
       "reviewTargets": [
         {
-          "fieldPath": "/payload/profileKey",
+          "fieldPath": "/payload/action",
           "dimension": "identity"
         },
         {
-          "fieldPath": "/payload/rawSourceDefinition",
+          "fieldPath": "/payload/mode",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/damageProfileRefs",
           "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/sourceBindings",
+          "dimension": "evidence"
         }
       ]
     },

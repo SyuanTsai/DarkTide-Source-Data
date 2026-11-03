@@ -2708,7 +2708,7 @@
                   "index": 2,
                   "attackType": "ninja_fencer",
                   "targetRole": "single-target",
-                  "roleProfileKey": "default_light_hatchet_smiter"
+                  "roleProfileKey": "default_light_hatchet"
                 },
                 {
                   "index": 3,
@@ -2724,6 +2724,30 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-combataxe_p2_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-combataxe_p2_m2-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-combataxe_p2_m3-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-combataxe_p1_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -2744,13 +2768,13 @@
                   "index": 1,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "default_light_hatchet_smiter"
+                  "roleProfileKey": "medium_hatchet"
                 },
                 {
                   "index": 2,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "default_light_hatchet_smiter"
+                  "roleProfileKey": "medium_hatchet"
                 }
               ],
               "sourceRefs": [
@@ -2759,7 +2783,19 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-combataxe_p2_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-combataxe_p1_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -3196,6 +3232,18 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:b41d32ee372b0fe3",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:911d42a82bbc28a8",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:e06e2391232b938b",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:d22ff2b74fb4bbaf",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -4112,6 +4160,95 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "combataxe_p2_m1_mobility_stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_speed_mod",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combataxe_p2_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_axes/combataxe_p2_m1.lua",
+                    "line": 1436,
+                    "fieldPath": "weapon_template.base_stats.combataxe_p2_m1_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 12,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_forward_acceleration",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combataxe_p2_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_axes/combataxe_p2_m1.lua",
+                    "line": 1436,
+                    "fieldPath": "weapon_template.base_stats.combataxe_p2_m1_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 19,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combataxe_p2_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_axes/combataxe_p2_m1.lua",
+                    "line": 1442,
+                    "fieldPath": "weapon_template.base_stats.combataxe_p2_m1_mobility_stat.movement_curve_modifier.base.1"
+                  },
+                  "traitTemplateKey": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                    "line": 10,
+                    "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio"
                   }
                 }
@@ -5193,6 +5330,116 @@
                   }
                 }
               ]
+            },
+            {
+              "statKey": "combataxe_p2_m1_mobility_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_speed_mod",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 12,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_forward_acceleration",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 19,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "quantityKind": "movement-curve-modifier",
+                  "unit": {
+                    "status": "not-applicable"
+                  },
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                        "line": 10,
+                        "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -6235,6 +6482,123 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "combataxe_p2_m1_mobility_stat",
+              "templateKey": "assault",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                "line": 129,
+                "fieldPath": "weapon_sprint_templates.assault.sprint_speed_mod.lerp_basic"
+              },
+              "properties": [
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_speed_mod",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 128,
+                    "fieldPath": "weapon_sprint_templates.assault.sprint_speed_mod"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "-0.25",
+                      "decimal": "-0.25",
+                      "line": 129,
+                      "fieldPath": "weapon_sprint_templates.assault.sprint_speed_mod.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.85",
+                      "decimal": "0.85",
+                      "line": 130,
+                      "fieldPath": "weapon_sprint_templates.assault.sprint_speed_mod.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_forward_acceleration",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 124,
+                    "fieldPath": "weapon_sprint_templates.assault.sprint_forward_acceleration"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.4",
+                      "decimal": "0.4",
+                      "line": 125,
+                      "fieldPath": "weapon_sprint_templates.assault.sprint_forward_acceleration.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.8",
+                      "decimal": "0.8",
+                      "line": 126,
+                      "fieldPath": "weapon_sprint_templates.assault.sprint_forward_acceleration.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "combataxe_p2_m1_mobility_stat",
+              "templateKey": "combataxe_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:generic-37449b0a55577293",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                "line": 36,
+                "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier"
+              },
+              "properties": [
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:generic-37449b0a55577293",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                    "line": 36,
+                    "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 37,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 38,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -6261,6 +6625,30 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:weapon-source-combataxe_p2_m2-e46b8926cfa3-combat_axe_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-combataxe_p2_m3-e46b8926cfa3-combat_axe_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-combataxe_p1_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:w07-static-ba6c148-996c0bf10f0855d4",
           "gameReleaseId": "darktide:1.13.4"
         },
@@ -6277,11 +6665,27 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-combataxe_p1_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-f94c94dc7f3f7018",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -6293,6 +6697,54 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-template-combataxe_p2_m1-e46b8926cfa3",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_1_1_hatchet.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_1_hatchet.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m1_crit_stat/weapon_weapon_handling_templates.time_scale_1_1_hatchet.critical_strike.chance_modifier",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m1_crit_stat/weapon_weapon_handling_templates.time_scale_1_hatchet.critical_strike.chance_modifier",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m1_crit_stat/weapon_weapon_handling_templates.time_scale_1.critical_strike.chance_modifier",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
               "gameReleaseId": "darktide:1.13.4"
             }
           },
@@ -9224,6 +9676,22 @@
                 {
                   "sourceId": "public-code:weapon-source-combataxe_p2_m2-e46b8926cfa3-combat_axe_damage_profile_templates",
                   "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-combataxe_p1_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
                 }
               ],
               "evidenceRefs": [
@@ -9243,13 +9711,13 @@
                   "index": 1,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "default_light_hatchet"
+                  "roleProfileKey": "medium_hatchet_smiter"
                 },
                 {
                   "index": 2,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "default_light_hatchet"
+                  "roleProfileKey": "medium_hatchet_smiter"
                 }
               ],
               "sourceRefs": [
@@ -9258,7 +9726,19 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-combataxe_p2_m2-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-combataxe_p1_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -9727,6 +10207,18 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:bd53c19a6a7ff693",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:911d42a82bbc28a8",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:e06e2391232b938b",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:d22ff2b74fb4bbaf",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -10846,6 +11338,95 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "combataxe_p2_m2_mobility_stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_speed_mod",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combataxe_p2_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_axes/combataxe_p2_m2.lua",
+                    "line": 1477,
+                    "fieldPath": "weapon_template.base_stats.combataxe_p2_m2_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 12,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_forward_acceleration",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combataxe_p2_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_axes/combataxe_p2_m2.lua",
+                    "line": 1477,
+                    "fieldPath": "weapon_template.base_stats.combataxe_p2_m2_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 19,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combataxe_p2_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_axes/combataxe_p2_m2.lua",
+                    "line": 1483,
+                    "fieldPath": "weapon_template.base_stats.combataxe_p2_m2_mobility_stat.movement_curve_modifier.base.1"
+                  },
+                  "traitTemplateKey": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                    "line": 10,
+                    "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio"
                   }
                 }
@@ -12165,6 +12746,116 @@
                   }
                 }
               ]
+            },
+            {
+              "statKey": "combataxe_p2_m2_mobility_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_speed_mod",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 12,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_forward_acceleration",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 19,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "quantityKind": "movement-curve-modifier",
+                  "unit": {
+                    "status": "not-applicable"
+                  },
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                        "line": 10,
+                        "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -13455,6 +14146,123 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "combataxe_p2_m2_mobility_stat",
+              "templateKey": "assault",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                "line": 128,
+                "fieldPath": "weapon_sprint_templates.assault.sprint_speed_mod"
+              },
+              "properties": [
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_speed_mod",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 128,
+                    "fieldPath": "weapon_sprint_templates.assault.sprint_speed_mod"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "-0.25",
+                      "decimal": "-0.25",
+                      "line": 129,
+                      "fieldPath": "weapon_sprint_templates.assault.sprint_speed_mod.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.85",
+                      "decimal": "0.85",
+                      "line": 130,
+                      "fieldPath": "weapon_sprint_templates.assault.sprint_speed_mod.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_forward_acceleration",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 124,
+                    "fieldPath": "weapon_sprint_templates.assault.sprint_forward_acceleration"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.4",
+                      "decimal": "0.4",
+                      "line": 125,
+                      "fieldPath": "weapon_sprint_templates.assault.sprint_forward_acceleration.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.8",
+                      "decimal": "0.8",
+                      "line": 126,
+                      "fieldPath": "weapon_sprint_templates.assault.sprint_forward_acceleration.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "combataxe_p2_m2_mobility_stat",
+              "templateKey": "combataxe_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:generic-37449b0a55577293",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                "line": 36,
+                "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier"
+              },
+              "properties": [
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:generic-37449b0a55577293",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                    "line": 36,
+                    "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 37,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 38,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -13481,6 +14289,22 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:weapon-source-combataxe_p1_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:w07-static-ba6c148-996c0bf10f0855d4",
           "gameReleaseId": "darktide:1.13.4"
         },
@@ -13497,11 +14321,27 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-combataxe_p1_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-f94c94dc7f3f7018",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -13513,6 +14353,38 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-template-combataxe_p2_m2-e46b8926cfa3",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m2_finesse_stat/weapon_weapon_handling_templates.time_scale_1_hatchet.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m2_finesse_stat/weapon_weapon_handling_templates.time_scale_1_3.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m2_crit_stat/weapon_weapon_handling_templates.time_scale_1_hatchet.critical_strike.chance_modifier",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m2_crit_stat/weapon_weapon_handling_templates.time_scale_1_3.critical_strike.chance_modifier",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
               "gameReleaseId": "darktide:1.13.4"
             }
           },
@@ -16314,7 +17186,7 @@
                   "index": 2,
                   "attackType": "ninja_fencer",
                   "targetRole": "single-target",
-                  "roleProfileKey": "default_light_hatchet_smiter"
+                  "roleProfileKey": "default_light_hatchet"
                 },
                 {
                   "index": 3,
@@ -16330,6 +17202,26 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-combataxe_p2_m3-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-combataxe_p2_m2-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-combataxe_p1_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -16350,13 +17242,13 @@
                   "index": 1,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "default_light_hatchet_smiter"
+                  "roleProfileKey": "medium_hatchet"
                 },
                 {
                   "index": 2,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "default_light_hatchet_smiter"
+                  "roleProfileKey": "medium_hatchet_smiter"
                 }
               ],
               "sourceRefs": [
@@ -16365,7 +17257,19 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-combataxe_p2_m3-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-combataxe_p1_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -16862,6 +17766,18 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:b41d32ee372b0fe3",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:911d42a82bbc28a8",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:e06e2391232b938b",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:d22ff2b74fb4bbaf",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -18213,6 +19129,95 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "combataxe_p2_m3_mobility_stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_speed_mod",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combataxe_p2_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_axes/combataxe_p2_m3.lua",
+                    "line": 1344,
+                    "fieldPath": "weapon_template.base_stats.combataxe_p2_m3_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 12,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_forward_acceleration",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combataxe_p2_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_axes/combataxe_p2_m3.lua",
+                    "line": 1344,
+                    "fieldPath": "weapon_template.base_stats.combataxe_p2_m3_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 19,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combataxe_p2_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_axes/combataxe_p2_m3.lua",
+                    "line": 1350,
+                    "fieldPath": "weapon_template.base_stats.combataxe_p2_m3_mobility_stat.movement_curve_modifier.base.1"
+                  },
+                  "traitTemplateKey": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                    "line": 10,
+                    "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio"
                   }
                 }
@@ -19804,6 +20809,116 @@
                   }
                 }
               ]
+            },
+            {
+              "statKey": "combataxe_p2_m3_mobility_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_speed_mod",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 12,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_forward_acceleration",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 19,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "quantityKind": "movement-curve-modifier",
+                  "unit": {
+                    "status": "not-applicable"
+                  },
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                        "line": 10,
+                        "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -21357,6 +22472,123 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "combataxe_p2_m3_mobility_stat",
+              "templateKey": "assault",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                "line": 128,
+                "fieldPath": "weapon_sprint_templates.assault.sprint_speed_mod"
+              },
+              "properties": [
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_speed_mod",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 128,
+                    "fieldPath": "weapon_sprint_templates.assault.sprint_speed_mod"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "-0.25",
+                      "decimal": "-0.25",
+                      "line": 129,
+                      "fieldPath": "weapon_sprint_templates.assault.sprint_speed_mod.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.85",
+                      "decimal": "0.85",
+                      "line": 130,
+                      "fieldPath": "weapon_sprint_templates.assault.sprint_speed_mod.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_sprint_templates.assault.sprint_forward_acceleration",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 124,
+                    "fieldPath": "weapon_sprint_templates.assault.sprint_forward_acceleration"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.4",
+                      "decimal": "0.4",
+                      "line": 125,
+                      "fieldPath": "weapon_sprint_templates.assault.sprint_forward_acceleration.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.8",
+                      "decimal": "0.8",
+                      "line": 126,
+                      "fieldPath": "weapon_sprint_templates.assault.sprint_forward_acceleration.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "combataxe_p2_m3_mobility_stat",
+              "templateKey": "combataxe_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:generic-37449b0a55577293",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                "line": 36,
+                "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier"
+              },
+              "properties": [
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:generic-37449b0a55577293",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                    "line": 36,
+                    "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 37,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 38,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -21383,6 +22615,26 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:weapon-source-combataxe_p2_m2-e46b8926cfa3-combat_axe_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-combataxe_p1_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:w07-static-ba6c148-996c0bf10f0855d4",
           "gameReleaseId": "darktide:1.13.4"
         },
@@ -21399,11 +22651,27 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-combataxe_p1_m1-e46b8926cfa3-combat_axe_damage_profile_templates",
+          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-f94c94dc7f3f7018",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -21415,6 +22683,70 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-template-combataxe_p2_m3-e46b8926cfa3",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m3_finesse_stat/weapon_weapon_handling_templates.time_scale_1_hatchet.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m3_finesse_stat/weapon_weapon_handling_templates.time_scale_0_9_hatchet.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m3_finesse_stat/weapon_weapon_handling_templates.time_scale_1_3_hatchet.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_m3_finesse_stat/weapon_weapon_handling_templates.time_scale_1_3.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_p3_crit_stat/weapon_weapon_handling_templates.time_scale_1_hatchet.critical_strike.chance_modifier",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_p3_crit_stat/weapon_weapon_handling_templates.time_scale_0_9_hatchet.critical_strike.chance_modifier",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_p3_crit_stat/weapon_weapon_handling_templates.time_scale_1_3_hatchet.critical_strike.chance_modifier",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combataxe_p2_p3_crit_stat/weapon_weapon_handling_templates.time_scale_1_3.critical_strike.chance_modifier",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
               "gameReleaseId": "darktide:1.13.4"
             }
           },

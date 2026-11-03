@@ -3525,19 +3525,19 @@
                   "index": 2,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_powermaul_slabshield_smite"
+                  "roleProfileKey": "ogryn_powermaul_light_linesman"
                 },
                 {
                   "index": 3,
                   "attackType": "linesman",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_powermaul_light_tank"
+                  "roleProfileKey": "ogryn_powermaul_light_linesman"
                 },
                 {
                   "index": 4,
                   "attackType": "linesman",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_powermaul_light_tank"
+                  "roleProfileKey": "ogryn_powermaul_light_linesman"
                 }
               ],
               "sourceRefs": [
@@ -3546,7 +3546,23 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
+                  "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m2-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
                   "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m1-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-ogryn_powermaul_p1_m3-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -3567,13 +3583,13 @@
                   "index": 1,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_powermaul_light_tank"
+                  "roleProfileKey": "ogryn_powermaul_slabshield_tank"
                 },
                 {
                   "index": 2,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_powermaul_slabshield_smite"
+                  "roleProfileKey": "ogryn_powermaul_slabshield_tank"
                 }
               ],
               "sourceRefs": [
@@ -4080,6 +4096,22 @@
             {
               "recordId": "darktide:stat-definition:generic:8b81227a2289ebdf",
               "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:256b5c3fc12a3b96",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:506e5df0b463ab2e",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:dc84502f9e5e145b",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:f2693c9688a42fc4",
+              "gameReleaseId": "darktide:1.13.4"
             }
           ]
         },
@@ -4521,6 +4553,123 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_powermaul_slabshield_defence_stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_powermaul_slabshield_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_powermaul_slabshield/ogryn_powermaul_slabshield_p1_m1.lua",
+                    "line": 1716,
+                    "fieldPath": "weapon_template.base_stats.ogryn_powermaul_slabshield_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 22,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_powermaul_slabshield_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_powermaul_slabshield/ogryn_powermaul_slabshield_p1_m1.lua",
+                    "line": 1716,
+                    "fieldPath": "weapon_template.base_stats.ogryn_powermaul_slabshield_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 30,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_powermaul_slabshield_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_powermaul_slabshield/ogryn_powermaul_slabshield_p1_m1.lua",
+                    "line": 1716,
+                    "fieldPath": "weapon_template.base_stats.ogryn_powermaul_slabshield_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 38,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_powermaul_slabshield_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_powermaul_slabshield/ogryn_powermaul_slabshield_p1_m1.lua",
+                    "line": 1716,
+                    "fieldPath": "weapon_template.base_stats.ogryn_powermaul_slabshield_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 45,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
                     "unit": "ratio"
                   }
                 }
@@ -5034,6 +5183,148 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_powermaul_slabshield_defence_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 22,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.75,\n\t\t\tmin = 0.25,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 30,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 38,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 45,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
                     "unit": "ratio",
                     "inclusive": {
                       "min": true,
@@ -6470,6 +6761,137 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "ogryn_powermaul_slabshield_defence_stat",
+              "templateKey": "ogryn_powermaul_slabshield_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                "line": 286,
+                "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second.lerp_basic"
+              },
+              "properties": [
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 285,
+                    "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "3.5",
+                      "decimal": "3.5",
+                      "line": 286,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 287,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 290,
+                    "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.6",
+                      "decimal": "0.6",
+                      "line": 291,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.2",
+                      "decimal": "0.2",
+                      "line": 292,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 294,
+                    "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2",
+                      "decimal": "2",
+                      "line": 295,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 296,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 305,
+                    "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 306,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 307,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -6492,7 +6914,23 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m2-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m1-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-ogryn_powermaul_p1_m3-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
@@ -6509,6 +6947,22 @@
         },
         {
           "sourceId": "public-code:damage-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-f94c94dc7f3f7018",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -6632,6 +7086,38 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:damage-trait-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_powermaul_slabshield_control_stat/weapon_weapon_handling_templates.time_scale_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_powermaul_slabshield_control_stat/weapon_weapon_handling_templates.time_scale_1_2.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_powermaul_slabshield_control_stat/weapon_weapon_handling_templates.time_scale_1_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_powermaul_slabshield_control_stat/weapon_weapon_handling_templates.time_scale_1_3.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
               "gameReleaseId": "darktide:1.13.4"
             }
           },
@@ -9580,25 +10066,25 @@
                   "index": 1,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_powermaul_light_tank"
+                  "roleProfileKey": "ogryn_powermaul_light_smiter"
                 },
                 {
                   "index": 2,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_powermaul_slabshield_smite"
+                  "roleProfileKey": "ogryn_powermaul_light_smiter"
                 },
                 {
                   "index": 3,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_powermaul_light_tank"
+                  "roleProfileKey": "ogryn_powermaul_shield_light_smiter_plus"
                 },
                 {
                   "index": 4,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_powermaul_light_tank"
+                  "roleProfileKey": "ogryn_powermaul_light_smiter"
                 }
               ],
               "sourceRefs": [
@@ -9607,7 +10093,11 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m2-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-ogryn_powermaul_p1_m3-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m1-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -9628,13 +10118,13 @@
                   "index": 1,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_powermaul_light_tank"
+                  "roleProfileKey": "ogryn_powermaul_slabshield_tank"
                 },
                 {
                   "index": 2,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_powermaul_slabshield_smite"
+                  "roleProfileKey": "ogryn_powermaul_slabshield_tank"
                 }
               ],
               "sourceRefs": [
@@ -9643,7 +10133,7 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m2-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m1-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -10125,6 +10615,22 @@
             {
               "recordId": "darktide:stat-definition:generic:1f601046f186c5f3",
               "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:256b5c3fc12a3b96",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:506e5df0b463ab2e",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:dc84502f9e5e145b",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:f2693c9688a42fc4",
+              "gameReleaseId": "darktide:1.13.4"
             }
           ]
         },
@@ -10566,6 +11072,123 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_powermaul_slabshield_defence_stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_powermaul_slabshield_p1_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_powermaul_slabshield/ogryn_powermaul_slabshield_p1_m2.lua",
+                    "line": 1342,
+                    "fieldPath": "weapon_template.base_stats.ogryn_powermaul_slabshield_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 22,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_powermaul_slabshield_p1_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_powermaul_slabshield/ogryn_powermaul_slabshield_p1_m2.lua",
+                    "line": 1342,
+                    "fieldPath": "weapon_template.base_stats.ogryn_powermaul_slabshield_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 30,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_powermaul_slabshield_p1_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_powermaul_slabshield/ogryn_powermaul_slabshield_p1_m2.lua",
+                    "line": 1342,
+                    "fieldPath": "weapon_template.base_stats.ogryn_powermaul_slabshield_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 38,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_powermaul_slabshield_p1_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_powermaul_slabshield/ogryn_powermaul_slabshield_p1_m2.lua",
+                    "line": 1342,
+                    "fieldPath": "weapon_template.base_stats.ogryn_powermaul_slabshield_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 45,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
                     "unit": "ratio"
                   }
                 }
@@ -11079,6 +11702,148 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_powermaul_slabshield_defence_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 22,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.75,\n\t\t\tmin = 0.25,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 30,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 38,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 45,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
                     "unit": "ratio",
                     "inclusive": {
                       "min": true,
@@ -12450,6 +13215,137 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "ogryn_powermaul_slabshield_defence_stat",
+              "templateKey": "ogryn_powermaul_slabshield_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                "line": 285,
+                "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second"
+              },
+              "properties": [
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 285,
+                    "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "3.5",
+                      "decimal": "3.5",
+                      "line": 286,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 287,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 290,
+                    "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.6",
+                      "decimal": "0.6",
+                      "line": 291,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.2",
+                      "decimal": "0.2",
+                      "line": 292,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 294,
+                    "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2",
+                      "decimal": "2",
+                      "line": 295,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 296,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 305,
+                    "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 306,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 307,
+                      "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -12472,7 +13368,11 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m2-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
+          "sourceId": "public-code:weapon-source-ogryn_powermaul_p1_m3-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m1-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
@@ -12492,7 +13392,19 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m1-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
+          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-f94c94dc7f3f7018",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -12616,6 +13528,30 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:damage-trait-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_powermaul_slabshield_control_stat/weapon_weapon_handling_templates.time_scale_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_powermaul_slabshield_control_stat/weapon_weapon_handling_templates.time_scale_1_2.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_powermaul_slabshield_control_stat/weapon_weapon_handling_templates.time_scale_1_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
               "gameReleaseId": "darktide:1.13.4"
             }
           },
@@ -19007,6 +19943,93 @@
       ]
     },
     {
+      "recordId": "darktide:stat-curve:generic:256b5c3fc12a3b96",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "3.5",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "3.5",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 286,
+              "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "1.5",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "1.5",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 287,
+              "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-curve:generic:26f5ce2e064daa85",
       "kind": "stat-curve",
       "owner": "source",
@@ -19790,6 +20813,93 @@
       ]
     },
     {
+      "recordId": "darktide:stat-curve:generic:506e5df0b463ab2e",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "0.6",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "0.6",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 291,
+              "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "0.2",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "0.2",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 292,
+              "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-curve:generic:6444ac25b19e522a",
       "kind": "stat-curve",
       "owner": "source",
@@ -20399,6 +21509,93 @@
       ]
     },
     {
+      "recordId": "darktide:stat-curve:generic:dc84502f9e5e145b",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "2",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "2",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 295,
+              "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "1",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "1",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 296,
+              "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-curve:generic:e28e464c6a61a93e",
       "kind": "stat-curve",
       "owner": "source",
@@ -20646,6 +21843,93 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m1-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-curve:generic:f2693c9688a42fc4",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "1.5",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "1.5",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 306,
+              "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "0.5",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "0.5",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 307,
+              "fieldPath": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
               "gameReleaseId": "darktide:1.13.4"
             }
           }
@@ -21792,6 +23076,73 @@
       ]
     },
     {
+      "recordId": "darktide:stat-definition:generic:256b5c3fc12a3b96",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.sprint_cost_per_second",
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0.25",
+          "max": "0.75",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:256b5c3fc12a3b96",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-definition:generic:26f5ce2e064daa85",
       "kind": "stat-definition",
       "owner": "source",
@@ -22395,6 +23746,73 @@
       ]
     },
     {
+      "recordId": "darktide:stat-definition:generic:506e5df0b463ab2e",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.inner",
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:506e5df0b463ab2e",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-definition:generic:6444ac25b19e522a",
       "kind": "stat-definition",
       "owner": "source",
@@ -22864,6 +24282,73 @@
       ]
     },
     {
+      "recordId": "darktide:stat-definition:generic:dc84502f9e5e145b",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.block_cost_default.outer",
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:dc84502f9e5e145b",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-definition:generic:e28e464c6a61a93e",
       "kind": "stat-definition",
       "owner": "source",
@@ -23051,6 +24536,73 @@
             "reasonCode": "NOT_IMPORTED",
             "sourceRef": {
               "sourceId": "public-code:weapon-source-ogryn_powermaul_slabshield_p1_m1-e46b8926cfa3-ogryn_power_maul_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-definition:generic:f2693c9688a42fc4",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_stamina_templates.ogryn_powermaul_slabshield_p1_m1.push_cost",
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:f2693c9688a42fc4",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
               "gameReleaseId": "darktide:1.13.4"
             }
           }

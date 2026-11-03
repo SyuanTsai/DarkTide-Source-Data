@@ -3078,13 +3078,13 @@
                   "index": 2,
                   "attackType": "linesman",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_club_heavy_smiter"
+                  "roleProfileKey": "ogryn_club_light_smiter_alt"
                 },
                 {
                   "index": 3,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_club_light_linesman"
+                  "roleProfileKey": "ogryn_club_linesman_pushfollow"
                 }
               ],
               "sourceRefs": [
@@ -3093,7 +3093,23 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
+                  "sourceId": "public-code:weapon-source-ogryn_club_p2_m2-e46b8926cfa3-ogryn_club_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
                   "sourceId": "public-code:weapon-source-ogryn_club_p2_m1-e46b8926cfa3-ogryn_club_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -3114,7 +3130,7 @@
                   "index": 1,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "ogryn_club_light_linesman"
+                  "roleProfileKey": "ogryn_club_heavy_tank"
                 },
                 {
                   "index": 2,
@@ -3129,7 +3145,11 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-ogryn_club_p2_m1-e46b8926cfa3-ogryn_club_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-ogryn_club_p2_m3-e46b8926cfa3-ogryn_club_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-ogryn_club_p2_m2-e46b8926cfa3-ogryn_club_damage_profile_templates",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -3670,6 +3690,34 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:b45c3aa1dcc6808c",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:ce7be67ff8289b19",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:aa67b7a74304b533",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:6b070b9f38a543c5",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:b541d62eadab45a6",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:0d0e4e60a509a95d",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:f4e2ee72b8b07ae3",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:854caf91f19290b3",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -5282,6 +5330,212 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m1_defence_stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.tank.sprint_cost_per_second",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m1.lua",
+                    "line": 1350,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m1_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 22,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.inner",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m1.lua",
+                    "line": 1350,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m1_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 30,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.outer",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m1.lua",
+                    "line": 1350,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m1_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 38,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.push_cost",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m1.lua",
+                    "line": 1350,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m1_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 45,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m1_mobility_stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_speed_mod",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m1.lua",
+                    "line": 1366,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m1_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 12,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_forward_acceleration",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m1.lua",
+                    "line": 1366,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m1_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 19,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m1.lua",
+                    "line": 1372,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m1_mobility_stat.movement_curve_modifier.base.1"
+                  },
+                  "traitTemplateKey": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                    "line": 10,
+                    "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio"
                   }
                 }
@@ -7179,6 +7433,258 @@
                   }
                 }
               ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m1_defence_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.tank.sprint_cost_per_second",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 22,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.75,\n\t\t\tmin = 0.25,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.inner",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 30,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.outer",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 38,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.push_cost",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 45,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m1_mobility_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_speed_mod",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 12,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_forward_acceleration",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 19,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier",
+                  "quantityKind": "movement-curve-modifier",
+                  "unit": {
+                    "status": "not-applicable"
+                  },
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                        "line": 10,
+                        "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -8922,6 +9428,254 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m1_defence_stat",
+              "templateKey": "tank",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                "line": 110,
+                "fieldPath": "weapon_stamina_templates.tank.sprint_cost_per_second"
+              },
+              "properties": [
+                {
+                  "property": "weapon_stamina_templates.tank.sprint_cost_per_second",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 110,
+                    "fieldPath": "weapon_stamina_templates.tank.sprint_cost_per_second"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2",
+                      "decimal": "2",
+                      "line": 111,
+                      "fieldPath": "weapon_stamina_templates.tank.sprint_cost_per_second.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 112,
+                      "fieldPath": "weapon_stamina_templates.tank.sprint_cost_per_second.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.inner",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 115,
+                    "fieldPath": "weapon_stamina_templates.tank.block_cost_default.inner"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 116,
+                      "fieldPath": "weapon_stamina_templates.tank.block_cost_default.inner.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 117,
+                      "fieldPath": "weapon_stamina_templates.tank.block_cost_default.inner.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.outer",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 119,
+                    "fieldPath": "weapon_stamina_templates.tank.block_cost_default.outer"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2",
+                      "decimal": "2",
+                      "line": 120,
+                      "fieldPath": "weapon_stamina_templates.tank.block_cost_default.outer.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 121,
+                      "fieldPath": "weapon_stamina_templates.tank.block_cost_default.outer.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.push_cost",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 124,
+                    "fieldPath": "weapon_stamina_templates.tank.push_cost"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2.25",
+                      "decimal": "2.25",
+                      "line": 125,
+                      "fieldPath": "weapon_stamina_templates.tank.push_cost.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.75",
+                      "decimal": "0.75",
+                      "line": 126,
+                      "fieldPath": "weapon_stamina_templates.tank.push_cost.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m1_mobility_stat",
+              "templateKey": "ogryn",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                "line": 67,
+                "fieldPath": "weapon_sprint_templates.ogryn.sprint_speed_mod.lerp_basic"
+              },
+              "properties": [
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_speed_mod",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 66,
+                    "fieldPath": "weapon_sprint_templates.ogryn.sprint_speed_mod"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "-0.25",
+                      "decimal": "-0.25",
+                      "line": 67,
+                      "fieldPath": "weapon_sprint_templates.ogryn.sprint_speed_mod.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.25",
+                      "decimal": "0.25",
+                      "line": 68,
+                      "fieldPath": "weapon_sprint_templates.ogryn.sprint_speed_mod.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_forward_acceleration",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 62,
+                    "fieldPath": "weapon_sprint_templates.ogryn.sprint_forward_acceleration"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.15",
+                      "decimal": "0.15",
+                      "line": 63,
+                      "fieldPath": "weapon_sprint_templates.ogryn.sprint_forward_acceleration.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.4",
+                      "decimal": "0.4",
+                      "line": 64,
+                      "fieldPath": "weapon_sprint_templates.ogryn.sprint_forward_acceleration.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m1_mobility_stat",
+              "templateKey": "ogryn_club_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:generic-37449b0a55577293",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                "line": 73,
+                "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier.lerp_basic"
+              },
+              "properties": [
+                {
+                  "property": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:generic-37449b0a55577293",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                    "line": 72,
+                    "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 73,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 74,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -8944,7 +9698,27 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:weapon-source-ogryn_club_p2_m2-e46b8926cfa3-ogryn_club_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:weapon-source-ogryn_club_p2_m1-e46b8926cfa3-ogryn_club_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-ogryn_club_p2_m3-e46b8926cfa3-ogryn_club_damage_profile_templates",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
@@ -8964,7 +9738,35 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-f94c94dc7f3f7018",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -8988,10 +9790,42 @@
             }
           },
           {
+            "field": "/payload/statTables/ogryn_club_p2_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_club_p2_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_1_3.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_club_p2_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_1_2.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
             "field": "/payload/statBindings/ogryn_club_p2_m1_finesse_stat/weapon_handling/action_weapon_special/time_scale",
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-template-ogryn_club_p2_m1-e46b8926cfa3",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_club_p2_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_0_9.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
               "gameReleaseId": "darktide:1.13.4"
             }
           },
@@ -12446,19 +13280,19 @@
                   "index": 2,
                   "attackType": "linesman",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_club_heavy_smiter"
+                  "roleProfileKey": "ogryn_club_light_tank"
                 },
                 {
                   "index": 3,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_club_light_linesman"
+                  "roleProfileKey": "ogryn_club_light_smiter_alt"
                 },
                 {
                   "index": 4,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_club_light_linesman"
+                  "roleProfileKey": "ogryn_club_linesman_pushfollow"
                 }
               ],
               "sourceRefs": [
@@ -12468,6 +13302,26 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-ogryn_club_p2_m2-e46b8926cfa3-ogryn_club_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-ogryn_club_p2_m3-e46b8926cfa3-ogryn_club_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-ogryn_club_p2_m1-e46b8926cfa3-ogryn_club_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -12488,13 +13342,13 @@
                   "index": 1,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_club_light_linesman"
+                  "roleProfileKey": "ogryn_club_heavy_tank"
                 },
                 {
                   "index": 2,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_club_heavy_smiter"
+                  "roleProfileKey": "ogryn_club_heavy_tank"
                 }
               ],
               "sourceRefs": [
@@ -12503,7 +13357,7 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-ogryn_club_p2_m2-e46b8926cfa3-ogryn_club_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-ogryn_club_p2_m3-e46b8926cfa3-ogryn_club_damage_profile_templates",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -13112,6 +13966,34 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:69af84d7ae835312",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:ce7be67ff8289b19",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:aa67b7a74304b533",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:6b070b9f38a543c5",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:b541d62eadab45a6",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:0d0e4e60a509a95d",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:f4e2ee72b8b07ae3",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:854caf91f19290b3",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -15188,6 +16070,212 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m2_defence_stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.tank.sprint_cost_per_second",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m2.lua",
+                    "line": 1549,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m2_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 22,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.inner",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m2.lua",
+                    "line": 1549,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m2_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 30,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.outer",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m2.lua",
+                    "line": 1549,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m2_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 38,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.push_cost",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m2.lua",
+                    "line": 1549,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m2_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 45,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m2_mobility_stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_speed_mod",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m2.lua",
+                    "line": 1579,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m2_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 12,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_forward_acceleration",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m2.lua",
+                    "line": 1579,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m2_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 19,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m2.lua",
+                    "line": 1589,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m2_mobility_stat.movement_curve_modifier.base.1"
+                  },
+                  "traitTemplateKey": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                    "line": 10,
+                    "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio"
                   }
                 }
@@ -17629,6 +18717,258 @@
                   }
                 }
               ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m2_defence_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.tank.sprint_cost_per_second",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 22,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.75,\n\t\t\tmin = 0.25,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.inner",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 30,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.outer",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 38,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.push_cost",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 45,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m2_mobility_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_speed_mod",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 12,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_forward_acceleration",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 19,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier",
+                  "quantityKind": "movement-curve-modifier",
+                  "unit": {
+                    "status": "not-applicable"
+                  },
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                        "line": 10,
+                        "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -19862,6 +21202,254 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m2_defence_stat",
+              "templateKey": "tank",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                "line": 110,
+                "fieldPath": "weapon_stamina_templates.tank.sprint_cost_per_second"
+              },
+              "properties": [
+                {
+                  "property": "weapon_stamina_templates.tank.sprint_cost_per_second",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 110,
+                    "fieldPath": "weapon_stamina_templates.tank.sprint_cost_per_second"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2",
+                      "decimal": "2",
+                      "line": 111,
+                      "fieldPath": "weapon_stamina_templates.tank.sprint_cost_per_second.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 112,
+                      "fieldPath": "weapon_stamina_templates.tank.sprint_cost_per_second.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.inner",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 115,
+                    "fieldPath": "weapon_stamina_templates.tank.block_cost_default.inner"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 116,
+                      "fieldPath": "weapon_stamina_templates.tank.block_cost_default.inner.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 117,
+                      "fieldPath": "weapon_stamina_templates.tank.block_cost_default.inner.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.outer",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 119,
+                    "fieldPath": "weapon_stamina_templates.tank.block_cost_default.outer"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2",
+                      "decimal": "2",
+                      "line": 120,
+                      "fieldPath": "weapon_stamina_templates.tank.block_cost_default.outer.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 121,
+                      "fieldPath": "weapon_stamina_templates.tank.block_cost_default.outer.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.push_cost",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 124,
+                    "fieldPath": "weapon_stamina_templates.tank.push_cost"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2.25",
+                      "decimal": "2.25",
+                      "line": 125,
+                      "fieldPath": "weapon_stamina_templates.tank.push_cost.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.75",
+                      "decimal": "0.75",
+                      "line": 126,
+                      "fieldPath": "weapon_stamina_templates.tank.push_cost.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m2_mobility_stat",
+              "templateKey": "ogryn",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                "line": 66,
+                "fieldPath": "weapon_sprint_templates.ogryn.sprint_speed_mod"
+              },
+              "properties": [
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_speed_mod",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 66,
+                    "fieldPath": "weapon_sprint_templates.ogryn.sprint_speed_mod"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "-0.25",
+                      "decimal": "-0.25",
+                      "line": 67,
+                      "fieldPath": "weapon_sprint_templates.ogryn.sprint_speed_mod.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.25",
+                      "decimal": "0.25",
+                      "line": 68,
+                      "fieldPath": "weapon_sprint_templates.ogryn.sprint_speed_mod.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_forward_acceleration",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 62,
+                    "fieldPath": "weapon_sprint_templates.ogryn.sprint_forward_acceleration"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.15",
+                      "decimal": "0.15",
+                      "line": 63,
+                      "fieldPath": "weapon_sprint_templates.ogryn.sprint_forward_acceleration.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.4",
+                      "decimal": "0.4",
+                      "line": 64,
+                      "fieldPath": "weapon_sprint_templates.ogryn.sprint_forward_acceleration.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m2_mobility_stat",
+              "templateKey": "ogryn_club_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:generic-37449b0a55577293",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                "line": 72,
+                "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier"
+              },
+              "properties": [
+                {
+                  "property": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:generic-37449b0a55577293",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                    "line": 72,
+                    "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 73,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 74,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -19888,6 +21476,26 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:weapon-source-ogryn_club_p2_m3-e46b8926cfa3-ogryn_club_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-ogryn_club_p2_m1-e46b8926cfa3-ogryn_club_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:w07-static-ba6c148-996c0bf10f0855d4",
           "gameReleaseId": "darktide:1.13.4"
         },
@@ -19904,11 +21512,35 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-ogryn_club_p2_m1-e46b8926cfa3-ogryn_club_damage_profile_templates",
+          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-f94c94dc7f3f7018",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -19932,10 +21564,42 @@
             }
           },
           {
+            "field": "/payload/statTables/ogryn_club_p2_m2_finesse_stat/weapon_weapon_handling_templates.time_scale_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_club_p2_m2_finesse_stat/weapon_weapon_handling_templates.time_scale_1_2.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_club_p2_m2_finesse_stat/weapon_weapon_handling_templates.time_scale_1_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
             "field": "/payload/statBindings/ogryn_club_p2_m2_finesse_stat/weapon_handling/action_weapon_special/time_scale",
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-template-ogryn_club_p2_m2-e46b8926cfa3",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_club_p2_m2_finesse_stat/weapon_weapon_handling_templates.time_scale_0_9.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
               "gameReleaseId": "darktide:1.13.4"
             }
           },
@@ -23503,19 +25167,19 @@
                   "index": 2,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_club_heavy_tank"
+                  "roleProfileKey": "ogryn_club_light_smiter_alt"
                 },
                 {
                   "index": 3,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_club_light_tank"
+                  "roleProfileKey": "ogryn_club_light_linesman"
                 },
                 {
                   "index": 4,
                   "attackType": "linesman",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_club_light_tank"
+                  "roleProfileKey": "ogryn_club_light_linesman"
                 }
               ],
               "sourceRefs": [
@@ -23525,6 +25189,26 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-ogryn_club_p2_m3-e46b8926cfa3-ogryn_club_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-ogryn_club_p2_m1-e46b8926cfa3-ogryn_club_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-ogryn_club_p2_m2-e46b8926cfa3-ogryn_club_damage_profile_templates",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -23545,13 +25229,13 @@
                   "index": 1,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_club_light_tank"
+                  "roleProfileKey": "ogryn_club_heavy_tank"
                 },
                 {
                   "index": 2,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "ogryn_club_heavy_tank"
+                  "roleProfileKey": "ogryn_club_heavy_smiter"
                 }
               ],
               "sourceRefs": [
@@ -23561,6 +25245,10 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-ogryn_club_p2_m3-e46b8926cfa3-ogryn_club_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-ogryn_club_p2_m2-e46b8926cfa3-ogryn_club_damage_profile_templates",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -24093,6 +25781,34 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:11d6b70f31f102ae",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:ce7be67ff8289b19",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:aa67b7a74304b533",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:6b070b9f38a543c5",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:b541d62eadab45a6",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:0d0e4e60a509a95d",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:f4e2ee72b8b07ae3",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:854caf91f19290b3",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -25589,6 +27305,212 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m3_defence_stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.tank.sprint_cost_per_second",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m3.lua",
+                    "line": 1643,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m3_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 22,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.inner",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m3.lua",
+                    "line": 1643,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m3_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 30,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.outer",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m3.lua",
+                    "line": 1643,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m3_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 38,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.push_cost",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m3.lua",
+                    "line": 1643,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m3_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 45,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m3_mobility_stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_speed_mod",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m3.lua",
+                    "line": 1673,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m3_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 12,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_forward_acceleration",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m3.lua",
+                    "line": 1673,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m3_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 19,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-ogryn_club_p2_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/ogryn_clubs/ogryn_club_p2_m3.lua",
+                    "line": 1683,
+                    "fieldPath": "weapon_template.base_stats.ogryn_club_p2_m3_mobility_stat.movement_curve_modifier.base.1"
+                  },
+                  "traitTemplateKey": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                    "line": 10,
+                    "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio"
                   }
                 }
@@ -27350,6 +29272,258 @@
                   }
                 }
               ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m3_defence_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.tank.sprint_cost_per_second",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 22,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.75,\n\t\t\tmin = 0.25,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.inner",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 30,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.outer",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 38,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.push_cost",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 45,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m3_mobility_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_speed_mod",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 12,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_forward_acceleration",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 19,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier",
+                  "quantityKind": "movement-curve-modifier",
+                  "unit": {
+                    "status": "not-applicable"
+                  },
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                        "line": 10,
+                        "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -28962,6 +31136,254 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m3_defence_stat",
+              "templateKey": "tank",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                "line": 110,
+                "fieldPath": "weapon_stamina_templates.tank.sprint_cost_per_second"
+              },
+              "properties": [
+                {
+                  "property": "weapon_stamina_templates.tank.sprint_cost_per_second",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 110,
+                    "fieldPath": "weapon_stamina_templates.tank.sprint_cost_per_second"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2",
+                      "decimal": "2",
+                      "line": 111,
+                      "fieldPath": "weapon_stamina_templates.tank.sprint_cost_per_second.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 112,
+                      "fieldPath": "weapon_stamina_templates.tank.sprint_cost_per_second.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.inner",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 115,
+                    "fieldPath": "weapon_stamina_templates.tank.block_cost_default.inner"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 116,
+                      "fieldPath": "weapon_stamina_templates.tank.block_cost_default.inner.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 117,
+                      "fieldPath": "weapon_stamina_templates.tank.block_cost_default.inner.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.block_cost_default.outer",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 119,
+                    "fieldPath": "weapon_stamina_templates.tank.block_cost_default.outer"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2",
+                      "decimal": "2",
+                      "line": 120,
+                      "fieldPath": "weapon_stamina_templates.tank.block_cost_default.outer.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 121,
+                      "fieldPath": "weapon_stamina_templates.tank.block_cost_default.outer.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.tank.push_cost",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 124,
+                    "fieldPath": "weapon_stamina_templates.tank.push_cost"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2.25",
+                      "decimal": "2.25",
+                      "line": 125,
+                      "fieldPath": "weapon_stamina_templates.tank.push_cost.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.75",
+                      "decimal": "0.75",
+                      "line": 126,
+                      "fieldPath": "weapon_stamina_templates.tank.push_cost.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m3_mobility_stat",
+              "templateKey": "ogryn",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                "line": 66,
+                "fieldPath": "weapon_sprint_templates.ogryn.sprint_speed_mod"
+              },
+              "properties": [
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_speed_mod",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 66,
+                    "fieldPath": "weapon_sprint_templates.ogryn.sprint_speed_mod"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "-0.25",
+                      "decimal": "-0.25",
+                      "line": 67,
+                      "fieldPath": "weapon_sprint_templates.ogryn.sprint_speed_mod.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.25",
+                      "decimal": "0.25",
+                      "line": 68,
+                      "fieldPath": "weapon_sprint_templates.ogryn.sprint_speed_mod.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_sprint_templates.ogryn.sprint_forward_acceleration",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 62,
+                    "fieldPath": "weapon_sprint_templates.ogryn.sprint_forward_acceleration"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.15",
+                      "decimal": "0.15",
+                      "line": 63,
+                      "fieldPath": "weapon_sprint_templates.ogryn.sprint_forward_acceleration.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.4",
+                      "decimal": "0.4",
+                      "line": 64,
+                      "fieldPath": "weapon_sprint_templates.ogryn.sprint_forward_acceleration.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "ogryn_club_p2_m3_mobility_stat",
+              "templateKey": "ogryn_club_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:generic-37449b0a55577293",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                "line": 72,
+                "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier"
+              },
+              "properties": [
+                {
+                  "property": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:generic-37449b0a55577293",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                    "line": 72,
+                    "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 73,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 74,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -28988,6 +31410,26 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:weapon-source-ogryn_club_p2_m1-e46b8926cfa3-ogryn_club_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-ogryn_club_p2_m2-e46b8926cfa3-ogryn_club_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:w07-static-ba6c148-996c0bf10f0855d4",
           "gameReleaseId": "darktide:1.13.4"
         },
@@ -29004,11 +31446,35 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-ogryn_club_p2_m1-e46b8926cfa3-ogryn_club_damage_profile_templates",
+          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-f94c94dc7f3f7018",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -29032,10 +31498,58 @@
             }
           },
           {
+            "field": "/payload/statTables/ogryn_club_p2_m3_finesse_stat/weapon_weapon_handling_templates.time_scale_1_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_club_p2_m3_finesse_stat/weapon_weapon_handling_templates.time_scale_1_3.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_club_p2_m3_finesse_stat/weapon_weapon_handling_templates.time_scale_1_5.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_club_p2_m3_finesse_stat/weapon_weapon_handling_templates.time_scale_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
             "field": "/payload/statBindings/ogryn_club_p2_m3_finesse_stat/weapon_handling/action_weapon_special/time_scale",
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-template-ogryn_club_p2_m3-e46b8926cfa3",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_club_p2_m3_finesse_stat/weapon_weapon_handling_templates.time_scale_1_2.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/ogryn_club_p2_m3_finesse_stat/weapon_weapon_handling_templates.time_scale_0_9.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
               "gameReleaseId": "darktide:1.13.4"
             }
           },
@@ -46058,6 +48572,93 @@
       ]
     },
     {
+      "recordId": "darktide:stat-curve:generic:854caf91f19290b3",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "ratio",
+        "knots": [
+          {
+            "input": "0",
+            "output": "0.5",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "0.5",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:generic-37449b0a55577293",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+              "line": 73,
+              "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "1.5",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "1.5",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:generic-37449b0a55577293",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+              "line": 74,
+              "fieldPath": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:generic-37449b0a55577293",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:generic-37449b0a55577293",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-curve:generic:93916604d58190cc",
       "kind": "stat-curve",
       "owner": "source",
@@ -51541,6 +54142,73 @@
             "reasonCode": "NOT_IMPORTED",
             "sourceRef": {
               "sourceId": "public-code:weapon-source-ogryn_club_p2_m1-e46b8926cfa3-ogryn_club_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-definition:generic:854caf91f19290b3",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_movement_curve_modifier_templates.ogryn_club_p1_m1.modifier",
+        "inputUnit": "ratio",
+        "outputUnit": "ratio",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0.05",
+          "max": "0.95",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:854caf91f19290b3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-37449b0a55577293",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:generic-37449b0a55577293",
               "gameReleaseId": "darktide:1.13.4"
             }
           }

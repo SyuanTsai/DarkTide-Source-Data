@@ -31,7 +31,7 @@ Integration tests use that local path by default. Set `DARKTIDE_SOURCE_CODE_REPO
 
 ## Generic weapon-template import
 
-The generic weapon-template importer uses the same pinned, Git-only source boundary. It statically records action tables, literal continuations, displayed attacks, direct damage-profile bindings, inherited damage-profile bodies, and `base_stats` mappings from trait ranges to the affected damage or weapon-template endpoints without executing Lua functions. Literal values retain source lines and raw spellings; unsupported calls or functions are reported as precise coverage gaps instead of guessed values. Its candidate contains field patches for existing weapons plus only new pending profile, stat, and evidence records; the approved records themselves are not copied.
+The generic weapon-template importer uses the same pinned, Git-only source boundary. It statically records the UI player-mark inventory, action tables, literal continuations, displayed attacks, direct and registered projectile damage-profile bindings, inherited damage-profile bodies, and `base_stats` mappings from trait ranges to the affected damage or weapon-template endpoints without executing Lua functions. Literal values retain source lines and raw spellings; UI marks without registered templates, registered templates absent from the UI, and indirect damage-profile support files that cannot be parsed are reported as precise coverage gaps instead of guessed values. Its candidate contains field patches for existing weapons plus pending weapon, profile, stat, and evidence records for registered UI marks missing from authoring; the approved records themselves are not copied.
 
 ```powershell
 $env:DARKTIDE_SOURCE_CODE_REPO = 'C:\src\Darktide-Source-Code'

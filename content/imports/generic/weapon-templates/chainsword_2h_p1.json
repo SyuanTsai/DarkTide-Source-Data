@@ -2936,19 +2936,19 @@
                   "index": 2,
                   "attackType": "linesman",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "smiter_light_chainsword_2h"
+                  "roleProfileKey": "default_light_chainsword_2h"
                 },
                 {
                   "index": 3,
                   "attackType": "linesman",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "smiter_light_chainsword_2h"
+                  "roleProfileKey": "light_chainsword_active_2h"
                 },
                 {
                   "index": 4,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "smiter_light_chainsword_2h"
+                  "roleProfileKey": "default_light_chainsword_2h"
                 }
               ],
               "sourceRefs": [
@@ -2958,6 +2958,18 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-chainsword_2h_p1_m1-e46b8926cfa3-chain_sword_2h_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -2978,13 +2990,13 @@
                   "index": 1,
                   "attackType": "linesman",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "smiter_light_chainsword_2h"
+                  "roleProfileKey": "heavy_chainsword_2h"
                 },
                 {
                   "index": 2,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "smiter_light_chainsword_2h"
+                  "roleProfileKey": "heavy_chainsword_active_2h"
                 }
               ],
               "sourceRefs": [
@@ -2994,6 +3006,22 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-chainsword_2h_p1_m1-e46b8926cfa3-chain_sword_2h_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-chainsword_2h_p1_m2-e46b8926cfa3-chain_sword_2h_damage_profile_templates",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -3586,6 +3614,18 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:8614f8b3024ba3f8",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:a6193a9f5be2c6d7",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:b02a5c0d4b74ddbf",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:d12ddc09f05a1d60",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -5662,6 +5702,95 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "chainsword_2h_mobility_stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.default.sprint_speed_mod",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-chainsword_2h_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/chain_swords_2h/chainsword_2h_p1_m1.lua",
+                    "line": 1924,
+                    "fieldPath": "weapon_template.base_stats.chainsword_2h_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 12,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.default.sprint_forward_acceleration",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-chainsword_2h_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/chain_swords_2h/chainsword_2h_p1_m1.lua",
+                    "line": 1924,
+                    "fieldPath": "weapon_template.base_stats.chainsword_2h_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 19,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-chainsword_2h_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/chain_swords_2h/chainsword_2h_p1_m1.lua",
+                    "line": 1930,
+                    "fieldPath": "weapon_template.base_stats.chainsword_2h_mobility_stat.movement_curve_modifier.base.1"
+                  },
+                  "traitTemplateKey": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                    "line": 10,
+                    "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio"
                   }
                 }
@@ -8091,6 +8220,116 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "chainsword_2h_mobility_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.default.sprint_speed_mod",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 12,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.default.sprint_forward_acceleration",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 19,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier",
+                  "quantityKind": "movement-curve-modifier",
+                  "unit": {
+                    "status": "not-applicable"
+                  },
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                        "line": 10,
+                        "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio",
                     "inclusive": {
                       "min": true,
@@ -10587,6 +10826,123 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "chainsword_2h_mobility_stat",
+              "templateKey": "default",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                "line": 14,
+                "fieldPath": "weapon_sprint_templates.default.sprint_speed_mod.lerp_basic"
+              },
+              "properties": [
+                {
+                  "property": "weapon_sprint_templates.default.sprint_speed_mod",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 13,
+                    "fieldPath": "weapon_sprint_templates.default.sprint_speed_mod"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "-0.5",
+                      "decimal": "-0.5",
+                      "line": 14,
+                      "fieldPath": "weapon_sprint_templates.default.sprint_speed_mod.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 15,
+                      "fieldPath": "weapon_sprint_templates.default.sprint_speed_mod.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_sprint_templates.default.sprint_forward_acceleration",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 9,
+                    "fieldPath": "weapon_sprint_templates.default.sprint_forward_acceleration"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.15",
+                      "decimal": "0.15",
+                      "line": 10,
+                      "fieldPath": "weapon_sprint_templates.default.sprint_forward_acceleration.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.4",
+                      "decimal": "0.4",
+                      "line": 11,
+                      "fieldPath": "weapon_sprint_templates.default.sprint_forward_acceleration.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "chainsword_2h_mobility_stat",
+              "templateKey": "chainsword_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:generic-37449b0a55577293",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                "line": 31,
+                "fieldPath": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier.lerp_basic"
+              },
+              "properties": [
+                {
+                  "property": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:generic-37449b0a55577293",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                    "line": 30,
+                    "fieldPath": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 31,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 32,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -10613,6 +10969,22 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-chainsword_2h_p1_m2-e46b8926cfa3-chain_sword_2h_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:w07-static-ba6c148-996c0bf10f0855d4",
           "gameReleaseId": "darktide:1.13.4"
         },
@@ -10629,7 +11001,23 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -13536,25 +13924,25 @@
                   "index": 1,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "heavy_chainsword_2h_smiter"
+                  "roleProfileKey": "light_chainsword_2h_tank"
                 },
                 {
                   "index": 2,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "heavy_chainsword_2h_smiter"
+                  "roleProfileKey": "light_chainsword_active_2h_cleave"
                 },
                 {
                   "index": 3,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "heavy_chainsword_2h_smiter"
+                  "roleProfileKey": "light_chainsword_2h_tank"
                 },
                 {
                   "index": 4,
                   "attackType": "linesman",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "heavy_chainsword_2h_smiter"
+                  "roleProfileKey": "smiter_light_chainsword_2h_active"
                 }
               ],
               "sourceRefs": [
@@ -13563,7 +13951,23 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-chainsword_2h_p1_m2-e46b8926cfa3-chain_sword_2h_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-chainsword_2h_p1_m1-e46b8926cfa3-chain_sword_2h_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -13590,7 +13994,7 @@
                   "index": 2,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "heavy_chainsword_2h_smiter"
+                  "roleProfileKey": "heavy_chainsword_active_2h_smiter"
                 }
               ],
               "sourceRefs": [
@@ -13600,6 +14004,22 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-chainsword_2h_p1_m2-e46b8926cfa3-chain_sword_2h_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-chainsword_2h_p1_m1-e46b8926cfa3-chain_sword_2h_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -14196,6 +14616,18 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:8614f8b3024ba3f8",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:a6193a9f5be2c6d7",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:b02a5c0d4b74ddbf",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:d12ddc09f05a1d60",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -16301,6 +16733,95 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "chainsword_2h_mobility_stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.default.sprint_speed_mod",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-chainsword_2h_p1_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/chain_swords_2h/chainsword_2h_p1_m2.lua",
+                    "line": 1913,
+                    "fieldPath": "weapon_template.base_stats.chainsword_2h_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 12,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.default.sprint_forward_acceleration",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-chainsword_2h_p1_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/chain_swords_2h/chainsword_2h_p1_m2.lua",
+                    "line": 1913,
+                    "fieldPath": "weapon_template.base_stats.chainsword_2h_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 19,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-chainsword_2h_p1_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/chain_swords_2h/chainsword_2h_p1_m2.lua",
+                    "line": 1919,
+                    "fieldPath": "weapon_template.base_stats.chainsword_2h_mobility_stat.movement_curve_modifier.base.1"
+                  },
+                  "traitTemplateKey": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                    "line": 10,
+                    "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio"
                   }
                 }
@@ -18764,6 +19285,116 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "chainsword_2h_mobility_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.default.sprint_speed_mod",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 12,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.default.sprint_forward_acceleration",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 19,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier",
+                  "quantityKind": "movement-curve-modifier",
+                  "unit": {
+                    "status": "not-applicable"
+                  },
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                        "line": 10,
+                        "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio",
                     "inclusive": {
                       "min": true,
@@ -21290,6 +21921,123 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "chainsword_2h_mobility_stat",
+              "templateKey": "default",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                "line": 13,
+                "fieldPath": "weapon_sprint_templates.default.sprint_speed_mod"
+              },
+              "properties": [
+                {
+                  "property": "weapon_sprint_templates.default.sprint_speed_mod",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 13,
+                    "fieldPath": "weapon_sprint_templates.default.sprint_speed_mod"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "-0.5",
+                      "decimal": "-0.5",
+                      "line": 14,
+                      "fieldPath": "weapon_sprint_templates.default.sprint_speed_mod.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 15,
+                      "fieldPath": "weapon_sprint_templates.default.sprint_speed_mod.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_sprint_templates.default.sprint_forward_acceleration",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 9,
+                    "fieldPath": "weapon_sprint_templates.default.sprint_forward_acceleration"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.15",
+                      "decimal": "0.15",
+                      "line": 10,
+                      "fieldPath": "weapon_sprint_templates.default.sprint_forward_acceleration.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.4",
+                      "decimal": "0.4",
+                      "line": 11,
+                      "fieldPath": "weapon_sprint_templates.default.sprint_forward_acceleration.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "chainsword_2h_mobility_stat",
+              "templateKey": "chainsword_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:generic-37449b0a55577293",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                "line": 30,
+                "fieldPath": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier"
+              },
+              "properties": [
+                {
+                  "property": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:generic-37449b0a55577293",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                    "line": 30,
+                    "fieldPath": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 31,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 32,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.chainsword_p1_m1.modifier.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -21309,6 +22057,26 @@
         },
         {
           "sourceId": "public-code:weapon-template-chainsword_2h_p1_m2-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-chainsword_2h_p1_m1-e46b8926cfa3-chain_sword_2h_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
@@ -21332,15 +22100,23 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-chainsword_2h_p1_m1-e46b8926cfa3-chain_sword_2h_damage_profile_templates",
+          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
+          "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],

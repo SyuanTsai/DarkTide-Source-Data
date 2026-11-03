@@ -3805,7 +3805,7 @@
                   "index": 2,
                   "attackType": "ninja_fencer",
                   "targetRole": "single-target",
-                  "roleProfileKey": "heavy_combatsword_p3_smiter_stab"
+                  "roleProfileKey": "light_combatsword_linesman_p3"
                 },
                 {
                   "index": 3,
@@ -3817,7 +3817,7 @@
                   "index": 4,
                   "attackType": "ninja_fencer",
                   "targetRole": "single-target",
-                  "roleProfileKey": "light_combatsword_linesman_p3"
+                  "roleProfileKey": "light_combatsword_pushfollowup_linesman_p3"
                 }
               ],
               "sourceRefs": [
@@ -3826,7 +3826,19 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-combatsword_p3_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-combatsword_p3_m3-e46b8926cfa3-combatsword_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -3847,13 +3859,13 @@
                   "index": 1,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "light_combatsword_linesman_p3"
+                  "roleProfileKey": "heavy_combatsword_linesman_p3"
                 },
                 {
                   "index": 2,
                   "attackType": "linesman",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "heavy_combatsword_p3_smiter_stab"
+                  "roleProfileKey": "heavy_combatsword_linesman_p3"
                 }
               ],
               "sourceRefs": [
@@ -3862,7 +3874,19 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-combatsword_p3_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -4387,6 +4411,18 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:1dcf5ae3d452f63e",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:a1939c4c28b97b89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:1561f8f58ee63c90",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:d22ff2b74fb4bbaf",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -5888,6 +5924,95 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "combatsword_p3_m1_mobility_stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_speed_mod",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m1.lua",
+                    "line": 1674,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m1_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 12,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m1.lua",
+                    "line": 1674,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m1_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 19,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m1.lua",
+                    "line": 1680,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m1_mobility_stat.movement_curve_modifier.base.1"
+                  },
+                  "traitTemplateKey": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                    "line": 10,
+                    "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio"
                   }
                 }
@@ -7655,6 +7780,116 @@
                   }
                 }
               ]
+            },
+            {
+              "statKey": "combatsword_p3_m1_mobility_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_speed_mod",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 12,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 19,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "quantityKind": "movement-curve-modifier",
+                  "unit": {
+                    "status": "not-applicable"
+                  },
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                        "line": 10,
+                        "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -9379,6 +9614,123 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "combatsword_p3_m1_mobility_stat",
+              "templateKey": "ninja_l",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                "line": 141,
+                "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod"
+              },
+              "properties": [
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_speed_mod",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 141,
+                    "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 142,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 143,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 137,
+                    "fieldPath": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 138,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 139,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "combatsword_p3_m1_mobility_stat",
+              "templateKey": "combataxe_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:generic-37449b0a55577293",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                "line": 36,
+                "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier"
+              },
+              "properties": [
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:generic-37449b0a55577293",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                    "line": 36,
+                    "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 37,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 38,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -9401,7 +9753,23 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-combatsword_p3_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+          "sourceId": "public-code:weapon-source-combatsword_p3_m3-e46b8926cfa3-combatsword_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-profile-settings-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
@@ -9421,11 +9789,27 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-f94c94dc7f3f7018",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -9445,6 +9829,22 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-template-combatsword_p3_m1-e46b8926cfa3",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combatsword_p3_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combatsword_p3_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_1_3.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
               "gameReleaseId": "darktide:1.13.4"
             }
           },
@@ -12944,13 +13344,13 @@
                   "index": 2,
                   "attackType": "ninja_fencer",
                   "targetRole": "single-target",
-                  "roleProfileKey": "heavy_combatsword_p3_smiter_stab"
+                  "roleProfileKey": "light_combatsword_linesman_p3"
                 },
                 {
                   "index": 3,
                   "attackType": "ninja_fencer",
                   "targetRole": "single-target",
-                  "roleProfileKey": "light_combatsword_linesman_p3"
+                  "roleProfileKey": "light_combatsword_pushfollowup_linesman_p3"
                 }
               ],
               "sourceRefs": [
@@ -12959,7 +13359,19 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-combatsword_p3_m2-e46b8926cfa3-combatsword_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-combatsword_p3_m3-e46b8926cfa3-combatsword_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -12980,7 +13392,7 @@
                   "index": 1,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "light_combatsword_linesman_p3"
+                  "roleProfileKey": "heavy_combatsword_p3_smiter_stab"
                 },
                 {
                   "index": 2,
@@ -13468,6 +13880,18 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:1dcf5ae3d452f63e",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:a1939c4c28b97b89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:1561f8f58ee63c90",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:d22ff2b74fb4bbaf",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -14621,6 +15045,95 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "combatsword_p3_m2_mobility_stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_speed_mod",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m2.lua",
+                    "line": 1485,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m2_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 12,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m2.lua",
+                    "line": 1485,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m2_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 19,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m2.lua",
+                    "line": 1491,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m2_mobility_stat.movement_curve_modifier.base.1"
+                  },
+                  "traitTemplateKey": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                    "line": 10,
+                    "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio"
                   }
                 }
@@ -15980,6 +16493,116 @@
                   }
                 }
               ]
+            },
+            {
+              "statKey": "combatsword_p3_m2_mobility_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_speed_mod",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 12,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 19,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "quantityKind": "movement-curve-modifier",
+                  "unit": {
+                    "status": "not-applicable"
+                  },
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                        "line": 10,
+                        "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -17296,6 +17919,123 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "combatsword_p3_m2_mobility_stat",
+              "templateKey": "ninja_l",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                "line": 141,
+                "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod"
+              },
+              "properties": [
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_speed_mod",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 141,
+                    "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 142,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 143,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 137,
+                    "fieldPath": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 138,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 139,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "combatsword_p3_m2_mobility_stat",
+              "templateKey": "combataxe_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:generic-37449b0a55577293",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                "line": 36,
+                "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier"
+              },
+              "properties": [
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:generic-37449b0a55577293",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                    "line": 36,
+                    "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 37,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 38,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -17315,6 +18055,22 @@
         },
         {
           "sourceId": "public-code:w07-static-ba6c148-98aae0eb5e02f101",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-combatsword_p3_m3-e46b8926cfa3-combatsword_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
@@ -17338,11 +18094,31 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
           "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-f94c94dc7f3f7018",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -17362,6 +18138,22 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-template-combatsword_p3_m2-e46b8926cfa3",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combatsword_p3_m2_finesse_stat/weapon_weapon_handling_templates.time_scale_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combatsword_p3_m2_finesse_stat/weapon_weapon_handling_templates.time_scale_1_3.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
               "gameReleaseId": "darktide:1.13.4"
             }
           },
@@ -20861,13 +21653,13 @@
                   "index": 2,
                   "attackType": "ninja_fencer",
                   "targetRole": "single-target",
-                  "roleProfileKey": "light_combatsword_linesman_p3"
+                  "roleProfileKey": "light_combatsword_smiter"
                 },
                 {
                   "index": 3,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "light_combatsword_linesman_p3"
+                  "roleProfileKey": "light_combatsword_pushfollowup_linesman_p3"
                 }
               ],
               "sourceRefs": [
@@ -20877,6 +21669,22 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-combatsword_p3_m3-e46b8926cfa3-combatsword_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -20897,13 +21705,13 @@
                   "index": 1,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "light_combatsword_linesman_p3"
+                  "roleProfileKey": "heavy_combatsword_p3_smiter"
                 },
                 {
                   "index": 2,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "light_combatsword_linesman_p3"
+                  "roleProfileKey": "heavy_combatsword_p3_smiter"
                 }
               ],
               "sourceRefs": [
@@ -20912,7 +21720,19 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-combatsword_p3_m3-e46b8926cfa3-combatsword_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -21373,6 +22193,34 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:c77cd94b49ac89b1",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:82521a423871bca9",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:625eb229622c68b7",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:47177df83b87fef0",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:169e1cf32a8c7a68",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:a1939c4c28b97b89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:1561f8f58ee63c90",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:d22ff2b74fb4bbaf",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -22462,6 +23310,212 @@
                   "traitParameterRange": {
                     "status": "known",
                     "min": "0.1",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "combatsword_p3_m3_defence_stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.ninjafencer.sprint_cost_per_second",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m3.lua",
+                    "line": 1437,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m3_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 22,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ninjafencer.block_cost_default.inner",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m3.lua",
+                    "line": 1437,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m3_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 30,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ninjafencer.block_cost_default.outer",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m3.lua",
+                    "line": 1437,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m3_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 38,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ninjafencer.push_cost",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m3.lua",
+                    "line": 1437,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m3_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 45,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "combatsword_p3_m3_mobility_stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_speed_mod",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m3.lua",
+                    "line": 1459,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m3_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 12,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m3.lua",
+                    "line": 1459,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m3_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 19,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-combatsword_p3_m3-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/combat_swords/combatsword_p3_m3.lua",
+                    "line": 1465,
+                    "fieldPath": "weapon_template.base_stats.combatsword_p3_m3_mobility_stat.movement_curve_modifier.base.1"
+                  },
+                  "traitTemplateKey": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                    "line": 10,
+                    "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
                     "max": "0.95",
                     "unit": "ratio"
                   }
@@ -23748,6 +24802,258 @@
                   }
                 }
               ]
+            },
+            {
+              "statKey": "combatsword_p3_m3_defence_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.ninjafencer.sprint_cost_per_second",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 22,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.75,\n\t\t\tmin = 0.25,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ninjafencer.block_cost_default.inner",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 30,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ninjafencer.block_cost_default.outer",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 38,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.ninjafencer.push_cost",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 45,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "combatsword_p3_m3_mobility_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_speed_mod",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 12,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 19,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "quantityKind": "movement-curve-modifier",
+                  "unit": {
+                    "status": "not-applicable"
+                  },
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                        "line": 10,
+                        "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -25021,6 +26327,254 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "combatsword_p3_m3_defence_stat",
+              "templateKey": "ninjafencer",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                "line": 132,
+                "fieldPath": "weapon_stamina_templates.ninjafencer.sprint_cost_per_second.lerp_basic"
+              },
+              "properties": [
+                {
+                  "property": "weapon_stamina_templates.ninjafencer.sprint_cost_per_second",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 131,
+                    "fieldPath": "weapon_stamina_templates.ninjafencer.sprint_cost_per_second"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 132,
+                      "fieldPath": "weapon_stamina_templates.ninjafencer.sprint_cost_per_second.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 133,
+                      "fieldPath": "weapon_stamina_templates.ninjafencer.sprint_cost_per_second.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.ninjafencer.block_cost_default.inner",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 136,
+                    "fieldPath": "weapon_stamina_templates.ninjafencer.block_cost_default.inner"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.75",
+                      "decimal": "0.75",
+                      "line": 137,
+                      "fieldPath": "weapon_stamina_templates.ninjafencer.block_cost_default.inner.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.25",
+                      "decimal": "0.25",
+                      "line": 138,
+                      "fieldPath": "weapon_stamina_templates.ninjafencer.block_cost_default.inner.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.ninjafencer.block_cost_default.outer",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 140,
+                    "fieldPath": "weapon_stamina_templates.ninjafencer.block_cost_default.outer"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 141,
+                      "fieldPath": "weapon_stamina_templates.ninjafencer.block_cost_default.outer.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 142,
+                      "fieldPath": "weapon_stamina_templates.ninjafencer.block_cost_default.outer.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.ninjafencer.push_cost",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 145,
+                    "fieldPath": "weapon_stamina_templates.ninjafencer.push_cost"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "1.25",
+                      "decimal": "1.25",
+                      "line": 146,
+                      "fieldPath": "weapon_stamina_templates.ninjafencer.push_cost.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.75",
+                      "decimal": "0.75",
+                      "line": 147,
+                      "fieldPath": "weapon_stamina_templates.ninjafencer.push_cost.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "combatsword_p3_m3_mobility_stat",
+              "templateKey": "ninja_l",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                "line": 141,
+                "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod"
+              },
+              "properties": [
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_speed_mod",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 141,
+                    "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 142,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 143,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 137,
+                    "fieldPath": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 138,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 139,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "combatsword_p3_m3_mobility_stat",
+              "templateKey": "combataxe_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:generic-37449b0a55577293",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                "line": 36,
+                "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier"
+              },
+              "properties": [
+                {
+                  "property": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:generic-37449b0a55577293",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                    "line": 36,
+                    "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 37,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 38,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.combataxe_p1_m1.modifier.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -25047,6 +26601,22 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:w07-static-ba6c148-996c0bf10f0855d4",
           "gameReleaseId": "darktide:1.13.4"
         },
@@ -25063,11 +26633,35 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-f94c94dc7f3f7018",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -25087,6 +26681,22 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-template-combatsword_p3_m3-e46b8926cfa3",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combatsword_p3_m3_finesse_stat/weapon_weapon_handling_templates.time_scale_1.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combatsword_p3_m3_finesse_stat/weapon_weapon_handling_templates.time_scale_1_3.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
               "gameReleaseId": "darktide:1.13.4"
             }
           },
@@ -38135,53 +39745,6 @@
               ]
             },
             {
-              "tableKey": "damage_lerp_values.lerp_1",
-              "quantity": "damage_lerp_values.lerp_1",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:damage-profile-settings-ba6c148",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/damage/damage_profile_settings.lua",
-                "line": 53,
-                "fieldPath": "damage_lerp_values.lerp_1.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "0.67",
-                  "decimal": "0.67",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:damage-profile-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profile_settings.lua",
-                    "line": 53,
-                    "fieldPath": "damage_lerp_values.lerp_1.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "1.33",
-                  "decimal": "1.33",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:damage-profile-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profile_settings.lua",
-                    "line": 54,
-                    "fieldPath": "damage_lerp_values.lerp_1.2"
-                  }
-                }
-              ]
-            },
-            {
               "tableKey": "overrides.heavy_combatsword_p3_smiter.overrides.6",
               "quantity": "overrides.heavy_combatsword_p3_smiter.overrides.6",
               "unit": {
@@ -38276,53 +39839,6 @@
                     "path": "scripts/settings/equipment/weapon_templates/combat_swords/settings_templates/combatsword_damage_profile_templates.lua",
                     "line": 1621,
                     "fieldPath": "overrides.heavy_combatsword_p3_smiter.overrides.6.6"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "damage_lerp_values.lerp_1_25",
-              "quantity": "damage_lerp_values.lerp_1_25",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:damage-profile-settings-ba6c148",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/damage/damage_profile_settings.lua",
-                "line": 41,
-                "fieldPath": "damage_lerp_values.lerp_1_25.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "0.85",
-                  "decimal": "0.85",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:damage-profile-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profile_settings.lua",
-                    "line": 41,
-                    "fieldPath": "damage_lerp_values.lerp_1_25.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "1.65",
-                  "decimal": "1.65",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:damage-profile-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profile_settings.lua",
-                    "line": 42,
-                    "fieldPath": "damage_lerp_values.lerp_1_25.2"
                   }
                 }
               ]
@@ -40535,134 +42051,6 @@
               ]
             },
             {
-              "tableKey": "ninjafencer_finesse_boost",
-              "quantity": "ninjafencer_finesse_boost",
-              "unit": "ratio",
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/damage/power_level_settings.lua",
-                "line": 153,
-                "fieldPath": "ninjafencer_finesse_boost.[armor_types.unarmored]"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "0.75",
-                  "decimal": "0.75",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-power-level-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/power_level_settings.lua",
-                    "line": 153,
-                    "fieldPath": "ninjafencer_finesse_boost.[armor_types.unarmored]"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "0.75",
-                  "decimal": "0.75",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-power-level-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/power_level_settings.lua",
-                    "line": 154,
-                    "fieldPath": "ninjafencer_finesse_boost.[armor_types.armored]"
-                  }
-                },
-                {
-                  "ordinal": 3,
-                  "rawValue": "0.75",
-                  "decimal": "0.75",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-power-level-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/power_level_settings.lua",
-                    "line": 155,
-                    "fieldPath": "ninjafencer_finesse_boost.[armor_types.resistant]"
-                  }
-                },
-                {
-                  "ordinal": 4,
-                  "rawValue": "0.75",
-                  "decimal": "0.75",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-power-level-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/power_level_settings.lua",
-                    "line": 156,
-                    "fieldPath": "ninjafencer_finesse_boost.[armor_types.player]"
-                  }
-                },
-                {
-                  "ordinal": 5,
-                  "rawValue": "0.75",
-                  "decimal": "0.75",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-power-level-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/power_level_settings.lua",
-                    "line": 157,
-                    "fieldPath": "ninjafencer_finesse_boost.[armor_types.berserker]"
-                  }
-                },
-                {
-                  "ordinal": 6,
-                  "rawValue": "0.75",
-                  "decimal": "0.75",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-power-level-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/power_level_settings.lua",
-                    "line": 158,
-                    "fieldPath": "ninjafencer_finesse_boost.[armor_types.super_armor]"
-                  }
-                },
-                {
-                  "ordinal": 7,
-                  "rawValue": "0.75",
-                  "decimal": "0.75",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-power-level-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/power_level_settings.lua",
-                    "line": 159,
-                    "fieldPath": "ninjafencer_finesse_boost.[armor_types.disgustingly_resilient]"
-                  }
-                },
-                {
-                  "ordinal": 8,
-                  "rawValue": "0.75",
-                  "decimal": "0.75",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-power-level-settings-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/power_level_settings.lua",
-                    "line": 160,
-                    "fieldPath": "ninjafencer_finesse_boost.[armor_types.void_shield]"
-                  }
-                }
-              ]
-            },
-            {
               "tableKey": "overrides.light_combatsword_pushfollowup_linesman_p3.overrides.3",
               "quantity": "overrides.light_combatsword_pushfollowup_linesman_p3.overrides.3",
               "unit": {
@@ -41939,6 +43327,93 @@
       ]
     },
     {
+      "recordId": "darktide:stat-curve:generic:169e1cf32a8c7a68",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "1.25",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "1.25",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 146,
+              "fieldPath": "weapon_stamina_templates.ninjafencer.push_cost.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "0.75",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "0.75",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 147,
+              "fieldPath": "weapon_stamina_templates.ninjafencer.push_cost.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-curve:generic:1cb74240bd2939cd",
       "kind": "stat-curve",
       "owner": "source",
@@ -42896,6 +44371,93 @@
       ]
     },
     {
+      "recordId": "darktide:stat-curve:generic:47177df83b87fef0",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "1",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "1",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 141,
+              "fieldPath": "weapon_stamina_templates.ninjafencer.block_cost_default.outer.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "0.5",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "0.5",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 142,
+              "fieldPath": "weapon_stamina_templates.ninjafencer.block_cost_default.outer.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-curve:generic:56ee5facd7c81ffe",
       "kind": "stat-curve",
       "owner": "source",
@@ -43317,6 +44879,93 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:damage-profile-settings-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-curve:generic:625eb229622c68b7",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "0.75",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "0.75",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 137,
+              "fieldPath": "weapon_stamina_templates.ninjafencer.block_cost_default.inner.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "0.25",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "0.25",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 138,
+              "fieldPath": "weapon_stamina_templates.ninjafencer.block_cost_default.inner.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
               "gameReleaseId": "darktide:1.13.4"
             }
           }
@@ -43926,6 +45575,93 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-curve:generic:82521a423871bca9",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "1",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "1",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 132,
+              "fieldPath": "weapon_stamina_templates.ninjafencer.sprint_cost_per_second.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "0.5",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "0.5",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 133,
+              "fieldPath": "weapon_stamina_templates.ninjafencer.sprint_cost_per_second.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
               "gameReleaseId": "darktide:1.13.4"
             }
           }
@@ -47936,6 +49672,73 @@
       ]
     },
     {
+      "recordId": "darktide:stat-definition:generic:169e1cf32a8c7a68",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_stamina_templates.ninjafencer.push_cost",
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:169e1cf32a8c7a68",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-definition:generic:1cb74240bd2939cd",
       "kind": "stat-definition",
       "owner": "source",
@@ -48673,6 +50476,73 @@
       ]
     },
     {
+      "recordId": "darktide:stat-definition:generic:47177df83b87fef0",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_stamina_templates.ninjafencer.block_cost_default.outer",
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:47177df83b87fef0",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-definition:generic:56ee5facd7c81ffe",
       "kind": "stat-definition",
       "owner": "source",
@@ -48994,6 +50864,73 @@
             "reasonCode": "NOT_IMPORTED",
             "sourceRef": {
               "sourceId": "public-code:damage-profile-settings-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-definition:generic:625eb229622c68b7",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_stamina_templates.ninjafencer.block_cost_default.inner",
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:625eb229622c68b7",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
               "gameReleaseId": "darktide:1.13.4"
             }
           }
@@ -49463,6 +51400,73 @@
             "reasonCode": "NOT_IMPORTED",
             "sourceRef": {
               "sourceId": "public-code:weapon-source-combatsword_p1_m1-e46b8926cfa3-combatsword_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-definition:generic:82521a423871bca9",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_stamina_templates.ninjafencer.sprint_cost_per_second",
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0.25",
+          "max": "0.75",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:82521a423871bca9",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
               "gameReleaseId": "darktide:1.13.4"
             }
           }

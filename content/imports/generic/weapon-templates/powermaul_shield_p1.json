@@ -2756,13 +2756,13 @@
                   "index": 1,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "powermaul_shield_light_smiter"
+                  "roleProfileKey": "powermaul_shield_light_linesman"
                 },
                 {
                   "index": 2,
                   "attackType": "linesman",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "powermaul_shield_heavy_tank_shield"
+                  "roleProfileKey": "powermaul_shield_light_smiter_shield"
                 },
                 {
                   "index": 3,
@@ -2774,7 +2774,7 @@
                   "index": 4,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "powermaul_shield_light_smiter"
+                  "roleProfileKey": "powermaul_shield_light_linesman"
                 }
               ],
               "sourceRefs": [
@@ -2784,6 +2784,14 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-powermaul_shield_p1_m1-e46b8926cfa3-power_maul_shield_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -2804,13 +2812,13 @@
                   "index": 1,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "powermaul_shield_light_smiter"
+                  "roleProfileKey": "powermaul_shield_heavy_smiter"
                 },
                 {
                   "index": 2,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "powermaul_shield_heavy_tank_shield"
+                  "roleProfileKey": "powermaul_shield_heavy_smiter"
                 }
               ],
               "sourceRefs": [
@@ -2820,6 +2828,14 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-powermaul_shield_p1_m1-e46b8926cfa3-power_maul_shield_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -3352,6 +3368,22 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:7720b31ac963b8eb",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:91b53cb6b81f3044",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:31e97384d7951723",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:98cc3cb6e8a92588",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:586aa23cbddc3825",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -3944,6 +3976,123 @@
                     "status": "known",
                     "min": "0.1",
                     "max": "0.8",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "powermaul_shield_p1_m1_defence_stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-powermaul_shield_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/power_maul_shields/powermaul_shield_p1_m1.lua",
+                    "line": 1586,
+                    "fieldPath": "weapon_template.base_stats.powermaul_shield_p1_m1_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 22,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-powermaul_shield_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/power_maul_shields/powermaul_shield_p1_m1.lua",
+                    "line": 1586,
+                    "fieldPath": "weapon_template.base_stats.powermaul_shield_p1_m1_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 30,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-powermaul_shield_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/power_maul_shields/powermaul_shield_p1_m1.lua",
+                    "line": 1586,
+                    "fieldPath": "weapon_template.base_stats.powermaul_shield_p1_m1_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 38,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-powermaul_shield_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/power_maul_shields/powermaul_shield_p1_m1.lua",
+                    "line": 1586,
+                    "fieldPath": "weapon_template.base_stats.powermaul_shield_p1_m1_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 45,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
                     "unit": "ratio"
                   }
                 }
@@ -4633,6 +4782,148 @@
                     "status": "known",
                     "min": "0.1",
                     "max": "0.8",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "powermaul_shield_p1_m1_defence_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 22,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.75,\n\t\t\tmin = 0.25,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 30,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 38,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 45,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
                     "unit": "ratio",
                     "inclusive": {
                       "min": true,
@@ -6368,6 +6659,137 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "powermaul_shield_p1_m1_defence_stat",
+              "templateKey": "powermaul_shield_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                "line": 313,
+                "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second.lerp_basic"
+              },
+              "properties": [
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 312,
+                    "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2.5",
+                      "decimal": "2.5",
+                      "line": 313,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 314,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 317,
+                    "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.6",
+                      "decimal": "0.6",
+                      "line": 318,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.2",
+                      "decimal": "0.2",
+                      "line": 319,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 321,
+                    "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2",
+                      "decimal": "2",
+                      "line": 322,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 323,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 332,
+                    "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 333,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 334,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -6394,6 +6816,14 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:w07-static-ba6c148-996c0bf10f0855d4",
           "gameReleaseId": "darktide:1.13.4"
         },
@@ -6410,7 +6840,23 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-4ce83159b42742e5",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -6470,6 +6916,22 @@
             "reasonCode": "SOURCE_UNAVAILABLE",
             "sourceRef": {
               "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/powermaul_shield_p1_m1_power_output_stat/weapon_weapon_shout_templates.powermaul_shield_p1_block_special.range",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-4ce83159b42742e5",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/powermaul_shield_p1_m1_power_output_stat/weapon_weapon_shout_templates.powermaul_shield_p1_block_special.dot",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-4ce83159b42742e5",
               "gameReleaseId": "darktide:1.13.4"
             }
           }
@@ -9722,13 +10184,13 @@
                   "index": 2,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "powermaul_shield_heavy_tank"
+                  "roleProfileKey": "powermaul_shield_light_smiter"
                 },
                 {
                   "index": 3,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "powermaul_shield_light_tank"
+                  "roleProfileKey": "powermaul_shield_light_smiter"
                 },
                 {
                   "index": 4,
@@ -9744,6 +10206,10 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-powermaul_shield_p1_m2-e46b8926cfa3-power_maul_shield_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-powermaul_shield_p1_m1-e46b8926cfa3-power_maul_shield_damage_profile_templates",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -9764,19 +10230,19 @@
                   "index": 1,
                   "attackType": "tank",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "powermaul_shield_light_tank"
+                  "roleProfileKey": "powermaul_shield_heavy_smiter_shield"
                 },
                 {
                   "index": 2,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "powermaul_shield_heavy_tank"
+                  "roleProfileKey": "powermaul_shield_heavy_smiter"
                 },
                 {
                   "index": 3,
                   "attackType": "smiter",
                   "targetRole": "multi-target-cleave",
-                  "roleProfileKey": "powermaul_shield_light_tank"
+                  "roleProfileKey": "powermaul_shield_heavy_smiter_shield"
                 }
               ],
               "sourceRefs": [
@@ -9785,7 +10251,15 @@
                   "gameReleaseId": "darktide:1.13.4"
                 },
                 {
-                  "sourceId": "public-code:weapon-source-powermaul_shield_p1_m2-e46b8926cfa3-power_maul_shield_damage_profile_templates",
+                  "sourceId": "public-code:weapon-source-powermaul_shield_p1_m1-e46b8926cfa3-power_maul_shield_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -10291,6 +10765,22 @@
             {
               "recordId": "darktide:stat-definition:generic:f5e7c654dc07c0c7",
               "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:91b53cb6b81f3044",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:31e97384d7951723",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:98cc3cb6e8a92588",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:586aa23cbddc3825",
+              "gameReleaseId": "darktide:1.13.4"
             }
           ]
         },
@@ -10795,6 +11285,123 @@
                     "status": "known",
                     "min": "0.1",
                     "max": "0.8",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "powermaul_shield_p1_m1_defence_stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-powermaul_shield_p1_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/power_maul_shields/powermaul_shield_p1_m2.lua",
+                    "line": 1804,
+                    "fieldPath": "weapon_template.base_stats.powermaul_shield_p1_m1_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 22,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-powermaul_shield_p1_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/power_maul_shields/powermaul_shield_p1_m2.lua",
+                    "line": 1804,
+                    "fieldPath": "weapon_template.base_stats.powermaul_shield_p1_m1_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 30,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-powermaul_shield_p1_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/power_maul_shields/powermaul_shield_p1_m2.lua",
+                    "line": 1804,
+                    "fieldPath": "weapon_template.base_stats.powermaul_shield_p1_m1_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 38,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-powermaul_shield_p1_m2-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/power_maul_shields/powermaul_shield_p1_m2.lua",
+                    "line": 1804,
+                    "fieldPath": "weapon_template.base_stats.powermaul_shield_p1_m1_defence_stat.stamina.base.1"
+                  },
+                  "traitTemplateKey": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                    "line": 45,
+                    "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
                     "unit": "ratio"
                   }
                 }
@@ -11382,6 +11989,148 @@
                     "status": "known",
                     "min": "0.1",
                     "max": "0.8",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "powermaul_shield_p1_m1_defence_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 22,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.75,\n\t\t\tmin = 0.25,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.25",
+                    "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 30,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.2.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 38,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.3.3.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost",
+                  "quantityKind": "stamina-cost-rate",
+                  "unit": "stamina-point",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/stamina_trait_templates.lua",
+                        "line": 45,
+                        "fieldPath": "stamina_trait_templates.thunderhammer_p1_m1_defence_stat.4.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 1,\n\t\t\tmin = 0,\n\t\t}",
+                      "summary": "The pinned stamina_trait_templates.thunderhammer_p1_m1_defence_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0",
+                    "max": "1",
                     "unit": "ratio",
                     "inclusive": {
                       "min": true,
@@ -12862,6 +13611,137 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "powermaul_shield_p1_m1_defence_stat",
+              "templateKey": "powermaul_shield_p1_m1",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                "line": 312,
+                "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second"
+              },
+              "properties": [
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 312,
+                    "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2.5",
+                      "decimal": "2.5",
+                      "line": 313,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 314,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 317,
+                    "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.6",
+                      "decimal": "0.6",
+                      "line": 318,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.2",
+                      "decimal": "0.2",
+                      "line": 319,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 321,
+                    "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "2",
+                      "decimal": "2",
+                      "line": 322,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 323,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost",
+                  "unit": "stamina-point",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+                    "line": 332,
+                    "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "1.5",
+                      "decimal": "1.5",
+                      "line": 333,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 334,
+                      "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -12888,6 +13768,18 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:weapon-source-powermaul_shield_p1_m1-e46b8926cfa3-power_maul_shield_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:w07-static-ba6c148-996c0bf10f0855d4",
           "gameReleaseId": "darktide:1.13.4"
         },
@@ -12904,11 +13796,23 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-powermaul_shield_p1_m1-e46b8926cfa3-power_maul_shield_damage_profile_templates",
+          "sourceId": "public-code:weapon-stamina-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
           "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-4ce83159b42742e5",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -12968,6 +13872,22 @@
             "reasonCode": "SOURCE_UNAVAILABLE",
             "sourceRef": {
               "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/powermaul_shield_p1_m1_power_output_stat/weapon_weapon_shout_templates.powermaul_shield_p1_block_special.range",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-4ce83159b42742e5",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/powermaul_shield_p1_m1_power_output_stat/weapon_weapon_shout_templates.powermaul_shield_p1_block_special.dot",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-4ce83159b42742e5",
               "gameReleaseId": "darktide:1.13.4"
             }
           }
@@ -14838,741 +15758,6 @@
         {
           "fieldPath": "/payload/sourceBindings",
           "dimension": "evidence"
-        }
-      ]
-    },
-    {
-      "recordId": "darktide:damage-profile:generic:human-shield-push",
-      "kind": "damage-profile",
-      "owner": "source",
-      "gameReleaseId": "darktide:1.13.4",
-      "payload": {
-        "profileKey": "human_shield_push",
-        "rawSourceDefinition": {
-          "sourceRef": {
-            "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-            "gameReleaseId": "darktide:1.13.4"
-          },
-          "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-          "line": 382,
-          "fieldPath": "damage_templates.human_shield_push",
-          "leaves": [
-            {
-              "line": 383,
-              "fieldPath": "damage_templates.human_shield_push.is_push",
-              "rawValue": "true",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 384,
-              "fieldPath": "damage_templates.human_shield_push.shield_override_stagger_strength",
-              "rawValue": "20",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 385,
-              "fieldPath": "damage_templates.human_shield_push.stagger_category",
-              "rawValue": "\"melee\"",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 387,
-              "fieldPath": "damage_templates.human_shield_push.power_distribution.attack",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 389,
-              "fieldPath": "damage_templates.human_shield_push.power_distribution.impact.1",
-              "rawValue": "9",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 390,
-              "fieldPath": "damage_templates.human_shield_push.power_distribution.impact.2",
-              "rawValue": "18",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 395,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.unarmored]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 396,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.armored]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 397,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.resistant]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 398,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.player]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 399,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.berserker]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 400,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.super_armor]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 401,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.disgustingly_resilient]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 402,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.void_shield]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 405,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.unarmored]",
-              "rawValue": "1",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 406,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.armored]",
-              "rawValue": "1",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 407,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.resistant]",
-              "rawValue": "1",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 408,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.player]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 409,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.berserker]",
-              "rawValue": "0.5",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 410,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.super_armor]",
-              "rawValue": "0.5",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 411,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.disgustingly_resilient]",
-              "rawValue": "1",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 412,
-              "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.void_shield]",
-              "rawValue": "0",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 416,
-              "fieldPath": "damage_templates.human_shield_push.stagger_duration_modifier.1",
-              "rawValue": "0.5",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            },
-            {
-              "line": 417,
-              "fieldPath": "damage_templates.human_shield_push.stagger_duration_modifier.2",
-              "rawValue": "0.75",
-              "sourceRef": {
-                "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua"
-            }
-          ],
-          "tables": [
-            {
-              "tableKey": "damage_templates.human_shield_push",
-              "quantity": "damage_templates.human_shield_push",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                "line": 383,
-                "fieldPath": "damage_templates.human_shield_push.is_push"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "true",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 383,
-                    "fieldPath": "damage_templates.human_shield_push.is_push"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "20",
-                  "decimal": "20",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 384,
-                    "fieldPath": "damage_templates.human_shield_push.shield_override_stagger_strength"
-                  }
-                },
-                {
-                  "ordinal": 3,
-                  "rawValue": "\"melee\"",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 385,
-                    "fieldPath": "damage_templates.human_shield_push.stagger_category"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "damage_templates.human_shield_push.power_distribution",
-              "quantity": "damage_templates.human_shield_push.power_distribution",
-              "unit": {
-                "status": "unknown",
-                "reasonCode": "NOT_VERIFIED"
-              },
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                "line": 387,
-                "fieldPath": "damage_templates.human_shield_push.power_distribution.attack"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 387,
-                    "fieldPath": "damage_templates.human_shield_push.power_distribution.attack"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "damage_templates.human_shield_push.power_distribution.impact",
-              "quantity": "damage_templates.human_shield_push.power_distribution.impact",
-              "unit": "impact",
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                "line": 389,
-                "fieldPath": "damage_templates.human_shield_push.power_distribution.impact.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "9",
-                  "decimal": "9",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 389,
-                    "fieldPath": "damage_templates.human_shield_push.power_distribution.impact.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "18",
-                  "decimal": "18",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 390,
-                    "fieldPath": "damage_templates.human_shield_push.power_distribution.impact.2"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "damage_templates.human_shield_push.armor_damage_modifier.attack",
-              "quantity": "damage_templates.human_shield_push.armor_damage_modifier.attack",
-              "unit": "ratio",
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                "line": 395,
-                "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.unarmored]"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 395,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.unarmored]"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 396,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.armored]"
-                  }
-                },
-                {
-                  "ordinal": 3,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 397,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.resistant]"
-                  }
-                },
-                {
-                  "ordinal": 4,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 398,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.player]"
-                  }
-                },
-                {
-                  "ordinal": 5,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 399,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.berserker]"
-                  }
-                },
-                {
-                  "ordinal": 6,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 400,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.super_armor]"
-                  }
-                },
-                {
-                  "ordinal": 7,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 401,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.disgustingly_resilient]"
-                  }
-                },
-                {
-                  "ordinal": 8,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 402,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.attack.[armor_types.void_shield]"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "damage_templates.human_shield_push.armor_damage_modifier.impact",
-              "quantity": "damage_templates.human_shield_push.armor_damage_modifier.impact",
-              "unit": "ratio",
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                "line": 405,
-                "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.unarmored]"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "1",
-                  "decimal": "1",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 405,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.unarmored]"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "1",
-                  "decimal": "1",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 406,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.armored]"
-                  }
-                },
-                {
-                  "ordinal": 3,
-                  "rawValue": "1",
-                  "decimal": "1",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 407,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.resistant]"
-                  }
-                },
-                {
-                  "ordinal": 4,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 408,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.player]"
-                  }
-                },
-                {
-                  "ordinal": 5,
-                  "rawValue": "0.5",
-                  "decimal": "0.5",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 409,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.berserker]"
-                  }
-                },
-                {
-                  "ordinal": 6,
-                  "rawValue": "0.5",
-                  "decimal": "0.5",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 410,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.super_armor]"
-                  }
-                },
-                {
-                  "ordinal": 7,
-                  "rawValue": "1",
-                  "decimal": "1",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 411,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.disgustingly_resilient]"
-                  }
-                },
-                {
-                  "ordinal": 8,
-                  "rawValue": "0",
-                  "decimal": "0",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 412,
-                    "fieldPath": "damage_templates.human_shield_push.armor_damage_modifier.impact.[armor_types.void_shield]"
-                  }
-                }
-              ]
-            },
-            {
-              "tableKey": "damage_templates.human_shield_push.stagger_duration_modifier",
-              "quantity": "damage_templates.human_shield_push.stagger_duration_modifier",
-              "unit": "s",
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                "line": 416,
-                "fieldPath": "damage_templates.human_shield_push.stagger_duration_modifier.1"
-              },
-              "orderedValues": [
-                {
-                  "ordinal": 1,
-                  "rawValue": "0.5",
-                  "decimal": "0.5",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 416,
-                    "fieldPath": "damage_templates.human_shield_push.stagger_duration_modifier.1"
-                  }
-                },
-                {
-                  "ordinal": 2,
-                  "rawValue": "0.75",
-                  "decimal": "0.75",
-                  "sourceLocator": {
-                    "sourceRef": {
-                      "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                      "gameReleaseId": "darktide:1.13.4"
-                    },
-                    "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                    "line": 417,
-                    "fieldPath": "damage_templates.human_shield_push.stagger_duration_modifier.2"
-                  }
-                }
-              ]
-            }
-          ],
-          "emptyTables": [
-            {
-              "tableKey": "damage_templates.human_shield_push.targets.default_target",
-              "state": "empty",
-              "rawValue": "{}",
-              "sourceLocator": {
-                "sourceRef": {
-                  "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-                  "gameReleaseId": "darktide:1.13.4"
-                },
-                "path": "scripts/settings/damage/damage_profiles/common_damage_profile_templates.lua",
-                "line": 420,
-                "fieldPath": "damage_templates.human_shield_push.targets.default_target"
-              }
-            }
-          ]
-        }
-      },
-      "sourceRefs": [
-        {
-          "sourceId": "public-code:w07-common-damage-profile-templates-ba6c148",
-          "gameReleaseId": "darktide:1.13.4"
-        }
-      ],
-      "dataCoverage": {
-        "status": "complete",
-        "missing": []
-      },
-      "reviewState": "pending",
-      "reviewTargets": [
-        {
-          "fieldPath": "/payload/profileKey",
-          "dimension": "identity"
-        },
-        {
-          "fieldPath": "/payload/rawSourceDefinition",
-          "dimension": "technical"
         }
       ]
     },
@@ -22976,6 +23161,93 @@
       ]
     },
     {
+      "recordId": "darktide:stat-curve:generic:31e97384d7951723",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "0.6",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "0.6",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 318,
+              "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "0.2",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "0.2",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 319,
+              "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-curve:generic:3c065014ab00cb51",
       "kind": "stat-curve",
       "owner": "source",
@@ -23571,6 +23843,93 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-source-powermaul_shield_p1_m1-e46b8926cfa3-power_maul_shield_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-curve:generic:586aa23cbddc3825",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "1.5",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "1.5",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 333,
+              "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "0.5",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "0.5",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 334,
+              "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
               "gameReleaseId": "darktide:1.13.4"
             }
           }
@@ -25398,6 +25757,180 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-source-powermaul_shield_p1_m1-e46b8926cfa3-power_maul_shield_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-curve:generic:91b53cb6b81f3044",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "2.5",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "2.5",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 313,
+              "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "1.5",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "1.5",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 314,
+              "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-curve:generic:98cc3cb6e8a92588",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "2",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "2",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 322,
+              "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "1",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "1",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
+              "line": 323,
+              "fieldPath": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "edgePolicy": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/interpolation",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/edgePolicy",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
               "gameReleaseId": "darktide:1.13.4"
             }
           }
@@ -29060,6 +29593,73 @@
       ]
     },
     {
+      "recordId": "darktide:stat-definition:generic:31e97384d7951723",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.inner",
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:31e97384d7951723",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
       "recordId": "darktide:stat-definition:generic:3c065014ab00cb51",
       "kind": "stat-definition",
       "owner": "source",
@@ -29515,6 +30115,73 @@
             "reasonCode": "NOT_IMPORTED",
             "sourceRef": {
               "sourceId": "public-code:weapon-source-powermaul_shield_p1_m1-e46b8926cfa3-power_maul_shield_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-definition:generic:586aa23cbddc3825",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_stamina_templates.powermaul_shield_p1_m1.push_cost",
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:586aa23cbddc3825",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
               "gameReleaseId": "darktide:1.13.4"
             }
           }
@@ -30922,6 +31589,140 @@
             "reasonCode": "NOT_IMPORTED",
             "sourceRef": {
               "sourceId": "public-code:weapon-source-powermaul_shield_p1_m1-e46b8926cfa3-power_maul_shield_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-definition:generic:91b53cb6b81f3044",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_stamina_templates.powermaul_shield_p1_m1.sprint_cost_per_second",
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0.25",
+          "max": "0.75",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:91b53cb6b81f3044",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:stat-definition:generic:98cc3cb6e8a92588",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "weapon_stamina_templates.powermaul_shield_p1_m1.block_cost_default.outer",
+        "inputUnit": "ratio",
+        "outputUnit": "stamina-point",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:generic:98cc3cb6e8a92588",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableInputRange",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-stamina-templates-ba6c148",
               "gameReleaseId": "darktide:1.13.4"
             }
           }

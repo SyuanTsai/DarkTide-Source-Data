@@ -9,7 +9,10 @@ import { validateSourceContractFromDisk } from '../scripts/content/contract-vali
 import {
   PINNED_COMMIT,
   buildGenericWeaponTemplates,
+  deriveUiWeaponMarks,
+  inspectIndirectDamageProfileSupportFiles,
   loadGenericWeaponTemplateCandidate,
+  matchIndirectDamageProfileSupportFailures,
   mergeGenericWeaponCandidate,
   writeGenericWeaponTemplates
 } from '../scripts/content/imports/generic-weapon-templates.mjs';
@@ -40,6 +43,73 @@ async function outputFiles(root, current = root) {
   return files;
 }
 
+// Scenario: UI family keys can intentionally differ from the family-looking prefix embedded in a mark name.
+// Purpose: Require pending weapons to preserve the UI-owned family instead of guessing it from the mark ID.
+test('UnitT05_family_and_mark_derivation_preserves_the_ui_family', () => {
+  const marks = deriveUiWeaponMarks(`
+local ui_weapon_patterns_settings = {
+  ogryn_thumper_p2 = {
+    marks = {
+      { name = "ogryn_thumper_p1_m2" },
+    },
+  },
+  ogryn_thumper_p3 = {
+    marks = {
+      { name = "ogryn_thumper_p1_m3" },
+    },
+  },
+}
+return settings("UIWeaponPatternSettings", ui_weapon_patterns_settings)
+`);
+
+  assert.deepEqual(marks.map(({ familyId, markId }) => ({ familyId, markId })), [
+    { familyId: 'ogryn_thumper_p2', markId: 'ogryn_thumper_p1_m2' },
+    { familyId: 'ogryn_thumper_p3', markId: 'ogryn_thumper_p1_m3' }
+  ]);
+});
+
+// Scenario: Support files are visited out of order and one contains syntax the static parser cannot accept.
+// Purpose: Preserve a deterministic, path-safe coverage gap instead of silently dropping indirect bindings.
+test('UnitT07_indirect_support_parse_failures_are_deterministic_and_path_safe', () => {
+  const sources = new Map([
+    ['scripts/settings/projectile/z_projectile_templates.lua', `
+local projectile_templates = {}
+projectile_templates.failed_round = {
+  damage = @unsupported,
+}
+return projectile_templates
+`],
+    ['scripts/settings/projectile/a_shotshell_templates.lua', `
+local shotshell_templates = {}
+shotshell_templates.valid_round = {}
+return shotshell_templates
+`]
+  ]);
+  const reader = {
+    paths: [...sources.keys()].reverse(),
+    read: (sourcePath) => sources.get(sourcePath)
+  };
+
+  const first = inspectIndirectDamageProfileSupportFiles(reader);
+  const second = inspectIndirectDamageProfileSupportFiles(reader);
+
+  assert.deepEqual(first.failures, second.failures);
+  assert.equal(first.failures.length, 1);
+  assert.deepEqual(first.failures[0].templateKeys, ['failed_round']);
+  assert.equal(first.failures[0].sourcePath, 'scripts/settings/projectile/z_projectile_templates.lua');
+  assert.equal(first.failures[0].reasonCode, 'INDIRECT_DAMAGE_PROFILE_SUPPORT_PARSE_FAILED');
+  assert.equal(typeof first.failures[0].parserErrorMessage, 'string');
+  assert.ok(first.failures[0].parserErrorMessage.length > 0);
+  assert.doesNotMatch(first.failures[0].parserErrorMessage, /(?:file:\/\/\/)?[A-Za-z]:[\\/]/u);
+  assert.deepEqual(
+    matchIndirectDamageProfileSupportFailures(
+      ['damage = ProjectileTemplates.failed_round'],
+      first.failures
+    ).map((gap) => gap.sourcePath),
+    ['scripts/settings/projectile/z_projectile_templates.lua']
+  );
+});
+
 // Scenario: Every registered template in the pinned 1.13.4 registry is scanned without executing Lua.
 // Purpose: Freeze the bounded inventory and the source constructs that the generic importer must not silently skip.
 test('InterT10_pinned_weapon_template_inventory_counts_match', { skip: integrationSkip }, async () => {
@@ -59,6 +129,32 @@ test('InterT10_pinned_weapon_template_inventory_counts_match', { skip: integrati
   });
   assert.equal(result.stats.authoringWeaponCount, 82);
   assert.equal(result.stats.partialAuthoringWeaponCount, 80);
+  assert.ok(Array.isArray(result.coverageGaps.indirectDamageProfileSupportParseFailures));
+  assert.equal(
+    result.stats.indirectDamageProfileSupportParseFailureCount,
+    result.coverageGaps.indirectDamageProfileSupportParseFailures.length
+  );
+  assert.deepEqual(
+    result.coverageGaps.indirectDamageProfileSupportParseFailures,
+    [...result.coverageGaps.indirectDamageProfileSupportParseFailures]
+      .sort((left, right) => left.sourcePath.localeCompare(right.sourcePath, 'en'))
+  );
+  for (const gap of result.coverageGaps.indirectDamageProfileSupportParseFailures) {
+    assert.equal(gap.reasonCode, 'INDIRECT_DAMAGE_PROFILE_SUPPORT_PARSE_FAILED');
+    assert.equal(typeof gap.sourcePath, 'string');
+    assert.doesNotMatch(gap.sourcePath, /(?:file:\/\/\/)?[A-Za-z]:[\\/]/u);
+    assert.ok(gap.parserErrorCode || gap.parserErrorMessage);
+    assert.doesNotMatch(gap.parserErrorMessage ?? '', /(?:file:\/\/\/)?[A-Za-z]:[\\/]/u);
+    for (const weaponId of gap.affectedWeaponRecordIds) {
+      const candidateWeapon = result.candidate.patches.find((item) => item.recordId === weaponId)
+        ?? result.candidate.records.find((item) => item.kind === 'weapon' && item.recordId === weaponId);
+      assert.ok(candidateWeapon, `${weaponId} must exist in the candidate`);
+      assert.ok(candidateWeapon.dataCoverage.missing.some((missing) =>
+        missing.reasonCode === 'SOURCE_UNAVAILABLE'
+        && missing.field.startsWith('/payload/attackProfileRefs/supportFiles/')),
+      `${weaponId} must carry its failed indirect support-file coverage gap`);
+    }
+  }
 });
 
 // Scenario: The two complete chainaxe marks are rebuilt through the generic path from the same pinned Lua nodes.
@@ -138,6 +234,48 @@ test('InterT30_candidate_is_minimal_and_merged_bundle_passes_validator', { skip:
   assert.deepEqual(validation.issues, []);
 });
 
+// Scenario: A pinned UI player mark has a registered template but no approved 1.13.4 weapon record.
+// Purpose: Add exactly one pending source-traced weapon for every such mark without colliding with authoring IDs.
+test('InterT35_missing_ui_weapons_are_pending_registered_and_collision_free', { skip: integrationSkip }, async () => {
+  const result = await build();
+  const existingIds = new Set(result.authoring.records.map((record) => `${record.gameReleaseId}\0${record.recordId}`));
+  const uiByMark = new Map(result.uiMarks.map((mark) => [mark.markId, mark]));
+  const registeredKeys = new Set(result.registeredTemplates.map((template) => template.templateKey));
+  const authoringMarks = new Set(result.authoring.records
+    .filter((record) => record.gameReleaseId === 'darktide:1.13.4' && record.kind === 'weapon')
+    .map((record) => record.payload.markId));
+  const expected = result.uiMarks.filter((mark) => registeredKeys.has(mark.markId) && !authoringMarks.has(mark.markId));
+  const weapons = result.candidate.records.filter((record) => record.kind === 'weapon');
+  const registeredWithoutUi = result.registeredTemplates
+    .filter((template) => !uiByMark.has(template.templateKey))
+    .map((template) => template.templateKey);
+
+  assert.equal(weapons.length, expected.length);
+  assert.deepEqual(weapons.map((record) => record.payload.markId).sort(), expected.map((mark) => mark.markId).sort());
+  assert.deepEqual(result.coverageGaps.uiMarksWithoutRegisteredTemplate.map((gap) => gap.markId), ['laspistol_p1_m2']);
+  assert.deepEqual(
+    result.coverageGaps.registeredTemplatesWithoutUiMark.map((gap) => gap.templateKey),
+    registeredWithoutUi
+  );
+  for (const weapon of weapons) {
+    const uiMark = uiByMark.get(weapon.payload.markId);
+    const recordIdentity = /^(.*)_p(\d+)_m(\d+)$/u.exec(weapon.payload.markId);
+    assert.ok(uiMark, `${weapon.recordId} must belong to the pinned UI list`);
+    assert.equal(weapon.reviewState, 'pending');
+    assert.equal(weapon.payload.familyId, uiMark.familyId);
+    assert.equal(weapon.payload.templateKey, weapon.payload.markId);
+    assert.equal(weapon.recordId, `darktide:weapon:${recordIdentity[1]}:p${recordIdentity[2]}-m${recordIdentity[3]}`);
+    assert.equal(existingIds.has(`${weapon.gameReleaseId}\0${weapon.recordId}`), false);
+    assert.equal(weapon.payload.sourceRows.length, 3);
+    for (const sourceRow of weapon.payload.sourceRows) {
+      const line = result.reader.read(sourceRow.sourceLocator.path).split(/\r\n|\n|\r/u)[sourceRow.sourceLocator.line - 1];
+      assert.ok(line.includes(sourceRow.rawValue.replace(/^"|"$/gu, '')), `${weapon.recordId} identity must match its source line`);
+      assert.ok(weapon.sourceRefs.some((sourceRef) => sourceRef.sourceId === sourceRow.sourceLocator.sourceRef.sourceId
+        && sourceRef.gameReleaseId === sourceRow.sourceLocator.sourceRef.gameReleaseId));
+    }
+  }
+});
+
 // Scenario: Static action bindings and base-stat trait ranges are absent from the existing authoring graph.
 // Purpose: Require genuinely new pending profile/stat records rather than renamed copies of existing records.
 test('InterT40_candidate_adds_only_new_source_traced_profile_and_stat_records', { skip: integrationSkip }, async () => {
@@ -200,9 +338,9 @@ test('InterT45_damage_profile_bodies_and_base_stat_rating_mappings_are_source_tr
     && (record.dataCoverage.missing ?? []).some((missing) =>
       missing.field === '/payload/all-base-stat-definitions-and-rating-mapping'));
 
-  assert.equal(result.stats.values.referencedDamageProfileCount, 208);
-  assert.equal(result.stats.values.resolvedDamageProfileCount, 208);
-  assert.equal(generatedDamage.length, 208);
+  assert.equal(result.stats.values.referencedDamageProfileCount, 290);
+  assert.equal(result.stats.values.resolvedDamageProfileCount, 290);
+  assert.equal(generatedDamage.length, 290);
   assert.ok(generatedDamage.every((record) => record.payload.rawSourceDefinition.leaves.length > 1));
   assert.ok(generatedDamage.every((record) => !(record.dataCoverage.missing ?? []).some((missing) =>
     missing.field === '/payload/rawSourceDefinition/profileBody')));
@@ -240,10 +378,22 @@ test('InterT47_sharded_candidate_reassembles_to_the_identical_in_memory_candidat
 
     assert.deepEqual(loaded, written.candidate);
     assert.equal(filenames.includes('weapon-template-candidates.json'), false);
-    assert.equal(index.files.length, 41);
+    const familyIds = new Set([
+      ...written.authoring.records
+        .filter((record) => record.gameReleaseId === 'darktide:1.13.4' && record.kind === 'weapon')
+        .map((record) => record.payload.familyId),
+      ...written.candidate.records.filter((record) => record.kind === 'weapon').map((record) => record.payload.familyId)
+    ]);
+    assert.equal(index.files.length, familyIds.size + 1);
     assert.equal(index.counts.fileCount, index.files.length);
     assert.equal(index.counts.patchCount, written.candidate.patches.length);
     assert.equal(index.counts.recordCount, written.candidate.records.length);
+    assert.equal(index.counts.pendingWeaponCount, written.stats.pendingWeaponCount);
+    assert.equal(
+      index.counts.indirectDamageProfileSupportParseFailureCount,
+      written.stats.indirectDamageProfileSupportParseFailureCount
+    );
+    assert.deepEqual(index.coverageGaps, written.coverageGaps);
     for (const filename of index.files.map((item) => path.join(temporaryRoot, 'weapon-templates', item.filename))) {
       assert.ok((await stat(filename)).size < 10_000_000, `${path.basename(filename)} must stay below 10 MB`);
     }
@@ -259,9 +409,16 @@ test('InterT50_two_writes_are_byte_identical', { skip: integrationSkip }, async 
   const left = path.join(temporaryRoot, 'left');
   const right = path.join(temporaryRoot, 'right');
   try {
-    const first = await writeGenericWeaponTemplates({ sourceCodeRepo, commit: PINNED_COMMIT, outputDir: left });
-    const second = await writeGenericWeaponTemplates({ sourceCodeRepo, commit: PINNED_COMMIT, outputDir: right });
-    assert.deepEqual(first.outputSizes, second.outputSizes);
+    const run = (outputDir) => spawnSync(process.execPath, [
+      path.resolve('scripts/content/imports/generic-weapon-templates.mjs'),
+      '--source-code-repo', sourceCodeRepo,
+      '--commit', PINNED_COMMIT,
+      '--output-dir', outputDir
+    ], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
+    const first = run(left);
+    assert.equal(first.status, 0, first.stderr);
+    const second = run(right);
+    assert.equal(second.status, 0, second.stderr);
     const firstFiles = await outputFiles(left);
     const secondFiles = await outputFiles(right);
     assert.deepEqual(firstFiles, secondFiles);

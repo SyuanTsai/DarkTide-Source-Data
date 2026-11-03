@@ -3893,7 +3893,7 @@
             "staticClosure": {
               "localActionCount": 11,
               "fallbackActionCount": 3,
-              "profileBindingCount": 0,
+              "profileBindingCount": 1,
               "literalContinuationEdgeCount": 21,
               "generatedActionSettingsCount": 2,
               "generatedContinuationEdgeCount": 25,
@@ -4708,6 +4708,10 @@
           "value": [
             {
               "recordId": "darktide:attack-profile:autogun:p1:autogun_p1_m2:action_shoot_hip",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:attack-profile:generic:autogun-p1-m2:action_shoot_zoomed",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -6285,7 +6289,7 @@
             "staticClosure": {
               "localActionCount": 11,
               "fallbackActionCount": 3,
-              "profileBindingCount": 0,
+              "profileBindingCount": 1,
               "literalContinuationEdgeCount": 21,
               "generatedActionSettingsCount": 2,
               "generatedContinuationEdgeCount": 25,
@@ -7101,6 +7105,10 @@
             {
               "recordId": "darktide:attack-profile:autogun:p1:autogun_p1_m3:action_shoot_hip",
               "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:attack-profile:generic:autogun-p1-m3:action_shoot_zoomed",
+              "gameReleaseId": "darktide:1.13.4"
             }
           ]
         },
@@ -7206,6 +7214,224 @@
     }
   ],
   "records": [
+    {
+      "recordId": "darktide:attack-profile:generic:autogun-p1-m2:action_shoot_zoomed",
+      "kind": "attack-profile",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "familyId": "autogun_p1",
+        "markId": "autogun_p1_m2",
+        "templateKey": "autogun_p1_m2",
+        "action": "action_shoot_zoomed",
+        "mode": "ads",
+        "weaponRef": {
+          "recordId": "darktide:weapon:autogun:p1-m2:e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "damageProfileRefs": [
+          {
+            "recordId": "darktide:damage-profile:autogun-p1:autogun_p1_m2:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "targetProfileRefs": [],
+        "contexts": [
+          {
+            "weaponRef": {
+              "recordId": "darktide:weapon:autogun:p1-m2:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "templateKey": "autogun_p1_m2",
+            "markKey": "autogun_p1_m2",
+            "action": "action_shoot_zoomed",
+            "mode": "ads",
+            "damageProfileRef": {
+              "recordId": "darktide:damage-profile:autogun-p1:autogun_p1_m2:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ],
+        "sourceBindings": [
+          {
+            "branch": "normal",
+            "profileRef": {
+              "recordId": "darktide:damage-profile:autogun-p1:autogun_p1_m2:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "rawValue": "autogun_p1_m2",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 23,
+              "fieldPath": "hitscan_templates.autogun_p1_m2_bullet.damage.impact.damage_profile"
+            }
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-remaining8-e46-autogun_p1_m2-weapon-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/targetProfileRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p1_m2-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/actionResolution",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p1_m2-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/action",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/mode",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/damageProfileRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/sourceBindings",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:attack-profile:generic:autogun-p1-m3:action_shoot_zoomed",
+      "kind": "attack-profile",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "familyId": "autogun_p1",
+        "markId": "autogun_p1_m3",
+        "templateKey": "autogun_p1_m3",
+        "action": "action_shoot_zoomed",
+        "mode": "ads",
+        "weaponRef": {
+          "recordId": "darktide:weapon:autogun:p1-m3:e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "damageProfileRefs": [
+          {
+            "recordId": "darktide:damage-profile:autogun-p1:default_autogun_assault:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "targetProfileRefs": [],
+        "contexts": [
+          {
+            "weaponRef": {
+              "recordId": "darktide:weapon:autogun:p1-m3:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "templateKey": "autogun_p1_m3",
+            "markKey": "autogun_p1_m3",
+            "action": "action_shoot_zoomed",
+            "mode": "ads",
+            "damageProfileRef": {
+              "recordId": "darktide:damage-profile:autogun-p1:default_autogun_assault:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ],
+        "sourceBindings": [
+          {
+            "branch": "normal",
+            "profileRef": {
+              "recordId": "darktide:damage-profile:autogun-p1:default_autogun_assault:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "rawValue": "default_autogun_assault",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 14,
+              "fieldPath": "hitscan_templates.default_autogun_bullet.damage.impact.damage_profile"
+            }
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-remaining8-e46-autogun_p1_m3-weapon-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/targetProfileRefs",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p1_m3-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/actionResolution",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p1_m3-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewState": "pending",
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/action",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/mode",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/damageProfileRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/sourceBindings",
+          "dimension": "evidence"
+        }
+      ]
+    },
     {
       "recordId": "darktide:evidence:generic-weapon-template:autogun_p1_m1:e46b8926cfa3",
       "kind": "evidence",

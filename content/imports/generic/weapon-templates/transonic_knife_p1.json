@@ -3018,7 +3018,7 @@
                   "index": 2,
                   "attackType": "ninja_fencer",
                   "targetRole": "single-target",
-                  "roleProfileKey": "medium_combat_knife_ninja_fencer"
+                  "roleProfileKey": "light_combat_knife_ninja_fencer_stab"
                 },
                 {
                   "index": 3,
@@ -3030,7 +3030,7 @@
                   "index": 4,
                   "attackType": "ninja_fencer",
                   "targetRole": "single-target",
-                  "roleProfileKey": "light_combat_knife_ninja_fencer"
+                  "roleProfileKey": "medium_combat_knife_linesman"
                 }
               ],
               "sourceRefs": [
@@ -3040,6 +3040,26 @@
                 },
                 {
                   "sourceId": "public-code:weapon-source-transonic_knife_p1_m1-e46b8926cfa3-combat_knife_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-combatknife_p1_m1-e46b8926cfa3-combat_knife_damage_profile_templates",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-profile-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:w07-power-level-settings-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:damage-calculation-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                {
+                  "sourceId": "public-code:weapon-source-combatknife_p1_m2-e46b8926cfa3-combat_knife_damage_profile_templates",
                   "gameReleaseId": "darktide:1.13.4"
                 }
               ],
@@ -3060,7 +3080,7 @@
                   "index": 1,
                   "attackType": "smiter",
                   "targetRole": "single-target",
-                  "roleProfileKey": "light_combat_knife_ninja_fencer"
+                  "roleProfileKey": "medium_combat_knife_ninja_fencer"
                 },
                 {
                   "index": 2,
@@ -3596,6 +3616,18 @@
             },
             {
               "recordId": "darktide:stat-definition:generic:4f58ef40811a5ab0",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:a1939c4c28b97b89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:1561f8f58ee63c90",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            {
+              "recordId": "darktide:stat-definition:generic:9b2feca009c512c4",
               "gameReleaseId": "darktide:1.13.4"
             }
           ]
@@ -4918,6 +4950,95 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "combatknife_p1_m1_mobility_stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_speed_mod",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-transonic_knife_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/transonic_knife/transonic_knife_p1_m1.lua",
+                    "line": 1420,
+                    "fieldPath": "weapon_template.base_stats.combatknife_p1_m1_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 12,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-transonic_knife_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/transonic_knife/transonic_knife_p1_m1.lua",
+                    "line": 1420,
+                    "fieldPath": "weapon_template.base_stats.combatknife_p1_m1_mobility_stat.sprint.base.1"
+                  },
+                  "traitTemplateKey": "sprint_trait_templates.default_sprint_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                    "line": 19,
+                    "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.default.modifier",
+                  "weaponLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-template-transonic_knife_p1_m1-e46b8926cfa3",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/transonic_knife/transonic_knife_p1_m1.lua",
+                    "line": 1426,
+                    "fieldPath": "weapon_template.base_stats.combatknife_p1_m1_mobility_stat.movement_curve_modifier.base.1"
+                  },
+                  "traitTemplateKey": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat",
+                  "traitLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                    "line": 10,
+                    "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                  },
+                  "traitParameterRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio"
                   }
                 }
@@ -6463,6 +6584,116 @@
                     "status": "known",
                     "min": "0.25",
                     "max": "0.75",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                }
+              ]
+            },
+            {
+              "statKey": "combatknife_p1_m1_mobility_stat",
+              "groupKey": "generic-static-base-stat",
+              "bindings": [
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_speed_mod",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 12,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration",
+                  "quantityKind": "sprint-speed-addend",
+                  "unit": "ratio",
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/sprint_trait_templates.lua",
+                        "line": 19,
+                        "fieldPath": "sprint_trait_templates.default_sprint_stat.2.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned sprint_trait_templates.default_sprint_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
+                    "unit": "ratio",
+                    "inclusive": {
+                      "min": true,
+                      "max": true
+                    }
+                  },
+                  "obtainableInputRange": {
+                    "status": "unknown",
+                    "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+                  }
+                },
+                {
+                  "property": "weapon_movement_curve_modifier_templates.default.modifier",
+                  "quantityKind": "movement-curve-modifier",
+                  "unit": {
+                    "status": "not-applicable"
+                  },
+                  "consumerEvidence": [
+                    {
+                      "sourceLocator": {
+                        "sourceRef": {
+                          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+                          "gameReleaseId": "darktide:1.13.4"
+                        },
+                        "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/movement_curve_modifier_trait_templates.lua",
+                        "line": 10,
+                        "fieldPath": "movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat.1.2.min"
+                      },
+                      "rawValue": "{\n\t\t\tmax = 0.95,\n\t\t\tmin = 0.05,\n\t\t}",
+                      "summary": "The pinned movement_curve_modifier_trait_templates.default_movement_curve_modifier_stat row selects this affected property."
+                    }
+                  ],
+                  "theoreticalInputRange": {
+                    "status": "known",
+                    "min": "0.05",
+                    "max": "0.95",
                     "unit": "ratio",
                     "inclusive": {
                       "min": true,
@@ -8223,6 +8454,123 @@
                   ]
                 }
               ]
+            },
+            {
+              "statKey": "combatknife_p1_m1_mobility_stat",
+              "templateKey": "ninja_l",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                "line": 141,
+                "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod"
+              },
+              "properties": [
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_speed_mod",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 141,
+                    "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 142,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 143,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_speed_mod.lerp_perfect"
+                    }
+                  ]
+                },
+                {
+                  "property": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
+                    "line": 137,
+                    "fieldPath": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 138,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 139,
+                      "fieldPath": "weapon_sprint_templates.ninja_l.sprint_forward_acceleration.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "statKey": "combatknife_p1_m1_mobility_stat",
+              "templateKey": "default",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:generic-37449b0a55577293",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                "line": 6,
+                "fieldPath": "weapon_movement_curve_modifier_templates.default.modifier"
+              },
+              "properties": [
+                {
+                  "property": "weapon_movement_curve_modifier_templates.default.modifier",
+                  "unit": "ratio",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:generic-37449b0a55577293",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua",
+                    "line": 6,
+                    "fieldPath": "weapon_movement_curve_modifier_templates.default.modifier"
+                  },
+                  "orderedValues": [
+                    {
+                      "key": "lerp_basic",
+                      "rawValue": "0.5",
+                      "decimal": "0.5",
+                      "line": 7,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.default.modifier.lerp_basic"
+                    },
+                    {
+                      "key": "lerp_perfect",
+                      "rawValue": "1",
+                      "decimal": "1",
+                      "line": 8,
+                      "fieldPath": "weapon_movement_curve_modifier_templates.default.modifier.lerp_perfect"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -8249,6 +8597,26 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
+          "sourceId": "public-code:weapon-source-combatknife_p1_m1-e46b8926cfa3-combat_knife_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-power-level-settings-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:damage-calculation-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-source-combatknife_p1_m2-e46b8926cfa3-combat_knife_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
           "sourceId": "public-code:w07-static-ba6c148-996c0bf10f0855d4",
           "gameReleaseId": "darktide:1.13.4"
         },
@@ -8265,11 +8633,27 @@
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:weapon-source-combatknife_p1_m1-e46b8926cfa3-combat_knife_damage_profile_templates",
+          "sourceId": "public-code:weapon-sprint-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         },
         {
-          "sourceId": "public-code:damage-profile-settings-ba6c148",
+          "sourceId": "public-code:w07-movement-curve-modifier-trait-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-sprint-templates-ba6c148",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-37449b0a55577293",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-f94c94dc7f3f7018",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:weapon-dodge-trait-templates-ba6c148",
           "gameReleaseId": "darktide:1.13.4"
         }
       ],
@@ -8289,6 +8673,38 @@
             "reasonCode": "NOT_VERIFIED",
             "sourceRef": {
               "sourceId": "public-code:weapon-template-transonic_knife_p1_m1-e46b8926cfa3",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combatknife_p1_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_1_ninja.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combatknife_p1_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_1_1_ninja.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combatknife_p1_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_1_3_ninja.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/payload/statTables/combatknife_p1_m1_finesse_stat/weapon_weapon_handling_templates.time_scale_1_2_ninja.time_scale",
+            "reasonCode": "SOURCE_UNAVAILABLE",
+            "sourceRef": {
+              "sourceId": "public-code:generic-f94c94dc7f3f7018",
               "gameReleaseId": "darktide:1.13.4"
             }
           },

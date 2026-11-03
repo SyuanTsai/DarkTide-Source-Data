@@ -6,8 +6,8 @@
   "snapshot": {
     "snapshotId": "generic-weapon-templates-1.13.4-e46b8926cfa3",
     "commit": "e46b8926cfa3fa35503e4b80b15aab7a804314e4",
-    "manifestSha256": "ff22b4e1fe6e08d7104e76da8f1e82a8679d4a2b95b10bc6529bfec94ff227ec",
-    "contentSha256": "1b1da5d98269140759d1ae203370fed2b4e20f71f1930f51b848b8a997edc9f4"
+    "manifestSha256": "2640a42a26a7a738a67566e00efa237f6d6d7deab49e492ad39b211d558baa70",
+    "contentSha256": "d56af9a2684b3de6482c2ecc222611206edf2101ee089a05a61e70a8b4013c6b"
   },
   "files": [
     {
@@ -2146,6 +2146,31 @@
       "sha256": "878945a4bed947f746b1969c43f1e99f59e5267204b5ff14b71c152329798116"
     },
     {
+      "path": "scripts/settings/projectile/hit_scan_templates.lua",
+      "blob": "1cffbd64c4bedfeecafcf21cc0409ca701aff96d",
+      "sha256": "d8ca5aa3cf8f82cf4bbf7334690bed3a2e84df2d049d04828ee11277c10d705c"
+    },
+    {
+      "path": "scripts/settings/projectile/minion_projectile_templates.lua",
+      "blob": "2d36befb83390e7f71ae2f61302e0354ff2db31c",
+      "sha256": "45def9fa087f3c2ee3c9364f432234cd2172eb266dbb20316999cca52f6f3dea"
+    },
+    {
+      "path": "scripts/settings/projectile/player_projectile_templates.lua",
+      "blob": "a7c649e689c646fdd782f4033066c34fee17a8a1",
+      "sha256": "b79be7cae9786c4abc986da835519b7ddd6e3b3ba717725c73e9b0f525b75f7b"
+    },
+    {
+      "path": "scripts/settings/projectile/projectile_templates.lua",
+      "blob": "416614225f917d99f3c8432382f8ed6a08c98d67",
+      "sha256": "b2e4d592f28001f7d09fec38352c4d50a1da77e9d27b8a0fb4f417a1dd330081"
+    },
+    {
+      "path": "scripts/settings/projectile/shotshell_templates.lua",
+      "blob": "30e050a791041f0fc30f79a429a61c7f93a2c13a",
+      "sha256": "57b4d0a72d2a6e4993b467eaa408ff467a8d25ff94535af76cd0a583c88467a8"
+    },
+    {
       "path": "scripts/settings/sprint/weapon_sprint_templates.lua",
       "blob": "7a653c7565772b37cc80d5eb8d493ae40ad52426",
       "sha256": "5fda7e8e2a86c928f9e183607c6c70ad19426a742422c2e35430aa0b7c615f27"
@@ -2154,6 +2179,11 @@
       "path": "scripts/settings/stamina/weapon_stamina_templates.lua",
       "blob": "ecefba1e8d9b628f15c70aed7b8402c7b8e34a9e",
       "sha256": "1270922a44e06cb2b84638f68d4fd60f3afb5b2f538faf7e53c89a19cf85a020"
+    },
+    {
+      "path": "scripts/settings/ui/ui_weapon_pattern_settings.lua",
+      "blob": "efbf85e393f16542f60ad2eeba7183d722a6cba3",
+      "sha256": "fa2c9819c5e30a130e15ae13bd5d3f8c4bcd682c62778687432fd245b0e5cc97"
     },
     {
       "path": "scripts/settings/warp_charge/weapon_warp_charge_templates.lua",
@@ -2175,13 +2205,1058 @@
       "tableCloneCallCount": 153
     },
     "registeredTemplateCount": 203,
+    "uiPlayerMarkCount": 135,
     "authoringWeaponCount": 82,
+    "pendingWeaponCount": 54,
+    "indirectDamageProfileSupportParseFailureCount": 1,
     "partialAuthoringWeaponCount": 80,
     "patchCount": 82,
-    "generatedRecordCount": 6144,
+    "generatedRecordCount": 8769,
+    "coverageGaps": {
+      "uiMarksWithoutRegisteredTemplate": [
+        {
+          "familyId": "laspistol_p1",
+          "markId": "laspistol_p1_m2",
+          "reasonCode": "UI_MARK_WITHOUT_REGISTERED_TEMPLATE",
+          "reason": "The pinned UI player mark has no matching registration in weapon_templates.lua; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:generic-5eaa1aa16e0c693b",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/ui/ui_weapon_pattern_settings.lua",
+            "line": 952,
+            "fieldPath": "ui_weapon_patterns_settings.laspistol_p1.marks.2.name"
+          }
+        }
+      ],
+      "registeredTemplatesWithoutUiMark": [
+        {
+          "templateKey": "missile_launcher",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 247,
+            "fieldPath": "template_groups.34.2"
+          }
+        },
+        {
+          "templateKey": "needlepistol_p1_m3",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 343,
+            "fieldPath": "template_groups.50.4"
+          }
+        },
+        {
+          "templateKey": "bot_autogun_killshot",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 347,
+            "fieldPath": "template_groups.51.2"
+          }
+        },
+        {
+          "templateKey": "bot_combataxe_linesman",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 348,
+            "fieldPath": "template_groups.51.3"
+          }
+        },
+        {
+          "templateKey": "bot_combatsword_linesman_p1",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 349,
+            "fieldPath": "template_groups.51.4"
+          }
+        },
+        {
+          "templateKey": "bot_combatsword_linesman_p2",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 350,
+            "fieldPath": "template_groups.51.5"
+          }
+        },
+        {
+          "templateKey": "bot_lasgun_killshot",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 351,
+            "fieldPath": "template_groups.51.6"
+          }
+        },
+        {
+          "templateKey": "bot_laspistol_killshot",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 352,
+            "fieldPath": "template_groups.51.7"
+          }
+        },
+        {
+          "templateKey": "bot_zola_laspistol",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 353,
+            "fieldPath": "template_groups.51.8"
+          }
+        },
+        {
+          "templateKey": "high_bot_autogun_killshot",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 354,
+            "fieldPath": "template_groups.51.9"
+          }
+        },
+        {
+          "templateKey": "high_bot_lasgun_killshot",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 355,
+            "fieldPath": "template_groups.51.10"
+          }
+        },
+        {
+          "templateKey": "adamant_area_buff_drone",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 359,
+            "fieldPath": "template_groups.52.2"
+          }
+        },
+        {
+          "templateKey": "broker_stimm_field",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 360,
+            "fieldPath": "template_groups.52.3"
+          }
+        },
+        {
+          "templateKey": "cryptic_transonic_claw",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 361,
+            "fieldPath": "template_groups.52.4"
+          }
+        },
+        {
+          "templateKey": "psyker_force_field_dome",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 362,
+            "fieldPath": "template_groups.52.5"
+          }
+        },
+        {
+          "templateKey": "psyker_force_field",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 363,
+            "fieldPath": "template_groups.52.6"
+          }
+        },
+        {
+          "templateKey": "zealot_relic",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 364,
+            "fieldPath": "template_groups.52.7"
+          }
+        },
+        {
+          "templateKey": "auspex_map",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 368,
+            "fieldPath": "template_groups.53.2"
+          }
+        },
+        {
+          "templateKey": "auspex_scanner",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 369,
+            "fieldPath": "template_groups.53.3"
+          }
+        },
+        {
+          "templateKey": "breach_charge",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 370,
+            "fieldPath": "template_groups.53.4"
+          }
+        },
+        {
+          "templateKey": "scanner_equip",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 371,
+            "fieldPath": "template_groups.53.5"
+          }
+        },
+        {
+          "templateKey": "servo_skull",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 372,
+            "fieldPath": "template_groups.53.6"
+          }
+        },
+        {
+          "templateKey": "skull_decoder",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 373,
+            "fieldPath": "template_groups.53.7"
+          }
+        },
+        {
+          "templateKey": "skull_decoder_02",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 374,
+            "fieldPath": "template_groups.53.8"
+          }
+        },
+        {
+          "templateKey": "adamant_grenade",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 378,
+            "fieldPath": "template_groups.54.2"
+          }
+        },
+        {
+          "templateKey": "shock_mine",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 379,
+            "fieldPath": "template_groups.54.3"
+          }
+        },
+        {
+          "templateKey": "tox_grenade",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 380,
+            "fieldPath": "template_groups.54.4"
+          }
+        },
+        {
+          "templateKey": "cryptic_servo_skull_order_point",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 381,
+            "fieldPath": "template_groups.54.5"
+          }
+        },
+        {
+          "templateKey": "arc_grenade",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 382,
+            "fieldPath": "template_groups.54.6"
+          }
+        },
+        {
+          "templateKey": "ogryn_grenade_box",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 383,
+            "fieldPath": "template_groups.54.7"
+          }
+        },
+        {
+          "templateKey": "ogryn_grenade_box_cluster",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 384,
+            "fieldPath": "template_groups.54.8"
+          }
+        },
+        {
+          "templateKey": "ogryn_grenade_frag",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 385,
+            "fieldPath": "template_groups.54.9"
+          }
+        },
+        {
+          "templateKey": "ogryn_grenade_friend_rock",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 386,
+            "fieldPath": "template_groups.54.10"
+          }
+        },
+        {
+          "templateKey": "psyker_smite",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 387,
+            "fieldPath": "template_groups.54.11"
+          }
+        },
+        {
+          "templateKey": "psyker_chain_lightning",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 388,
+            "fieldPath": "template_groups.54.12"
+          }
+        },
+        {
+          "templateKey": "psyker_throwing_knives",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 389,
+            "fieldPath": "template_groups.54.13"
+          }
+        },
+        {
+          "templateKey": "frag_grenade",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 390,
+            "fieldPath": "template_groups.54.14"
+          }
+        },
+        {
+          "templateKey": "krak_grenade",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 391,
+            "fieldPath": "template_groups.54.15"
+          }
+        },
+        {
+          "templateKey": "smoke_grenade",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 392,
+            "fieldPath": "template_groups.54.16"
+          }
+        },
+        {
+          "templateKey": "shock_grenade",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 393,
+            "fieldPath": "template_groups.54.17"
+          }
+        },
+        {
+          "templateKey": "fire_grenade",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 394,
+            "fieldPath": "template_groups.54.18"
+          }
+        },
+        {
+          "templateKey": "expeditions_big_grenade",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 395,
+            "fieldPath": "template_groups.54.19"
+          }
+        },
+        {
+          "templateKey": "luggable_light",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 399,
+            "fieldPath": "template_groups.55.2"
+          }
+        },
+        {
+          "templateKey": "luggable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 400,
+            "fieldPath": "template_groups.55.3"
+          }
+        },
+        {
+          "templateKey": "ammo_cache_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 404,
+            "fieldPath": "template_groups.56.2"
+          }
+        },
+        {
+          "templateKey": "breach_charge_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 405,
+            "fieldPath": "template_groups.56.3"
+          }
+        },
+        {
+          "templateKey": "communications_hack_device_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 406,
+            "fieldPath": "template_groups.56.4"
+          }
+        },
+        {
+          "templateKey": "expedition_loot_crate_tier_1_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 407,
+            "fieldPath": "template_groups.56.5"
+          }
+        },
+        {
+          "templateKey": "expedition_loot_crate_tier_2_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 408,
+            "fieldPath": "template_groups.56.6"
+          }
+        },
+        {
+          "templateKey": "expedition_loot_crate_tier_3_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 409,
+            "fieldPath": "template_groups.56.7"
+          }
+        },
+        {
+          "templateKey": "expedition_grenade_airstrike_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 410,
+            "fieldPath": "template_groups.56.8"
+          }
+        },
+        {
+          "templateKey": "expedition_grenade_artillery_strike_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 411,
+            "fieldPath": "template_groups.56.9"
+          }
+        },
+        {
+          "templateKey": "expedition_grenade_valkyrie_hover_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 412,
+            "fieldPath": "template_groups.56.10"
+          }
+        },
+        {
+          "templateKey": "motion_detection_mine_explosive_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 413,
+            "fieldPath": "template_groups.56.11"
+          }
+        },
+        {
+          "templateKey": "motion_detection_mine_fire_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 414,
+            "fieldPath": "template_groups.56.12"
+          }
+        },
+        {
+          "templateKey": "motion_detection_mine_shock_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 415,
+            "fieldPath": "template_groups.56.13"
+          }
+        },
+        {
+          "templateKey": "deployable_force_field_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 416,
+            "fieldPath": "template_groups.56.14"
+          }
+        },
+        {
+          "templateKey": "grimoire_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 417,
+            "fieldPath": "template_groups.56.15"
+          }
+        },
+        {
+          "templateKey": "medical_crate_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 418,
+            "fieldPath": "template_groups.56.16"
+          }
+        },
+        {
+          "templateKey": "syringe_ability_boost_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 419,
+            "fieldPath": "template_groups.56.17"
+          }
+        },
+        {
+          "templateKey": "syringe_corruption_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 420,
+            "fieldPath": "template_groups.56.18"
+          }
+        },
+        {
+          "templateKey": "syringe_power_boost_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 421,
+            "fieldPath": "template_groups.56.19"
+          }
+        },
+        {
+          "templateKey": "syringe_speed_boost_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 422,
+            "fieldPath": "template_groups.56.20"
+          }
+        },
+        {
+          "templateKey": "syringe_broker_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 423,
+            "fieldPath": "template_groups.56.21"
+          }
+        },
+        {
+          "templateKey": "tome_pocketable",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 424,
+            "fieldPath": "template_groups.56.22"
+          }
+        },
+        {
+          "templateKey": "unarmed_hub_ogryn",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 428,
+            "fieldPath": "template_groups.57.2"
+          }
+        },
+        {
+          "templateKey": "unarmed_hub_human",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 429,
+            "fieldPath": "template_groups.57.3"
+          }
+        },
+        {
+          "templateKey": "unarmed_training_grounds",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 430,
+            "fieldPath": "template_groups.57.4"
+          }
+        },
+        {
+          "templateKey": "unarmed",
+          "reasonCode": "REGISTERED_TEMPLATE_WITHOUT_UI_MARK",
+          "reason": "The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+            "line": 431,
+            "fieldPath": "template_groups.57.5"
+          }
+        }
+      ],
+      "indirectDamageProfileSupportParseFailures": [
+        {
+          "sourcePath": "scripts/settings/projectile/player_projectile_templates.lua",
+          "reasonCode": "INDIRECT_DAMAGE_PROFILE_SUPPORT_PARSE_FAILED",
+          "parserErrorCode": "UNSUPPORTED_CONSTRUCT",
+          "parserErrorMessage": "scripts/settings/projectile/player_projectile_templates.lua:612:1: UNSUPPORTED_CONSTRUCT: Cannot assign through missing table projectile_templates.psyker_throwing_knives_piercing.damage.impact.damage_profile",
+          "templateKeys": [
+            "adamant_grenade",
+            "airstrike_smoke_grenade",
+            "arc_grenade",
+            "area_buff_drone",
+            "artillery_strike_grenade",
+            "attack_valkyrie_missile",
+            "broker_missile",
+            "broker_tox_grenade",
+            "dual_shivs_p1_throwing_knives",
+            "expedition_airstrike_nuke",
+            "expedition_trap_explosive_cluster",
+            "expeditions_big_grenade",
+            "fire_grenade",
+            "force_staff_ball",
+            "force_staff_ball_heavy",
+            "frag_grenade",
+            "krak_grenade",
+            "luggable",
+            "ogryn_gauntlet_grenade",
+            "ogryn_grenade_box",
+            "ogryn_grenade_box_cluster",
+            "ogryn_grenade_box_cluster_grenade",
+            "ogryn_grenade_frag",
+            "ogryn_grenade_friend_rock",
+            "ogryn_thumper_grenade_aim",
+            "ogryn_thumper_grenade_hip_fire",
+            "psyker_throwing_knives",
+            "psyker_throwing_knives_aimed",
+            "psyker_throwing_knives_aimed_piercing",
+            "psyker_throwing_knives_piercing",
+            "quick_flash_grenade",
+            "shock_grenade",
+            "shock_mine",
+            "smoke_grenade",
+            "valkyrie_hover_smoke_grenade",
+            "zealot_throwing_knives"
+          ],
+          "affectedWeaponRecordIds": [
+            "darktide:weapon:dual_shivs:p1-m1:e46",
+            "darktide:weapon:dual_shivs:p1-m2:e46",
+            "darktide:weapon:forcestaff:p1-m1",
+            "darktide:weapon:forcestaff:p3-m1:e46",
+            "darktide:weapon:forcestaff:p4-m1",
+            "darktide:weapon:ogryn_gauntlet:p1-m1:e46",
+            "darktide:weapon:ogryn_thumper:p1-m2"
+          ]
+        }
+      ]
+    },
     "values": {
-      "referencedDamageProfileCount": 208,
-      "resolvedDamageProfileCount": 208,
+      "referencedDamageProfileCount": 290,
+      "resolvedDamageProfileCount": 290,
       "unresolvedDamageProfiles": [
         {
           "profileKey": "default_light_chainsword_stab_sticky",
@@ -2303,8 +3378,8 @@
       ],
       "baseStatWeaponCount": 70,
       "resolvedBaseStatWeaponCount": 70,
-      "generatedStatDefinitionCount": 2638,
-      "generatedStatCurveCount": 2638,
+      "generatedStatDefinitionCount": 3760,
+      "generatedStatCurveCount": 3760,
       "partialWeaponCount": 78,
       "partialWeapons": [
         {
@@ -2319,10 +3394,10 @@
         {
           "recordId": "darktide:weapon:combataxe:p1-m1:e46",
           "markId": "combataxe_p1_m1",
-          "missingFieldCount": 6,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 1,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 10
           }
         },
         {
@@ -2337,28 +3412,28 @@
         {
           "recordId": "darktide:weapon:combataxe:p2-m1:e46",
           "markId": "combataxe_p2_m1",
-          "missingFieldCount": 6,
+          "missingFieldCount": 12,
           "reasonCounts": {
             "NOT_VERIFIED": 1,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 11
           }
         },
         {
           "recordId": "darktide:weapon:combataxe:p2-m2:e46",
           "markId": "combataxe_p2_m2",
-          "missingFieldCount": 6,
+          "missingFieldCount": 10,
           "reasonCounts": {
             "NOT_VERIFIED": 1,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:combataxe:p2-m3:e46",
           "markId": "combataxe_p2_m3",
-          "missingFieldCount": 6,
+          "missingFieldCount": 14,
           "reasonCounts": {
             "NOT_VERIFIED": 1,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 13
           }
         },
         {
@@ -2382,10 +3457,10 @@
         {
           "recordId": "darktide:weapon:combataxe:p1-m3:e46",
           "markId": "combataxe_p1_m3",
-          "missingFieldCount": 7,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
@@ -2400,46 +3475,46 @@
         {
           "recordId": "darktide:weapon:combatknife:p1-m1:e46",
           "markId": "combatknife_p1_m1",
-          "missingFieldCount": 7,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:combatknife:p1-m2:e46",
           "markId": "combatknife_p1_m2",
-          "missingFieldCount": 7,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:combatsword:p1-m1:e46",
           "markId": "combatsword_p1_m1",
-          "missingFieldCount": 8,
+          "missingFieldCount": 10,
           "reasonCounts": {
             "NOT_VERIFIED": 3,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
           "recordId": "darktide:weapon:combatsword:p1-m2:e46",
           "markId": "combatsword_p1_m2",
-          "missingFieldCount": 8,
+          "missingFieldCount": 10,
           "reasonCounts": {
             "NOT_VERIFIED": 3,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
           "recordId": "darktide:weapon:combatsword:p1-m3:e46",
           "markId": "combatsword_p1_m3",
-          "missingFieldCount": 8,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 3,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 8
           }
         },
         {
@@ -2472,24 +3547,33 @@
         {
           "recordId": "darktide:weapon:combatsword:p3-m1:e46",
           "markId": "combatsword_p3_m1",
-          "missingFieldCount": 7,
+          "missingFieldCount": 9,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
           "recordId": "darktide:weapon:combatsword:p3-m2:e46",
           "markId": "combatsword_p3_m2",
-          "missingFieldCount": 7,
+          "missingFieldCount": 9,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
           "recordId": "darktide:weapon:combatsword:p3-m3:e46",
           "markId": "combatsword_p3_m3",
+          "missingFieldCount": 14,
+          "reasonCounts": {
+            "NOT_VERIFIED": 2,
+            "SOURCE_UNAVAILABLE": 12
+          }
+        },
+        {
+          "recordId": "darktide:weapon:dual_shivs:p1-m1:e46",
+          "markId": "dual_shivs_p1_m1",
           "missingFieldCount": 12,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
@@ -2497,47 +3581,39 @@
           }
         },
         {
-          "recordId": "darktide:weapon:dual_shivs:p1-m1:e46",
-          "markId": "dual_shivs_p1_m1",
-          "missingFieldCount": 7,
-          "reasonCounts": {
-            "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
-          }
-        },
-        {
           "recordId": "darktide:weapon:dual_shivs:p1-m2:e46",
           "markId": "dual_shivs_p1_m2",
-          "missingFieldCount": 7,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:forcestaff:p3-m1:e46",
           "markId": "forcestaff_p3_m1",
-          "missingFieldCount": 16,
+          "missingFieldCount": 19,
           "reasonCounts": {
-            "NOT_VERIFIED": 16
+            "NOT_VERIFIED": 16,
+            "SOURCE_UNAVAILABLE": 3
           }
         },
         {
           "recordId": "darktide:weapon:forcesword_2h:p1-m1:e46",
           "markId": "forcesword_2h_p1_m1",
-          "missingFieldCount": 10,
+          "missingFieldCount": 13,
           "reasonCounts": {
             "NOT_VERIFIED": 5,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 8
           }
         },
         {
           "recordId": "darktide:weapon:forcesword_2h:p1-m2:e46",
           "markId": "forcesword_2h_p1_m2",
-          "missingFieldCount": 10,
+          "missingFieldCount": 12,
           "reasonCounts": {
             "NOT_VERIFIED": 5,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
@@ -2570,28 +3646,28 @@
         {
           "recordId": "darktide:weapon:ogryn_club:p2-m1:e46",
           "markId": "ogryn_club_p2_m1",
-          "missingFieldCount": 8,
+          "missingFieldCount": 12,
           "reasonCounts": {
             "NOT_VERIFIED": 3,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:ogryn_club:p2-m2:e46",
           "markId": "ogryn_club_p2_m2",
-          "missingFieldCount": 8,
+          "missingFieldCount": 12,
           "reasonCounts": {
             "NOT_VERIFIED": 3,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:ogryn_club:p2-m3:e46",
           "markId": "ogryn_club_p2_m3",
-          "missingFieldCount": 8,
+          "missingFieldCount": 14,
           "reasonCounts": {
             "NOT_VERIFIED": 3,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 11
           }
         },
         {
@@ -2624,18 +3700,19 @@
         {
           "recordId": "darktide:weapon:ogryn_gauntlet:p1-m1:e46",
           "markId": "ogryn_gauntlet_p1_m1",
-          "missingFieldCount": 25,
+          "missingFieldCount": 26,
           "reasonCounts": {
-            "NOT_VERIFIED": 25
+            "NOT_VERIFIED": 25,
+            "SOURCE_UNAVAILABLE": 1
           }
         },
         {
           "recordId": "darktide:weapon:ogryn_hammer_2h:p1-m1:e46",
           "markId": "ogryn_hammer_2h_p1_m1",
-          "missingFieldCount": 9,
+          "missingFieldCount": 13,
           "reasonCounts": {
             "NOT_VERIFIED": 4,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
@@ -2650,243 +3727,244 @@
         {
           "recordId": "darktide:weapon:ogryn_pickaxe_2h:p1-m3:e46",
           "markId": "ogryn_pickaxe_2h_p1_m3",
-          "missingFieldCount": 8,
+          "missingFieldCount": 15,
           "reasonCounts": {
             "NOT_VERIFIED": 3,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 12
           }
         },
         {
           "recordId": "darktide:weapon:ogryn_powermaul_slabshield:p1-m1:e46",
           "markId": "ogryn_powermaul_slabshield_p1_m1",
-          "missingFieldCount": 20,
+          "missingFieldCount": 24,
           "reasonCounts": {
             "NOT_VERIFIED": 15,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:ogryn_powermaul_slabshield:p1-m2:e46",
           "markId": "ogryn_powermaul_slabshield_p1_m2",
-          "missingFieldCount": 20,
+          "missingFieldCount": 23,
           "reasonCounts": {
             "NOT_VERIFIED": 15,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 8
           }
         },
         {
           "recordId": "darktide:weapon:powermaul:p1-m1:e46",
           "markId": "powermaul_p1_m1",
-          "missingFieldCount": 7,
+          "missingFieldCount": 9,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
           "recordId": "darktide:weapon:powermaul:p1-m2:e46",
           "markId": "powermaul_p1_m2",
-          "missingFieldCount": 7,
+          "missingFieldCount": 10,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 8
           }
         },
         {
           "recordId": "darktide:weapon:powermaul:p2-m1:e46",
           "markId": "powermaul_p2_m1",
-          "missingFieldCount": 7,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:powermaul:p3-m1:e46",
           "markId": "powermaul_p3_m1",
-          "missingFieldCount": 7,
+          "missingFieldCount": 9,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
           "recordId": "darktide:weapon:powermaul_shield:p1-m1:e46",
           "markId": "powermaul_shield_p1_m1",
-          "missingFieldCount": 7,
+          "missingFieldCount": 9,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
           "recordId": "darktide:weapon:powermaul_shield:p1-m2:e46",
           "markId": "powermaul_shield_p1_m2",
-          "missingFieldCount": 7,
+          "missingFieldCount": 9,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
           "recordId": "darktide:weapon:powersword:p3-m1:e46",
           "markId": "powersword_p3_m1",
-          "missingFieldCount": 15,
+          "missingFieldCount": 17,
           "reasonCounts": {
             "NOT_VERIFIED": 10,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
           "recordId": "darktide:weapon:transonic_knife:p1-m1:e46",
           "markId": "transonic_knife_p1_m1",
-          "missingFieldCount": 7,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:transonic_sword:p1-m1:e46",
           "markId": "transonic_sword_p1_m1",
-          "missingFieldCount": 8,
+          "missingFieldCount": 10,
           "reasonCounts": {
             "NOT_VERIFIED": 3,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
           "recordId": "darktide:weapon:transonic_sword_transonic_knife:p1-m1:e46",
           "markId": "transonic_sword_transonic_knife_p1_m1",
-          "missingFieldCount": 17,
+          "missingFieldCount": 19,
           "reasonCounts": {
-            "NOT_VERIFIED": 17
+            "NOT_VERIFIED": 17,
+            "SOURCE_UNAVAILABLE": 2
           }
         },
         {
           "recordId": "darktide:weapon:forcesword:p1-m2:e46-normal-partial",
           "markId": "forcesword_p1_m2",
-          "missingFieldCount": 8,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 3,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 8
           }
         },
         {
           "recordId": "darktide:weapon:forcesword:p1-m3:e46-normal-partial",
           "markId": "forcesword_p1_m3",
-          "missingFieldCount": 8,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 3,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 8
           }
         },
         {
           "recordId": "darktide:weapon:ogryn_powermaul:p1-m1:e46-normal-partial",
           "markId": "ogryn_powermaul_p1_m1",
-          "missingFieldCount": 66,
+          "missingFieldCount": 70,
           "reasonCounts": {
             "NOT_VERIFIED": 61,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:ogryn_powermaul:p1-m2:e46-normal-partial",
           "markId": "ogryn_powermaul_p1_m2",
-          "missingFieldCount": 18,
+          "missingFieldCount": 21,
           "reasonCounts": {
             "NOT_VERIFIED": 13,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 8
           }
         },
         {
           "recordId": "darktide:weapon:ogryn_powermaul:p1-m3:e46-normal-partial",
           "markId": "ogryn_powermaul_p1_m3",
-          "missingFieldCount": 50,
+          "missingFieldCount": 54,
           "reasonCounts": {
             "NOT_VERIFIED": 45,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:powermaul_2h:p1-m2:e46-normal-partial",
           "markId": "powermaul_2h_p1_m2",
-          "missingFieldCount": 39,
+          "missingFieldCount": 43,
           "reasonCounts": {
             "NOT_VERIFIED": 34,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:powersword_2h:p1-m1:e46-normal-partial",
           "markId": "powersword_2h_p1_m1",
-          "missingFieldCount": 7,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:powersword_2h:p1-m2:e46-normal-partial",
           "markId": "powersword_2h_p1_m2",
-          "missingFieldCount": 7,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:powersword:p1-m1:e46-normal-partial",
           "markId": "powersword_p1_m1",
-          "missingFieldCount": 7,
+          "missingFieldCount": 9,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
           "recordId": "darktide:weapon:powersword:p1-m2:e46-normal-partial",
           "markId": "powersword_p1_m2",
-          "missingFieldCount": 7,
+          "missingFieldCount": 10,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 8
           }
         },
         {
           "recordId": "darktide:weapon:powersword:p2-m1:e46-normal-partial",
           "markId": "powersword_p2_m1",
-          "missingFieldCount": 7,
+          "missingFieldCount": 10,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 8
           }
         },
         {
           "recordId": "darktide:weapon:powersword:p2-m2:e46-normal-partial",
           "markId": "powersword_p2_m2",
-          "missingFieldCount": 7,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 9
           }
         },
         {
           "recordId": "darktide:weapon:thunderhammer_2h:p1-m1:e46-normal-partial",
           "markId": "thunderhammer_2h_p1_m1",
-          "missingFieldCount": 8,
+          "missingFieldCount": 11,
           "reasonCounts": {
             "NOT_VERIFIED": 3,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 8
           }
         },
         {
           "recordId": "darktide:weapon:thunderhammer_2h:p1-m2:e46-normal-partial",
           "markId": "thunderhammer_2h_p1_m2",
-          "missingFieldCount": 7,
+          "missingFieldCount": 10,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 8
           }
         },
         {
@@ -2901,37 +3979,37 @@
         {
           "recordId": "darktide:weapon:chainsword:p1-m1:e46-normal-partial",
           "markId": "chainsword_p1_m1",
-          "missingFieldCount": 7,
+          "missingFieldCount": 10,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 8
           }
         },
         {
           "recordId": "darktide:weapon:forcesword:p1-m1:e46-normal-partial",
           "markId": "forcesword_p1_m1",
-          "missingFieldCount": 8,
+          "missingFieldCount": 9,
           "reasonCounts": {
             "NOT_VERIFIED": 3,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 6
           }
         },
         {
           "recordId": "darktide:weapon:powermaul_2h:p1-m1:e46-normal-partial",
           "markId": "powermaul_2h_p1_m1",
-          "missingFieldCount": 38,
+          "missingFieldCount": 42,
           "reasonCounts": {
             "NOT_VERIFIED": 30,
-            "SOURCE_UNAVAILABLE": 8
+            "SOURCE_UNAVAILABLE": 12
           }
         },
         {
           "recordId": "darktide:weapon:saw:p1-m1:e46-normal-partial",
           "markId": "saw_p1_m1",
-          "missingFieldCount": 7,
+          "missingFieldCount": 9,
           "reasonCounts": {
             "NOT_VERIFIED": 2,
-            "SOURCE_UNAVAILABLE": 5
+            "SOURCE_UNAVAILABLE": 7
           }
         },
         {
@@ -3009,7 +4087,7 @@
       ],
       "remainingReasonCounts": {
         "NOT_VERIFIED": 435,
-        "SOURCE_UNAVAILABLE": 343,
+        "SOURCE_UNAVAILABLE": 523,
         "NOT_IMPORTED": 8
       }
     }

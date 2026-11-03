@@ -19,6 +19,7 @@ import { validateSourceContractFromDisk } from '../contract-validator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const WEAPON_REGISTRY = 'scripts/settings/equipment/weapon_templates/weapon_templates.lua';
+const UI_WEAPON_PATTERNS = 'scripts/settings/ui/ui_weapon_pattern_settings.lua';
 const BASE_AUTHORING = 'content/authoring/v2/w07-weapons.json';
 const GAME_RELEASE_ID = 'darktide:1.13.4';
 const PUBLIC_REPOSITORY = 'https://github.com/Aussiemon/Darktide-Source-Code';
@@ -70,7 +71,7 @@ function candidatePart(familyId) {
 }
 
 function partitionGenericWeaponCandidate(candidate, authoring) {
-  const familyByWeaponKey = new Map(authoring.records
+  const familyByWeaponKey = new Map([...authoring.records, ...candidate.records]
     .filter((record) => record.gameReleaseId === GAME_RELEASE_ID && record.kind === 'weapon')
     .map((record) => [`${record.gameReleaseId}\0${record.recordId}`, record.payload.familyId]));
   const familyIds = [...new Set(familyByWeaponKey.values())].sort(lexical);
@@ -236,21 +237,74 @@ function weaponTemplateInventory(source) {
   const parsed = parseLuaStatic(source, { filename: WEAPON_REGISTRY, allowUnsupported: true });
   const groups = getTableArray(parsed.locals.template_groups);
   const templates = [];
-  for (const group of groups) {
-    const values = getTableArray(group).map((node) => toPlainValue(node));
+  for (const [groupIndex, group] of groups.entries()) {
+    const nodes = getTableArray(group);
+    const values = nodes.map((node) => toPlainValue(node));
     invariant(values.length >= 1 && values.every((value) => typeof value === 'string'), 'Weapon template group must be a static string list.');
     const [directory, ...names] = values;
-    for (const templateKey of names) {
-      templates.push({ templateKey, path: `scripts/settings/equipment/weapon_templates/${directory}/${templateKey}.lua` });
+    for (const [nameIndex, templateKey] of names.entries()) {
+      const node = nodes[nameIndex + 1];
+      templates.push({
+        templateKey,
+        path: `scripts/settings/equipment/weapon_templates/${directory}/${templateKey}.lua`,
+        registrationSource: {
+          rawValue: node.raw,
+          line: node.startLine,
+          fieldPath: `template_groups.${groupIndex + 1}.${nameIndex + 2}`
+        }
+      });
     }
   }
-  for (const node of getTableArray(parsed.locals.template_names)) {
+  for (const [nameIndex, node] of getTableArray(parsed.locals.template_names).entries()) {
     const templateKey = toPlainValue(node);
     invariant(typeof templateKey === 'string', 'Standalone weapon template name must be a static string.');
-    templates.push({ templateKey, path: `scripts/settings/equipment/weapon_templates/${templateKey}.lua` });
+    templates.push({
+      templateKey,
+      path: `scripts/settings/equipment/weapon_templates/${templateKey}.lua`,
+      registrationSource: {
+        rawValue: node.raw,
+        line: node.startLine,
+        fieldPath: `template_names.${nameIndex + 1}`
+      }
+    });
   }
   invariant(new Set(templates.map((item) => item.templateKey)).size === templates.length, 'Weapon template registry contains duplicate template keys.');
   return templates;
+}
+
+/** Derives player mark identity from the pinned UI table without inferring family names from mark prefixes. */
+export function deriveUiWeaponMarks(source, sourcePath = UI_WEAPON_PATTERNS) {
+  const parsed = parseLuaStatic(source, { filename: sourcePath, allowUnsupported: true });
+  const root = parsed.locals.ui_weapon_patterns_settings;
+  invariant(root?.type === 'table', `${sourcePath} is missing ui_weapon_patterns_settings.`);
+  const marks = [];
+  for (const familyEntry of getTableEntries(root)) {
+    const familyId = toPlainValue(familyEntry.key);
+    invariant(typeof familyId === 'string' && familyId.length > 0, `${sourcePath} contains a non-string weapon family key.`);
+    const familyMarks = getTableField(familyEntry.value, 'marks');
+    invariant(familyMarks?.type === 'table', `${sourcePath} family ${familyId} is missing marks.`);
+    for (const [markIndex, mark] of getTableArray(familyMarks).entries()) {
+      const nameNode = getTableField(mark, 'name');
+      const markId = toPlainValue(nameNode);
+      invariant(typeof markId === 'string' && markId.length > 0, `${sourcePath} family ${familyId} has a mark without a string name.`);
+      marks.push({
+        familyId,
+        markId,
+        familySource: {
+          rawValue: familyEntry.key.raw,
+          line: familyEntry.key.startLine,
+          fieldPath: `ui_weapon_patterns_settings.${familyId}`
+        },
+        markSource: {
+          rawValue: nameNode.raw,
+          line: nameNode.startLine,
+          fieldPath: `ui_weapon_patterns_settings.${familyId}.marks.${markIndex + 1}.name`
+        }
+      });
+    }
+  }
+  invariant(new Set(marks.map((item) => item.markId)).size === marks.length, `${sourcePath} contains duplicate player mark names.`);
+  return marks;
 }
 
 function countMatches(source, expression) {
@@ -527,6 +581,12 @@ function identifierSlug(value) {
   return value.replaceAll('_', '-').replace(/[^a-zA-Z0-9-]+/gu, '-').replace(/^-+|-+$/gu, '').toLowerCase();
 }
 
+function pendingWeaponRecordId(markId) {
+  const match = /^(.*)_p(\d+)_m(\d+)$/u.exec(markId);
+  invariant(match, `UI player mark cannot use the weapon record-ID convention: ${markId}`);
+  return `darktide:weapon:${match[1]}:p${match[2]}-m${match[3]}`;
+}
+
 function attackMode(action) {
   if (action.includes('shoot_zoomed') || action.includes('ads')) return 'ads';
   if (action.includes('shoot')) return 'hipfire';
@@ -548,7 +608,113 @@ function bindingBranch(field) {
   return 'normal';
 }
 
-function directProfileBindings(actionRow, resolveSource, template) {
+function damageProfileReferenceNodes(node, parts = [], found = []) {
+  if (node?.type === 'reference') {
+    const match = /^DamageProfileTemplates\.([A-Za-z0-9_]+)$/u.exec(node.ref);
+    if (match) found.push({ profileKey: match[1], node, parts });
+    return found;
+  }
+  if (node?.type !== 'table') return found;
+  let implicitIndex = 0;
+  for (const entry of node.entries) {
+    if (entry.key == null) implicitIndex += 1;
+    const component = entry.key == null ? String(implicitIndex) : String(toPlainValue(entry.key));
+    damageProfileReferenceNodes(entry.value, [...parts, component], found);
+  }
+  return found;
+}
+
+function indirectSupportTemplateKeys(source) {
+  const keys = new Set();
+  const expression = /\b(?:hitscan_templates|projectile_templates|shotshell_templates|overrides)\.([A-Za-z0-9_]+)\s*=/gu;
+  for (const match of String(source ?? '').matchAll(expression)) keys.add(match[1]);
+  return [...keys].sort(lexical);
+}
+
+function stableParserErrorMessage(error) {
+  const message = String(error?.message ?? error ?? '').replace(/\r\n?/gu, '\n').trim();
+  if (/(?:file:\/\/\/)?[A-Za-z]:[\\/]/u.test(message)) {
+    return `${error?.name ?? 'Error'}: local path omitted`;
+  }
+  return message || error?.name || 'Unknown parser error';
+}
+
+/** Parses indirect damage-profile support files and reports every failure without exposing local paths. */
+export function inspectIndirectDamageProfileSupportFiles(reader) {
+  const parsedFiles = [];
+  const failures = [];
+  const supportPaths = reader.paths.filter((sourcePath) =>
+    /(?:hit_?scan|projectile|shotshell)_templates\.lua$/u.test(sourcePath)
+    && sourcePath.startsWith('scripts/settings/')).sort(lexical);
+  for (const sourcePath of supportPaths) {
+    invariant(!path.posix.isAbsolute(sourcePath) && !path.win32.isAbsolute(sourcePath),
+      `Indirect damage-profile support path must be repository-relative: ${sourcePath}`);
+    let source = '';
+    try {
+      source = reader.read(sourcePath);
+      parsedFiles.push({
+        sourcePath,
+        parsed: parseLuaStatic(source, { filename: sourcePath, allowUnsupported: true })
+      });
+    } catch (error) {
+      failures.push({
+        sourcePath,
+        reasonCode: 'INDIRECT_DAMAGE_PROFILE_SUPPORT_PARSE_FAILED',
+        ...(typeof error?.code === 'string' && error.code.length > 0 ? { parserErrorCode: error.code } : {}),
+        parserErrorMessage: stableParserErrorMessage(error),
+        templateKeys: indirectSupportTemplateKeys(source)
+      });
+    }
+  }
+  return { parsedFiles, failures };
+}
+
+function indirectProfileTemplateKeys(rawValue) {
+  const keys = new Set();
+  const expression = /\b(?:HitScanTemplates|ProjectileTemplates|PlayerProjectileTemplates|ShotshellTemplates)\.([A-Za-z0-9_]+)/gu;
+  for (const match of rawValue.matchAll(expression)) keys.add(match[1]);
+  return [...keys].sort(lexical);
+}
+
+export function matchIndirectDamageProfileSupportFailures(actionRawValues, failures) {
+  const referencedKeys = new Set(actionRawValues.flatMap((rawValue) => indirectProfileTemplateKeys(rawValue)));
+  return failures
+    .filter((failure) => failure.templateKeys.some((templateKey) => referencedKeys.has(templateKey)))
+    .sort((left, right) => lexical(left.sourcePath, right.sourcePath));
+}
+
+function buildIndirectDamageProfileCatalog(reader, resolveSource) {
+  const catalog = new Map();
+  const inspected = inspectIndirectDamageProfileSupportFiles(reader);
+  for (const { sourcePath, parsed } of inspected.parsedFiles) {
+    for (const assignment of parsed.assignments) {
+      if (!/^(?:hitscan_templates|projectile_templates|shotshell_templates|overrides)\.[A-Za-z0-9_]+$/u.test(assignment.path)) continue;
+      const templateKey = assignment.path.slice(assignment.path.lastIndexOf('.') + 1);
+      const bindings = damageProfileReferenceNodes(assignment.value).map(({ profileKey, node, parts }) => ({
+        branch: 'normal',
+        profileKey,
+        rawValue: profileKey,
+        sourceLocator: makeLocator(
+          resolveSource,
+          sourcePath,
+          node.startLine,
+          `${assignment.path}.${parts.join('.')}`
+        )
+      }));
+      if (bindings.length === 0) continue;
+      const existing = catalog.get(templateKey) ?? [];
+      for (const binding of bindings) {
+        if (!existing.some((item) => item.profileKey === binding.profileKey
+          && item.sourceLocator.path === binding.sourceLocator.path
+          && item.sourceLocator.line === binding.sourceLocator.line)) existing.push(binding);
+      }
+      catalog.set(templateKey, existing);
+    }
+  }
+  return { catalog, failures: inspected.failures };
+}
+
+function directProfileBindings(actionRow, resolveSource, template, indirectProfileCatalog = new Map()) {
   const bindings = [];
   const expression = /\b([A-Za-z0-9_]*damage_profile[A-Za-z0-9_]*)\s*=\s*DamageProfileTemplates\.([A-Za-z0-9_]+)/gu;
   for (const match of actionRow.field.rawValue.matchAll(expression)) {
@@ -564,6 +730,10 @@ function directProfileBindings(actionRow, resolveSource, template) {
         fieldPath
       )
     });
+  }
+  const indirectExpression = /\b(?:HitScanTemplates|ProjectileTemplates|PlayerProjectileTemplates|ShotshellTemplates)\.([A-Za-z0-9_]+)/gu;
+  for (const match of actionRow.field.rawValue.matchAll(indirectExpression)) {
+    for (const binding of indirectProfileCatalog.get(match[1]) ?? []) bindings.push(structuredClone(binding));
   }
   return bindings;
 }
@@ -1177,7 +1347,10 @@ function buildDamageProfileCatalog({ reader, resolveSource, authoring, reference
       ...(inherited?.payload?.rawSourceDefinition?.leaves ?? []),
       ...own.leaves.filter((leaf) => !leaf.fieldPath.endsWith('.parent_template_name'))
     ];
-    const tables = [...(inherited?.payload?.rawSourceDefinition?.tables ?? []), ...own.tables];
+    const tables = [...new Map([
+      ...(inherited?.payload?.rawSourceDefinition?.tables ?? []),
+      ...own.tables
+    ].map((table) => [table.tableKey, table])).values()];
     if (definition.parentKey) {
       const parentNode = getTableField(definition.node, 'parent_template_name');
       tables.push({
@@ -1318,7 +1491,8 @@ function buildDamageProfileCatalog({ reader, resolveSource, authoring, reference
   return { definitions, failures, materialize, resolveProfileValue };
 }
 
-function generateDirectProfiles({ template, weapon, authoring, resolveSource, damageByProfileKey, generatedDamageByKey, damageCatalog }) {
+function generateDirectProfiles({ template, weapon, authoring, resolveSource, damageByProfileKey, generatedDamageByKey, damageCatalog,
+  indirectProfileCatalog }) {
   const recordById = new Map(authoring.records.map((record) => [`${record.gameReleaseId}\0${record.recordId}`, record]));
   const existingProfiles = weapon.payload.attackProfileRefs
     .map((profileRef) => recordById.get(`${profileRef.gameReleaseId}\0${profileRef.recordId}`))
@@ -1329,7 +1503,7 @@ function generateDirectProfiles({ template, weapon, authoring, resolveSource, da
   const attackRefs = [];
   const rows = actionRowsForTemplate(template, resolveSource);
   for (const row of rows) {
-    const rawBindings = directProfileBindings(row, resolveSource, template);
+    const rawBindings = directProfileBindings(row, resolveSource, template, indirectProfileCatalog);
     if (rawBindings.length === 0 || existingActions.has(row.action)) continue;
     const sourceRef = resolveSource(template.path);
     const sourceBindings = [];
@@ -1375,7 +1549,7 @@ function generateDirectProfiles({ template, weapon, authoring, resolveSource, da
     }
     const mode = attackMode(row.action);
     const attackId = `darktide:attack-profile:generic:${identifierSlug(weapon.payload.markId)}:${row.action}`;
-    const attack = pendingRecord(attackId, 'attack-profile', {
+    const attackPayload = {
       familyId: weapon.payload.familyId,
       markId: weapon.payload.markId,
       templateKey: weapon.payload.templateKey,
@@ -1393,7 +1567,12 @@ function generateDirectProfiles({ template, weapon, authoring, resolveSource, da
         damageProfileRef: damageRefs[0]
       }],
       sourceBindings
-    }, [sourceRef], [
+    };
+    const attackSources = new Map([[`${sourceRef.gameReleaseId}\0${sourceRef.sourceId}`, sourceRef]]);
+    for (const source of collectSourceLinks(attackPayload).values()) {
+      attackSources.set(`${source.gameReleaseId}\0${source.sourceId}`, source);
+    }
+    const attack = pendingRecord(attackId, 'attack-profile', attackPayload, [...attackSources.values()], [
       { field: '/payload/targetProfileRefs', reasonCode: 'NOT_IMPORTED', sourceRef },
       { field: '/payload/actionResolution', reasonCode: 'NOT_IMPORTED', sourceRef }
     ], [
@@ -1528,7 +1707,13 @@ function parseBaseTemplateCatalog(reader, cache, templateType) {
   }
   try {
     const parsed = parseLuaStatic(reader.read(sourcePath), { filename: sourcePath, allowUnsupported: true });
-    const catalog = { sourcePath, node: parsed.returned };
+    const localName = `weapon_${templateType}_templates`;
+    const node = parsed.locals[localName] ?? parsed.returned;
+    if (node?.type !== 'table') {
+      cache.set(templateType, null);
+      return null;
+    }
+    const catalog = { sourcePath, node };
     cache.set(templateType, catalog);
     return catalog;
   } catch {
@@ -1652,7 +1837,8 @@ function generatedStatRecords({ weapon, statKey, property, range, endpoints, res
   return { records: [curve, definition], definition };
 }
 
-function generateBaseStatValues({ template, weapon, reader, resolveSource, damageCatalog, generatedStats, traitCache, baseTemplateCache }) {
+function generateBaseStatValues({ template, weapon, reader, resolveSource, damageCatalog, generatedStats, traitCache, baseTemplateCache,
+  indirectProfileCatalog }) {
   if (!template.declaresBaseStats) return { records: [], statRefs: [], statBindings: [], statTables: [], missing: [] };
   const baseStats = findLuaTableAssignment(template.source, 'weapon_template.base_stats', { filename: template.path });
   const wrapped = parseLuaStatic(`local base_stats = ${baseStats.raw}\nreturn base_stats`, { filename: template.path, allowUnsupported: true });
@@ -1688,7 +1874,9 @@ function generateBaseStatValues({ template, weapon, reader, resolveSource, damag
     let baseIdentifier = null;
     if (templateType === 'damage') {
       profiles = explicitProfile ? [explicitProfile]
-        : (actions.has(target) ? directProfileBindings(actions.get(target), resolveSource, template).map((item) => item.profileKey) : []);
+        : (actions.has(target)
+          ? directProfileBindings(actions.get(target), resolveSource, template, indirectProfileCatalog).map((item) => item.profileKey)
+          : []);
     } else {
       baseIdentifier = templateIdentifier(template, templateType, target);
     }
@@ -1835,9 +2023,46 @@ function generateBaseStatValues({ template, weapon, reader, resolveSource, damag
   };
 }
 
-function makeWeaponCandidate({ authoring, templates, reader }) {
-  const weapons = authoring.records.filter((record) => record.gameReleaseId === GAME_RELEASE_ID && record.kind === 'weapon');
+function makeWeaponCandidate({ authoring, templates, reader, uiMarks, registeredTemplates }) {
+  const authoringWeapons = authoring.records.filter((record) => record.gameReleaseId === GAME_RELEASE_ID && record.kind === 'weapon');
   const templateByKey = new Map(templates.map((template) => [template.templateKey, template]));
+  const registeredByKey = new Map(registeredTemplates.map((template) => [template.templateKey, template]));
+  const uiByMark = new Map(uiMarks.map((mark) => [mark.markId, mark]));
+  const authoringMarkIds = new Set(authoringWeapons.map((weapon) => weapon.payload.markId));
+  const occupiedRecordIds = new Set(authoring.records
+    .filter((record) => record.gameReleaseId === GAME_RELEASE_ID)
+    .map((record) => record.recordId));
+  const pendingWeapons = uiMarks
+    .filter((mark) => registeredByKey.has(mark.markId) && !authoringMarkIds.has(mark.markId))
+    .map((mark) => {
+      const recordId = pendingWeaponRecordId(mark.markId);
+      invariant(!occupiedRecordIds.has(recordId), `Pending UI weapon record ID is already used in ${GAME_RELEASE_ID}: ${recordId}`);
+      occupiedRecordIds.add(recordId);
+      return {
+        recordId,
+        owner: 'source',
+        kind: 'weapon',
+        gameReleaseId: GAME_RELEASE_ID,
+        payload: {
+          familyId: mark.familyId,
+          markId: mark.markId,
+          templateKey: mark.markId,
+          statRefs: [],
+          attackProfileRefs: []
+        },
+        dataCoverage: {
+          status: 'partial',
+          missing: [
+            { field: '/payload/actionProfileResolution', reasonCode: 'NOT_IMPORTED' },
+            { field: '/payload/all-base-stat-definitions-and-rating-mapping', reasonCode: 'NOT_IMPORTED' },
+            { field: '/payload/all-actions-and-display-segments', reasonCode: 'NOT_IMPORTED' },
+            { field: '/player-visible-values-and-game-runtime', reasonCode: 'NOT_VERIFIED' }
+          ]
+        }
+      };
+    });
+  const pendingWeaponIds = new Set(pendingWeapons.map((weapon) => weapon.recordId));
+  const weapons = [...authoringWeapons, ...pendingWeapons];
   const damageByProfileKey = new Map(authoring.records
     .filter((record) => record.gameReleaseId === GAME_RELEASE_ID && record.kind === 'damage-profile')
     .map((record) => [record.payload.profileKey, record]));
@@ -1847,6 +2072,36 @@ function makeWeaponCandidate({ authoring, templates, reader }) {
   const baseTemplateCache = new Map();
   const sourceRefs = [];
   const resolveSource = sourceResolver(authoring, reader, sourceRefs);
+  const coverageGaps = {
+    uiMarksWithoutRegisteredTemplate: uiMarks
+      .filter((mark) => !registeredByKey.has(mark.markId))
+      .map((mark) => ({
+        familyId: mark.familyId,
+        markId: mark.markId,
+        reasonCode: 'UI_MARK_WITHOUT_REGISTERED_TEMPLATE',
+        reason: 'The pinned UI player mark has no matching registration in weapon_templates.lua; no weapon record was generated.',
+        sourceLocator: makeLocator(resolveSource, UI_WEAPON_PATTERNS, mark.markSource.line, mark.markSource.fieldPath)
+      })),
+    registeredTemplatesWithoutUiMark: registeredTemplates
+      .filter((template) => !uiByMark.has(template.templateKey))
+      .map((template) => ({
+        templateKey: template.templateKey,
+        reasonCode: 'REGISTERED_TEMPLATE_WITHOUT_UI_MARK',
+        reason: 'The pinned weapon template registry entry is not a player mark in the UI pattern list; no weapon record was generated.',
+        sourceLocator: makeLocator(
+          resolveSource,
+          WEAPON_REGISTRY,
+          template.registrationSource.line,
+          template.registrationSource.fieldPath
+        )
+      })),
+    indirectDamageProfileSupportParseFailures: []
+  };
+  const indirectProfileSupport = buildIndirectDamageProfileCatalog(reader, resolveSource);
+  const indirectProfileCatalog = indirectProfileSupport.catalog;
+  const indirectSupportFailuresByWeaponId = new Map();
+  const affectedWeaponIdsBySupportPath = new Map(indirectProfileSupport.failures
+    .map((failure) => [failure.sourcePath, new Set()]));
   const recordById = new Map(authoring.records.map((record) => [`${record.gameReleaseId}\0${record.recordId}`, record]));
   const referencedProfileKeys = new Set();
   for (const weapon of weapons) {
@@ -1854,11 +2109,24 @@ function makeWeaponCandidate({ authoring, templates, reader }) {
     const existingActions = new Set((weapon.payload.attackProfileRefs ?? [])
       .map((profileRef) => recordById.get(`${profileRef.gameReleaseId}\0${profileRef.recordId}`)?.payload?.action)
       .filter(Boolean));
-    for (const row of actionRowsForTemplate(template, resolveSource)) {
+    const actionRows = actionRowsForTemplate(template, resolveSource);
+    const supportFailures = matchIndirectDamageProfileSupportFailures(
+      actionRows.map((row) => row.field.rawValue),
+      indirectProfileSupport.failures
+    );
+    indirectSupportFailuresByWeaponId.set(weapon.recordId, supportFailures);
+    for (const failure of supportFailures) affectedWeaponIdsBySupportPath.get(failure.sourcePath).add(weapon.recordId);
+    for (const row of actionRows) {
       if (existingActions.has(row.action)) continue;
-      for (const binding of directProfileBindings(row, resolveSource, template)) referencedProfileKeys.add(binding.profileKey);
+      for (const binding of directProfileBindings(row, resolveSource, template, indirectProfileCatalog)) {
+        referencedProfileKeys.add(binding.profileKey);
+      }
     }
   }
+  coverageGaps.indirectDamageProfileSupportParseFailures = indirectProfileSupport.failures.map((failure) => ({
+    ...failure,
+    affectedWeaponRecordIds: [...affectedWeaponIdsBySupportPath.get(failure.sourcePath)].sort(lexical)
+  }));
   const damageCatalog = buildDamageProfileCatalog({ reader, resolveSource, authoring, referencedProfileKeys });
   const chainaxeM2 = weapons.find((weapon) => weapon.payload.markId === 'chainaxe_p1_m2');
   invariant(chainaxeM2?.payload.actionProfileResolution && chainaxeM2.payload.panelPreviewRules, 'Approved chainaxe common action closure is missing.');
@@ -1874,6 +2142,8 @@ function makeWeaponCandidate({ authoring, templates, reader }) {
   for (const weapon of weapons) {
     const template = templateByKey.get(weapon.payload.templateKey);
     invariant(template, `Registered static template is missing for authoring weapon ${weapon.payload.templateKey}`);
+    const isPendingWeapon = pendingWeaponIds.has(weapon.recordId);
+    const indirectSupportFailures = indirectSupportFailuresByWeaponId.get(weapon.recordId) ?? [];
     let resolution;
     let actionContinuations;
     let displayedAttacks;
@@ -1917,7 +2187,8 @@ function makeWeaponCandidate({ authoring, templates, reader }) {
         resolveSource,
         damageByProfileKey,
         generatedDamageByKey,
-        damageCatalog
+        damageCatalog,
+        indirectProfileCatalog
       });
       records.push(...profiles.damageRecords, ...profiles.attackRecords);
       attackProfileRefs.push(...profiles.attackRefs);
@@ -1925,7 +2196,10 @@ function makeWeaponCandidate({ authoring, templates, reader }) {
         (sum, record) => sum + record.payload.sourceBindings.length,
         0
       );
-      displayedAttacks = displayedAttacksForTemplate(template, weapon, authoring, resolveSource, evidenceId);
+      displayedAttacks = displayedAttacksForTemplate(template, {
+        ...weapon,
+        payload: { ...weapon.payload, attackProfileRefs }
+      }, { ...authoring, records: [...authoring.records, ...records] }, resolveSource, evidenceId);
     }
     const hasMissingBaseStats = (weapon.dataCoverage.missing ?? []).some((item) =>
       item.field === '/payload/all-base-stat-definitions-and-rating-mapping');
@@ -1937,7 +2211,8 @@ function makeWeaponCandidate({ authoring, templates, reader }) {
       damageCatalog,
       generatedStats,
       traitCache,
-      baseTemplateCache
+      baseTemplateCache,
+      indirectProfileCatalog
     }) : null;
     if (stats) {
       records.push(...stats.records);
@@ -1967,37 +2242,107 @@ function makeWeaponCandidate({ authoring, templates, reader }) {
       ...(stats ? ['/payload/all-base-stat-definitions-and-rating-mapping'] : [])
     ].includes(item.field));
     if (stats) missing.push(...stats.missing);
+    missing.push(...indirectSupportFailures.map((failure) => ({
+      field: `/payload/attackProfileRefs/supportFiles/${sha256(Buffer.from(failure.sourcePath, 'utf8')).slice(0, 16)}`,
+      reasonCode: 'SOURCE_UNAVAILABLE',
+      sourceRef: resolveSource(failure.sourcePath)
+    })));
     const uniqueMissing = [...new Map(missing.map((item) => [item.field, item])).values()];
-    const links = collectSourceLinks(fields).values();
+    const technicalTargets = [
+      { fieldPath: '/payload/actionProfileResolution', dimension: 'technical' },
+      { fieldPath: '/payload/actionContinuations', dimension: 'technical' },
+      { fieldPath: '/payload/displayedAttacks', dimension: 'technical' },
+      { fieldPath: '/payload/panelPreviewRules', dimension: 'technical' },
+      { fieldPath: '/payload/attackProfileRefs', dimension: 'technical' },
+      { fieldPath: '/payload/statRefs', dimension: 'technical' },
+      ...(stats ? [
+        { fieldPath: '/payload/statBindings', dimension: 'technical' },
+        { fieldPath: '/payload/statTableSemantics', dimension: 'technical' },
+        { fieldPath: '/payload/statTables', dimension: 'technical' }
+      ] : [])
+    ];
+    if (isPendingWeapon) {
+      const uiMark = uiByMark.get(weapon.payload.markId);
+      const registration = registeredByKey.get(weapon.payload.templateKey);
+      const sourceRows = [
+        makeRawSource(
+          resolveSource,
+          UI_WEAPON_PATTERNS,
+          uiMark.familySource.line,
+          uiMark.familySource.fieldPath,
+          uiMark.familySource.rawValue
+        ),
+        makeRawSource(
+          resolveSource,
+          UI_WEAPON_PATTERNS,
+          uiMark.markSource.line,
+          uiMark.markSource.fieldPath,
+          uiMark.markSource.rawValue
+        ),
+        makeRawSource(
+          resolveSource,
+          WEAPON_REGISTRY,
+          registration.registrationSource.line,
+          registration.registrationSource.fieldPath,
+          registration.registrationSource.rawValue
+        )
+      ];
+      const payload = {
+        familyId: weapon.payload.familyId,
+        markId: weapon.payload.markId,
+        templateKey: weapon.payload.templateKey,
+        statRefs,
+        attackProfileRefs,
+        actionProfileResolution: resolution,
+        actionContinuations,
+        displayedAttacks,
+        panelPreviewRules,
+        ...(stats ? {
+          ...(stats.statBindings.length > 0 ? { statBindings: stats.statBindings } : {}),
+          ...(stats.statTableSemantics.length > 0 ? { statTableSemantics: stats.statTableSemantics } : {}),
+          ...(stats.statTables.length > 0 ? { statTables: stats.statTables } : {})
+        } : {}),
+        sourceRows
+      };
+      invariant(statRefs.length > 0,
+        `Pending UI weapon has no source-derived stat records: ${weapon.payload.markId}; ${JSON.stringify(stats?.missing ?? [])}`);
+      invariant(attackProfileRefs.length > 0, `Pending UI weapon has no source-derived attack profiles: ${weapon.payload.markId}`);
+      records.push(pendingRecord(
+        weapon.recordId,
+        'weapon',
+        payload,
+        [...collectSourceLinks([payload, uniqueMissing]).values()],
+        uniqueMissing,
+        [
+          { fieldPath: '/payload/familyId', dimension: 'identity' },
+          { fieldPath: '/payload/markId', dimension: 'identity' },
+          { fieldPath: '/payload/templateKey', dimension: 'identity' },
+          ...technicalTargets.filter((target) => {
+            const field = target.fieldPath.slice('/payload/'.length);
+            return !['statBindings', 'statTableSemantics', 'statTables'].includes(field) || Object.hasOwn(payload, field);
+          }),
+          { fieldPath: '/payload/sourceRows', dimension: 'evidence' }
+        ]
+      ));
+      continue;
+    }
     patches.push({
       recordId: weapon.recordId,
       gameReleaseId: weapon.gameReleaseId,
       fields,
-      sourceRefs: [...links],
+      sourceRefs: [...collectSourceLinks([fields, uniqueMissing]).values()],
       dataCoverage: { status: uniqueMissing.length === 0 ? 'complete' : 'partial', missing: uniqueMissing },
-      reviewTargets: [
-        { fieldPath: '/payload/actionProfileResolution', dimension: 'technical' },
-        { fieldPath: '/payload/actionContinuations', dimension: 'technical' },
-        { fieldPath: '/payload/displayedAttacks', dimension: 'technical' },
-        { fieldPath: '/payload/panelPreviewRules', dimension: 'technical' },
-        { fieldPath: '/payload/attackProfileRefs', dimension: 'technical' },
-        { fieldPath: '/payload/statRefs', dimension: 'technical' },
-        ...(stats ? [
-          { fieldPath: '/payload/statBindings', dimension: 'technical' },
-          { fieldPath: '/payload/statTableSemantics', dimension: 'technical' },
-          { fieldPath: '/payload/statTables', dimension: 'technical' }
-        ] : [])
-      ]
+      reviewTargets: technicalTargets
     });
   }
   patches.sort((left, right) => lexical(left.recordId, right.recordId));
   records.sort((left, right) => lexical(left.recordId, right.recordId));
-  return {
+  return { candidate: {
     schemaVersion: 'generic-weapon-template-candidate/1.0.0',
     gameReleases: [], sourceSnapshots: [], sourceRefs,
     patches,
     records, tombstones: []
-  };
+  }, coverageGaps };
 }
 
 function makeSnapshot(reader, stats) {
@@ -2082,27 +2427,47 @@ export async function buildGenericWeaponTemplates({ sourceCodeRepo, commit = PIN
     registered: false
   })).sort((left, right) => lexical(left.path, right.path));
   const inventory = scanTemplateInventory(reader, templates);
+  const uiMarks = deriveUiWeaponMarks(reader.read(UI_WEAPON_PATTERNS));
   const authoring = JSON.parse(await readFile(path.join(sourceRoot, BASE_AUTHORING), 'utf8'));
   const authoringWeapons = authoring.records.filter((record) => record.gameReleaseId === GAME_RELEASE_ID && record.kind === 'weapon');
-  const candidate = makeWeaponCandidate({ authoring, templates: inventory.extracted, reader });
+  const { candidate, coverageGaps } = makeWeaponCandidate({
+    authoring,
+    templates: inventory.extracted,
+    reader,
+    uiMarks,
+    registeredTemplates
+  });
+  const pendingWeaponCount = candidate.records.filter((record) => record.kind === 'weapon').length;
   const stats = {
     inventory: inventory.stats,
     registeredTemplateCount: registeredTemplates.length,
+    uiPlayerMarkCount: uiMarks.length,
     authoringWeaponCount: authoringWeapons.length,
+    pendingWeaponCount,
+    indirectDamageProfileSupportParseFailureCount:
+      coverageGaps.indirectDamageProfileSupportParseFailures.length,
     partialAuthoringWeaponCount: authoringWeapons.filter((record) => record.dataCoverage.status === 'partial').length,
     patchCount: candidate.patches.length,
     generatedRecordCount: candidate.records.length,
+    coverageGaps,
     values: summarizeValueExtraction(authoringWeapons, candidate)
   };
   const snapshot = makeSnapshot(reader, stats);
   const merged = mergeGenericWeaponCandidate(authoring, candidate);
   const validation = await validateSourceContractFromDisk(merged, { sourceRoot });
   if (!validation.valid) {
-    throw new Error(`Generated generic weapon-template candidate is invalid:\n${JSON.stringify(validation.issues, null, 2)}`);
+    const issues = validation.issues.map((issue) => {
+      const index = /^\/records\/(\d+)(?:\/|$)/u.exec(issue.path)?.[1];
+      return index === undefined ? issue : { ...issue, recordId: merged.records[Number(index)]?.recordId };
+    });
+    throw new Error(`Generated generic weapon-template candidate is invalid:\n${JSON.stringify(issues, null, 2)}`);
   }
   return {
     stats,
     templates: inventory.extracted,
+    registeredTemplates,
+    uiMarks,
+    coverageGaps,
     authoring,
     candidate,
     merged,
@@ -2184,6 +2549,7 @@ export async function writeGenericWeaponTemplates({ sourceCodeRepo, commit = PIN
   const index = {
     schemaVersion: CANDIDATE_INDEX_SCHEMA,
     candidateSchemaVersion: built.candidate.schemaVersion,
+    coverageGaps: built.coverageGaps,
     files: parts.map(({ filename, part, bytes }) => ({
       filename,
       familyId: part.familyId,
@@ -2195,6 +2561,9 @@ export async function writeGenericWeaponTemplates({ sourceCodeRepo, commit = PIN
       familyFileCount: parts.length - 1,
       patchCount: built.candidate.patches.length,
       recordCount: built.candidate.records.length,
+      pendingWeaponCount: built.stats.pendingWeaponCount,
+      indirectDamageProfileSupportParseFailureCount:
+        built.stats.indirectDamageProfileSupportParseFailureCount,
       gameReleaseCount: built.candidate.gameReleases.length,
       sourceSnapshotCount: built.candidate.sourceSnapshots.length,
       sourceRefCount: built.candidate.sourceRefs.length,
