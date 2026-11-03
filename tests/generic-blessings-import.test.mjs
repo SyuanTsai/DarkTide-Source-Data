@@ -168,17 +168,17 @@ test('InterT10_pinned_registry_counts_and_format_distribution_match', { skip: in
     multipleTraitOverrideFormatValueCount: 187,
     zeroTraitOverrideFormatValueCount: 23,
     valueManipulationCount: 61,
-    formatClaimCount: 5552,
-    knownFormatClaimCount: 4812,
-    unknownFormatClaimCount: 740,
+    formatClaimCount: 3162,
+    knownFormatClaimCount: 3162,
+    unknownFormatClaimCount: 0,
     postAssignmentClaimCount: 0,
     generatedPostAssignmentClaimCount: 0,
     weaponTemplateCount: 144,
     linkedBespokeFileCount: 69,
     unlinkedBespokeFiles: ['weapon_traits_bespoke_dual_stubpistols_p1']
   });
-  assert.equal(result.generatedRecords.length, 12472);
-  assert.equal(result.candidate.records.length, 12472);
+  assert.equal(result.generatedRecords.length, 5742);
+  assert.equal(result.candidate.records.length, 5742);
 });
 
 // Scenario: The already-approved chainaxe blessing is parsed from the new generic path.
@@ -205,19 +205,20 @@ test('InterT25_buff_template_format_values_emit_known_per_tier_claims', { skip: 
   const blessing = result.candidate.records.find((record) => record.recordId === trait.blessingId);
   const claims = blessing.payload.claimRefs.map((ref) => result.candidate.records.find((record) => record.recordId === ref.recordId));
 
-  assert.equal(claims.length, trait.variantPayload.definedTiers.length * 4);
+  assert.equal(claims.length, 7);
   assert.deepEqual(
-    claims.filter((claim) => claim.payload.property.endsWith('.time.defined_tier_1_display_value')).map((claim) => claim.payload.value),
+    claims.filter((claim) => claim.payload.property.endsWith('.time.display_value')).map((claim) => claim.payload.value),
     [{ status: 'known', decimal: '5', unit: 's' }]
   );
   assert.deepEqual(
-    claims.filter((claim) => claim.payload.property.endsWith('.max_stacks.defined_tier_1_display_value')).map((claim) => claim.payload.value),
+    claims.filter((claim) => claim.payload.property.endsWith('.max_stacks.display_value')).map((claim) => claim.payload.value),
     [{ status: 'known', decimal: '16', unit: 'point' }]
   );
   assert.deepEqual(
-    claims.filter((claim) => claim.payload.property.endsWith('.rending.defined_tier_1_display_percent')).map((claim) => claim.payload.value),
+    claims.filter((claim) => claim.payload.property.endsWith('.rending.display_percent')).map((claim) => claim.payload.value),
     [{ status: 'known', decimal: '2.5', unit: 'percent' }]
   );
+  assert.equal(new Set(claims.flatMap((claim) => claim.payload.evidenceRefs.map((ref) => ref.recordId))).size, 4);
 });
 
 // Scenario: Description formatting configures a callback instead of an evaluable static transformation.
@@ -231,8 +232,9 @@ test('InterT27_function_value_manipulations_emit_unknown_claims', { skip: integr
     .map((ref) => result.candidate.records.find((record) => record.recordId === ref.recordId))
     .filter((claim) => [...functionKeys].some((key) => claim.payload.property.includes(`format_values.${key}.`)));
 
-  assert.equal(claims.length, trait.variantPayload.definedTiers.length * functionKeys.size);
-  assert.ok(claims.every((claim) => claim.payload.value.status === 'unknown' && claim.payload.value.reasonCode === 'NOT_EXPOSED_BY_SOURCE'));
+  assert.equal(claims.length, 0);
+  assert.ok(functionKeys.size > 0);
+  assert.ok([...functionKeys].every((key) => trait.variant.dataCoverage.missing.some((missing) => missing.field === `/payload/formatValues/${key}` && missing.reasonCode === 'NOT_EXPOSED_BY_SOURCE')));
 });
 
 // Scenario: Every emitted blessing has a claim closure, including a trait whose display value only uses a tier override.

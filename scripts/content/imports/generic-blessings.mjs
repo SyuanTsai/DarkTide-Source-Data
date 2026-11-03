@@ -626,10 +626,11 @@ function extractTrait({ traitName, traitNode, parsed, sourcePath, sourceId, weap
     const manipulation = getTableField(formatNode, 'value_manipulation');
     const hasValueManipulation = manipulation?.type === 'function';
     formatDescriptors.push({ key, findValueType, hasValueManipulation });
+    const resolvedTiers = [];
+    const sourcePaths = new Set([sourcePath, TRAIT_VALUE_PARSER]);
+    let postAssignmentAffected = false;
     for (const tier of definedTiers) {
       let resolved = null;
-      let sourcePaths = [sourcePath, TRAIT_VALUE_PARSER];
-      let postAssignmentAffected = false;
       if (!hasValueManipulation) {
         try {
           if (findValueType === 'trait_override') {
@@ -644,8 +645,8 @@ function extractTrait({ traitName, traitNode, parsed, sourcePath, sourceId, weap
             const template = buffName && resolveBuffTemplate(buffName);
             if (template) {
               resolved = resolveTraitPath(template.node, parts, parsed.locals, template.enumMembers);
-              postAssignmentAffected = template.postAssignments.some((assignment) => pathsOverlap(assignment.parts, parts));
-              sourcePaths = [...new Set([...sourcePaths, ...template.sourcePaths])];
+              postAssignmentAffected ||= template.postAssignments.some((assignment) => pathsOverlap(assignment.parts, parts));
+              template.sourcePaths.forEach((item) => sourcePaths.add(item));
             }
           } else if (findValueType === 'default') {
             resolved = { node: getTableField(formatNode, 'value'), resolvedPath: ['value'] };
@@ -654,35 +655,47 @@ function extractTrait({ traitName, traitNode, parsed, sourcePath, sourceId, weap
           resolved = null;
         }
       }
-      const sourceIds = sourcePaths.map((item) => sourceIdForPath(item, commit));
-      const propertyUnit = formatUnit(formatNode, parts);
-      const displayKind = propertyUnit === 'percent' ? 'percent' : 'value';
-      const property = `description.format_values.${key}.defined_tier_${tier}_display_${displayKind}`;
-      const claimId = `darktide:claim:${identity.family}:p${traitName.match(/_p(\d+)_/u)[1]}-${traitName.match(/_p\d+_(.+)$/u)[1].replaceAll('_', '-')}-${key.replaceAll('_', '-')}-tier${tier}-display-${displayKind}`;
-      const evidenceId = `darktide:evidence:${identity.family}:p${traitName.match(/_p(\d+)_/u)[1]}-${traitName.match(/_p\d+_(.+)$/u)[1].replaceAll('_', '-')}-${key.replaceAll('_', '-')}-tier${tier}-display-${displayKind}-code`;
-      const known = !hasValueManipulation && resolved?.node?.type === 'number' && !resolved.hasUnsupported;
-      if (known && postAssignmentAffected) postAssignmentClaimCount += 1;
-      const value = known
-        ? { status: 'known', decimal: displayDecimal(resolved.node, formatNode), unit: propertyUnit }
-        : { status: 'unknown', reasonCode: 'NOT_EXPOSED_BY_SOURCE' };
-      if (!known) variantMissing.push({ field: `/payload/claimRefs/${property}`, reasonCode: 'NOT_EXPOSED_BY_SOURCE' });
-      const summary = known
-        ? `Pinned Lua source defines format value ${key} through ${findValueType}; defined tier ${tier} resolves to literal ${decimalFromNode(resolved.node)}, displayed as ${value.decimal} ${propertyUnit}. This supports the static description value only, not verified obtainable tiers or runtime behavior.`
-        : `Pinned Lua source defines format value ${key} for defined tier ${tier}, but its display value is not statically exposed${hasValueManipulation ? ' because value_manipulation is a function' : ''}. The importer does not execute or infer the value.`;
-      formatEvidence.push(record(evidenceId, 'evidence', {
-        evidenceKind: 'code-observed', sourceRef: sourceLink(sourceIds.at(-1)), safeSummary: summary
-      }, sourceIds, { status: 'complete', missing: [] }, [{ fieldPath: '/payload', dimension: 'evidence' }]));
+      if (!hasValueManipulation && resolved?.node?.type === 'number' && !resolved.hasUnsupported) {
+        resolvedTiers.push({ tier, node: resolved.node });
+      }
+    }
+    if (resolvedTiers.length !== definedTiers.length) {
+      variantMissing.push({ field: `/payload/formatValues/${key}`, reasonCode: 'NOT_EXPOSED_BY_SOURCE' });
+      continue;
+    }
+
+    const propertyUnit = formatUnit(formatNode, parts);
+    const displayKind = propertyUnit === 'percent' ? 'percent' : 'value';
+    const values = resolvedTiers.map(({ tier, node }) => ({ tier, decimal: displayDecimal(node, formatNode), raw: decimalFromNode(node) }));
+    const constantAcrossTiers = values.every((item) => item.decimal === values[0].decimal);
+    const emittedClaims = constantAcrossTiers ? [values[0]] : values;
+    const identityStem = `${identity.family}:p${traitName.match(/_p(\d+)_/u)[1]}-${traitName.match(/_p\d+_(.+)$/u)[1].replaceAll('_', '-')}`;
+    const sourceIds = [...sourcePaths].map((item) => sourceIdForPath(item, commit));
+    const evidenceId = `darktide:evidence:${identityStem}-${key.replaceAll('_', '-')}-display-${displayKind}-code`;
+    const pathLabel = parts.map((part) => typeof part === 'string' ? part : part.ref).join('.') || 'value';
+    const rawLiterals = values.map((item) => `tier ${item.tier}=${item.raw}`).join(', ');
+    formatEvidence.push(record(evidenceId, 'evidence', {
+      evidenceKind: 'code-observed', sourceRef: sourceLink(sourceIds.at(-1)),
+      safeSummary: `Pinned Lua source paths ${[...sourcePaths].join(', ')} resolve ${findValueType} format value ${key} at ${pathLabel}; defined tier literals are ${rawLiterals}.`
+    }, sourceIds, { status: 'complete', missing: [] }, [{ fieldPath: '/payload', dimension: 'evidence' }]));
+    for (const item of emittedClaims) {
+      const property = constantAcrossTiers
+        ? `description.format_values.${key}.display_${displayKind}`
+        : `description.format_values.${key}.defined_tier_${item.tier}_display_${displayKind}`;
+      const claimTierSegment = constantAcrossTiers ? '' : `-tier${item.tier}`;
+      const claimId = `darktide:claim:${identityStem}-${key.replaceAll('_', '-')}${claimTierSegment}-display-${displayKind}`;
+      if (postAssignmentAffected) postAssignmentClaimCount += 1;
       formatClaims.push(record(claimId, 'claim', {
-        targetRef: { recordId: identity.variantId, gameReleaseId: GAME_RELEASE_ID }, property, value, context: {},
-        basis: known ? 'code-derived' : 'unknown', evidenceRefs: [{ recordId: evidenceId, gameReleaseId: GAME_RELEASE_ID }]
-      }, sourceIds, known ? { status: 'complete', missing: [] } : { status: 'partial', missing: [{ field: '/payload/value', reasonCode: 'NOT_EXPOSED_BY_SOURCE' }] }, [
+        targetRef: { recordId: identity.variantId, gameReleaseId: GAME_RELEASE_ID }, property,
+        value: { status: 'known', decimal: item.decimal, unit: propertyUnit }, context: {}, basis: 'code-derived',
+        evidenceRefs: [{ recordId: evidenceId, gameReleaseId: GAME_RELEASE_ID }]
+      }, sourceIds, { status: 'complete', missing: [] }, [
         { fieldPath: '/payload/targetRef', dimension: 'identity' }, { fieldPath: '/payload/value', dimension: 'technical' },
         { fieldPath: '/payload/context', dimension: 'context' }, { fieldPath: '/payload/basis', dimension: 'technical' },
         { fieldPath: '/payload/evidenceRefs', dimension: 'evidence' }
       ]));
     }
   }
-
   const variantPayload = {
     blessingRef: { recordId: identity.blessingId, gameReleaseId: GAME_RELEASE_ID },
     weaponRefs: mappedWeaponIds.map((recordId) => ({ recordId, gameReleaseId: GAME_RELEASE_ID })),
@@ -899,7 +912,7 @@ export async function buildGenericBlessings({ sourceCodeRepo, commit = PINNED_CO
     multipleTraitOverrideFormatValueCount: extractedTraits.filter((trait) => trait.traitOverrideFormatValueCount >= 2).length,
     zeroTraitOverrideFormatValueCount: extractedTraits.filter((trait) => trait.traitOverrideFormatValueCount === 0).length,
     valueManipulationCount: extractedTraits.filter((trait) => trait.valueManipulations.length > 0).length,
-    formatClaimCount: extractedTraits.reduce((sum, trait) => sum + trait.formatValues.length * trait.variantPayload.definedTiers.length, 0),
+    formatClaimCount: extractedTraits.flatMap((trait) => trait.records).filter((record) => record.kind === 'claim').length,
     knownFormatClaimCount: extractedTraits.flatMap((trait) => trait.records).filter((record) => record.kind === 'claim' && record.payload.value.status === 'known').length,
     unknownFormatClaimCount: extractedTraits.flatMap((trait) => trait.records).filter((record) => record.kind === 'claim' && record.payload.value.status === 'unknown').length,
     postAssignmentClaimCount: extractedTraits.reduce((sum, trait) => sum + trait.postAssignmentClaimCount, 0),
