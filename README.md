@@ -29,6 +29,16 @@ node scripts/content/imports/generic-blessings.mjs `
 
 Integration tests use that local path by default. Set `DARKTIDE_SOURCE_CODE_REPO` to another clone containing the pinned commit; tests skip with an explanatory message when the clone or commit is unavailable.
 
+The generic blessing text import reads only a decoded localization batch and pairs English with Traditional Chinese by the same item-resource hash. It renders known candidate format values into the Traditional Chinese template, leaves unknown placeholders visible for review, and can compare against an earlier batch.
+
+```powershell
+node scripts/content/imports/generic-blessing-text.mjs `
+  --text-batch 'F:\GameInfo\SteamBuild_25606770_1.13.1' `
+  --retained-content 'F:\DarkTide-Web\content\published\content.json' `
+  --game-build 25606770 `
+  --output-dir content/imports/generic
+```
+
 ## Generic weapon-template import
 
 The generic weapon-template importer uses the same pinned, Git-only source boundary. It statically records the UI player-mark inventory, action tables, literal continuations, displayed attacks, direct and registered projectile damage-profile bindings, inherited damage-profile bodies, and `base_stats` mappings from trait ranges to the affected damage or weapon-template endpoints without executing Lua functions. Literal values retain source lines and raw spellings; UI marks without registered templates, registered templates absent from the UI, and indirect damage-profile support files that cannot be parsed are reported as precise coverage gaps instead of guessed values. Its candidate contains field patches for existing weapons plus pending weapon, profile, stat, and evidence records for registered UI marks missing from authoring; the approved records themselves are not copied.
