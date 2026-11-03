@@ -259,7 +259,7 @@ class Parser {
       calls: this.calls,
       locals: Object.fromEntries(this.environment),
       requires: this.requires,
-      returned: this.resolveExact(this.returned),
+      returned: this.resolveReference(this.returned),
       unsupported: this.unsupported
     };
   }
@@ -464,6 +464,11 @@ class Parser {
     return this.environment.has(node.ref) ? this.environment.get(node.ref) : node;
   }
 
+  resolveReference(node) {
+    if (node?.type !== 'reference') return node;
+    return node.ref.includes('.') ? this.resolvePath(node.ref) ?? node : this.resolveExact(node);
+  }
+
   resolvePath(ref) {
     const [root, ...parts] = ref.split('.');
     let node = this.environment.get(root);
@@ -497,14 +502,14 @@ class Parser {
   evaluateCall(node, { statement = false } = {}) {
     if (node?.type !== 'call') return node;
     if (node.ref === 'table.clone') {
-      const source = this.resolveExact(node.args[0]);
+      const source = this.resolveReference(node.args[0]);
       if (source?.type !== 'table') this.fail('table.clone requires a statically known table', node);
       return cloneNode(source);
     }
-    if (node.ref === 'table.add_missing' || node.ref === 'table.append') {
+    if (node.ref === 'table.add_missing' || node.ref === 'table.append' || node.ref === 'table.merge') {
       const targetRef = node.args[0]?.ref;
       const target = targetRef ? this.resolvePath(targetRef) : null;
-      const source = this.resolveExact(node.args[1]);
+      const source = this.resolveReference(node.args[1]);
       if (target?.type !== 'table' || source?.type !== 'table') this.fail(`${node.ref} requires statically known tables`, node);
       if (node.ref === 'table.add_missing') {
         const existing = new Set(tableKeyIdentities(target));
@@ -517,8 +522,21 @@ class Parser {
             existing.add(identity);
           }
         }
-      } else {
+      } else if (node.ref === 'table.append') {
         for (const entry of source.entries.filter((item) => item.key == null)) target.entries.push(cloneNode(entry));
+      } else {
+        const identities = tableKeyIdentities(target);
+        let implicitIndex = 0;
+        for (const entry of source.entries) {
+          if (entry.key == null) implicitIndex += 1;
+          const identity = tableKeyIdentity(entry.key, implicitIndex);
+          const index = identities.indexOf(identity);
+          if (index >= 0) target.entries[index] = cloneNode(entry);
+          else {
+            target.entries.push(cloneNode(entry));
+            identities.push(identity);
+          }
+        }
       }
       return target;
     }
@@ -568,4 +586,159 @@ export function sourceLocation(node) {
 
 export function lineAt(source, offset) {
   return positionAt(source, offset).line;
+}
+
+function tableTokenRange(source, tokens, openIndex, filename) {
+  let depth = 0;
+  for (let index = openIndex; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token.value === '{') depth += 1;
+    else if (token.value === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        const open = tokens[openIndex];
+        return {
+          type: 'static-table-source',
+          raw: source.slice(open.start, token.end),
+          start: open.start,
+          end: token.end,
+          startLine: open.line,
+          endLine: token.endLine,
+          filename
+        };
+      }
+    }
+  }
+  throw new LuaStaticError('UNSUPPORTED_CONSTRUCT', 'Unclosed assigned table', tokens[openIndex], filename);
+}
+
+/**
+ * Locates a literal table on the right-hand side of a named assignment without
+ * parsing or evaluating the surrounding Lua chunk.
+ */
+export function findLuaTableAssignment(source, reference, { filename = '<lua>', occurrence = 1 } = {}) {
+  const parts = reference.split('.');
+  const tokens = tokenizeLua(source, { filename });
+  let found = 0;
+  for (let index = 0; index < tokens.length; index += 1) {
+    let cursor = index;
+    let matches = tokens[cursor]?.type === 'identifier' && tokens[cursor].value === parts[0];
+    for (let partIndex = 1; matches && partIndex < parts.length; partIndex += 1) {
+      matches = tokens[cursor + 1]?.value === '.'
+        && tokens[cursor + 2]?.type === 'identifier'
+        && tokens[cursor + 2].value === parts[partIndex];
+      cursor += 2;
+    }
+    if (!matches || tokens[cursor + 1]?.value !== '=' || tokens[cursor + 2]?.value !== '{') continue;
+    found += 1;
+    if (found === occurrence) return tableTokenRange(source, tokens, cursor + 2, filename);
+  }
+  throw new LuaStaticError(
+    'UNSUPPORTED_CONSTRUCT',
+    `Static table assignment ${reference} occurrence ${occurrence} was not found`,
+    tokens[0],
+    filename
+  );
+}
+
+function trimTokenRange(source, tokens, startIndex, endIndex) {
+  let first = startIndex;
+  let last = endIndex;
+  while (first <= last && [',', ';'].includes(tokens[first]?.value)) first += 1;
+  while (last >= first && [',', ';'].includes(tokens[last]?.value)) last -= 1;
+  if (first > last) return null;
+  const start = tokens[first].start;
+  const end = tokens[last].end;
+  return {
+    rawValue: source.slice(start, end).trim(),
+    start,
+    end,
+    startLine: tokens[first].line,
+    endLine: tokens[last].endLine,
+    firstTokenIndex: first,
+    lastTokenIndex: last
+  };
+}
+
+function splitLuaTableEntries(table) {
+  const source = table.raw;
+  const tokens = tokenizeLua(source, { filename: table.filename ?? '<lua>' });
+  const rows = [];
+  let entryStart = 1;
+  let braces = 1;
+  let parentheses = 0;
+  let brackets = 0;
+  const blocks = [];
+  const opensBlock = (value) => ['function', 'if', 'for', 'while'].includes(value);
+  for (let index = 1; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token.value === '{') braces += 1;
+    else if (token.value === '}') {
+      if (braces === 1 && parentheses === 0 && brackets === 0 && blocks.length === 0) {
+        const range = trimTokenRange(source, tokens, entryStart, index - 1);
+        if (range) rows.push(range);
+        break;
+      }
+      braces -= 1;
+    } else if (token.value === '(') parentheses += 1;
+    else if (token.value === ')') parentheses -= 1;
+    else if (token.value === '[') brackets += 1;
+    else if (token.value === ']') brackets -= 1;
+    else if (opensBlock(token.value)) blocks.push('end');
+    else if (token.value === 'repeat') blocks.push('until');
+    else if (token.value === blocks.at(-1)) blocks.pop();
+
+    if (braces === 1 && parentheses === 0 && brackets === 0 && blocks.length === 0
+      && [',', ';'].includes(token.value)) {
+      const range = trimTokenRange(source, tokens, entryStart, index - 1);
+      if (range) rows.push(range);
+      entryStart = index + 1;
+    }
+  }
+  return { source, tokens, rows };
+}
+
+function absoluteTableRow(table, row) {
+  return {
+    ...row,
+    start: table.start + row.start,
+    end: table.start + row.end,
+    startLine: table.startLine + row.startLine - 1,
+    endLine: table.startLine + row.endLine - 1
+  };
+}
+
+/** Returns identifier-keyed fields from a scanned table in source order. */
+export function getLuaTableFields(table) {
+  const { tokens, rows } = splitLuaTableEntries(table);
+  const fields = [];
+  for (const row of rows) {
+    const first = tokens[row.firstTokenIndex];
+    const equals = tokens[row.firstTokenIndex + 1];
+    if (first?.type !== 'identifier' || equals?.value !== '=') continue;
+    const valueStart = tokens[row.firstTokenIndex + 2];
+    const valueEnd = tokens[row.lastTokenIndex];
+    if (!valueStart || !valueEnd) continue;
+    fields.push(absoluteTableRow(table, {
+      key: first.value,
+      rawValue: table.raw.slice(valueStart.start, valueEnd.end).trim(),
+      start: first.start,
+      end: valueEnd.end,
+      startLine: first.line,
+      endLine: valueEnd.endLine
+    }));
+  }
+  return fields;
+}
+
+/** Returns non-keyed list entries from a scanned table in source order. */
+export function getLuaListItems(table) {
+  const { tokens, rows } = splitLuaTableEntries(table);
+  const items = [];
+  for (const row of rows) {
+    if (tokens[row.firstTokenIndex]?.type === 'identifier'
+      && tokens[row.firstTokenIndex + 1]?.value === '=') continue;
+    items.push({ ...absoluteTableRow(table, row), index: items.length + 1 });
+  }
+  return items;
 }

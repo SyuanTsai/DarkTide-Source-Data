@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  findLuaTableAssignment,
+  getLuaListItems,
+  getLuaTableFields,
   LuaStaticError,
   parseLuaStatic,
   toPlainValue
@@ -120,6 +123,23 @@ test('UnitT45_add_missing_respects_array_indexes_and_computed_keys', () => {
   });
 });
 
+// Scenario: A profile clones a table member and then merges literal overrides into the clone.
+// Purpose: Resolve the inheritance constructs used by damage-profile source files without executing Lua.
+test('UnitT47_dotted_clone_and_table_merge_apply_static_override_semantics', () => {
+  const source = [
+    'local profiles = { parent = { attack = { 10, 20 }, impact = 3 } }',
+    'profiles.child = table.clone(profiles.parent)',
+    'table.merge(profiles.child, { impact = 4, extra = true })',
+    'return profiles.child'
+  ].join('\n');
+
+  assert.deepEqual(toPlainValue(parseLuaStatic(source).returned), {
+    attack: [10, 20],
+    impact: 4,
+    extra: true
+  });
+});
+
 // Scenario: An arithmetic expression has no supported static semantics.
 // Purpose: Fail closed with a stable machine-readable error instead of guessing the result.
 test('UnitT50_unsupported_expression_reports_unsupported_construct', () => {
@@ -132,4 +152,44 @@ test('UnitT50_unsupported_expression_reports_unsupported_construct', () => {
       return true;
     }
   );
+});
+
+// Scenario: A large assignment table contains nested callbacks, operator expressions, comments, and braces inside strings.
+// Purpose: Extract the exact table and its keyed rows without evaluating syntax that is irrelevant to static weapon facts.
+test('UnitT60_assigned_table_scanner_preserves_nested_raw_fields', () => {
+  const source = [
+    'local weapon_template = {}',
+    'weapon_template.actions = {',
+    '  action_one = { value = math.pi * 0.5, text = "} not a close" },',
+    '  -- ignored } comment',
+    '  action_two = function () return { nested = true } end,',
+    '}',
+    'return weapon_template'
+  ].join('\n');
+
+  const table = findLuaTableAssignment(source, 'weapon_template.actions');
+  const fields = getLuaTableFields(table);
+
+  assert.equal(table.startLine, 2);
+  assert.equal(table.endLine, 6);
+  assert.deepEqual(fields.map((field) => field.key), ['action_one', 'action_two']);
+  assert.match(fields[0].rawValue, /math\.pi \* 0\.5/u);
+  assert.match(fields[1].rawValue, /^function \(\)/u);
+  assert.equal(fields[1].endLine, 5);
+});
+
+// Scenario: A static list contains nested table items and a non-table symbolic item.
+// Purpose: Preserve one-based item identities and exact source ranges for displayed attack segments.
+test('UnitT70_list_scanner_returns_table_and_symbolic_items_in_order', () => {
+  const source = 'local rows = { { value = 1 }, DamageProfileTemplates.alpha, { value = 3 } }';
+  const table = findLuaTableAssignment(source, 'rows');
+  const items = getLuaListItems(table);
+
+  assert.deepEqual(items.map((item) => item.rawValue), [
+    '{ value = 1 }',
+    'DamageProfileTemplates.alpha',
+    '{ value = 3 }'
+  ]);
+  assert.deepEqual(items.map((item) => item.index), [1, 2, 3]);
+  assert.ok(items.every((item) => item.startLine === 1 && item.endLine === 1));
 });

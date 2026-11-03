@@ -28,3 +28,17 @@ node scripts/content/imports/generic-blessings.mjs `
 ```
 
 Integration tests use that local path by default. Set `DARKTIDE_SOURCE_CODE_REPO` to another clone containing the pinned commit; tests skip with an explanatory message when the clone or commit is unavailable.
+
+## Generic weapon-template import
+
+The generic weapon-template importer uses the same pinned, Git-only source boundary. It statically records the UI player-mark inventory, action tables, literal continuations, displayed attacks, direct and registered projectile damage-profile bindings, inherited damage-profile bodies, and `base_stats` mappings from trait ranges to the affected damage or weapon-template endpoints without executing Lua functions. Literal values retain source lines and raw spellings; UI marks without registered templates, registered templates absent from the UI, and indirect damage-profile support files that cannot be parsed are reported as precise coverage gaps instead of guessed values. Its candidate contains field patches for existing weapons plus pending weapon, profile, stat, and evidence records for registered UI marks missing from authoring; the approved records themselves are not copied.
+
+```powershell
+$env:DARKTIDE_SOURCE_CODE_REPO = 'C:\src\Darktide-Source-Code'
+node scripts/content/imports/generic-weapon-templates.mjs `
+  --source-code-repo $env:DARKTIDE_SOURCE_CODE_REPO `
+  --commit e46b8926cfa3fa35503e4b80b15aab7a804314e4 `
+  --output-dir content/imports/generic
+```
+
+The command writes one pretty-printed candidate part per UI weapon family under `weapon-templates/`, plus `weapon-templates/_shared.json`, a SHA-256 `weapon-templates/index.json`, and `weapons-snapshot.json`; its loader reassembles the same candidate object that is merged with the authoring bundle and validated in memory before the command returns successfully.
