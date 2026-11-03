@@ -378,7 +378,7 @@ async function runCli(argv) {
     process.stdout.write(`Prepared ${result.package.summary.blessingCount} blessings; package digest ${result.package.packageDigest}.\n${result.outputPaths.join('\n')}\n`);
     return;
   }
-  if (argv.length !== 2 || !option(argv, '--approval')) throw new Error('Usage: node scripts/content/imports/generic-blessings-approval.mjs --apply --approval <human-approval.json>');
+  if (argv.length !== 3 || !option(argv, '--approval')) throw new Error('Usage: node scripts/content/imports/generic-blessings-approval.mjs --apply --approval <human-approval.json>');
   const result = await applyGenericBlessingsApproval({ approvalPath: option(argv, '--approval') });
   process.stdout.write(`Applied ${result.addedReceiptCount} review receipts; w07-weapons.json is ${result.w07Bytes} bytes.\n`);
 }

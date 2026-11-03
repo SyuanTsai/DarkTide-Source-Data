@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -14,6 +15,15 @@ import {
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const candidatePath = path.join(ROOT, 'content', 'imports', 'generic', 'blessings-candidates.json');
 const textPath = path.join(ROOT, 'content', 'imports', 'generic', 'blessings-text.json');
+
+// Scenario: The apply CLI receives a valid option shape with a nonexistent approval file.
+// Purpose: Confirm argument parsing reaches file validation instead of rejecting the valid invocation as usage.
+test('UnitT40_apply_cli_accepts_three_arguments_before_checking_approval_file', () => {
+  const script = path.join(ROOT, 'scripts', 'content', 'imports', 'generic-blessings-approval.mjs');
+  const result = spawnSync(process.execPath, [script, '--apply', '--approval', path.join(os.tmpdir(), 'nonexistent-syp-288-approval.json')], { encoding: 'utf8' });
+  assert.notEqual(result.status, 0);
+  assert.doesNotMatch(result.stderr, /Usage:/u);
+});
 
 function identityFor(traitName) {
   const match = /^weapon_trait_bespoke_(.+)_p(\d+)_(.+)$/u.exec(traitName);

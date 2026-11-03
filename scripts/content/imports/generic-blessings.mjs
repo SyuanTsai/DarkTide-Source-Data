@@ -59,6 +59,27 @@ function appendUnique(target, seen, values, keyOf, label) {
   }
 }
 
+/** Remove a prior generic fold from a copy, retaining sources used by remaining records. */
+export function stripGenericBlessingsFold(base, generatedRecordIds, candidate) {
+  const copy = structuredClone(base);
+  const removedIds = new Set(copy.records.filter((record) => generatedRecordIds.has(record.recordId)).map((record) => record.recordId));
+  copy.records = copy.records.filter((record) => !removedIds.has(record.recordId));
+  copy.reviewReceipts = copy.reviewReceipts.filter((receipt) => !removedIds.has(receipt.target?.recordId));
+  const usedSourceIds = new Set();
+  const visit = (value) => {
+    if (!value || typeof value !== 'object') return;
+    if (typeof value.sourceId === 'string') usedSourceIds.add(value.sourceId);
+    for (const child of Object.values(value)) visit(child);
+  };
+  copy.records.forEach(visit);
+  const candidateSourceIds = new Set((candidate.sourceRefs ?? []).map((source) => source.sourceId));
+  copy.sourceRefs = copy.sourceRefs.filter((source) => !candidateSourceIds.has(source.sourceId) || usedSourceIds.has(source.sourceId));
+  const usedSnapshotIds = new Set(copy.sourceRefs.map((source) => source.snapshot?.snapshotId).filter(Boolean));
+  const candidateSnapshotIds = new Set((candidate.sourceSnapshots ?? []).map((item) => item.snapshot?.snapshotId));
+  copy.sourceSnapshots = copy.sourceSnapshots.filter((item) => !candidateSnapshotIds.has(item.snapshot?.snapshotId) || usedSnapshotIds.has(item.snapshot?.snapshotId));
+  return copy;
+}
+
 /**
  * Combines existing authoring with a minimal generic-blessing candidate without
  * mutating either input. Candidate record IDs must be entirely new so promotion
@@ -807,7 +828,6 @@ export async function buildGenericBlessings({ sourceCodeRepo, commit = PINNED_CO
   const approvedGolden = base.records.find((item) => item.recordId === 'darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation'
     && item.gameReleaseId === GAME_RELEASE_ID && item.reviewState === 'approved');
   invariant(approvedGolden, 'Approved 1.13.4 chainaxe blessing-variant golden record is missing.');
-  const existingRecordIds = new Set(base.records.map((item) => item.recordId));
   const weaponRecordIds = new Map(base.records
     .filter((item) => item.gameReleaseId === GAME_RELEASE_ID && item.kind === 'weapon' && typeof item.payload?.templateKey === 'string')
     .map((item) => [item.payload.templateKey, item.recordId]));
@@ -873,6 +893,12 @@ export async function buildGenericBlessings({ sourceCodeRepo, commit = PINNED_CO
     };
   }).sort((left, right) => lexical(left.path, right.path));
 
+  const possibleRecords = extractedTraits.filter((trait) => trait.variantId !== approvedGolden.recordId).flatMap((trait) => trait.records);
+  const strippedBase = stripGenericBlessingsFold(base, new Set(possibleRecords.map((record) => record.recordId)), {
+    sourceRefs: genericSourceRefs,
+    sourceSnapshots: [{ snapshot: { snapshotId: sourceSnapshot.snapshotId } }]
+  });
+  const existingRecordIds = new Set(strippedBase.records.map((item) => item.recordId));
   const generatedRecords = extractedTraits
     .filter((trait) => !existingRecordIds.has(trait.blessingId) && !existingRecordIds.has(trait.variantId))
     .flatMap((trait) => trait.records)
@@ -942,7 +968,7 @@ export async function buildGenericBlessings({ sourceCodeRepo, commit = PINNED_CO
       raw: node.raw
     })))
   };
-  const merged = mergeGenericBlessingsCandidate({ authoringBundles: [base], candidate });
+  const merged = mergeGenericBlessingsCandidate({ authoringBundles: [strippedBase], candidate });
   const validation = await validateSourceContractFromDisk(merged, { sourceRoot });
   if (!validation.valid) throw new Error(`Generated generic blessing Source candidate is invalid:\n${JSON.stringify(validation.issues, null, 2)}`);
   return { candidate, merged, snapshot, stats, extractedTraits, approvedGolden, generatedRecords, validation };

@@ -11,6 +11,7 @@ import {
   buildGenericBlessings,
   makeBuffTemplateResolver,
   mergeGenericBlessingsCandidate,
+  stripGenericBlessingsFold,
   resolveTraitPath,
   writeGenericBlessings
 } from '../scripts/content/imports/generic-blessings.mjs';
@@ -47,6 +48,26 @@ const fixtureBuffSettings = [
   'local stat_buff_names = table.keys(buff_settings.stat_buff_types)',
   'buff_settings.stat_buffs = table.enum(unpack(stat_buff_names))'
 ].join('\n');
+
+// Scenario: An approved generic record and its receipt and exclusive source are folded into a base containing a golden record.
+// Purpose: Restore the unfurled base without mutating inputs or removing shared sources and non-generated records.
+test('UnitT50_strip_fold_restores_base_and_preserves_golden_and_shared_sources', () => {
+  const golden = { recordId: 'golden', sourceRefs: [{ sourceId: 'shared' }] };
+  const original = {
+    records: [golden], reviewReceipts: [{ target: { recordId: 'golden' } }],
+    sourceRefs: [{ sourceId: 'shared', snapshot: { snapshotId: 'shared-snapshot' } }],
+    sourceSnapshots: [{ snapshot: { snapshotId: 'shared-snapshot' } }]
+  };
+  const folded = structuredClone(original);
+  folded.records.push({ recordId: 'generated', sourceRefs: [{ sourceId: 'exclusive' }] });
+  folded.reviewReceipts.push({ target: { recordId: 'generated' } });
+  folded.sourceRefs.push({ sourceId: 'exclusive', snapshot: { snapshotId: 'exclusive-snapshot' } });
+  folded.sourceSnapshots.push({ snapshot: { snapshotId: 'exclusive-snapshot' } });
+  const candidate = { sourceRefs: [{ sourceId: 'exclusive' }, { sourceId: 'shared' }], sourceSnapshots: [{ snapshot: { snapshotId: 'exclusive-snapshot' } }, { snapshot: { snapshotId: 'shared-snapshot' } }] };
+  const before = structuredClone(folded);
+  assert.deepEqual(stripGenericBlessingsFold(folded, new Set(['generated']), candidate), original);
+  assert.deepEqual(folded, before);
+});
 
 // Scenario: A buff template merges an inline destination with a required source template.
 // Purpose: Preserve Lua table.merge(dest, source) precedence, where the second argument overwrites the first.
@@ -255,7 +276,7 @@ test('InterT28_blessing_claim_refs_cover_each_format_tier_and_evidence', { skip:
 // Purpose: Prevent approved-record copies while exercising all cross-bundle references with the real v2 validator.
 test('InterT30_minimal_candidate_is_disjoint_and_merged_bundle_passes_validator', { skip: integrationSkip }, async () => {
   const result = await build();
-  const authoring = JSON.parse(await readFile(authoringUrl, 'utf8'));
+  const authoring = stripGenericBlessingsFold(JSON.parse(await readFile(authoringUrl, 'utf8')), new Set(result.generatedRecords.map((record) => record.recordId)), result.candidate);
   const existingRecordIds = new Set(authoring.records.map((record) => record.recordId));
   const merged = mergeGenericBlessingsCandidate({ authoringBundles: [authoring], candidate: result.candidate });
   const validation = await validateSourceContractFromDisk(merged);
