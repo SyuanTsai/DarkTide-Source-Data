@@ -282,7 +282,6 @@ test('UnitT09_revision_verifier_rejects_wrong_pinned_commit', async () => {
 // Purpose: Keep workflow permissions read-only, serialize without cancellation, and gate the only dispatch path on a derived release ID.
 test('UnitT10_workflow_is_readonly_and_formal_dispatch_is_explicitly_gated', async () => {
   const source = await readFile(path.join(sourceRoot, '.github', 'workflows', 'shared-source-handoff.yml'), 'utf8');
-  const w01 = await readFile(path.join(sourceRoot, '.github', 'workflows', 'w01-source-ci.yml'), 'utf8');
   assert.match(source, /permissions:\s+contents:\s+read/u);
   assert.match(source, /cancel-in-progress:\s+false/u);
   assert.match(source, /workflow_dispatch:/u);
@@ -297,7 +296,8 @@ test('UnitT10_workflow_is_readonly_and_formal_dispatch_is_explicitly_gated', asy
   assert.match(source, /permissions:\s+contents:\s+write/u);
   assert.match(source, /SOURCE_ARCHIVE_TOKEN:\s+\$\{\{\s*github\.token\s*\}\}/u);
   assert.match(source, /secrets\.WEB_HANDOFF_TOKEN/u);
-  assert.match(w01, /fetch-depth:\s+0/u);
+  assert.match(source, /if: steps\.scope\.outputs\.prepare == 'true'/u);
+  assert.match(source, /name: syp-311-w01-source-preview/u);
   assert.doesNotMatch(source, /administration:\s+(?:read|write)/u);
   assert.doesNotMatch(source, /write-all|CLOUDFLARE_API_TOKEN/iu);
 });

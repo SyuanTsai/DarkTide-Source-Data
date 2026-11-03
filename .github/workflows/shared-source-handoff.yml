@@ -38,7 +38,37 @@ jobs:
           package-manager-cache: false
       - name: Run Source contract tests
         run: npm test
+      - name: Build W01 previews for review
+        run: |
+          npm run --silent content:preview > /dev/null
+          node scripts/content/build.mjs --mode preview --input w01-real-claim-candidate.json > /dev/null
+          node scripts/content/build.mjs --mode preview --input w01-real-representative-candidate.json > /dev/null
+      - name: Upload safe generated Source preview
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: syp-311-w01-source-preview
+          path: |
+            dist-w01/source/*/analysis.md
+            dist-w01/source/*/game-changes.json
+            dist-w01/source/*/game-changes.md
+            dist-w01/source/*/receipt.json
+            dist-w01/source/*/source-manifest.json
+            dist-w01/source/*/technical.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Detect changes that can affect the W09 request
+        id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if git diff --name-only "$BASE_SHA" HEAD | grep -qE '^(content/|scripts/|package\.json$|\.github/workflows/shared-source-handoff\.yml$)'; then
+            echo "prepare=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prepare=false" >> "$GITHUB_OUTPUT"
+            echo "No content, script, or handoff workflow change; skipped the W09 candidate request." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Prepare a pending candidate request for review
+        if: steps.scope.outputs.prepare == 'true'
         run: node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode candidate --input-preset acceptedW07
       - name: Upload the request and packet for workflow diagnostics
         if: ${{ always() }}

@@ -52,6 +52,6 @@ The representative candidate's 125 records are all pending, with 36 source refer
 
 ## Generated preview
 
-The Source CI workflow builds the default synthetic fixture plus the four-record and 125-record candidates through the same compiler. Download the `syp-311-w01-source-preview` artifact from a workflow run to inspect each `dist-w01/source/<sourceRevision>/` directory, including `analysis.md`, `game-changes.md`, `technical.json`, `game-changes.json`, `source-manifest.json`, and `receipt.json`. These generated files are review materials, not approval or a formal release.
+The PR validation job of the `W09 Source release handoff` workflow builds the default synthetic fixture plus the four-record and 125-record candidates through the same compiler. Download the `syp-311-w01-source-preview` artifact from a workflow run to inspect each `dist-w01/source/<sourceRevision>/` directory, including `analysis.md`, `game-changes.md`, `technical.json`, `game-changes.json`, `source-manifest.json`, and `receipt.json`. These generated files are review materials, not approval or a formal release.
 
 Generating a composition request requires a clean Source working tree. After review and commit, use `npm run content:request -- --input w01-real-representative-candidate.json`; the `--` passes the input option to the existing request tool. The request pins the commit alongside the preview revision and manifest digest, so tracked or untracked Source changes must be committed before the public pin is written. Ignored `dist-w01` preview output is allowed.
