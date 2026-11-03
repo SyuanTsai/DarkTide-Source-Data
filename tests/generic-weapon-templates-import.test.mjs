@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -9,6 +9,7 @@ import { validateSourceContractFromDisk } from '../scripts/content/contract-vali
 import {
   PINNED_COMMIT,
   buildGenericWeaponTemplates,
+  loadGenericWeaponTemplateCandidate,
   mergeGenericWeaponCandidate,
   writeGenericWeaponTemplates
 } from '../scripts/content/imports/generic-weapon-templates.mjs';
@@ -27,6 +28,17 @@ const integrationSkip = probe.status === 0
 
 let builtPromise;
 const build = () => (builtPromise ??= buildGenericWeaponTemplates({ sourceCodeRepo, commit: PINNED_COMMIT }));
+
+async function outputFiles(root, current = root) {
+  const entries = await readdir(current, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name, 'en'))) {
+    const absolute = path.join(current, entry.name);
+    if (entry.isDirectory()) files.push(...await outputFiles(root, absolute));
+    else files.push(path.relative(root, absolute).replaceAll(path.sep, '/'));
+  }
+  return files;
+}
 
 // Scenario: Every registered template in the pinned 1.13.4 registry is scanned without executing Lua.
 // Purpose: Freeze the bounded inventory and the source constructs that the generic importer must not silently skip.
@@ -154,11 +166,11 @@ test('InterT40_candidate_adds_only_new_source_traced_profile_and_stat_records', 
   }
   for (const record of byKind['stat-curve']) {
     assert.equal(record.payload.knots.length, 2);
-    for (const knot of record.payload.knots) {
+    for (const [index, knot] of record.payload.knots.entries()) {
       const line = result.reader.read(knot.sourceLocator.path).split(/\r\n|\n|\r/u)[knot.sourceLocator.line - 1];
       assert.ok(line.includes(knot.rawEndpoint), `${record.recordId} endpoint must match its pinned source line`);
-      assert.equal(knot.input, knot.rawEndpoint);
-      assert.equal(knot.output, knot.rawEndpoint);
+      assert.equal(knot.input, String(index));
+      assert.equal(Number(knot.output), Number(knot.rawEndpoint));
     }
   }
 
@@ -177,8 +189,71 @@ test('InterT40_candidate_adds_only_new_source_traced_profile_and_stat_records', 
   }
 });
 
+// Scenario: Referenced damage profiles and every previously missing weapon base-stat graph are imported from pinned Lua values.
+// Purpose: Prevent the value importer from regressing to action-only profile keys or trait-range placeholders without affected fields.
+test('InterT45_damage_profile_bodies_and_base_stat_rating_mappings_are_source_traced', { skip: integrationSkip }, async () => {
+  const result = await build();
+  const byKind = Object.groupBy(result.candidate.records, (record) => record.kind);
+  const generatedDamage = byKind['damage-profile'] ?? [];
+  const originallyMissingBaseStats = result.authoring.records.filter((record) => record.gameReleaseId === 'darktide:1.13.4'
+    && record.kind === 'weapon'
+    && (record.dataCoverage.missing ?? []).some((missing) =>
+      missing.field === '/payload/all-base-stat-definitions-and-rating-mapping'));
+
+  assert.equal(result.stats.values.referencedDamageProfileCount, 208);
+  assert.equal(result.stats.values.resolvedDamageProfileCount, 208);
+  assert.equal(generatedDamage.length, 208);
+  assert.ok(generatedDamage.every((record) => record.payload.rawSourceDefinition.leaves.length > 1));
+  assert.ok(generatedDamage.every((record) => !(record.dataCoverage.missing ?? []).some((missing) =>
+    missing.field === '/payload/rawSourceDefinition/profileBody')));
+
+  assert.equal(originallyMissingBaseStats.length, 70);
+  assert.equal(result.stats.values.resolvedBaseStatWeaponCount, 70);
+  for (const weapon of originallyMissingBaseStats) {
+    const patch = result.candidate.patches.find((item) => item.recordId === weapon.recordId);
+    assert.ok(patch.fields.some((field) => field.fieldPath === '/payload/statBindings'));
+    assert.ok(patch.fields.some((field) => field.fieldPath === '/payload/statTables'));
+    assert.ok(!(patch.dataCoverage.missing ?? []).some((missing) =>
+      missing.field === '/payload/all-base-stat-definitions-and-rating-mapping'));
+  }
+
+  const curvesById = new Map((byKind['stat-curve'] ?? []).map((record) => [record.recordId, record]));
+  for (const definition of byKind['stat-definition'] ?? []) {
+    const curve = curvesById.get(definition.payload.curveRef.recordId);
+    assert.ok(curve, `${definition.recordId} must reference a generated curve`);
+    for (const knot of curve.payload.knots) {
+      const line = result.reader.read(knot.sourceLocator.path).split(/\r\n|\n|\r/u)[knot.sourceLocator.line - 1];
+      assert.ok(line.includes(knot.rawEndpoint), `${curve.recordId} endpoint must match its pinned source line`);
+    }
+  }
+});
+
+// Scenario: The in-memory candidate is written as family-owned parts plus a hash index and loaded from those parts.
+// Purpose: Keep every Git artifact below the hosting limit without changing the candidate object accepted by the validator.
+test('InterT47_sharded_candidate_reassembles_to_the_identical_in_memory_candidate', { skip: integrationSkip }, async () => {
+  const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'generic-weapons-shards-'));
+  try {
+    const written = await writeGenericWeaponTemplates({ sourceCodeRepo, commit: PINNED_COMMIT, outputDir: temporaryRoot });
+    const loaded = await loadGenericWeaponTemplateCandidate({ outputDir: temporaryRoot });
+    const filenames = await outputFiles(temporaryRoot);
+    const index = JSON.parse(await readFile(path.join(temporaryRoot, 'weapon-templates', 'index.json'), 'utf8'));
+
+    assert.deepEqual(loaded, written.candidate);
+    assert.equal(filenames.includes('weapon-template-candidates.json'), false);
+    assert.equal(index.files.length, 41);
+    assert.equal(index.counts.fileCount, index.files.length);
+    assert.equal(index.counts.patchCount, written.candidate.patches.length);
+    assert.equal(index.counts.recordCount, written.candidate.records.length);
+    for (const filename of index.files.map((item) => path.join(temporaryRoot, 'weapon-templates', item.filename))) {
+      assert.ok((await stat(filename)).size < 10_000_000, `${path.basename(filename)} must stay below 10 MB`);
+    }
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
 // Scenario: The same pinned source is imported twice into independent directories.
-// Purpose: Guarantee byte-for-byte deterministic promotion inputs and snapshots.
+// Purpose: Guarantee byte-for-byte deterministic promotion inputs, every family shard, its hash index, and the snapshot.
 test('InterT50_two_writes_are_byte_identical', { skip: integrationSkip }, async () => {
   const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'generic-weapons-'));
   const left = path.join(temporaryRoot, 'left');
@@ -187,7 +262,10 @@ test('InterT50_two_writes_are_byte_identical', { skip: integrationSkip }, async 
     const first = await writeGenericWeaponTemplates({ sourceCodeRepo, commit: PINNED_COMMIT, outputDir: left });
     const second = await writeGenericWeaponTemplates({ sourceCodeRepo, commit: PINNED_COMMIT, outputDir: right });
     assert.deepEqual(first.outputSizes, second.outputSizes);
-    for (const filename of ['weapon-template-candidates.json', 'weapons-snapshot.json']) {
+    const firstFiles = await outputFiles(left);
+    const secondFiles = await outputFiles(right);
+    assert.deepEqual(firstFiles, secondFiles);
+    for (const filename of firstFiles) {
       assert.deepEqual(await readFile(path.join(left, filename)), await readFile(path.join(right, filename)));
     }
   } finally {

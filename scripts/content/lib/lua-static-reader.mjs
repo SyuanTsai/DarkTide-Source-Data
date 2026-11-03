@@ -259,7 +259,7 @@ class Parser {
       calls: this.calls,
       locals: Object.fromEntries(this.environment),
       requires: this.requires,
-      returned: this.resolveExact(this.returned),
+      returned: this.resolveReference(this.returned),
       unsupported: this.unsupported
     };
   }
@@ -464,6 +464,11 @@ class Parser {
     return this.environment.has(node.ref) ? this.environment.get(node.ref) : node;
   }
 
+  resolveReference(node) {
+    if (node?.type !== 'reference') return node;
+    return node.ref.includes('.') ? this.resolvePath(node.ref) ?? node : this.resolveExact(node);
+  }
+
   resolvePath(ref) {
     const [root, ...parts] = ref.split('.');
     let node = this.environment.get(root);
@@ -497,14 +502,14 @@ class Parser {
   evaluateCall(node, { statement = false } = {}) {
     if (node?.type !== 'call') return node;
     if (node.ref === 'table.clone') {
-      const source = this.resolveExact(node.args[0]);
+      const source = this.resolveReference(node.args[0]);
       if (source?.type !== 'table') this.fail('table.clone requires a statically known table', node);
       return cloneNode(source);
     }
-    if (node.ref === 'table.add_missing' || node.ref === 'table.append') {
+    if (node.ref === 'table.add_missing' || node.ref === 'table.append' || node.ref === 'table.merge') {
       const targetRef = node.args[0]?.ref;
       const target = targetRef ? this.resolvePath(targetRef) : null;
-      const source = this.resolveExact(node.args[1]);
+      const source = this.resolveReference(node.args[1]);
       if (target?.type !== 'table' || source?.type !== 'table') this.fail(`${node.ref} requires statically known tables`, node);
       if (node.ref === 'table.add_missing') {
         const existing = new Set(tableKeyIdentities(target));
@@ -517,8 +522,21 @@ class Parser {
             existing.add(identity);
           }
         }
-      } else {
+      } else if (node.ref === 'table.append') {
         for (const entry of source.entries.filter((item) => item.key == null)) target.entries.push(cloneNode(entry));
+      } else {
+        const identities = tableKeyIdentities(target);
+        let implicitIndex = 0;
+        for (const entry of source.entries) {
+          if (entry.key == null) implicitIndex += 1;
+          const identity = tableKeyIdentity(entry.key, implicitIndex);
+          const index = identities.indexOf(identity);
+          if (index >= 0) target.entries[index] = cloneNode(entry);
+          else {
+            target.entries.push(cloneNode(entry));
+            identities.push(identity);
+          }
+        }
       }
       return target;
     }

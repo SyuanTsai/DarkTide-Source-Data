@@ -123,6 +123,23 @@ test('UnitT45_add_missing_respects_array_indexes_and_computed_keys', () => {
   });
 });
 
+// Scenario: A profile clones a table member and then merges literal overrides into the clone.
+// Purpose: Resolve the inheritance constructs used by damage-profile source files without executing Lua.
+test('UnitT47_dotted_clone_and_table_merge_apply_static_override_semantics', () => {
+  const source = [
+    'local profiles = { parent = { attack = { 10, 20 }, impact = 3 } }',
+    'profiles.child = table.clone(profiles.parent)',
+    'table.merge(profiles.child, { impact = 4, extra = true })',
+    'return profiles.child'
+  ].join('\n');
+
+  assert.deepEqual(toPlainValue(parseLuaStatic(source).returned), {
+    attack: [10, 20],
+    impact: 4,
+    extra: true
+  });
+});
+
 // Scenario: An arithmetic expression has no supported static semantics.
 // Purpose: Fail closed with a stable machine-readable error instead of guessing the result.
 test('UnitT50_unsupported_expression_reports_unsupported_construct', () => {
