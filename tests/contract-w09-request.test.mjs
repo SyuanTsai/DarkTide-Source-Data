@@ -295,7 +295,8 @@ test('UnitT10_workflow_is_readonly_and_formal_dispatch_is_explicitly_gated', asy
   assert.match(source, /--fallback-candidate/u);
   assert.match(source, /--publish-archive/u);
   assert.match(source, /--dispatch/u);
-  assert.match(source, /--all-releases/u);
+  assert.match(source, /--dispatch --all-releases --skip-published/u);
+  assert.match(source, /--dispatch --release-id "\$REQUESTED_RELEASE_ID"\s*\n/u);
   assert.match(source, /permissions:\s+contents:\s+write/u);
   assert.match(source, /SOURCE_ARCHIVE_TOKEN:\s+\$\{\{\s*github\.token\s*\}\}/u);
   assert.match(source, /secrets\.WEB_HANDOFF_TOKEN/u);
@@ -1209,4 +1210,74 @@ test('UnitT11_changed_record_derivation_preserves_all_tuples_without_guessing_ki
   assert.equal(changed.find((item) => item.recordId === 'darktide:claim:untyped-removed').kind, null);
   const claims = changed.filter((item) => item.kind === 'claim');
   assert.deepEqual(new Set(claims.map((item) => item.recordId)), new Set(['updated-claim', 'former-claim']));
+});
+
+test('UnitT12_network_retry_recovers_and_logs_safe_path', async () => {
+  const error = new TypeError('fetch failed', { cause: Object.assign(new Error('other side closed'), { code: 'UND_ERR_SOCKET' }) });
+  const response = new Response('ok');
+  const lines = [];
+  let calls = 0;
+  const fetch = api.withW09NetworkRetry(async () => {
+    calls += 1;
+    if (calls === 1) throw error;
+    return response;
+  }, { log: (line) => lines.push(line), sleep: async () => {} });
+  assert.equal(await fetch('https://api.github.com/repos/example?token=secret', { method: 'POST' }), response);
+  assert.equal(calls, 2);
+  assert.deepEqual(lines, ['W09 network retry 1/2: POST api.github.com/repos/example after UND_ERR_SOCKET']);
+});
+
+test('UnitT13_network_retry_rethrows_after_three_attempts', async () => {
+  const error = new TypeError('fetch failed');
+  let calls = 0;
+  const fetch = api.withW09NetworkRetry(async () => { calls += 1; throw error; }, { log: () => {}, sleep: async () => {} });
+  await assert.rejects(fetch('https://api.github.com/test'), (actual) => actual === error);
+  assert.equal(calls, 3);
+});
+
+test('UnitT14_network_retry_returns_http_error_without_retry', async () => {
+  const response = new Response('', { status: 500 });
+  const lines = [];
+  let calls = 0;
+  const fetch = api.withW09NetworkRetry(async () => { calls += 1; return response; }, { log: (line) => lines.push(line), sleep: async () => {} });
+  assert.equal(await fetch('https://api.github.com/test'), response);
+  assert.equal(calls, 1);
+  assert.deepEqual(lines, []);
+});
+
+test('UnitT15_network_retry_never_retries_uploads', async () => {
+  const error = new TypeError('fetch failed');
+  let calls = 0;
+  const fetch = api.withW09NetworkRetry(async () => { calls += 1; throw error; }, { log: () => {}, sleep: async () => {} });
+  await assert.rejects(fetch('https://uploads.github.com/test'), (actual) => actual === error);
+  assert.equal(calls, 1);
+});
+
+
+test('UnitT16_select_handoff_skips_published_and_keeps_missing_and_draft', async () => {
+  const requests = ['1', '2', '3'].map((digit) => makeRequest({ releaseId: `w09-${digit.repeat(32)}` }));
+  const calls = [];
+  const fetchImpl = async (url, options) => {
+    calls.push({ url, options });
+    const digit = url.includes(requests[0].releaseId) ? '1' : url.includes(requests[2].releaseId) ? '3' : '2';
+    if (digit === '2') return url.includes('/tags/') ? new Response('', { status: 404 }) : Response.json([]);
+    return Response.json({ tag_name: api.w09SourceArchiveTag(requests[digit === '1' ? 0 : 2].releaseId), draft: digit === '3', prerelease: true, id: 1, assets: [] });
+  };
+  const result = await api.selectW09HandoffRequests({ requests, fetchImpl, token: 'test-token' });
+  assert.deepEqual(result.toHandoff, requests.slice(1));
+  assert.deepEqual(result.skipped, [{ releaseId: requests[0].releaseId, status: 'skipped', reason: 'Source release already published; re-send with workflow_dispatch release_id if Web missed it' }]);
+  assert.equal(calls.length, 4);
+  assert.ok(calls.every(({ options }) => options.headers.Authorization === 'Bearer test-token'));
+});
+
+test('UnitT17_skip_published_requires_dispatch_and_all_releases', () => {
+  const cliPath = fileURLToPath(implementationUrl);
+  for (const args of [
+    ['--prepare', '--output-root', 'unused', '--mode', 'formal', '--publish-archive', '--dispatch', '--release-id', `w09-${'1'.repeat(32)}`, '--skip-published'],
+    ['--prepare', '--output-root', 'unused', '--skip-published']
+  ]) {
+    const result = spawnSync(process.execPath, [cliPath, ...args], { cwd: sourceRoot, encoding: 'utf8' });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /--skip-published requires both --dispatch and --all-releases/u);
+  }
 });
