@@ -1,3 +1,4 @@
+import { readAuthoringBundle } from '../lib/authoring-bundle.mjs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
@@ -20,7 +21,6 @@ const WEAPON_REGISTRY = 'scripts/settings/equipment/weapon_templates/weapon_temp
 const TRAIT_VALUE_PARSER = 'scripts/utilities/trait_value_parser.lua';
 const BUFF_SETTINGS = 'scripts/settings/buff/buff_settings.lua';
 const TABLE_UTILITIES = 'scripts/foundation/utilities/table.lua';
-const BASE_AUTHORING = 'content/authoring/v2/w07-weapons.json';
 const OUTPUT_CANDIDATE = 'blessings-candidates.json';
 const OUTPUT_SNAPSHOT = 'blessings-snapshot.json';
 const GAME_RELEASE_ID = 'darktide:1.13.4';
@@ -803,7 +803,7 @@ export async function buildGenericBlessings({ sourceCodeRepo, commit = PINNED_CO
     }
   }
 
-  const base = JSON.parse(await readFile(path.join(sourceRoot, BASE_AUTHORING), 'utf8'));
+  const base = (await readAuthoringBundle(sourceRoot)).bundle;
   const approvedGolden = base.records.find((item) => item.recordId === 'darktide:blessing-variant:chainaxe:p1-movement-speed-on-activation'
     && item.gameReleaseId === GAME_RELEASE_ID && item.reviewState === 'approved');
   invariant(approvedGolden, 'Approved 1.13.4 chainaxe blessing-variant golden record is missing.');

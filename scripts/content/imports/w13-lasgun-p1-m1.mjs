@@ -1,3 +1,4 @@
+import { readAuthoringBundle, writeAuthoringBundle, W07_INDEX } from '../lib/authoring-bundle.mjs';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -9,7 +10,7 @@ const RELEASE_ID = 'darktide:1.13.2';
 const PUBLIC_CODE_COMMIT = 'ba6c148f3c2768ca3ce20d846a12e56e2f433f3e';
 const PUBLIC_CODE_REPOSITORY = 'https://github.com/Aussiemon/Darktide-Source-Code';
 const SOURCE_SNAPSHOT_ID = 'lasgun-p1-m1-w13-1.13.2-16-files';
-const AUTHORING_PATH = 'content/authoring/v2/w07-weapons.json';
+const AUTHORING_PATH = W07_INDEX;
 const FACTS_PATH = `${IMPORT_ROOT}/lasgun-p1-m1-facts.json`;
 const INVENTORY_PATH = `${IMPORT_ROOT}/closure-inventory.json`;
 const MANIFEST_PATH = `${IMPORT_ROOT}/source-snapshot.json`;
@@ -557,6 +558,14 @@ function canonicalJson(value) {
   return JSON.stringify(value);
 }
 
+function baselineMatches(bundle) {
+  const normalized = structuredClone(bundle);
+  const key = (item) => `${item.gameReleaseId}\0${item.recordId}`;
+  normalized.records.sort((a, b) => key(a).localeCompare(key(b)));
+  normalized.reviewReceipts.sort((a, b) => JSON.stringify(a.target).localeCompare(JSON.stringify(b.target)));
+  return bytesSha256(Buffer.from(JSON.stringify(normalized))) === '2b4afbe94359368cd4e68112ff9cf626d1f520aa8f57fff48baa9a0cdcc8a8e8';
+}
+
 function assertExistingDeltaMatches(candidate, delta) {
   const expectedById = new Map(delta.records.map((item) => [item.recordId, item]));
   const currentRecords = candidate.records.filter((item) => isW13Record(item.recordId));
@@ -597,7 +606,7 @@ async function loadInputs(root) {
   const [inventoryBytes, factsBytes, authoringBytes, moduleBytes] = await Promise.all([
     readFile(path.join(root, INVENTORY_PATH)),
     readFile(path.join(root, FACTS_PATH)),
-    readFile(path.join(root, AUTHORING_PATH)),
+    readAuthoringBundle(root).then((result) => result.bytes),
     readFile(fileURLToPath(import.meta.url))
   ]);
   invariant(sourceTextSha256(factsBytes.toString('utf8')) === EXPECTED_FACTS_TEXT_SHA256,
@@ -632,14 +641,13 @@ export async function buildW13LasgunP1M1Import({ root = ROOT } = {}) {
     sourceRefs: inputs.sources.refs,
     records
   };
-  const currentAuthoringSha256 = sourceTextSha256(inputs.authoringBytes.toString('utf8'));
   let candidate;
-  const existingCandidate = currentAuthoringSha256 !== EXPECTED_BASE_SHA256;
+  const existingCandidate = !baselineMatches(inputs.authoring);
   if (!existingCandidate) {
     candidate = mergeDelta(inputs.authoring, delta);
   } else {
     const baseAuthoring = withoutDelta(inputs.authoring, inputs.sources.refs, sourceSnapshot);
-    invariant(sourceTextSha256(jsonBytes(baseAuthoring).toString('utf8')) === EXPECTED_BASE_SHA256,
+    invariant(baselineMatches(baseAuthoring),
       'Refusing to apply W13 lasgun delta to an unrecognized W07 authoring candidate.');
     assertExistingDeltaMatches(inputs.authoring, delta);
     candidate = inputs.authoring;
@@ -685,11 +693,10 @@ export async function writeW13LasgunP1M1Import({ root = ROOT } = {}) {
     [GENERATED_FACTS_PATH, jsonBytes(built.facts)]
   ]);
   const destinations = [...outputs].map(([relative, bytes]) => ({ relative, targetPath: path.join(root, relative), expected: bytes }));
-  const baseAuthoringPath = path.join(root, AUTHORING_PATH);
-  const baseAuthoringBytes = await readFile(baseAuthoringPath);
+  const baseAuthoringBytes = (await readAuthoringBundle(root)).bytes;
   const parsedAuthoring = JSON.parse(baseAuthoringBytes.toString('utf8'));
   const expectedCandidate = outputs.get(AUTHORING_PATH);
-  const authoringIsBase = sourceTextSha256(jsonBytes(parsedAuthoring).toString('utf8')) === EXPECTED_BASE_SHA256;
+  const authoringIsBase = baselineMatches(parsedAuthoring);
   const authoringIsCandidate = canonicalJson(parsedAuthoring) === canonicalJson(JSON.parse(expectedCandidate.toString('utf8')));
   invariant(authoringIsBase || authoringIsCandidate,
     'Refusing to overwrite an unrelated W07 or W13 Source candidate.');
@@ -722,7 +729,7 @@ export async function writeW13LasgunP1M1Import({ root = ROOT } = {}) {
   for (const item of checked) {
     if (item.relative === AUTHORING_PATH) {
       if (authoringIsBase) {
-        await writeFile(item.targetPath, item.expected);
+        await writeAuthoringBundle(root, built.candidate);
         written = true;
       }
     } else if (item.actual === null) {

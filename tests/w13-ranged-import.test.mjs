@@ -1,3 +1,4 @@
+import { readAuthoringBundle, writeAuthoringBundle } from '../scripts/content/lib/authoring-bundle.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -47,13 +48,13 @@ async function makePortableImportRoot() {
       'The isolated writer fixture must restore the exact historical W07 authoring blob');
     const authoringPath = path.join(root, FROZEN_BASE_PATH);
     await mkdir(path.dirname(authoringPath), { recursive: true });
-    await writeFile(authoringPath, frozenBaselineBytes);
+    await writeAuthoringBundle(root, JSON.parse(frozenBaselineBytes));
     const rawSource = path.join(SOURCE_ROOT, 'content/imports/w13/raw');
     const rawTarget = path.join(root, 'content/imports/w13/raw');
     await mkdir(rawTarget, { recursive: true });
     for (const name of await readdir(rawSource)) await copyFile(path.join(rawSource, name), path.join(rawTarget, name));
-    const authoring = JSON.parse(await readFile(authoringPath, 'utf8'));
-    const baselineBytes = await readFile(authoringPath);
+    const authoring = (await readAuthoringBundle(root)).bundle;
+    const baselineBytes = frozenBaselineBytes;
     assert.equal(createHash('sha256').update(baselineBytes).digest('hex'), EXPECTED_BASE_SHA256,
       'The frozen historical Git blob must match the exact approved W07 baseline bytes');
     assert.ok(!authoring.records.some(isW13Record), 'The isolated writer root must not contain W13 records before apply');
@@ -143,10 +144,9 @@ test('UnitT12_w13-writer-applies-once-repeats-and-refuses-unrelated-authoring-ch
     assert.equal(second.idempotent, true);
     assert.deepEqual(await Promise.all(generatedPaths.map((filePath) => readFile(filePath))), firstOutputBytes);
 
-    const authoringPath = path.join(root, 'content/authoring/v2/w07-weapons.json');
-    const changedAuthoring = JSON.parse((await readFile(authoringPath, 'utf8')));
+    const changedAuthoring = (await readAuthoringBundle(root)).bundle;
     changedAuthoring.records[0].payload.unrelatedW13WriterProbe = true;
-    await writeFile(authoringPath, `${JSON.stringify(changedAuthoring, null, 2)}\n`);
+    await writeAuthoringBundle(root, changedAuthoring);
     await assert.rejects(writeW13LasgunP1M1Import({ root }), /unrecognized W07 authoring candidate|unrelated W07 or W13 Source candidate/u);
   } finally {
     await rm(root, { recursive: true, force: true });
@@ -205,9 +205,8 @@ test('UnitT15_w13-approved-candidate-is-read-only-and-preserves-receipts', async
     for (const record of records) record.reviewState = 'approved';
     approved.publicationEligible = true;
 
-    const authoringPath = path.join(root, 'content/authoring/v2/w07-weapons.json');
-    await writeFile(authoringPath, `${JSON.stringify(approved, null, 2)}\n`);
-    const bytesBeforeReadOnly = await readFile(authoringPath);
+    await writeAuthoringBundle(root, approved);
+    const bytesBeforeReadOnly = (await readAuthoringBundle(root)).bytes;
     const revalidated = await buildW13LasgunP1M1Import({ root });
     assert.equal(revalidated.existingCandidate, true);
     assert.equal(revalidated.reviewState, 'approved');
@@ -219,8 +218,8 @@ test('UnitT15_w13-approved-candidate-is-read-only-and-preserves-receipts', async
     assert.equal(written.written, true, 'Only missing generated metadata may be written for an existing approved candidate');
     assert.equal(written.idempotent, false);
     assert.equal(written.existingCandidate, true);
-    assert.deepEqual(await readFile(authoringPath), bytesBeforeReadOnly);
-    const afterWrite = JSON.parse(await readFile(authoringPath, 'utf8'));
+    assert.deepEqual((await readAuthoringBundle(root)).bytes, bytesBeforeReadOnly);
+    const afterWrite = (await readAuthoringBundle(root)).bundle;
     assert.deepEqual(afterWrite.reviewReceipts.filter((receipt) => isW13Record({ recordId: receipt.target.recordId })), syntheticReceipts);
   } finally {
     await rm(root, { recursive: true, force: true });
