@@ -887,27 +887,33 @@ test('UnitT29_w07-legacy-review-targets-resolve-and-create-synthetic-receipts', 
 test('UnitT30_w07-verified-public-code-commit-rebase-keeps-review-digest-stable', () => {
   const snapshotEntry = w07Weapons.sourceSnapshots.find((item) => item.snapshot.snapshotId === 'chainaxe-weapons-1.13.2-37-files');
   assert.ok(snapshotEntry, 'The selected W07 public-code snapshot must be present');
-  const sourceIndex = w07Weapons.sourceRefs.findIndex((item) => item.sourceKind === 'public-code'
-    && item.snapshot.snapshotId === snapshotEntry.snapshot.snapshotId);
-  assert.ok(sourceIndex >= 0, 'A public-code source must use the selected W07 snapshot');
+  let selected;
+  for (const record of w07Weapons.records) {
+    const links = record.sourceRefs.filter((link) => w07Weapons.sourceRefs.some((item) => item.sourceId === link.sourceId
+      && item.sourceKind === 'public-code' && item.snapshot.snapshotId === snapshotEntry.snapshot.snapshotId));
+    if (!links.length) continue;
+    for (const entry of record.reviewTargets) {
+      const target = { recordId: record.recordId, gameReleaseId: record.gameReleaseId, ...entry };
+      let before;
+      try { before = computeReviewDigests(w07Weapons, target); } catch { continue; }
+      for (const link of links) {
+        const sourceIndex = w07Weapons.sourceRefs.findIndex((item) => item.sourceId === link.sourceId);
+        const original = w07Weapons.sourceRefs[sourceIndex].artifactSha256;
+        try {
+          w07Weapons.sourceRefs[sourceIndex].artifactSha256 = original === 'e'.repeat(64) ? 'f'.repeat(64) : 'e'.repeat(64);
+          if (JSON.stringify(computeReviewDigests(w07Weapons, target)) !== JSON.stringify(before)) {
+            selected = { sourceIndex, target, before };
+            break;
+          }
+        } finally { w07Weapons.sourceRefs[sourceIndex].artifactSha256 = original; }
+      }
+      if (selected) break;
+    }
+    if (selected) break;
+  }
+  assert.ok(selected, 'A review target must depend on a pinned W07 source artifact');
+  const { sourceIndex, target, before } = selected;
   const source = w07Weapons.sourceRefs[sourceIndex];
-  const linkedRecord = w07Weapons.records.find((record) => record.sourceRefs.some((link) => link.sourceId === source.sourceId)
-    && record.reviewTargets.some((target) => {
-      try {
-        computeReviewDigests(w07Weapons, { recordId: record.recordId, gameReleaseId: record.gameReleaseId, ...target });
-        return true;
-      } catch { return false; }
-    }));
-  assert.ok(linkedRecord, 'A review target must directly depend on a pinned W07 source');
-  const target = linkedRecord.reviewTargets.map((entry) => ({
-    recordId: linkedRecord.recordId,
-    gameReleaseId: linkedRecord.gameReleaseId,
-    ...entry
-  })).find((entry) => {
-    try { computeReviewDigests(w07Weapons, entry); return true; } catch { return false; }
-  });
-  assert.ok(target);
-  const before = computeReviewDigests(w07Weapons, target);
   const oldCommit = source.commit;
   const rebased = structuredClone(w07Weapons);
   const nextCommit = 'd'.repeat(40);
