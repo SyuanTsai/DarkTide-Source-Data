@@ -1,0 +1,282 @@
+{
+  "records": [
+    {
+      "recordId": "darktide:blessing-variant:autogun:p2-movement-speed-on-continous-fire",
+      "kind": "blessing-variant",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-autogun-p2-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableTiers",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/formatValues/movement_speed",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+          },
+          {
+            "field": "/payload/formatValues/ammo",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+          },
+          {
+            "field": "/payload/formatValues/stacks",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "blessingRef": {
+          "recordId": "darktide:blessing:autogun:p2-movement-speed-on-continous-fire",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "weaponRefs": [
+          {
+            "recordId": "darktide:weapon:autogun:p2-m1:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:weapon:autogun:p2-m2:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:weapon:autogun:p2-m3:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "definedTiers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "obtainableTiers": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "tierValues": [
+          {
+            "tier": 1,
+            "value": {
+              "status": "known",
+              "decimal": "0.9",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 2,
+            "value": {
+              "status": "known",
+              "decimal": "0.85",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 3,
+            "value": {
+              "status": "known",
+              "decimal": "0.8",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 4,
+            "value": {
+              "status": "known",
+              "decimal": "0.75",
+              "unit": "ratio"
+            }
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/blessingRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/weaponRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/definedTiers",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/obtainableTiers",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/tierValues",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:blessing:autogun:p2-movement-speed-on-continous-fire",
+      "kind": "blessing",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-autogun-p2-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/nameKey",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "nameKey": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "variantRefs": [
+          {
+            "recordId": "darktide:blessing-variant:autogun:p2-movement-speed-on-continous-fire",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/nameKey",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/variantRefs",
+          "dimension": "evidence"
+        }
+      ]
+    }
+  ],
+  "reviewReceipts": [
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:autogun:p2-movement-speed-on-continous-fire",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/blessingRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "615688afa33186e941860eba7ec607babaa9a4919bda1b526c96b1ee603cf704",
+      "dependenciesDigest": "f941463b01ef50891e26305152707b1df00d8701c62b5e847f132c2d86fac7be",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:autogun:p2-movement-speed-on-continous-fire",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/definedTiers",
+        "dimension": "technical"
+      },
+      "targetDigest": "f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f",
+      "dependenciesDigest": "f941463b01ef50891e26305152707b1df00d8701c62b5e847f132c2d86fac7be",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:autogun:p2-movement-speed-on-continous-fire",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableTiers",
+        "dimension": "context"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "f941463b01ef50891e26305152707b1df00d8701c62b5e847f132c2d86fac7be",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:autogun:p2-movement-speed-on-continous-fire",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/tierValues",
+        "dimension": "technical"
+      },
+      "targetDigest": "9eee7f07e66bd65fa18d394663f6f663c8aba78cd5a8659ed37d0abc46e288b9",
+      "dependenciesDigest": "f941463b01ef50891e26305152707b1df00d8701c62b5e847f132c2d86fac7be",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:autogun:p2-movement-speed-on-continous-fire",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/weaponRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "15faab812cccddf6122910fe65d338b4a1e6c7576691784d8b16ebb3b66a8163",
+      "dependenciesDigest": "f941463b01ef50891e26305152707b1df00d8701c62b5e847f132c2d86fac7be",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:autogun:p2-movement-speed-on-continous-fire",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/nameKey",
+        "dimension": "identity"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "dfbcc0d60910365da46116681601221a918fb639fdffe6c35c9321e39a15d01f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:autogun:p2-movement-speed-on-continous-fire",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/variantRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "53396c43342309420a826bd7c12778e58a4595bb9310b3269292dfe069271f5d",
+      "dependenciesDigest": "dfbcc0d60910365da46116681601221a918fb639fdffe6c35c9321e39a15d01f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    }
+  ]
+}

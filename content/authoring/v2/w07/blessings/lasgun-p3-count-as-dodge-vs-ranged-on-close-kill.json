@@ -1,0 +1,922 @@
+{
+  "records": [
+    {
+      "recordId": "darktide:blessing-variant:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+      "kind": "blessing-variant",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p3-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableTiers",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/weaponRefs",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "blessingRef": {
+          "recordId": "darktide:blessing:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "weaponRefs": [],
+        "definedTiers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "obtainableTiers": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "tierValues": [
+          {
+            "tier": 1,
+            "value": {
+              "status": "known",
+              "decimal": "0.7",
+              "unit": "point"
+            }
+          },
+          {
+            "tier": 2,
+            "value": {
+              "status": "known",
+              "decimal": "0.8",
+              "unit": "point"
+            }
+          },
+          {
+            "tier": 3,
+            "value": {
+              "status": "known",
+              "decimal": "0.9",
+              "unit": "point"
+            }
+          },
+          {
+            "tier": 4,
+            "value": {
+              "status": "known",
+              "decimal": "1",
+              "unit": "point"
+            }
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/blessingRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/weaponRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/definedTiers",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/obtainableTiers",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/tierValues",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:blessing:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+      "kind": "blessing",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p3-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/nameKey",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "nameKey": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "variantRefs": [
+          {
+            "recordId": "darktide:blessing-variant:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "claimRefs": [
+          {
+            "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier1-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier2-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier3-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier4-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/nameKey",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/variantRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/claimRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier1-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p3-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.defined_tier_1_display_value",
+        "value": {
+          "status": "known",
+          "decimal": "0.7",
+          "unit": "s"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier2-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p3-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.defined_tier_2_display_value",
+        "value": {
+          "status": "known",
+          "decimal": "0.8",
+          "unit": "s"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier3-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p3-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.defined_tier_3_display_value",
+        "value": {
+          "status": "known",
+          "decimal": "0.9",
+          "unit": "s"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier4-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p3-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.defined_tier_4_display_value",
+        "value": {
+          "status": "known",
+          "decimal": "1",
+          "unit": "s"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-display-value-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p3-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_lasgun_p3.lua, scripts/utilities/trait_value_parser.lua resolve trait_override format value time at active_duration; defined tier literals are tier 1=0.7, tier 2=0.8, tier 3=0.9, tier 4=1."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    }
+  ],
+  "reviewReceipts": [
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/blessingRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "dc8f2c81481770634df3e2592a0391e6dac29d6154bfc1eb9bd9f42acb76bb8e",
+      "dependenciesDigest": "ca15477044ece71bec66206d461ad94b6d0316d75790e46ed4338058fe00a7ea",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/definedTiers",
+        "dimension": "technical"
+      },
+      "targetDigest": "f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f",
+      "dependenciesDigest": "ca15477044ece71bec66206d461ad94b6d0316d75790e46ed4338058fe00a7ea",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableTiers",
+        "dimension": "context"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "ca15477044ece71bec66206d461ad94b6d0316d75790e46ed4338058fe00a7ea",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/tierValues",
+        "dimension": "technical"
+      },
+      "targetDigest": "a2f19eae59fee04b503f9a57b6692c7b1cf35a5630d26b160a3f07f19815247b",
+      "dependenciesDigest": "ca15477044ece71bec66206d461ad94b6d0316d75790e46ed4338058fe00a7ea",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/weaponRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "dependenciesDigest": "ca15477044ece71bec66206d461ad94b6d0316d75790e46ed4338058fe00a7ea",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/claimRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "c27bf9f8f8a8227146d7e4a6a30b600b413f6a3d87af8fa504b6dcc163c59566",
+      "dependenciesDigest": "67b8f1e5109787c5be18ba69409d2e513f08ca1b59c3cd46e41fed7794680fec",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/nameKey",
+        "dimension": "identity"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "67b8f1e5109787c5be18ba69409d2e513f08ca1b59c3cd46e41fed7794680fec",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/variantRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "858e51030b5a39e27ebccf57e79ebd2d3ee3261c50fd68fd0f073df028c165f4",
+      "dependenciesDigest": "67b8f1e5109787c5be18ba69409d2e513f08ca1b59c3cd46e41fed7794680fec",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "7c5bac0ef7ebf9470c1ef477893ff823a3d17eb8e23a1532699729d130e9b90f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "7c5bac0ef7ebf9470c1ef477893ff823a3d17eb8e23a1532699729d130e9b90f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "4b25ddcc8874939411ded0d2ac2000e5ff43fa84abf62b660fcea64f36506bfa",
+      "dependenciesDigest": "7c5bac0ef7ebf9470c1ef477893ff823a3d17eb8e23a1532699729d130e9b90f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "e938ec85f918114f2324e5b9675d5c3148ea094fae8309c52e9962852a166f95",
+      "dependenciesDigest": "7c5bac0ef7ebf9470c1ef477893ff823a3d17eb8e23a1532699729d130e9b90f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "235ec28a733405df3a0dc93de792f55b8018d6fc3a32ee4f8ca23ca5c69bd6f7",
+      "dependenciesDigest": "7c5bac0ef7ebf9470c1ef477893ff823a3d17eb8e23a1532699729d130e9b90f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "0a3f6b9b3b5f2e679169986ab4b88695496784fc6090b505f1a55c46f61262c7",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "0a3f6b9b3b5f2e679169986ab4b88695496784fc6090b505f1a55c46f61262c7",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "4b25ddcc8874939411ded0d2ac2000e5ff43fa84abf62b660fcea64f36506bfa",
+      "dependenciesDigest": "0a3f6b9b3b5f2e679169986ab4b88695496784fc6090b505f1a55c46f61262c7",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "e938ec85f918114f2324e5b9675d5c3148ea094fae8309c52e9962852a166f95",
+      "dependenciesDigest": "0a3f6b9b3b5f2e679169986ab4b88695496784fc6090b505f1a55c46f61262c7",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "13aa6f12a95319361bb2a99045fcff894ac20db1da410b4f0fdebffc7393aa15",
+      "dependenciesDigest": "0a3f6b9b3b5f2e679169986ab4b88695496784fc6090b505f1a55c46f61262c7",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "83e52ab150690b7b52a5288bbddfe823b9b6b8a69387cde4a14e8c28de6f0d87",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "83e52ab150690b7b52a5288bbddfe823b9b6b8a69387cde4a14e8c28de6f0d87",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "4b25ddcc8874939411ded0d2ac2000e5ff43fa84abf62b660fcea64f36506bfa",
+      "dependenciesDigest": "83e52ab150690b7b52a5288bbddfe823b9b6b8a69387cde4a14e8c28de6f0d87",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "e938ec85f918114f2324e5b9675d5c3148ea094fae8309c52e9962852a166f95",
+      "dependenciesDigest": "83e52ab150690b7b52a5288bbddfe823b9b6b8a69387cde4a14e8c28de6f0d87",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "25db882db724c32345af3279565ec12d541a8660295799c21b242930540ab6b3",
+      "dependenciesDigest": "83e52ab150690b7b52a5288bbddfe823b9b6b8a69387cde4a14e8c28de6f0d87",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "03ef5ab6b8c5dc4d6fc593df9c95f9fce712b8942de04b5ca03c5a503cf1806f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "03ef5ab6b8c5dc4d6fc593df9c95f9fce712b8942de04b5ca03c5a503cf1806f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "4b25ddcc8874939411ded0d2ac2000e5ff43fa84abf62b660fcea64f36506bfa",
+      "dependenciesDigest": "03ef5ab6b8c5dc4d6fc593df9c95f9fce712b8942de04b5ca03c5a503cf1806f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "e938ec85f918114f2324e5b9675d5c3148ea094fae8309c52e9962852a166f95",
+      "dependenciesDigest": "03ef5ab6b8c5dc4d6fc593df9c95f9fce712b8942de04b5ca03c5a503cf1806f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "a0857678f00408c5853d45915ea5fc78c2e0d63b94d85c10feba70a4ab03bb62",
+      "dependenciesDigest": "03ef5ab6b8c5dc4d6fc593df9c95f9fce712b8942de04b5ca03c5a503cf1806f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:evidence:lasgun:p3-count-as-dodge-vs-ranged-on-close-kill-time-display-value-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "8ac66f3951b5aacc249eb561bf5c2bdcff03be5992b05851337c6622909666b7",
+      "dependenciesDigest": "5d9a56ec3739c9ec2b8dbea4f69d4e5bf9badfbfd3532f9b02a200df8cadf7fa",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    }
+  ]
+}

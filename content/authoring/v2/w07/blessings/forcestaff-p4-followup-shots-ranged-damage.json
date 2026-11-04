@@ -1,0 +1,922 @@
+{
+  "records": [
+    {
+      "recordId": "darktide:blessing-variant:forcestaff:p4-followup-shots-ranged-damage",
+      "kind": "blessing-variant",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcestaff-p4-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableTiers",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/weaponRefs",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "blessingRef": {
+          "recordId": "darktide:blessing:forcestaff:p4-followup-shots-ranged-damage",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "weaponRefs": [],
+        "definedTiers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "obtainableTiers": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "tierValues": [
+          {
+            "tier": 1,
+            "value": {
+              "status": "known",
+              "decimal": "0.14",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 2,
+            "value": {
+              "status": "known",
+              "decimal": "0.16",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 3,
+            "value": {
+              "status": "known",
+              "decimal": "0.18",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 4,
+            "value": {
+              "status": "known",
+              "decimal": "0.2",
+              "unit": "ratio"
+            }
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/blessingRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/weaponRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/definedTiers",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/obtainableTiers",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/tierValues",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:blessing:forcestaff:p4-followup-shots-ranged-damage",
+      "kind": "blessing",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcestaff-p4-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/nameKey",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "nameKey": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "variantRefs": [
+          {
+            "recordId": "darktide:blessing-variant:forcestaff:p4-followup-shots-ranged-damage",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "claimRefs": [
+          {
+            "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier1-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier2-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier3-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier4-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/nameKey",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/variantRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/claimRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier1-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcestaff-p4-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:forcestaff:p4-followup-shots-ranged-damage",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.damage.defined_tier_1_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "14",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:forcestaff:p4-followup-shots-ranged-damage-damage-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier2-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcestaff-p4-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:forcestaff:p4-followup-shots-ranged-damage",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.damage.defined_tier_2_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "16",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:forcestaff:p4-followup-shots-ranged-damage-damage-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier3-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcestaff-p4-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:forcestaff:p4-followup-shots-ranged-damage",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.damage.defined_tier_3_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "18",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:forcestaff:p4-followup-shots-ranged-damage-damage-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier4-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcestaff-p4-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:forcestaff:p4-followup-shots-ranged-damage",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.damage.defined_tier_4_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "20",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:forcestaff:p4-followup-shots-ranged-damage-damage-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:forcestaff:p4-followup-shots-ranged-damage-damage-display-percent-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcestaff-p4-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_forcestaff_p4.lua, scripts/utilities/trait_value_parser.lua resolve trait_override format value damage at conditional_stat_buffs.stat_buffs.ranged_damage; defined tier literals are tier 1=0.14, tier 2=0.16, tier 3=0.18, tier 4=0.2."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    }
+  ],
+  "reviewReceipts": [
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:forcestaff:p4-followup-shots-ranged-damage",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/blessingRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "38c9dd5a37436ad3d64b8810e3cdc6d7a9968edc2552fcff7b2b9ba8421db3b3",
+      "dependenciesDigest": "5296977a555d68fa9838184c8ddfa7fa8b441cfbf9351e122d320509c0861eb6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:forcestaff:p4-followup-shots-ranged-damage",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/definedTiers",
+        "dimension": "technical"
+      },
+      "targetDigest": "f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f",
+      "dependenciesDigest": "5296977a555d68fa9838184c8ddfa7fa8b441cfbf9351e122d320509c0861eb6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:forcestaff:p4-followup-shots-ranged-damage",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableTiers",
+        "dimension": "context"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "5296977a555d68fa9838184c8ddfa7fa8b441cfbf9351e122d320509c0861eb6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:forcestaff:p4-followup-shots-ranged-damage",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/tierValues",
+        "dimension": "technical"
+      },
+      "targetDigest": "258061b6f8798dc0addf8c49258eed7c20538060a897d11529a9f7882083c14c",
+      "dependenciesDigest": "5296977a555d68fa9838184c8ddfa7fa8b441cfbf9351e122d320509c0861eb6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:forcestaff:p4-followup-shots-ranged-damage",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/weaponRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "dependenciesDigest": "5296977a555d68fa9838184c8ddfa7fa8b441cfbf9351e122d320509c0861eb6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:forcestaff:p4-followup-shots-ranged-damage",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/claimRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "11a7f9a7250cde51ffc2ca58df420808e911bcf828ac0c48a26084c70c8952ad",
+      "dependenciesDigest": "3fcaea5a5e1acca21e45c5c49a18d356a3938a9642906d6db6f758f133988da7",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:forcestaff:p4-followup-shots-ranged-damage",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/nameKey",
+        "dimension": "identity"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "3fcaea5a5e1acca21e45c5c49a18d356a3938a9642906d6db6f758f133988da7",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:forcestaff:p4-followup-shots-ranged-damage",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/variantRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "2503887c8c0b544258fb912db89f4e795697557478dea1f5838611c93b3b114e",
+      "dependenciesDigest": "3fcaea5a5e1acca21e45c5c49a18d356a3938a9642906d6db6f758f133988da7",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "9ef0e5de27b7d43bd1bf8af2fb5bc5393d65b9a8831af2d1fe94ef121ef1314f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "9ef0e5de27b7d43bd1bf8af2fb5bc5393d65b9a8831af2d1fe94ef121ef1314f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "e0f05785af43937530f0349e5b4dfaf4b64901ca561d1f6548e84e72e9a1c7cd",
+      "dependenciesDigest": "9ef0e5de27b7d43bd1bf8af2fb5bc5393d65b9a8831af2d1fe94ef121ef1314f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "2e00bfa8ed3d619331c5f54b8e6d4a6b30f4f0d15f7b389965b7be34c1c4c3e5",
+      "dependenciesDigest": "9ef0e5de27b7d43bd1bf8af2fb5bc5393d65b9a8831af2d1fe94ef121ef1314f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "55e17fee047cdde990efba6208b55b264fd8c7bde6ccac0897de1a76da052039",
+      "dependenciesDigest": "9ef0e5de27b7d43bd1bf8af2fb5bc5393d65b9a8831af2d1fe94ef121ef1314f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "2ddeb4f916a7a29f6358d8cbbcf0afef1a375a7a82ec5a263c72a451249b0a61",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "2ddeb4f916a7a29f6358d8cbbcf0afef1a375a7a82ec5a263c72a451249b0a61",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "e0f05785af43937530f0349e5b4dfaf4b64901ca561d1f6548e84e72e9a1c7cd",
+      "dependenciesDigest": "2ddeb4f916a7a29f6358d8cbbcf0afef1a375a7a82ec5a263c72a451249b0a61",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "2e00bfa8ed3d619331c5f54b8e6d4a6b30f4f0d15f7b389965b7be34c1c4c3e5",
+      "dependenciesDigest": "2ddeb4f916a7a29f6358d8cbbcf0afef1a375a7a82ec5a263c72a451249b0a61",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "fd58fba94a25690fa07901402c861a83b853a3b0c4a44ea476747f80cc281cd1",
+      "dependenciesDigest": "2ddeb4f916a7a29f6358d8cbbcf0afef1a375a7a82ec5a263c72a451249b0a61",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "1c4466c27394858e2c61671c7d3ee90a7db339c6ba5352ee88d12fb3f835b565",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "1c4466c27394858e2c61671c7d3ee90a7db339c6ba5352ee88d12fb3f835b565",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "e0f05785af43937530f0349e5b4dfaf4b64901ca561d1f6548e84e72e9a1c7cd",
+      "dependenciesDigest": "1c4466c27394858e2c61671c7d3ee90a7db339c6ba5352ee88d12fb3f835b565",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "2e00bfa8ed3d619331c5f54b8e6d4a6b30f4f0d15f7b389965b7be34c1c4c3e5",
+      "dependenciesDigest": "1c4466c27394858e2c61671c7d3ee90a7db339c6ba5352ee88d12fb3f835b565",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "3b913c325fe7046448f8976698f8612630ee059cc10f84bce81c9d4f942cfedc",
+      "dependenciesDigest": "1c4466c27394858e2c61671c7d3ee90a7db339c6ba5352ee88d12fb3f835b565",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "0c9254dc42b7394ef6828a4d7a06326ae2902307f07ecc2d01ded5cd29414775",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "0c9254dc42b7394ef6828a4d7a06326ae2902307f07ecc2d01ded5cd29414775",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "e0f05785af43937530f0349e5b4dfaf4b64901ca561d1f6548e84e72e9a1c7cd",
+      "dependenciesDigest": "0c9254dc42b7394ef6828a4d7a06326ae2902307f07ecc2d01ded5cd29414775",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "2e00bfa8ed3d619331c5f54b8e6d4a6b30f4f0d15f7b389965b7be34c1c4c3e5",
+      "dependenciesDigest": "0c9254dc42b7394ef6828a4d7a06326ae2902307f07ecc2d01ded5cd29414775",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcestaff:p4-followup-shots-ranged-damage-damage-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "de57b6ee77e6c9eab34864c1a63d24aa6892775a5e9c6cdea7df1becf4313026",
+      "dependenciesDigest": "0c9254dc42b7394ef6828a4d7a06326ae2902307f07ecc2d01ded5cd29414775",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:evidence:forcestaff:p4-followup-shots-ranged-damage-damage-display-percent-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "6463beed96ffc71b7c1381490b976f3aac0e85241f0fa114e9480486e7c8eb52",
+      "dependenciesDigest": "6812c0d6c8e862f06b2c82bf2a4d442d5c7a5ec604d76691eb3ac71a8396033d",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    }
+  ]
+}

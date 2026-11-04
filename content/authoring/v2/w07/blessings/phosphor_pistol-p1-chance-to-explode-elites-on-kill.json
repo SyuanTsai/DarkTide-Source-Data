@@ -1,0 +1,922 @@
+{
+  "records": [
+    {
+      "recordId": "darktide:blessing-variant:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+      "kind": "blessing-variant",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-phosphor-pistol-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableTiers",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/weaponRefs",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "blessingRef": {
+          "recordId": "darktide:blessing:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "weaponRefs": [],
+        "definedTiers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "obtainableTiers": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "tierValues": [
+          {
+            "tier": 1,
+            "value": {
+              "status": "known",
+              "decimal": "0.14",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 2,
+            "value": {
+              "status": "known",
+              "decimal": "0.16",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 3,
+            "value": {
+              "status": "known",
+              "decimal": "0.18",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 4,
+            "value": {
+              "status": "known",
+              "decimal": "0.2",
+              "unit": "ratio"
+            }
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/blessingRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/weaponRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/definedTiers",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/obtainableTiers",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/tierValues",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:blessing:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+      "kind": "blessing",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-phosphor-pistol-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/nameKey",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "nameKey": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "variantRefs": [
+          {
+            "recordId": "darktide:blessing-variant:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "claimRefs": [
+          {
+            "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier1-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier2-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier3-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier4-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/nameKey",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/variantRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/claimRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier1-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-phosphor-pistol-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.proc_chance.defined_tier_1_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "14",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier2-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-phosphor-pistol-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.proc_chance.defined_tier_2_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "16",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier3-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-phosphor-pistol-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.proc_chance.defined_tier_3_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "18",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier4-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-phosphor-pistol-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.proc_chance.defined_tier_4_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "20",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-display-percent-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-phosphor-pistol-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_phosphor_pistol_p1.lua, scripts/utilities/trait_value_parser.lua resolve trait_override format value proc_chance at proc_events.proc_events.on_kill; defined tier literals are tier 1=0.14, tier 2=0.16, tier 3=0.18, tier 4=0.2."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    }
+  ],
+  "reviewReceipts": [
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/blessingRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "36bf4f9f61cb1853e4f3544c61114ee3d5901e09508b29e9d0e23728a6887c2b",
+      "dependenciesDigest": "df9c9ef388e28477352231fe2e25c59bc539d8960fe57bb1f52ee0a9be771c94",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/definedTiers",
+        "dimension": "technical"
+      },
+      "targetDigest": "f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f",
+      "dependenciesDigest": "df9c9ef388e28477352231fe2e25c59bc539d8960fe57bb1f52ee0a9be771c94",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableTiers",
+        "dimension": "context"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "df9c9ef388e28477352231fe2e25c59bc539d8960fe57bb1f52ee0a9be771c94",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/tierValues",
+        "dimension": "technical"
+      },
+      "targetDigest": "258061b6f8798dc0addf8c49258eed7c20538060a897d11529a9f7882083c14c",
+      "dependenciesDigest": "df9c9ef388e28477352231fe2e25c59bc539d8960fe57bb1f52ee0a9be771c94",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/weaponRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "dependenciesDigest": "df9c9ef388e28477352231fe2e25c59bc539d8960fe57bb1f52ee0a9be771c94",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/claimRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "6ebc6629eb00c6ed0deeced34836749a544812a3cc08f7de112c542416d94c0f",
+      "dependenciesDigest": "5ce84c1fe53af0f9ecd9e0516b5539ba3cca0be4c21cc3578c520e386bf67add",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/nameKey",
+        "dimension": "identity"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "5ce84c1fe53af0f9ecd9e0516b5539ba3cca0be4c21cc3578c520e386bf67add",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:phosphor_pistol:p1-chance-to-explode-elites-on-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/variantRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "45e135c8cf454e6a90148fd2ed313af1f27736aedc39689f0f3d94a88e113d38",
+      "dependenciesDigest": "5ce84c1fe53af0f9ecd9e0516b5539ba3cca0be4c21cc3578c520e386bf67add",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "479ec61773c7b58c05adc7f303a6ea2728c08c4146b618f440ed632f1137cbd4",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "479ec61773c7b58c05adc7f303a6ea2728c08c4146b618f440ed632f1137cbd4",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "08f3f412db49150c9fd585ae5ed347ddc10dd0e205c7be9cc1ce095732067f66",
+      "dependenciesDigest": "479ec61773c7b58c05adc7f303a6ea2728c08c4146b618f440ed632f1137cbd4",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "c76db6220520db6e20440356a3ac8c9a02b0190d95322970b84c7d2880f9a23a",
+      "dependenciesDigest": "479ec61773c7b58c05adc7f303a6ea2728c08c4146b618f440ed632f1137cbd4",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "55e17fee047cdde990efba6208b55b264fd8c7bde6ccac0897de1a76da052039",
+      "dependenciesDigest": "479ec61773c7b58c05adc7f303a6ea2728c08c4146b618f440ed632f1137cbd4",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "cb6a35083cfb7d281fa5937ba965e7d3017f646cc2b4320db97cfe0fdc9cda55",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "cb6a35083cfb7d281fa5937ba965e7d3017f646cc2b4320db97cfe0fdc9cda55",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "08f3f412db49150c9fd585ae5ed347ddc10dd0e205c7be9cc1ce095732067f66",
+      "dependenciesDigest": "cb6a35083cfb7d281fa5937ba965e7d3017f646cc2b4320db97cfe0fdc9cda55",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "c76db6220520db6e20440356a3ac8c9a02b0190d95322970b84c7d2880f9a23a",
+      "dependenciesDigest": "cb6a35083cfb7d281fa5937ba965e7d3017f646cc2b4320db97cfe0fdc9cda55",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "fd58fba94a25690fa07901402c861a83b853a3b0c4a44ea476747f80cc281cd1",
+      "dependenciesDigest": "cb6a35083cfb7d281fa5937ba965e7d3017f646cc2b4320db97cfe0fdc9cda55",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "686b9a46c422abab6f7f3794ab154a248b2a17c0be3ae58fce34352459516c6f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "686b9a46c422abab6f7f3794ab154a248b2a17c0be3ae58fce34352459516c6f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "08f3f412db49150c9fd585ae5ed347ddc10dd0e205c7be9cc1ce095732067f66",
+      "dependenciesDigest": "686b9a46c422abab6f7f3794ab154a248b2a17c0be3ae58fce34352459516c6f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "c76db6220520db6e20440356a3ac8c9a02b0190d95322970b84c7d2880f9a23a",
+      "dependenciesDigest": "686b9a46c422abab6f7f3794ab154a248b2a17c0be3ae58fce34352459516c6f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "3b913c325fe7046448f8976698f8612630ee059cc10f84bce81c9d4f942cfedc",
+      "dependenciesDigest": "686b9a46c422abab6f7f3794ab154a248b2a17c0be3ae58fce34352459516c6f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "88828c2f8b9b33fd185815b1351589009bc0579b26d8167cb9cc475cd28d946f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "88828c2f8b9b33fd185815b1351589009bc0579b26d8167cb9cc475cd28d946f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "08f3f412db49150c9fd585ae5ed347ddc10dd0e205c7be9cc1ce095732067f66",
+      "dependenciesDigest": "88828c2f8b9b33fd185815b1351589009bc0579b26d8167cb9cc475cd28d946f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "c76db6220520db6e20440356a3ac8c9a02b0190d95322970b84c7d2880f9a23a",
+      "dependenciesDigest": "88828c2f8b9b33fd185815b1351589009bc0579b26d8167cb9cc475cd28d946f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "de57b6ee77e6c9eab34864c1a63d24aa6892775a5e9c6cdea7df1becf4313026",
+      "dependenciesDigest": "88828c2f8b9b33fd185815b1351589009bc0579b26d8167cb9cc475cd28d946f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:evidence:phosphor_pistol:p1-chance-to-explode-elites-on-kill-proc-chance-display-percent-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "c1c1a12e9af94ed633c803dc72e8dfc4cd959e4a099ea45b196140961f288781",
+      "dependenciesDigest": "fe9131d88f4adf80ecbc9ab50320771f51f5e407f5de7f9240e799f0bc876cff",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    }
+  ]
+}

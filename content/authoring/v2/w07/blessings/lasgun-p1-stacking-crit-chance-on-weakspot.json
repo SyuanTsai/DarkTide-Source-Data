@@ -1,0 +1,1125 @@
+{
+  "records": [
+    {
+      "recordId": "darktide:blessing-variant:lasgun:p1-stacking-crit-chance-on-weakspot",
+      "kind": "blessing-variant",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableTiers",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/weaponRefs/unmapped-source-templates",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "blessingRef": {
+          "recordId": "darktide:blessing:lasgun:p1-stacking-crit-chance-on-weakspot",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "weaponRefs": [
+          {
+            "recordId": "darktide:weapon:lasgun:p1-m1",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "definedTiers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "obtainableTiers": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "tierValues": [
+          {
+            "tier": 1,
+            "value": {
+              "status": "known",
+              "decimal": "0.14",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 2,
+            "value": {
+              "status": "known",
+              "decimal": "0.16",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 3,
+            "value": {
+              "status": "known",
+              "decimal": "0.18",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 4,
+            "value": {
+              "status": "known",
+              "decimal": "0.2",
+              "unit": "ratio"
+            }
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/blessingRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/weaponRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/definedTiers",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/obtainableTiers",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/tierValues",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:blessing:lasgun:p1-stacking-crit-chance-on-weakspot",
+      "kind": "blessing",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/nameKey",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "nameKey": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "variantRefs": [
+          {
+            "recordId": "darktide:blessing-variant:lasgun:p1-stacking-crit-chance-on-weakspot",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "claimRefs": [
+          {
+            "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier1-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier2-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier3-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier4-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-stacks-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/nameKey",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/variantRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/claimRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier1-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p1-stacking-crit-chance-on-weakspot",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.crit_chance.defined_tier_1_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "14",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier2-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p1-stacking-crit-chance-on-weakspot",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.crit_chance.defined_tier_2_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "16",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier3-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p1-stacking-crit-chance-on-weakspot",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.crit_chance.defined_tier_3_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "18",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier4-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p1-stacking-crit-chance-on-weakspot",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.crit_chance.defined_tier_4_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "20",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-stacks-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p1-stacking-crit-chance-on-weakspot",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.stacks.display_value",
+        "value": {
+          "status": "known",
+          "decimal": "5",
+          "unit": "point"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p1-stacking-crit-chance-on-weakspot-stacks-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-display-percent-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_lasgun_p1.lua, scripts/utilities/trait_value_parser.lua resolve trait_override format value crit_chance at stat_buffs.stat_buffs.critical_strike_chance; defined tier literals are tier 1=0.14, tier 2=0.16, tier 3=0.18, tier 4=0.2."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:lasgun:p1-stacking-crit-chance-on-weakspot-stacks-display-value-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_lasgun_p1.lua, scripts/utilities/trait_value_parser.lua resolve trait_override format value stacks at max_stacks; defined tier literals are tier 1=5, tier 2=5, tier 3=5, tier 4=5."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    }
+  ],
+  "reviewReceipts": [
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p1-stacking-crit-chance-on-weakspot",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/blessingRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "41d56525dba6a8f709ca076dc78ef0dcb2a2045ea70791761990ce29b36b9c20",
+      "dependenciesDigest": "15627d1d8e65fc08656128eb711c5e5a0f197d071b00112c16708e98832c9ba3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p1-stacking-crit-chance-on-weakspot",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/definedTiers",
+        "dimension": "technical"
+      },
+      "targetDigest": "f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f",
+      "dependenciesDigest": "15627d1d8e65fc08656128eb711c5e5a0f197d071b00112c16708e98832c9ba3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p1-stacking-crit-chance-on-weakspot",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableTiers",
+        "dimension": "context"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "15627d1d8e65fc08656128eb711c5e5a0f197d071b00112c16708e98832c9ba3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p1-stacking-crit-chance-on-weakspot",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/tierValues",
+        "dimension": "technical"
+      },
+      "targetDigest": "258061b6f8798dc0addf8c49258eed7c20538060a897d11529a9f7882083c14c",
+      "dependenciesDigest": "15627d1d8e65fc08656128eb711c5e5a0f197d071b00112c16708e98832c9ba3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p1-stacking-crit-chance-on-weakspot",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/weaponRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "442889be63a2a9da259d8411e585a338ae0f42f6a672d6d757476430df29c7a8",
+      "dependenciesDigest": "15627d1d8e65fc08656128eb711c5e5a0f197d071b00112c16708e98832c9ba3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:lasgun:p1-stacking-crit-chance-on-weakspot",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/claimRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "b9d8f6087dc7f15a750b60c69eb09499b049b515f640f8c5cc908bd2c7fea8ef",
+      "dependenciesDigest": "452e4a272bb2fe60424e02614d77a798035fdf9a46957437541ed09f0016fd06",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:lasgun:p1-stacking-crit-chance-on-weakspot",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/nameKey",
+        "dimension": "identity"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "452e4a272bb2fe60424e02614d77a798035fdf9a46957437541ed09f0016fd06",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:lasgun:p1-stacking-crit-chance-on-weakspot",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/variantRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "1161cae4c755d257e47dbc3df23492fd3fd2a068cf3668fff150b63a14767337",
+      "dependenciesDigest": "452e4a272bb2fe60424e02614d77a798035fdf9a46957437541ed09f0016fd06",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "0a0406dcb928daf3ed0dbc1854b03ac05d9d88d916a62375f1ec66cf7a5d54e1",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "0a0406dcb928daf3ed0dbc1854b03ac05d9d88d916a62375f1ec66cf7a5d54e1",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ba890330f3e2e5cf1f480f14750f7a75239aa48e2c32c39111584a08ed3523b8",
+      "dependenciesDigest": "0a0406dcb928daf3ed0dbc1854b03ac05d9d88d916a62375f1ec66cf7a5d54e1",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "70ec379d462ec879936f108de1b50be1fafb8c30f5256f5ce50d5585f37252b7",
+      "dependenciesDigest": "0a0406dcb928daf3ed0dbc1854b03ac05d9d88d916a62375f1ec66cf7a5d54e1",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "55e17fee047cdde990efba6208b55b264fd8c7bde6ccac0897de1a76da052039",
+      "dependenciesDigest": "0a0406dcb928daf3ed0dbc1854b03ac05d9d88d916a62375f1ec66cf7a5d54e1",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "4e80b8534d1e4676ba61228ba46b31fac563bd464aa4eb16e7b960b39997dc56",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "4e80b8534d1e4676ba61228ba46b31fac563bd464aa4eb16e7b960b39997dc56",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ba890330f3e2e5cf1f480f14750f7a75239aa48e2c32c39111584a08ed3523b8",
+      "dependenciesDigest": "4e80b8534d1e4676ba61228ba46b31fac563bd464aa4eb16e7b960b39997dc56",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "70ec379d462ec879936f108de1b50be1fafb8c30f5256f5ce50d5585f37252b7",
+      "dependenciesDigest": "4e80b8534d1e4676ba61228ba46b31fac563bd464aa4eb16e7b960b39997dc56",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "fd58fba94a25690fa07901402c861a83b853a3b0c4a44ea476747f80cc281cd1",
+      "dependenciesDigest": "4e80b8534d1e4676ba61228ba46b31fac563bd464aa4eb16e7b960b39997dc56",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "3f34acba73559bc069f24213203e0d3883eddacaf516c0667a155ad23c57cab3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "3f34acba73559bc069f24213203e0d3883eddacaf516c0667a155ad23c57cab3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ba890330f3e2e5cf1f480f14750f7a75239aa48e2c32c39111584a08ed3523b8",
+      "dependenciesDigest": "3f34acba73559bc069f24213203e0d3883eddacaf516c0667a155ad23c57cab3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "70ec379d462ec879936f108de1b50be1fafb8c30f5256f5ce50d5585f37252b7",
+      "dependenciesDigest": "3f34acba73559bc069f24213203e0d3883eddacaf516c0667a155ad23c57cab3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "3b913c325fe7046448f8976698f8612630ee059cc10f84bce81c9d4f942cfedc",
+      "dependenciesDigest": "3f34acba73559bc069f24213203e0d3883eddacaf516c0667a155ad23c57cab3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "1f98b4039e0fecc24ca8b7f8becd1cb20611bb02ff3e277a8a4da4f07870ee61",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "1f98b4039e0fecc24ca8b7f8becd1cb20611bb02ff3e277a8a4da4f07870ee61",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ba890330f3e2e5cf1f480f14750f7a75239aa48e2c32c39111584a08ed3523b8",
+      "dependenciesDigest": "1f98b4039e0fecc24ca8b7f8becd1cb20611bb02ff3e277a8a4da4f07870ee61",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "70ec379d462ec879936f108de1b50be1fafb8c30f5256f5ce50d5585f37252b7",
+      "dependenciesDigest": "1f98b4039e0fecc24ca8b7f8becd1cb20611bb02ff3e277a8a4da4f07870ee61",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "de57b6ee77e6c9eab34864c1a63d24aa6892775a5e9c6cdea7df1becf4313026",
+      "dependenciesDigest": "1f98b4039e0fecc24ca8b7f8becd1cb20611bb02ff3e277a8a4da4f07870ee61",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-stacks-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "55f31f34b003027f3130aaa6759c4dd605e143b23bb6fb7ee1f71409b5317be5",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-stacks-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "55f31f34b003027f3130aaa6759c4dd605e143b23bb6fb7ee1f71409b5317be5",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-stacks-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "585c7c1b0551103aa3939bdbbc04978271e0beeabfb3e0a23d18aed300f59b69",
+      "dependenciesDigest": "55f31f34b003027f3130aaa6759c4dd605e143b23bb6fb7ee1f71409b5317be5",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-stacks-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "70ec379d462ec879936f108de1b50be1fafb8c30f5256f5ce50d5585f37252b7",
+      "dependenciesDigest": "55f31f34b003027f3130aaa6759c4dd605e143b23bb6fb7ee1f71409b5317be5",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-stacking-crit-chance-on-weakspot-stacks-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "6afaaffab16fa72b4859197b560e2cd11caa4532a89cac9b10d5a4c8d08d9933",
+      "dependenciesDigest": "55f31f34b003027f3130aaa6759c4dd605e143b23bb6fb7ee1f71409b5317be5",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:evidence:lasgun:p1-stacking-crit-chance-on-weakspot-crit-chance-display-percent-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "fbe3ffe3d9c48907ac7f40a7cbfe6534e855bf491d1ecde5966ec65e5c808c53",
+      "dependenciesDigest": "ae3f83ed6f55367d31d2003481ebf3b032f28ad1e29418af8637e3fe23315dcb",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:evidence:lasgun:p1-stacking-crit-chance-on-weakspot-stacks-display-value-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "8d52b2323ccecd587e05bcdf7eb8d26d07817c648903b03062d005ab5137e1a8",
+      "dependenciesDigest": "218ec8c886d3da125824c752dab116f7da8bdf971280585d454707b33423c12f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    }
+  ]
+}

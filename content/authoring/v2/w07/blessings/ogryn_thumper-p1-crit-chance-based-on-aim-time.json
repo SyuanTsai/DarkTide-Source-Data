@@ -1,0 +1,1124 @@
+{
+  "records": [
+    {
+      "recordId": "darktide:blessing-variant:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+      "kind": "blessing-variant",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-ogryn-thumper-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableTiers",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/weaponRefs",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/formatValues/stacks",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "blessingRef": {
+          "recordId": "darktide:blessing:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "weaponRefs": [],
+        "definedTiers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "obtainableTiers": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "tierValues": [
+          {
+            "tier": 1,
+            "value": {
+              "status": "known",
+              "decimal": "0.35",
+              "unit": "point"
+            }
+          },
+          {
+            "tier": 2,
+            "value": {
+              "status": "known",
+              "decimal": "0.3",
+              "unit": "point"
+            }
+          },
+          {
+            "tier": 3,
+            "value": {
+              "status": "known",
+              "decimal": "0.25",
+              "unit": "point"
+            }
+          },
+          {
+            "tier": 4,
+            "value": {
+              "status": "known",
+              "decimal": "0.2",
+              "unit": "point"
+            }
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/blessingRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/weaponRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/definedTiers",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/obtainableTiers",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/tierValues",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:blessing:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+      "kind": "blessing",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-ogryn-thumper-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/nameKey",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "nameKey": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "variantRefs": [
+          {
+            "recordId": "darktide:blessing-variant:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "claimRefs": [
+          {
+            "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier1-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier2-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier3-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier4-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-crit-chance-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/nameKey",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/variantRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/claimRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-crit-chance-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-ogryn-thumper-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.crit_chance.display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "10",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:ogryn_thumper:p1-crit-chance-based-on-aim-time-crit-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier1-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-ogryn-thumper-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.defined_tier_1_display_value",
+        "value": {
+          "status": "known",
+          "decimal": "0.35",
+          "unit": "point"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier2-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-ogryn-thumper-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.defined_tier_2_display_value",
+        "value": {
+          "status": "known",
+          "decimal": "0.3",
+          "unit": "point"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier3-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-ogryn-thumper-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.defined_tier_3_display_value",
+        "value": {
+          "status": "known",
+          "decimal": "0.25",
+          "unit": "point"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier4-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-ogryn-thumper-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.defined_tier_4_display_value",
+        "value": {
+          "status": "known",
+          "decimal": "0.2",
+          "unit": "point"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:ogryn_thumper:p1-crit-chance-based-on-aim-time-crit-chance-display-percent-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-ogryn-thumper-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_ogryn_thumper_p1.lua, scripts/utilities/trait_value_parser.lua resolve trait_override format value crit_chance at stat_buffs.stat_buffs.critical_strike_chance; defined tier literals are tier 1=0.1, tier 2=0.1, tier 3=0.1, tier 4=0.1."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-display-value-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-ogryn-thumper-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_ogryn_thumper_p1.lua, scripts/utilities/trait_value_parser.lua resolve trait_override format value time at duration_per_stack; defined tier literals are tier 1=0.35, tier 2=0.3, tier 3=0.25, tier 4=0.2."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    }
+  ],
+  "reviewReceipts": [
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/blessingRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "183b8a8d0589ac32b5874a5f6bf8145ae9e8027ae3a81e63cd3e2d0d025860d0",
+      "dependenciesDigest": "9a8382bdac89d008f7a778cc779cbad102b889026f2da1a694ae24551eae4e62",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/definedTiers",
+        "dimension": "technical"
+      },
+      "targetDigest": "f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f",
+      "dependenciesDigest": "9a8382bdac89d008f7a778cc779cbad102b889026f2da1a694ae24551eae4e62",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableTiers",
+        "dimension": "context"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "9a8382bdac89d008f7a778cc779cbad102b889026f2da1a694ae24551eae4e62",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/tierValues",
+        "dimension": "technical"
+      },
+      "targetDigest": "0333f0b507d21bdecb5e2ee0ca79e248322c9dd46f786e8980ebdc16944fd334",
+      "dependenciesDigest": "9a8382bdac89d008f7a778cc779cbad102b889026f2da1a694ae24551eae4e62",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/weaponRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "dependenciesDigest": "9a8382bdac89d008f7a778cc779cbad102b889026f2da1a694ae24551eae4e62",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/claimRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "a5c1a055efa244de81a513ca2b4cd8c565d52ae31238529472c568800d1cfee6",
+      "dependenciesDigest": "b622a77804522d3a6d456846ad62dcdd67d8bf2f37fc4ddf6bd9a5f27265e01d",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/nameKey",
+        "dimension": "identity"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "b622a77804522d3a6d456846ad62dcdd67d8bf2f37fc4ddf6bd9a5f27265e01d",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:ogryn_thumper:p1-crit-chance-based-on-aim-time",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/variantRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "db5225a822f6b84c5d115f27fea3265cb08e8d01ec6d28b4f5b0f1336d5f19c6",
+      "dependenciesDigest": "b622a77804522d3a6d456846ad62dcdd67d8bf2f37fc4ddf6bd9a5f27265e01d",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-crit-chance-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "ccbe03273160ea55cf2138586227b076fd287e2b5c5e97928f957de28d212f5a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-crit-chance-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "ccbe03273160ea55cf2138586227b076fd287e2b5c5e97928f957de28d212f5a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-crit-chance-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "808320d94a9b88d59a49874d82b37f0d4b2dd896ec9af29c8f4d99ca63d5907c",
+      "dependenciesDigest": "ccbe03273160ea55cf2138586227b076fd287e2b5c5e97928f957de28d212f5a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-crit-chance-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "2e75201685cd7880fde395930da1d6a42731aef91934ec7ffeed5814015590c8",
+      "dependenciesDigest": "ccbe03273160ea55cf2138586227b076fd287e2b5c5e97928f957de28d212f5a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-crit-chance-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "4a359a3c0d4901f80a2f4356f9a4dbdb367050473f282ce3b7a11a5928091c16",
+      "dependenciesDigest": "ccbe03273160ea55cf2138586227b076fd287e2b5c5e97928f957de28d212f5a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "64e0f89aea428c142124849ebae6b6ad7063a76aeaac129a4d65c87c5c225b7e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "64e0f89aea428c142124849ebae6b6ad7063a76aeaac129a4d65c87c5c225b7e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "5e1277dee45db0d88bf836bd07f81ae46fa978a39f733bd736a62b6ae28de33f",
+      "dependenciesDigest": "64e0f89aea428c142124849ebae6b6ad7063a76aeaac129a4d65c87c5c225b7e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "2e75201685cd7880fde395930da1d6a42731aef91934ec7ffeed5814015590c8",
+      "dependenciesDigest": "64e0f89aea428c142124849ebae6b6ad7063a76aeaac129a4d65c87c5c225b7e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "ffbbf3ca08eec6eb0250b84bc48a9badbbe5f070b8ed4d9387356035a7deb7f1",
+      "dependenciesDigest": "64e0f89aea428c142124849ebae6b6ad7063a76aeaac129a4d65c87c5c225b7e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "b6782b823afb7320b21a042187ef299748429762dca474c51897c29fb2197f5d",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "b6782b823afb7320b21a042187ef299748429762dca474c51897c29fb2197f5d",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "5e1277dee45db0d88bf836bd07f81ae46fa978a39f733bd736a62b6ae28de33f",
+      "dependenciesDigest": "b6782b823afb7320b21a042187ef299748429762dca474c51897c29fb2197f5d",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "2e75201685cd7880fde395930da1d6a42731aef91934ec7ffeed5814015590c8",
+      "dependenciesDigest": "b6782b823afb7320b21a042187ef299748429762dca474c51897c29fb2197f5d",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "f351a6f342b5679eef71feba99fe5945ef1fa8e5a1ac47cab6d8134db388b91a",
+      "dependenciesDigest": "b6782b823afb7320b21a042187ef299748429762dca474c51897c29fb2197f5d",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "85eb71ef7d81ec922769bb6bf443fe3a25ca599a38232b5d1671f6adf2712e2a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "85eb71ef7d81ec922769bb6bf443fe3a25ca599a38232b5d1671f6adf2712e2a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "5e1277dee45db0d88bf836bd07f81ae46fa978a39f733bd736a62b6ae28de33f",
+      "dependenciesDigest": "85eb71ef7d81ec922769bb6bf443fe3a25ca599a38232b5d1671f6adf2712e2a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "2e75201685cd7880fde395930da1d6a42731aef91934ec7ffeed5814015590c8",
+      "dependenciesDigest": "85eb71ef7d81ec922769bb6bf443fe3a25ca599a38232b5d1671f6adf2712e2a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "15223bf067397c8d3e5c2b839c72e6d33192a267690d23b590e9b3788681f6f0",
+      "dependenciesDigest": "85eb71ef7d81ec922769bb6bf443fe3a25ca599a38232b5d1671f6adf2712e2a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "0e5ab0d2787cc0139273d9dc5db7730f130103a04343b74b1b95e791596dffc8",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "0e5ab0d2787cc0139273d9dc5db7730f130103a04343b74b1b95e791596dffc8",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "5e1277dee45db0d88bf836bd07f81ae46fa978a39f733bd736a62b6ae28de33f",
+      "dependenciesDigest": "0e5ab0d2787cc0139273d9dc5db7730f130103a04343b74b1b95e791596dffc8",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "2e75201685cd7880fde395930da1d6a42731aef91934ec7ffeed5814015590c8",
+      "dependenciesDigest": "0e5ab0d2787cc0139273d9dc5db7730f130103a04343b74b1b95e791596dffc8",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "081ffed226f6d2cd56395f3d0cb78856ee5e409564fb39b4b7dc19e9b6e46d19",
+      "dependenciesDigest": "0e5ab0d2787cc0139273d9dc5db7730f130103a04343b74b1b95e791596dffc8",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:evidence:ogryn_thumper:p1-crit-chance-based-on-aim-time-crit-chance-display-percent-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "334629dbc9f9367947779cc9150c04e623a5b9848ee0af92d5a77af4cb35a03f",
+      "dependenciesDigest": "17279f766f993abdcd7e94066d56e606e212b2e650a252e9b82cbc8faa93bb1c",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:evidence:ogryn_thumper:p1-crit-chance-based-on-aim-time-time-display-value-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "0d87a14b10c8189fb80a61147607b350f943df646c65c02d38d061681fc1c508",
+      "dependenciesDigest": "2d6d7d55da6bda5a98d4ab7ff1549ad7570aa28be8d7de49c52e0015efc9c92b",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    }
+  ]
+}
