@@ -179,7 +179,7 @@ test('UnitT30_rejects_nonapproved_or_mismatched_approval_without_writing_the_tem
     reviewedPackage: { packageDigest: '0'.repeat(64) }
   }));
 
-  await assert.rejects(applyGenericBlessingsApproval({ root, approvalPath }), /approved/);
+  await assert.rejects(applyGenericBlessingsApproval({ root, approvalPath, nameKeyEvidenceByKey: new Map() }), /approved/);
   assert.deepEqual(await snapshot(), before);
   await writeFile(approvalPath, JSON.stringify({
     decision: 'approved', reviewer: { kind: 'human', id: 'synthetic-test-reviewer' },
