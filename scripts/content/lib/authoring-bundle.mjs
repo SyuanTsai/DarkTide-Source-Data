@@ -5,7 +5,8 @@ import { createRecordDependencyWalker } from './authoring-walk.mjs';
 
 export const W07_DIRECTORY = 'content/authoring/v2/w07';
 export const W07_INDEX = `${W07_DIRECTORY}/index.json`;
-const MAX_BYTES = 16 * 1024 * 1024;
+export const AUTHORING_PART_TARGET_BYTES = 8 * 1024 * 1024;
+export const AUTHORING_PART_MAX_BYTES = 16 * 1024 * 1024;
 const jsonBytes = (value) => Buffer.from(`${JSON.stringify(value, null, 2)}\n`, 'utf8');
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const key = (item) => `${item.gameReleaseId}\0${item.recordId}`;
@@ -65,14 +66,14 @@ export function splitAuthoringBundle(bundle) {
   const append = (name, part) => {
     if (output.has(`${W07_DIRECTORY}/${name}`)) throw new Error(`Duplicate authoring part path: ${name}`);
     const bytes = jsonBytes(part);
-    if (bytes.length > MAX_BYTES) throw new Error(`Authoring part exceeds 16 MiB: ${name}`);
+    if (bytes.length > AUTHORING_PART_MAX_BYTES) throw new Error(`Authoring part exceeds 16 MiB: ${name}`);
     entries.push({ path: name, sizeBytes: bytes.length, sha256: sha256(bytes) });
     output.set(`${W07_DIRECTORY}/${name}`, bytes);
   };
   append('shared.json', shared);
   for (const owner of ownerNames.filter((name) => name.startsWith('weapons/')).concat(ownerNames.filter((name) => name.startsWith('blessings/')))) {
     const part = groups.get(owner);
-    if (jsonBytes(part).length <= MAX_BYTES) { append(`${owner}.json`, part); continue; }
+    if (jsonBytes(part).length <= AUTHORING_PART_TARGET_BYTES) { append(`${owner}.json`, part); continue; }
     if (!owner.startsWith('weapons/')) throw new Error(`Authoring part exceeds 16 MiB: ${owner}`);
     const receipts = new Map();
     for (const receipt of part.reviewReceipts) {
@@ -90,10 +91,10 @@ export function splitAuthoringBundle(bundle) {
       let low = start + 1, high = part.records.length, best = start;
       while (low <= high) {
         const middle = Math.floor((low + high) / 2);
-        if (jsonBytes(makeChunk(middle)).length <= MAX_BYTES) { best = middle; low = middle + 1; }
+        if (jsonBytes(makeChunk(middle)).length <= AUTHORING_PART_TARGET_BYTES) { best = middle; low = middle + 1; }
         else high = middle - 1;
       }
-      if (best === start) throw new Error(`Record exceeds 16 MiB: ${part.records[start].recordId}`);
+      if (best === start) throw new Error(`Record exceeds 8 MiB authoring part target: ${part.records[start].recordId}`);
       append(`${owner}.${number++}.json`, makeChunk(best));
       start = best;
     }
@@ -112,7 +113,7 @@ export async function assembleAuthoringBundle(readPart) {
   const parts = [];
   for (const entry of index.parts) {
     const bytes = await readPart(`${W07_DIRECTORY}/${entry.path}`);
-    if (bytes.length > MAX_BYTES || bytes.length !== entry.sizeBytes || sha256(bytes) !== entry.sha256) throw new Error(`Authoring part integrity mismatch: ${entry.path}`);
+    if (bytes.length > AUTHORING_PART_MAX_BYTES || bytes.length !== entry.sizeBytes || sha256(bytes) !== entry.sha256) throw new Error(`Authoring part integrity mismatch: ${entry.path}`);
     parts.push(JSON.parse(bytes.toString('utf8')));
   }
   const shared = parts[0];

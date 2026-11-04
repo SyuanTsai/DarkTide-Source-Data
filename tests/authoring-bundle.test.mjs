@@ -2,7 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { readAuthoringBundle, splitAuthoringBundle, assembleAuthoringBundle, readAuthoringBundleAtCommit, W07_INDEX } from '../scripts/content/lib/authoring-bundle.mjs';
+import { readAuthoringBundle, splitAuthoringBundle, assembleAuthoringBundle, readAuthoringBundleAtCommit, AUTHORING_PART_TARGET_BYTES, W07_INDEX } from '../scripts/content/lib/authoring-bundle.mjs';
 import { validateSourceContract } from '../scripts/content/contract-validator.mjs';
 
 const legacy = JSON.parse(execFileSync('git', ['show', 'e2020f1851951b1ada0824d652ec7032076b151b:content/authoring/v2/w07-weapons.json'], { maxBuffer: 64 * 1024 * 1024 }));
@@ -33,6 +33,34 @@ test('split assembly is byte stable', async () => {
   for (const [name, bytes] of split) assert.deepEqual(again.get(name), bytes, name);
 });
 
+test('real on-disk parts meet the 8 MiB target', async () => {
+  const index = JSON.parse(await readFile(W07_INDEX, 'utf8'));
+  for (const part of index.parts) {
+    const bytes = await readFile(`content/authoring/v2/w07/${part.path}`);
+    assert.ok(bytes.length <= AUTHORING_PART_TARGET_BYTES, `${part.path} is ${bytes.length} bytes`);
+  }
+});
+
+test('chunks an oversized synthetic owner into consecutive parts', () => {
+  const padding = 'x'.repeat(4 * 1024 * 1024);
+  const synthetic = {
+    ...legacy,
+    records: [...legacy.records,
+      { recordId: 'darktide:weapon:synthetic:first', gameReleaseId: 'darktide:1.13.2', kind: 'weapon', payload: { familyId: 'synthetic', padding } },
+      { recordId: 'darktide:weapon:synthetic:second', gameReleaseId: 'darktide:1.13.2', kind: 'weapon', payload: { familyId: 'synthetic', padding } }
+    ]
+  };
+  const output = splitAuthoringBundle(synthetic);
+  const names = [...output.keys()];
+  const first = names.indexOf('content/authoring/v2/w07/weapons/synthetic.1.json');
+  assert.ok(first >= 0);
+  assert.equal(names[first + 1], 'content/authoring/v2/w07/weapons/synthetic.2.json');
+  for (const suffix of ['1', '2']) {
+    const bytes = output.get(`content/authoring/v2/w07/weapons/synthetic.${suffix}.json`);
+    assert.ok(bytes.length <= AUTHORING_PART_TARGET_BYTES);
+  }
+});
+
 test('rejects a tampered part', async () => {
   const index = JSON.parse(split.get(W07_INDEX));
   const tampered = `${W07_INDEX.slice(0, -10)}${index.parts[0].path}`;
@@ -53,7 +81,7 @@ test('rejects duplicate blessing slugs', () => {
 test('rejects a record too large for a part', () => {
   const record = { ...legacy.records.find((item) => item.kind === 'weapon'), payload: { ...legacy.records.find((item) => item.kind === 'weapon').payload, oversized: 'x'.repeat(17 * 1024 * 1024) } };
   const bundle = { ...legacy, records: legacy.records.map((item) => item === legacy.records.find((entry) => entry.kind === 'weapon') ? record : item) };
-  assert.throws(() => splitAuthoringBundle(bundle), /exceeds 16 MiB/u);
+  assert.throws(() => splitAuthoringBundle(bundle), /exceeds 8 MiB authoring part target/u);
 });
 
 test('ownership walker stays identical to validator dependency traversal', async () => {

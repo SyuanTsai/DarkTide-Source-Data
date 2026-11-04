@@ -707,7 +707,7 @@ test('InterT04_unapproved_builder_and_validator_blobs_are_rejected_before_import
       assert.equal(current.status, 0, current.stderr);
       let prepareError;
       try {
-        await prepare({ sourceRoot: caseRoot, outputRoot: path.join(root, `handoff-${path.basename(caseRoot)}`), mode: 'candidate', inputPreset: 'acceptedW07', expectedCommit: current.stdout.trim() });
+        await prepare({ sourceRoot: caseRoot, outputRoot: path.join(root, `handoff-${path.basename(caseRoot)}`), mode: 'candidate', expectedCommit: current.stdout.trim() });
       } catch (error) {
         prepareError = error;
       }
