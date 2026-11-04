@@ -1,0 +1,27 @@
+{
+  "schema": "syp-287-generic-weapons-human-approval/1",
+  "reviewer": { "kind": "human", "id": "SyuanTsai" },
+  "reviewedAt": "2026-11-04T04:40:21.000Z",
+  "reviewedAtMeaning": "Time the explicit human decision was recorded into receipts, not an inferred time of the user click.",
+  "decision": "approved",
+  "humanDecision": "核准",
+  "provenance": {
+    "kind": "direct-user-chat-reply",
+    "question": "要核准這個武器核准包（digest 01869002…）嗎？",
+    "reviewedFiles": ["content/reviews/syp-287-generic-weapons/review-package.json", "content/reviews/syp-287-generic-weapons/review-package.md"]
+  },
+  "reviewedPackage": {
+    "packageDigest": "01869002d2a36c8f0d4b7e88749f0b99d4ffb33a607ea7b333db50c6daefddc6",
+    "newRecords": 8769,
+    "newWeaponMarks": 54,
+    "patchedRecords": 82,
+    "restaledRecords": 229,
+    "reviewTargets": 13829
+  },
+  "knownLimitations": [
+    "Values are static reads of the pinned game source; not verified by executing the game runtime (124 weapon records NOT_VERIFIED for player-visible values)",
+    "3,760 stat curves lack interpolation and edge policy; 3,760 stat definitions lack obtainable input ranges",
+    "771 attack profiles lack full action and target-profile resolution",
+    "Coverage gaps: 1 UI mark without a registered template, 1 indirect damage-profile parse failure, 69 registered templates without a UI mark (excluded)"
+  ]
+}
