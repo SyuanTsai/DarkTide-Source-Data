@@ -1531,11 +1531,25 @@ export async function handoffW09SourceRequest({
   return { releaseId: request.releaseId, archive, dispatch };
 }
 
+export async function selectW09HandoffRequests({ requests, fetchImpl, token }) {
+  const toHandoff = [];
+  const skipped = [];
+  for (const request of requests) {
+    const release = await fetchSourceRelease({ releaseId: request.releaseId, fetchImpl, token, allowDraft: true });
+    if (release && release.draft === false) {
+      skipped.push({ releaseId: request.releaseId, status: 'skipped', reason: 'Source release already published; re-send with workflow_dispatch release_id if Web missed it' });
+    } else {
+      toHandoff.push(request);
+    }
+  }
+  return { toHandoff, skipped };
+}
+
 function parseCliArguments(argv) {
   const values = new Map();
-  const flags = new Set(['--prepare', '--dispatch', '--publish-archive', '--all-releases', '--fallback-candidate']);
+  const flags = new Set(['--prepare', '--dispatch', '--publish-archive', '--all-releases', '--skip-published', '--fallback-candidate']);
   const allowed = new Set([
-    '--prepare', '--dispatch', '--publish-archive', '--all-releases', '--fallback-candidate', '--source-root', '--output-root', '--mode', '--input-preset', '--release-id',
+    '--prepare', '--dispatch', '--publish-archive', '--all-releases', '--skip-published', '--fallback-candidate', '--source-root', '--output-root', '--mode', '--input-preset', '--release-id',
     '--baseline-ref', '--authoring-ref', '--candidate-ref'
   ]);
   for (let index = 0; index < argv.length; index += 1) {
@@ -1550,6 +1564,9 @@ function parseCliArguments(argv) {
     if (!value || value.startsWith('--')) throw new Error(`${flag} requires a value`);
     values.set(flag, value);
     index += 1;
+  }
+  if (values.has('--skip-published') && (!values.has('--dispatch') || !values.has('--all-releases'))) {
+    throw new Error('--skip-published requires both --dispatch and --all-releases');
   }
   if (!values.has('--prepare')) throw new Error('explicit --prepare is required to write a Source handoff');
   if (!values.has('--output-root')) throw new Error('--output-root is required for an explicit prepare');
@@ -1579,7 +1596,7 @@ function parseCliArguments(argv) {
 
 async function runCli(argv) {
   if (argv.length === 0 || (argv.length === 1 && ['--help', '-h'].includes(argv[0]))) {
-    process.stdout.write('Read-only by default. Usage: node contract-w09-request.mjs --prepare --source-root <repo> --output-root <new-path> [--mode candidate|formal] [--input-preset splitW07|acceptedW07] [--baseline-ref <commit|path|sha256> --authoring-ref <commit|path|sha256> --candidate-ref <commit|path|sha256>] [--fallback-candidate] [--publish-archive --dispatch (--release-id <derived-id>|--all-releases)]\n');
+    process.stdout.write('Read-only by default. Usage: node contract-w09-request.mjs --prepare --source-root <repo> --output-root <new-path> [--mode candidate|formal] [--input-preset splitW07|acceptedW07] [--baseline-ref <commit|path|sha256> --authoring-ref <commit|path|sha256> --candidate-ref <commit|path|sha256>] [--fallback-candidate] [--publish-archive --dispatch (--release-id <derived-id>|--all-releases [--skip-published])]\n');
     return;
   }
   const values = parseCliArguments(argv);
@@ -1616,16 +1633,21 @@ async function runCli(argv) {
     if (requests.length === 0) {
       summary.handoff = { status: 'pending', reason: 'requested release_id does not match a request derived from the pinned Source packet' };
     } else {
-      const outcomes = [];
-      for (const request of requests) {
+      const fetchImpl = withW09NetworkRetry(globalThis.fetch);
+      const sourceArchiveToken = process.env.SOURCE_ARCHIVE_TOKEN || process.env.GITHUB_TOKEN;
+      const { toHandoff, skipped } = values.has('--skip-published')
+        ? await selectW09HandoffRequests({ requests, fetchImpl, token: sourceArchiveToken })
+        : { toHandoff: requests, skipped: [] };
+      const outcomes = [...skipped];
+      for (const request of toHandoff) {
         outcomes.push(await handoffW09SourceRequest({
           request,
           packetDir: prepared.packetDir,
           sourceRoot: prepared.sourceRoot,
           expectedCommit: request.sourceCommit,
-          sourceArchiveToken: process.env.SOURCE_ARCHIVE_TOKEN || process.env.GITHUB_TOKEN,
+          sourceArchiveToken,
           webHandoffToken: process.env.WEB_HANDOFF_TOKEN,
-          fetchImpl: withW09NetworkRetry(globalThis.fetch)
+          fetchImpl
         }));
       }
       summary.handoff = outcomes.length === 1 ? outcomes[0] : outcomes;

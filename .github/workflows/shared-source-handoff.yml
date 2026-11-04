@@ -109,7 +109,7 @@ jobs:
           if [ "$SOURCE_EVENT_NAME" = "workflow_dispatch" ]; then
             node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode formal --input-preset splitW07 --fallback-candidate --publish-archive --dispatch --release-id "$REQUESTED_RELEASE_ID"
           else
-            node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode formal --input-preset splitW07 --fallback-candidate --publish-archive --dispatch --all-releases
+            node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode formal --input-preset splitW07 --fallback-candidate --publish-archive --dispatch --all-releases --skip-published
           fi
       - name: Upload the request and packet for workflow diagnostics
         if: ${{ always() }}
