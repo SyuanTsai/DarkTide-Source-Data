@@ -180,7 +180,7 @@ test('InterT01_prepare_binds_fixed_git_inputs_and_replays_w05_candidate', async 
   const expectedCommit = headResult.stdout.trim();
   try {
     const cliPath = fileURLToPath(implementationUrl);
-    const result = spawnSync(process.execPath, [cliPath, '--prepare', '--source-root', fixtureSourceRoot, '--output-root', outputRoot, '--mode', 'candidate'], {
+    const result = spawnSync(process.execPath, [cliPath, '--prepare', '--source-root', fixtureSourceRoot, '--output-root', outputRoot, '--mode', 'candidate', '--input-preset', 'acceptedW07'], {
       cwd: fixtureSourceRoot,
       encoding: 'utf8',
       maxBuffer: 1024 * 1024
@@ -330,7 +330,7 @@ test('InterT02_metadata_only_retry_reuses_original_request_and_archive_from_offi
     assert.equal(setOrigin.status, 0, setOrigin.stderr);
     const firstCommit = spawnSync('git', ['-C', cloneRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
     assert.equal(firstCommit.status, 0, firstCommit.stderr);
-    const first = await prepare({ sourceRoot: cloneRoot, outputRoot, mode: 'candidate', expectedCommit: firstCommit.stdout.trim() });
+    const first = await prepare({ sourceRoot: cloneRoot, outputRoot, mode: 'candidate', inputPreset: 'acceptedW07', expectedCommit: firstCommit.stdout.trim() });
     const firstRequest = first.requests[0];
     const firstPacketDir = path.join(outputRoot, 'packets', firstRequest.sourceRevision);
     const trailingSlashOrigin = spawnSync('git', ['-C', cloneRoot, 'remote', 'set-url', 'origin', 'https://github.com/SyuanTsai/DarkTide-Source-Data/'], { encoding: 'utf8' });
@@ -346,7 +346,7 @@ test('InterT02_metadata_only_retry_reuses_original_request_and_archive_from_offi
     const secondCommit = spawnSync('git', ['-C', cloneRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
     assert.equal(secondCommit.status, 0, secondCommit.stderr);
     assert.notEqual(secondCommit.stdout.trim(), firstCommit.stdout.trim());
-    const second = await prepare({ sourceRoot: cloneRoot, outputRoot, mode: 'candidate', expectedCommit: secondCommit.stdout.trim() });
+    const second = await prepare({ sourceRoot: cloneRoot, outputRoot, mode: 'candidate', inputPreset: 'acceptedW07', expectedCommit: secondCommit.stdout.trim() });
     const reused = second.requests.find((item) => item.requestId === firstRequest.requestId);
     assert.ok(reused);
     assert.equal(reused.sourceCommit, firstRequest.sourceCommit);
@@ -707,7 +707,7 @@ test('InterT04_unapproved_builder_and_validator_blobs_are_rejected_before_import
       assert.equal(current.status, 0, current.stderr);
       let prepareError;
       try {
-        await prepare({ sourceRoot: caseRoot, outputRoot: path.join(root, `handoff-${path.basename(caseRoot)}`), mode: 'candidate', expectedCommit: current.stdout.trim() });
+        await prepare({ sourceRoot: caseRoot, outputRoot: path.join(root, `handoff-${path.basename(caseRoot)}`), mode: 'candidate', inputPreset: 'acceptedW07', expectedCommit: current.stdout.trim() });
       } catch (error) {
         prepareError = error;
       }
@@ -838,7 +838,7 @@ test('InterT05_historical_request_replays_after_a_comment_only_w05_commit', asyn
     const h0Result = spawnSync('git', ['-C', cloneRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
     assert.equal(h0Result.status, 0, h0Result.stderr);
     const h0 = h0Result.stdout.trim();
-    const prepared = await prepare({ sourceRoot: cloneRoot, outputRoot, mode: 'candidate', expectedCommit: h0 });
+    const prepared = await prepare({ sourceRoot: cloneRoot, outputRoot, mode: 'candidate', inputPreset: 'acceptedW07', expectedCommit: h0 });
     const request = prepared.requests[0];
     const packetDir = path.join(outputRoot, 'packets', request.sourceRevision);
     const builderPath = path.join(cloneRoot, 'scripts/content/contract-w05-build.mjs');

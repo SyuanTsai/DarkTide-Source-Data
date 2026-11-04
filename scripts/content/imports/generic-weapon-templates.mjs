@@ -1,3 +1,4 @@
+import { readAuthoringBundle } from '../lib/authoring-bundle.mjs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -20,7 +21,6 @@ import { validateSourceContractFromDisk } from '../contract-validator.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const WEAPON_REGISTRY = 'scripts/settings/equipment/weapon_templates/weapon_templates.lua';
 const UI_WEAPON_PATTERNS = 'scripts/settings/ui/ui_weapon_pattern_settings.lua';
-const BASE_AUTHORING = 'content/authoring/v2/w07-weapons.json';
 const GAME_RELEASE_ID = 'darktide:1.13.4';
 const PUBLIC_REPOSITORY = 'https://github.com/Aussiemon/Darktide-Source-Code';
 const OUTPUT_CANDIDATE_DIRECTORY = 'weapon-templates';
@@ -2428,7 +2428,7 @@ export async function buildGenericWeaponTemplates({ sourceCodeRepo, commit = PIN
   })).sort((left, right) => lexical(left.path, right.path));
   const inventory = scanTemplateInventory(reader, templates);
   const uiMarks = deriveUiWeaponMarks(reader.read(UI_WEAPON_PATTERNS));
-  const authoring = JSON.parse(await readFile(path.join(sourceRoot, BASE_AUTHORING), 'utf8'));
+  const authoring = (await readAuthoringBundle(sourceRoot)).bundle;
   const authoringWeapons = authoring.records.filter((record) => record.gameReleaseId === GAME_RELEASE_ID && record.kind === 'weapon');
   const { candidate, coverageGaps } = makeWeaponCandidate({
     authoring,
