@@ -1210,3 +1210,44 @@ test('UnitT11_changed_record_derivation_preserves_all_tuples_without_guessing_ki
   const claims = changed.filter((item) => item.kind === 'claim');
   assert.deepEqual(new Set(claims.map((item) => item.recordId)), new Set(['updated-claim', 'former-claim']));
 });
+
+test('UnitT12_network_retry_recovers_and_logs_safe_path', async () => {
+  const error = new TypeError('fetch failed', { cause: Object.assign(new Error('other side closed'), { code: 'UND_ERR_SOCKET' }) });
+  const response = new Response('ok');
+  const lines = [];
+  let calls = 0;
+  const fetch = api.withW09NetworkRetry(async () => {
+    calls += 1;
+    if (calls === 1) throw error;
+    return response;
+  }, { log: (line) => lines.push(line), sleep: async () => {} });
+  assert.equal(await fetch('https://api.github.com/repos/example?token=secret', { method: 'POST' }), response);
+  assert.equal(calls, 2);
+  assert.deepEqual(lines, ['W09 network retry 1/2: POST api.github.com/repos/example after UND_ERR_SOCKET']);
+});
+
+test('UnitT13_network_retry_rethrows_after_three_attempts', async () => {
+  const error = new TypeError('fetch failed');
+  let calls = 0;
+  const fetch = api.withW09NetworkRetry(async () => { calls += 1; throw error; }, { log: () => {}, sleep: async () => {} });
+  await assert.rejects(fetch('https://api.github.com/test'), (actual) => actual === error);
+  assert.equal(calls, 3);
+});
+
+test('UnitT14_network_retry_returns_http_error_without_retry', async () => {
+  const response = new Response('', { status: 500 });
+  const lines = [];
+  let calls = 0;
+  const fetch = api.withW09NetworkRetry(async () => { calls += 1; return response; }, { log: (line) => lines.push(line), sleep: async () => {} });
+  assert.equal(await fetch('https://api.github.com/test'), response);
+  assert.equal(calls, 1);
+  assert.deepEqual(lines, []);
+});
+
+test('UnitT15_network_retry_never_retries_uploads', async () => {
+  const error = new TypeError('fetch failed');
+  let calls = 0;
+  const fetch = api.withW09NetworkRetry(async () => { calls += 1; throw error; }, { log: () => {}, sleep: async () => {} });
+  await assert.rejects(fetch('https://uploads.github.com/test'), (actual) => actual === error);
+  assert.equal(calls, 1);
+});

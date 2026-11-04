@@ -85,6 +85,27 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 const verifiedW05Replays = new Set();
 let w05ReplayCount = 0;
 
+export function withW09NetworkRetry(fetchImpl, {
+  attempts = 3, delaysMs = [2000, 5000],
+  log = (line) => process.stderr.write(line + '\n'),
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+} = {}) {
+  return async (input, init) => {
+    const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
+    const method = (init?.method ?? input?.method ?? 'GET').toUpperCase();
+    for (let attempt = 1; ; attempt += 1) {
+      try {
+        return await fetchImpl(input, init);
+      } catch (error) {
+        if (attempt >= attempts || url.hostname === 'uploads.github.com') throw error;
+        const reason = error?.cause?.code || error?.cause?.message || error?.message;
+        log(`W09 network retry ${attempt}/${attempts - 1}: ${method} ${url.host}${url.pathname} after ${reason}`);
+        await sleep(delaysMs[attempt - 1]);
+      }
+    }
+  };
+}
+
 export function w09SourceReplayCount() {
   return w05ReplayCount;
 }
@@ -1603,7 +1624,8 @@ async function runCli(argv) {
           sourceRoot: prepared.sourceRoot,
           expectedCommit: request.sourceCommit,
           sourceArchiveToken: process.env.SOURCE_ARCHIVE_TOKEN || process.env.GITHUB_TOKEN,
-          webHandoffToken: process.env.WEB_HANDOFF_TOKEN
+          webHandoffToken: process.env.WEB_HANDOFF_TOKEN,
+          fetchImpl: withW09NetworkRetry(globalThis.fetch)
         }));
       }
       summary.handoff = outcomes.length === 1 ? outcomes[0] : outcomes;
@@ -1615,7 +1637,13 @@ async function runCli(argv) {
 const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
 if (invokedPath === fileURLToPath(import.meta.url)) {
   runCli(process.argv.slice(2)).catch((error) => {
-    process.stderr.write(`${error.message}\n`);
+    let message = error.message;
+    let cause = error.cause;
+    for (let depth = 0; cause && depth < 3; depth += 1, cause = cause.cause) {
+      const details = [cause.code, cause.message].filter(Boolean).join(' ');
+      if (details) message += ` (cause: ${details})`;
+    }
+    process.stderr.write(`${message}\n`);
     process.exitCode = 1;
   });
 }
