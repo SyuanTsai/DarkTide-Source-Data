@@ -1,3 +1,4 @@
+import { readAuthoringBundle } from '../scripts/content/lib/authoring-bundle.mjs';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -17,7 +18,7 @@ const schema = await loadContractSchema();
 const fixture = await loadRepresentativeFixture();
 const SOURCE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const w01 = JSON.parse(await readFile(new URL('../content/authoring/w01-real-representative-candidate.json', import.meta.url), 'utf8'));
-const w07Weapons = JSON.parse(await readFile(new URL('../content/authoring/v2/w07-weapons.json', import.meta.url), 'utf8'));
+const w07Weapons = (await readAuthoringBundle(SOURCE_ROOT)).bundle;
 const LEGACY_W07_RELEASE_ID = 'darktide:1.13.2';
 const FROZEN_W07_BASE_COMMIT = 'a2f613edb37ea2653ed08d1fc1f65ea62a669528';
 const FROZEN_W07_BASE_PATH = 'content/authoring/v2/w07-weapons.json';

@@ -1,0 +1,5116 @@
+{
+  "records": [
+    {
+      "recordId": "darktide:damage-profile:autogun-shared:autogun_p3_burst_shot:e46",
+      "kind": "damage-profile",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "profileKey": "autogun_p3_burst_shot",
+        "rawSourceDefinition": {
+          "sourceRef": {
+            "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+          "line": 421,
+          "fieldPath": "damage_templates.autogun_p3_burst_shot",
+          "leaves": [
+            {
+              "line": 423,
+              "fieldPath": "damage_templates.autogun_p3_burst_shot.stagger_category",
+              "rawValue": "stagger_category = \"ranged\","
+            }
+          ],
+          "tables": [
+            {
+              "tableKey": "damage_templates.autogun_p3_burst_shot.power_distribution.attack",
+              "quantity": "power_distribution.attack",
+              "unit": "attack-power-point",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                "line": 487,
+                "fieldPath": "damage_templates.autogun_p3_burst_shot.power_distribution.attack"
+              },
+              "orderedValues": [
+                {
+                  "ordinal": 1,
+                  "rawValue": "40",
+                  "decimal": "40",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 488,
+                    "fieldPath": "damage_templates.autogun_p3_burst_shot.power_distribution.attack[1]"
+                  }
+                },
+                {
+                  "ordinal": 2,
+                  "rawValue": "100",
+                  "decimal": "100",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 489,
+                    "fieldPath": "damage_templates.autogun_p3_burst_shot.power_distribution.attack[2]"
+                  }
+                }
+              ]
+            },
+            {
+              "tableKey": "damage_templates.autogun_p3_burst_shot.power_distribution.impact",
+              "quantity": "power_distribution.impact",
+              "unit": "impact",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                "line": 491,
+                "fieldPath": "damage_templates.autogun_p3_burst_shot.power_distribution.impact"
+              },
+              "orderedValues": [
+                {
+                  "ordinal": 1,
+                  "rawValue": "2",
+                  "decimal": "2",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 492,
+                    "fieldPath": "damage_templates.autogun_p3_burst_shot.power_distribution.impact[1]"
+                  }
+                },
+                {
+                  "ordinal": 2,
+                  "rawValue": "6",
+                  "decimal": "6",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 493,
+                    "fieldPath": "damage_templates.autogun_p3_burst_shot.power_distribution.impact[2]"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/rawSourceDefinition/other-fields-and-targets",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/effective-profile-applicability",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/runtime-resolved-child-profile-values",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/rawSourceDefinition/leaves",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/rawSourceDefinition/tables",
+          "dimension": "technical"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-curve:autogun-p3-m1-ammo-clips-e46",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "knots": [
+          {
+            "input": "0",
+            "output": "36",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "36",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 157,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_clips[1].lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "49",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "49",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 158,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_clips[1].lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "value": "linear",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 73,
+            "fieldPath": "math.lerp.return"
+          }
+        },
+        "edgePolicy": {
+          "value": "extrapolate",
+          "scope": "math.lerp function only",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 72,
+            "fieldPath": "math.lerp"
+          }
+        },
+        "callsiteLocators": [
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+            "line": 571,
+            "fieldPath": "WeaponTweakTemplates.get_base_stats_values.lerp_endpoints"
+          },
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+            "line": 584,
+            "fieldPath": "WeaponTweakTemplates.get_base_stats_values.min"
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/knots",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/interpolation",
+          "dimension": "technical"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-definition:autogun-p3-m1-ammo-clips-e46",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "ammunition_clips",
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "rangeEvidence": {
+          "checkedSources": [
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/ammo_trait_templates.lua",
+                "line": 11,
+                "fieldPath": "ammo_trait_templates.default_ammo_stat.ammunition_clips.range.min"
+              },
+              "summary": "Pinned client stat-trait minimum input."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/ammo_trait_templates.lua",
+                "line": 10,
+                "fieldPath": "ammo_trait_templates.default_ammo_stat.ammunition_clips.range.max"
+              },
+              "summary": "Pinned client stat-trait maximum input."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 571,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.lerp_endpoints"
+              },
+              "summary": "The source stat reader selects the ammo template basic and perfect endpoints."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 584,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.min"
+              },
+              "summary": "The source stat reader maps the minimum input through math.lerp."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 585,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.max"
+              },
+              "summary": "The source stat reader maps the maximum input through math.lerp."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/foundation/utilities/math.lua",
+                "line": 72,
+                "fieldPath": "math.lerp"
+              },
+              "summary": "The pinned math.lerp implementation defines a linear interpolation formula."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_tweak_template_settings.lua",
+                "line": 9,
+                "fieldPath": "WeaponTweakTemplateSettings.DEFAULT_STAT_TRAIT_VALUE.default"
+              },
+              "summary": "The pinned default stat-trait value is recorded separately from the obtainable range."
+            }
+          ],
+          "serverBoundary": "The pinned client source does not establish server-generated or player-obtainable ammunition capacities.",
+          "impact": "The source endpoints and trait input range are retained as client data; this record does not claim a player-obtainable roll range."
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:autogun-p3-m1-ammo-clips-e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/quantity",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/curveRef",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/rangeEvidence",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/obtainableInputRange",
+          "dimension": "context"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-curve:autogun-p3-m1-ammo-reserve-e46",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "knots": [
+          {
+            "input": "0",
+            "output": "270",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "270",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 162,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_reserve.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "405",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "405",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 163,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_reserve.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "value": "linear",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 73,
+            "fieldPath": "math.lerp.return"
+          }
+        },
+        "edgePolicy": {
+          "value": "extrapolate",
+          "scope": "math.lerp function only",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 72,
+            "fieldPath": "math.lerp"
+          }
+        },
+        "callsiteLocators": [
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+            "line": 571,
+            "fieldPath": "WeaponTweakTemplates.get_base_stats_values.lerp_endpoints"
+          },
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+            "line": 584,
+            "fieldPath": "WeaponTweakTemplates.get_base_stats_values.min"
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/knots",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/interpolation",
+          "dimension": "technical"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-definition:autogun-p3-m1-ammo-reserve-e46",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "ammunition_reserve",
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "rangeEvidence": {
+          "checkedSources": [
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/ammo_trait_templates.lua",
+                "line": 18,
+                "fieldPath": "ammo_trait_templates.default_ammo_stat.ammunition_reserve.range.min"
+              },
+              "summary": "Pinned client stat-trait minimum input."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/ammo_trait_templates.lua",
+                "line": 17,
+                "fieldPath": "ammo_trait_templates.default_ammo_stat.ammunition_reserve.range.max"
+              },
+              "summary": "Pinned client stat-trait maximum input."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 571,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.lerp_endpoints"
+              },
+              "summary": "The source stat reader selects the ammo template basic and perfect endpoints."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 584,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.min"
+              },
+              "summary": "The source stat reader maps the minimum input through math.lerp."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 585,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.max"
+              },
+              "summary": "The source stat reader maps the maximum input through math.lerp."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/foundation/utilities/math.lua",
+                "line": 72,
+                "fieldPath": "math.lerp"
+              },
+              "summary": "The pinned math.lerp implementation defines a linear interpolation formula."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_tweak_template_settings.lua",
+                "line": 9,
+                "fieldPath": "WeaponTweakTemplateSettings.DEFAULT_STAT_TRAIT_VALUE.default"
+              },
+              "summary": "The pinned default stat-trait value is recorded separately from the obtainable range."
+            }
+          ],
+          "serverBoundary": "The pinned client source does not establish server-generated or player-obtainable ammunition capacities.",
+          "impact": "The source endpoints and trait input range are retained as client data; this record does not claim a player-obtainable roll range."
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:autogun-p3-m1-ammo-reserve-e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/quantity",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/curveRef",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/rangeEvidence",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/obtainableInputRange",
+          "dimension": "context"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m1:e46",
+      "kind": "damage-profile",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "profileKey": "autogun_p3_m1",
+        "rawSourceDefinition": {
+          "sourceRef": {
+            "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+          "line": 697,
+          "fieldPath": "overrides.autogun_p3_m1",
+          "leaves": [
+            {
+              "line": 698,
+              "fieldPath": "overrides.autogun_p3_m1.parent_template_name",
+              "rawValue": "\"autogun_p3_burst_shot\""
+            }
+          ],
+          "parentProfileRef": {
+            "recordId": "darktide:damage-profile:autogun-shared:autogun_p3_burst_shot:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          "tables": [
+            {
+              "tableKey": "overrides.autogun_p3_m1.overrides.power_distribution.attack",
+              "quantity": "power_distribution.attack",
+              "unit": "attack-power-point",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                "line": 701,
+                "fieldPath": "overrides.autogun_p3_m1.overrides.power_distribution.attack"
+              },
+              "orderedValues": [
+                {
+                  "ordinal": 1,
+                  "rawValue": "90",
+                  "decimal": "90",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 704,
+                    "fieldPath": "overrides.autogun_p3_m1.overrides.power_distribution.attack[1]"
+                  }
+                },
+                {
+                  "ordinal": 2,
+                  "rawValue": "185",
+                  "decimal": "185",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 705,
+                    "fieldPath": "overrides.autogun_p3_m1.overrides.power_distribution.attack[2]"
+                  }
+                }
+              ]
+            },
+            {
+              "tableKey": "overrides.autogun_p3_m1.overrides.power_distribution.impact",
+              "quantity": "power_distribution.impact",
+              "unit": "impact",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                "line": 709,
+                "fieldPath": "overrides.autogun_p3_m1.overrides.power_distribution.impact"
+              },
+              "orderedValues": [
+                {
+                  "ordinal": 1,
+                  "rawValue": "2",
+                  "decimal": "2",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 712,
+                    "fieldPath": "overrides.autogun_p3_m1.overrides.power_distribution.impact[1]"
+                  }
+                },
+                {
+                  "ordinal": 2,
+                  "rawValue": "4",
+                  "decimal": "4",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 713,
+                    "fieldPath": "overrides.autogun_p3_m1.overrides.power_distribution.impact[2]"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/effective-parent-profile-resolution",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/target-order-and-target-applicability",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/unimported-override-fields",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/rawSourceDefinition",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/rawSourceDefinition/leaves",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/rawSourceDefinition/tables",
+          "dimension": "evidence"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m1:action_shoot_hip",
+      "kind": "attack-profile",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "familyId": "autogun_p3",
+        "markId": "autogun_p3_m1",
+        "templateKey": "autogun_p3_m1",
+        "action": "action_shoot_hip",
+        "mode": "hipfire",
+        "weaponRef": {
+          "recordId": "darktide:weapon:autogun:p3-m1:e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "damageProfileRefs": [
+          {
+            "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m1:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "targetProfileRefs": [],
+        "contexts": [
+          {
+            "weaponRef": {
+              "recordId": "darktide:weapon:autogun:p3-m1:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "markKey": "autogun_p3_m1",
+            "action": "action_shoot_hip",
+            "mode": "hipfire",
+            "damageProfileRef": {
+              "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m1:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/targetProfileRefs",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/actionResolution",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/target-profile-and-applicability",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/effective-parent-profile-resolution",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/all-attack-actions-and-combinations",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/damageProfileRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/targetProfileRefs",
+          "dimension": "context"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:weapon:autogun:p3-m1:e46",
+      "kind": "weapon",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "familyId": "autogun_p3",
+        "markId": "autogun_p3_m1",
+        "templateKey": "autogun_p3_m1",
+        "statRefs": [
+          {
+            "recordId": "darktide:stat-definition:autogun-p3-m1-ammo-clips-e46",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:stat-definition:autogun-p3-m1-ammo-reserve-e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "attackProfileRefs": [
+          {
+            "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m1:action_shoot_hip",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "statTables": [
+          {
+            "statKey": "ammunition_clips",
+            "tableKey": "weapon_ammo_templates.autogun_p3_m1.ammunition_clips",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 155,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_clips"
+            },
+            "properties": [
+              {
+                "property": "ammunition_clips",
+                "unit": "instance-count",
+                "sourceLocator": {
+                  "sourceRef": {
+                    "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                    "gameReleaseId": "darktide:1.13.4"
+                  },
+                  "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+                  "line": 155,
+                  "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_clips"
+                },
+                "orderedValues": [
+                  {
+                    "key": "lerp_basic",
+                    "rawValue": "36",
+                    "decimal": "36",
+                    "line": 157,
+                    "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_clips[1].lerp_basic"
+                  },
+                  {
+                    "key": "lerp_perfect",
+                    "rawValue": "49",
+                    "decimal": "49",
+                    "line": 158,
+                    "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_clips[1].lerp_perfect"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "statKey": "ammunition_reserve",
+            "tableKey": "weapon_ammo_templates.autogun_p3_m1.ammunition_reserve",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 161,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_reserve"
+            },
+            "properties": [
+              {
+                "property": "ammunition_reserve",
+                "unit": "instance-count",
+                "sourceLocator": {
+                  "sourceRef": {
+                    "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                    "gameReleaseId": "darktide:1.13.4"
+                  },
+                  "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+                  "line": 161,
+                  "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_reserve"
+                },
+                "orderedValues": [
+                  {
+                    "key": "lerp_basic",
+                    "rawValue": "270",
+                    "decimal": "270",
+                    "line": 162,
+                    "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_reserve.lerp_basic"
+                  },
+                  {
+                    "key": "lerp_perfect",
+                    "rawValue": "405",
+                    "decimal": "405",
+                    "line": 163,
+                    "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_reserve.lerp_perfect"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "sourceRows": [
+          {
+            "rawValue": "autogun_p3_m1",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+              "line": 218,
+              "fieldPath": "weapon_templates.autoguns.autogun_p3_m1"
+            }
+          },
+          {
+            "rawValue": "action_shoot_hip",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m1.lua",
+              "line": 827,
+              "fieldPath": "weapon_template.entry_actions.primary_action"
+            }
+          },
+          {
+            "rawValue": "action_zoom",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m1.lua",
+              "line": 828,
+              "fieldPath": "weapon_template.entry_actions.secondary_action"
+            }
+          },
+          {
+            "rawValue": "autogun_p3_m1",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m1.lua",
+              "line": 856,
+              "fieldPath": "weapon_template.ammo_template"
+            }
+          },
+          {
+            "rawValue": "burst",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m1.lua",
+              "line": 1137,
+              "fieldPath": "weapon_template.displayed_attacks.primary.fire_mode"
+            }
+          },
+          {
+            "rawValue": "burst",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m1.lua",
+              "line": 1142,
+              "fieldPath": "weapon_template.displayed_attacks.secondary.fire_mode"
+            }
+          },
+          {
+            "rawValue": "hipfire",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m1.lua",
+              "line": 1138,
+              "fieldPath": "weapon_template.displayed_attacks.primary.type"
+            }
+          },
+          {
+            "rawValue": "ammo_trait_templates.default_ammo_stat",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m1.lua",
+              "line": 946,
+              "fieldPath": "weapon_template.base_stats.autogun_p3_m1_ammo_stat.ammo.base"
+            }
+          },
+          {
+            "rawValue": "HitScanTemplates.autogun_p3_m1_bullet",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m1.lua",
+              "line": 323,
+              "fieldPath": "weapon_template.actions.action_shoot_hip.fire_configuration.hit_scan_template"
+            }
+          },
+          {
+            "rawValue": "autogun_p3_m1_bullet",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 93,
+              "fieldPath": "hitscan_templates.autogun_p3_m1_bullet"
+            }
+          },
+          {
+            "rawValue": "100",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 94,
+              "fieldPath": "hitscan_templates.autogun_p3_m1_bullet.range"
+            }
+          },
+          {
+            "rawValue": "autogun_p3_m1",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 97,
+              "fieldPath": "hitscan_templates.autogun_p3_m1_bullet.damage_profile"
+            }
+          },
+          {
+            "rawValue": "36",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 157,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_clips[1].lerp_basic"
+            }
+          },
+          {
+            "rawValue": "49",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 158,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_clips[1].lerp_perfect"
+            }
+          },
+          {
+            "rawValue": "270",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 162,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_reserve.lerp_basic"
+            }
+          },
+          {
+            "rawValue": "405",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 163,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m1.ammunition_reserve.lerp_perfect"
+            }
+          },
+          {
+            "rawValue": "autogun_p3_burst_shot",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 698,
+              "fieldPath": "overrides.autogun_p3_m1.parent_template_name"
+            }
+          },
+          {
+            "rawValue": "90",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 704,
+              "fieldPath": "overrides.autogun_p3_m1.overrides.power_distribution.attack[1]"
+            }
+          },
+          {
+            "rawValue": "185",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 705,
+              "fieldPath": "overrides.autogun_p3_m1.overrides.power_distribution.attack[2]"
+            }
+          },
+          {
+            "rawValue": "2",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 712,
+              "fieldPath": "overrides.autogun_p3_m1.overrides.power_distribution.impact[1]"
+            }
+          },
+          {
+            "rawValue": "4",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 713,
+              "fieldPath": "overrides.autogun_p3_m1.overrides.power_distribution.impact[2]"
+            }
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m1-weapon-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/actionProfileResolution",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/displayedAttacks",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/actionContinuations",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/zoomed-and-special-profiles",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/player-obtainable-ammo-ranges",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/effective-damage-profile-inheritance",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/target-profile-applicability",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/markId",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/statRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/attackProfileRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/statTables",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/sourceRows",
+          "dimension": "evidence"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-curve:autogun-p3-m2-ammo-clips-e46",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "knots": [
+          {
+            "input": "0",
+            "output": "15",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "15",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 169,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_clips[1].lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "21",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "21",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 170,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_clips[1].lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "value": "linear",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 73,
+            "fieldPath": "math.lerp.return"
+          }
+        },
+        "edgePolicy": {
+          "value": "extrapolate",
+          "scope": "math.lerp function only",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 72,
+            "fieldPath": "math.lerp"
+          }
+        },
+        "callsiteLocators": [
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+            "line": 571,
+            "fieldPath": "WeaponTweakTemplates.get_base_stats_values.lerp_endpoints"
+          },
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+            "line": 584,
+            "fieldPath": "WeaponTweakTemplates.get_base_stats_values.min"
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/knots",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/interpolation",
+          "dimension": "technical"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-definition:autogun-p3-m2-ammo-clips-e46",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "ammunition_clips",
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "rangeEvidence": {
+          "checkedSources": [
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/ammo_trait_templates.lua",
+                "line": 11,
+                "fieldPath": "ammo_trait_templates.default_ammo_stat.ammunition_clips.range.min"
+              },
+              "summary": "Pinned client stat-trait minimum input."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/ammo_trait_templates.lua",
+                "line": 10,
+                "fieldPath": "ammo_trait_templates.default_ammo_stat.ammunition_clips.range.max"
+              },
+              "summary": "Pinned client stat-trait maximum input."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 571,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.lerp_endpoints"
+              },
+              "summary": "The source stat reader selects the ammo template basic and perfect endpoints."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 584,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.min"
+              },
+              "summary": "The source stat reader maps the minimum input through math.lerp."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 585,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.max"
+              },
+              "summary": "The source stat reader maps the maximum input through math.lerp."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/foundation/utilities/math.lua",
+                "line": 72,
+                "fieldPath": "math.lerp"
+              },
+              "summary": "The pinned math.lerp implementation defines a linear interpolation formula."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_tweak_template_settings.lua",
+                "line": 9,
+                "fieldPath": "WeaponTweakTemplateSettings.DEFAULT_STAT_TRAIT_VALUE.default"
+              },
+              "summary": "The pinned default stat-trait value is recorded separately from the obtainable range."
+            }
+          ],
+          "serverBoundary": "The pinned client source does not establish server-generated or player-obtainable ammunition capacities.",
+          "impact": "The source endpoints and trait input range are retained as client data; this record does not claim a player-obtainable roll range."
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:autogun-p3-m2-ammo-clips-e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/quantity",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/curveRef",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/rangeEvidence",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/obtainableInputRange",
+          "dimension": "context"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-curve:autogun-p3-m2-ammo-reserve-e46",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "knots": [
+          {
+            "input": "0",
+            "output": "150",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "150",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 174,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_reserve.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "180",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "180",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 175,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_reserve.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "value": "linear",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 73,
+            "fieldPath": "math.lerp.return"
+          }
+        },
+        "edgePolicy": {
+          "value": "extrapolate",
+          "scope": "math.lerp function only",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 72,
+            "fieldPath": "math.lerp"
+          }
+        },
+        "callsiteLocators": [
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+            "line": 571,
+            "fieldPath": "WeaponTweakTemplates.get_base_stats_values.lerp_endpoints"
+          },
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+            "line": 584,
+            "fieldPath": "WeaponTweakTemplates.get_base_stats_values.min"
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/knots",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/interpolation",
+          "dimension": "technical"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-definition:autogun-p3-m2-ammo-reserve-e46",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "ammunition_reserve",
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "rangeEvidence": {
+          "checkedSources": [
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/ammo_trait_templates.lua",
+                "line": 18,
+                "fieldPath": "ammo_trait_templates.default_ammo_stat.ammunition_reserve.range.min"
+              },
+              "summary": "Pinned client stat-trait minimum input."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/ammo_trait_templates.lua",
+                "line": 17,
+                "fieldPath": "ammo_trait_templates.default_ammo_stat.ammunition_reserve.range.max"
+              },
+              "summary": "Pinned client stat-trait maximum input."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 571,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.lerp_endpoints"
+              },
+              "summary": "The source stat reader selects the ammo template basic and perfect endpoints."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 584,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.min"
+              },
+              "summary": "The source stat reader maps the minimum input through math.lerp."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 585,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.max"
+              },
+              "summary": "The source stat reader maps the maximum input through math.lerp."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/foundation/utilities/math.lua",
+                "line": 72,
+                "fieldPath": "math.lerp"
+              },
+              "summary": "The pinned math.lerp implementation defines a linear interpolation formula."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_tweak_template_settings.lua",
+                "line": 9,
+                "fieldPath": "WeaponTweakTemplateSettings.DEFAULT_STAT_TRAIT_VALUE.default"
+              },
+              "summary": "The pinned default stat-trait value is recorded separately from the obtainable range."
+            }
+          ],
+          "serverBoundary": "The pinned client source does not establish server-generated or player-obtainable ammunition capacities.",
+          "impact": "The source endpoints and trait input range are retained as client data; this record does not claim a player-obtainable roll range."
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:autogun-p3-m2-ammo-reserve-e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/quantity",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/curveRef",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/rangeEvidence",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/obtainableInputRange",
+          "dimension": "context"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m2:e46",
+      "kind": "damage-profile",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "profileKey": "autogun_p3_m2",
+        "rawSourceDefinition": {
+          "sourceRef": {
+            "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+          "line": 740,
+          "fieldPath": "overrides.autogun_p3_m2",
+          "leaves": [
+            {
+              "line": 741,
+              "fieldPath": "overrides.autogun_p3_m2.parent_template_name",
+              "rawValue": "\"autogun_p3_burst_shot\""
+            }
+          ],
+          "parentProfileRef": {
+            "recordId": "darktide:damage-profile:autogun-shared:autogun_p3_burst_shot:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          "tables": [
+            {
+              "tableKey": "overrides.autogun_p3_m2.overrides.power_distribution.attack",
+              "quantity": "power_distribution.attack",
+              "unit": "attack-power-point",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                "line": 748,
+                "fieldPath": "overrides.autogun_p3_m2.overrides.power_distribution.attack"
+              },
+              "orderedValues": [
+                {
+                  "ordinal": 1,
+                  "rawValue": "160",
+                  "decimal": "160",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 751,
+                    "fieldPath": "overrides.autogun_p3_m2.overrides.power_distribution.attack[1]"
+                  }
+                },
+                {
+                  "ordinal": 2,
+                  "rawValue": "320",
+                  "decimal": "320",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 752,
+                    "fieldPath": "overrides.autogun_p3_m2.overrides.power_distribution.attack[2]"
+                  }
+                }
+              ]
+            },
+            {
+              "tableKey": "overrides.autogun_p3_m2.overrides.power_distribution.impact",
+              "quantity": "power_distribution.impact",
+              "unit": "impact",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                "line": 756,
+                "fieldPath": "overrides.autogun_p3_m2.overrides.power_distribution.impact"
+              },
+              "orderedValues": [
+                {
+                  "ordinal": 1,
+                  "rawValue": "6",
+                  "decimal": "6",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 759,
+                    "fieldPath": "overrides.autogun_p3_m2.overrides.power_distribution.impact[1]"
+                  }
+                },
+                {
+                  "ordinal": 2,
+                  "rawValue": "14",
+                  "decimal": "14",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 760,
+                    "fieldPath": "overrides.autogun_p3_m2.overrides.power_distribution.impact[2]"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/effective-parent-profile-resolution",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/target-order-and-target-applicability",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/unimported-override-fields",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/rawSourceDefinition",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/rawSourceDefinition/leaves",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/rawSourceDefinition/tables",
+          "dimension": "evidence"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m2:action_shoot_hip",
+      "kind": "attack-profile",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "familyId": "autogun_p3",
+        "markId": "autogun_p3_m2",
+        "templateKey": "autogun_p3_m2",
+        "action": "action_shoot_hip",
+        "mode": "hipfire",
+        "weaponRef": {
+          "recordId": "darktide:weapon:autogun:p3-m2:e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "damageProfileRefs": [
+          {
+            "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m2:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "targetProfileRefs": [],
+        "contexts": [
+          {
+            "weaponRef": {
+              "recordId": "darktide:weapon:autogun:p3-m2:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "markKey": "autogun_p3_m2",
+            "action": "action_shoot_hip",
+            "mode": "hipfire",
+            "damageProfileRef": {
+              "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m2:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/targetProfileRefs",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/actionResolution",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/target-profile-and-applicability",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/effective-parent-profile-resolution",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/all-attack-actions-and-combinations",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/damageProfileRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/targetProfileRefs",
+          "dimension": "context"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:weapon:autogun:p3-m2:e46",
+      "kind": "weapon",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "familyId": "autogun_p3",
+        "markId": "autogun_p3_m2",
+        "templateKey": "autogun_p3_m2",
+        "statRefs": [
+          {
+            "recordId": "darktide:stat-definition:autogun-p3-m2-ammo-clips-e46",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:stat-definition:autogun-p3-m2-ammo-reserve-e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "attackProfileRefs": [
+          {
+            "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m2:action_shoot_hip",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "statTables": [
+          {
+            "statKey": "ammunition_clips",
+            "tableKey": "weapon_ammo_templates.autogun_p3_m2.ammunition_clips",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 167,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_clips"
+            },
+            "properties": [
+              {
+                "property": "ammunition_clips",
+                "unit": "instance-count",
+                "sourceLocator": {
+                  "sourceRef": {
+                    "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                    "gameReleaseId": "darktide:1.13.4"
+                  },
+                  "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+                  "line": 167,
+                  "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_clips"
+                },
+                "orderedValues": [
+                  {
+                    "key": "lerp_basic",
+                    "rawValue": "15",
+                    "decimal": "15",
+                    "line": 169,
+                    "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_clips[1].lerp_basic"
+                  },
+                  {
+                    "key": "lerp_perfect",
+                    "rawValue": "21",
+                    "decimal": "21",
+                    "line": 170,
+                    "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_clips[1].lerp_perfect"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "statKey": "ammunition_reserve",
+            "tableKey": "weapon_ammo_templates.autogun_p3_m2.ammunition_reserve",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 173,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_reserve"
+            },
+            "properties": [
+              {
+                "property": "ammunition_reserve",
+                "unit": "instance-count",
+                "sourceLocator": {
+                  "sourceRef": {
+                    "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                    "gameReleaseId": "darktide:1.13.4"
+                  },
+                  "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+                  "line": 173,
+                  "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_reserve"
+                },
+                "orderedValues": [
+                  {
+                    "key": "lerp_basic",
+                    "rawValue": "150",
+                    "decimal": "150",
+                    "line": 174,
+                    "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_reserve.lerp_basic"
+                  },
+                  {
+                    "key": "lerp_perfect",
+                    "rawValue": "180",
+                    "decimal": "180",
+                    "line": 175,
+                    "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_reserve.lerp_perfect"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "sourceRows": [
+          {
+            "rawValue": "autogun_p3_m2",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+              "line": 219,
+              "fieldPath": "weapon_templates.autoguns.autogun_p3_m2"
+            }
+          },
+          {
+            "rawValue": "action_shoot_hip",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m2.lua",
+              "line": 891,
+              "fieldPath": "weapon_template.entry_actions.primary_action"
+            }
+          },
+          {
+            "rawValue": "action_zoom",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m2.lua",
+              "line": 892,
+              "fieldPath": "weapon_template.entry_actions.secondary_action"
+            }
+          },
+          {
+            "rawValue": "autogun_p3_m2",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m2.lua",
+              "line": 901,
+              "fieldPath": "weapon_template.ammo_template"
+            }
+          },
+          {
+            "rawValue": "semi_auto",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m2.lua",
+              "line": 1200,
+              "fieldPath": "weapon_template.displayed_attacks.primary.fire_mode"
+            }
+          },
+          {
+            "rawValue": "semi_auto",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m2.lua",
+              "line": 1205,
+              "fieldPath": "weapon_template.displayed_attacks.secondary.fire_mode"
+            }
+          },
+          {
+            "rawValue": "hipfire",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m2.lua",
+              "line": 1201,
+              "fieldPath": "weapon_template.displayed_attacks.primary.type"
+            }
+          },
+          {
+            "rawValue": "ammo_trait_templates.default_ammo_stat",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m2.lua",
+              "line": 1009,
+              "fieldPath": "weapon_template.base_stats.autogun_p3_m1_ammo_stat.ammo.base"
+            }
+          },
+          {
+            "rawValue": "HitScanTemplates.autogun_p3_m2_bullet",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m2.lua",
+              "line": 344,
+              "fieldPath": "weapon_template.actions.action_shoot_hip.fire_configuration.hit_scan_template"
+            }
+          },
+          {
+            "rawValue": "autogun_p3_m2_bullet",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 114,
+              "fieldPath": "hitscan_templates.autogun_p3_m2_bullet"
+            }
+          },
+          {
+            "rawValue": "100",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 115,
+              "fieldPath": "hitscan_templates.autogun_p3_m2_bullet.range"
+            }
+          },
+          {
+            "rawValue": "autogun_p3_m2",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 118,
+              "fieldPath": "hitscan_templates.autogun_p3_m2_bullet.damage_profile"
+            }
+          },
+          {
+            "rawValue": "15",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 169,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_clips[1].lerp_basic"
+            }
+          },
+          {
+            "rawValue": "21",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 170,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_clips[1].lerp_perfect"
+            }
+          },
+          {
+            "rawValue": "150",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 174,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_reserve.lerp_basic"
+            }
+          },
+          {
+            "rawValue": "180",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 175,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m2.ammunition_reserve.lerp_perfect"
+            }
+          },
+          {
+            "rawValue": "autogun_p3_burst_shot",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 741,
+              "fieldPath": "overrides.autogun_p3_m2.parent_template_name"
+            }
+          },
+          {
+            "rawValue": "160",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 751,
+              "fieldPath": "overrides.autogun_p3_m2.overrides.power_distribution.attack[1]"
+            }
+          },
+          {
+            "rawValue": "320",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 752,
+              "fieldPath": "overrides.autogun_p3_m2.overrides.power_distribution.attack[2]"
+            }
+          },
+          {
+            "rawValue": "6",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 759,
+              "fieldPath": "overrides.autogun_p3_m2.overrides.power_distribution.impact[1]"
+            }
+          },
+          {
+            "rawValue": "14",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 760,
+              "fieldPath": "overrides.autogun_p3_m2.overrides.power_distribution.impact[2]"
+            }
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m2-weapon-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/actionProfileResolution",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/displayedAttacks",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/actionContinuations",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/zoomed-and-special-profiles",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/player-obtainable-ammo-ranges",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/effective-damage-profile-inheritance",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/target-profile-applicability",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/markId",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/statRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/attackProfileRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/statTables",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/sourceRows",
+          "dimension": "evidence"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-curve:autogun-p3-m3-ammo-clips-e46",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "knots": [
+          {
+            "input": "0",
+            "output": "22",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "22",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 181,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_clips[1].lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "35",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "35",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 182,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_clips[1].lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "value": "linear",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 73,
+            "fieldPath": "math.lerp.return"
+          }
+        },
+        "edgePolicy": {
+          "value": "extrapolate",
+          "scope": "math.lerp function only",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 72,
+            "fieldPath": "math.lerp"
+          }
+        },
+        "callsiteLocators": [
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+            "line": 571,
+            "fieldPath": "WeaponTweakTemplates.get_base_stats_values.lerp_endpoints"
+          },
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+            "line": 584,
+            "fieldPath": "WeaponTweakTemplates.get_base_stats_values.min"
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/knots",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/interpolation",
+          "dimension": "technical"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-definition:autogun-p3-m3-ammo-clips-e46",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "ammunition_clips",
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "rangeEvidence": {
+          "checkedSources": [
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/ammo_trait_templates.lua",
+                "line": 11,
+                "fieldPath": "ammo_trait_templates.default_ammo_stat.ammunition_clips.range.min"
+              },
+              "summary": "Pinned client stat-trait minimum input."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/ammo_trait_templates.lua",
+                "line": 10,
+                "fieldPath": "ammo_trait_templates.default_ammo_stat.ammunition_clips.range.max"
+              },
+              "summary": "Pinned client stat-trait maximum input."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 571,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.lerp_endpoints"
+              },
+              "summary": "The source stat reader selects the ammo template basic and perfect endpoints."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 584,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.min"
+              },
+              "summary": "The source stat reader maps the minimum input through math.lerp."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 585,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.max"
+              },
+              "summary": "The source stat reader maps the maximum input through math.lerp."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/foundation/utilities/math.lua",
+                "line": 72,
+                "fieldPath": "math.lerp"
+              },
+              "summary": "The pinned math.lerp implementation defines a linear interpolation formula."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_tweak_template_settings.lua",
+                "line": 9,
+                "fieldPath": "WeaponTweakTemplateSettings.DEFAULT_STAT_TRAIT_VALUE.default"
+              },
+              "summary": "The pinned default stat-trait value is recorded separately from the obtainable range."
+            }
+          ],
+          "serverBoundary": "The pinned client source does not establish server-generated or player-obtainable ammunition capacities.",
+          "impact": "The source endpoints and trait input range are retained as client data; this record does not claim a player-obtainable roll range."
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:autogun-p3-m3-ammo-clips-e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/quantity",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/curveRef",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/rangeEvidence",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/obtainableInputRange",
+          "dimension": "context"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-curve:autogun-p3-m3-ammo-reserve-e46",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "knots": [
+          {
+            "input": "0",
+            "output": "162",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "162",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 186,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_reserve.lerp_basic"
+            }
+          },
+          {
+            "input": "1",
+            "output": "270",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "270",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 187,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_reserve.lerp_perfect"
+            }
+          }
+        ],
+        "interpolation": {
+          "value": "linear",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 73,
+            "fieldPath": "math.lerp.return"
+          }
+        },
+        "edgePolicy": {
+          "value": "extrapolate",
+          "scope": "math.lerp function only",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 72,
+            "fieldPath": "math.lerp"
+          }
+        },
+        "callsiteLocators": [
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+            "line": 571,
+            "fieldPath": "WeaponTweakTemplates.get_base_stats_values.lerp_endpoints"
+          },
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+            "line": 584,
+            "fieldPath": "WeaponTweakTemplates.get_base_stats_values.min"
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/knots",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/interpolation",
+          "dimension": "technical"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-definition:autogun-p3-m3-ammo-reserve-e46",
+      "kind": "stat-definition",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "quantity": "ammunition_reserve",
+        "inputUnit": "ratio",
+        "outputUnit": "instance-count",
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "theoreticalInputRange": {
+          "status": "known",
+          "min": "0",
+          "max": "1",
+          "unit": "ratio",
+          "inclusive": {
+            "min": true,
+            "max": true
+          }
+        },
+        "obtainableInputRange": {
+          "status": "unknown",
+          "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+        },
+        "rangeEvidence": {
+          "checkedSources": [
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/ammo_trait_templates.lua",
+                "line": 18,
+                "fieldPath": "ammo_trait_templates.default_ammo_stat.ammunition_reserve.range.min"
+              },
+              "summary": "Pinned client stat-trait minimum input."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_trait_templates/ammo_trait_templates.lua",
+                "line": 17,
+                "fieldPath": "ammo_trait_templates.default_ammo_stat.ammunition_reserve.range.max"
+              },
+              "summary": "Pinned client stat-trait maximum input."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 571,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.lerp_endpoints"
+              },
+              "summary": "The source stat reader selects the ammo template basic and perfect endpoints."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 584,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.min"
+              },
+              "summary": "The source stat reader maps the minimum input through math.lerp."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/extension_systems/weapon/utilities/weapon_tweak_templates.lua",
+                "line": 585,
+                "fieldPath": "WeaponTweakTemplates.get_base_stats_values.max"
+              },
+              "summary": "The source stat reader maps the maximum input through math.lerp."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/foundation/utilities/math.lua",
+                "line": 72,
+                "fieldPath": "math.lerp"
+              },
+              "summary": "The pinned math.lerp implementation defines a linear interpolation formula."
+            },
+            {
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/weapon_tweak_template_settings.lua",
+                "line": 9,
+                "fieldPath": "WeaponTweakTemplateSettings.DEFAULT_STAT_TRAIT_VALUE.default"
+              },
+              "summary": "The pinned default stat-trait value is recorded separately from the obtainable range."
+            }
+          ],
+          "serverBoundary": "The pinned client source does not establish server-generated or player-obtainable ammunition capacities.",
+          "impact": "The source endpoints and trait input range are retained as client data; this record does not claim a player-obtainable roll range."
+        },
+        "curveRef": {
+          "recordId": "darktide:stat-curve:autogun-p3-m3-ammo-reserve-e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "claimRefs": []
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/claimRefs",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/quantity",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/curveRef",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/rangeEvidence",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/obtainableInputRange",
+          "dimension": "context"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m3:e46",
+      "kind": "damage-profile",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "profileKey": "autogun_p3_m3",
+        "rawSourceDefinition": {
+          "sourceRef": {
+            "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+          "line": 795,
+          "fieldPath": "overrides.autogun_p3_m3",
+          "leaves": [
+            {
+              "line": 796,
+              "fieldPath": "overrides.autogun_p3_m3.parent_template_name",
+              "rawValue": "\"autogun_p3_burst_shot\""
+            }
+          ],
+          "parentProfileRef": {
+            "recordId": "darktide:damage-profile:autogun-shared:autogun_p3_burst_shot:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          "tables": [
+            {
+              "tableKey": "overrides.autogun_p3_m3.overrides.power_distribution.attack",
+              "quantity": "power_distribution.attack",
+              "unit": "attack-power-point",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                "line": 799,
+                "fieldPath": "overrides.autogun_p3_m3.overrides.power_distribution.attack"
+              },
+              "orderedValues": [
+                {
+                  "ordinal": 1,
+                  "rawValue": "100",
+                  "decimal": "100",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 802,
+                    "fieldPath": "overrides.autogun_p3_m3.overrides.power_distribution.attack[1]"
+                  }
+                },
+                {
+                  "ordinal": 2,
+                  "rawValue": "220",
+                  "decimal": "220",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 803,
+                    "fieldPath": "overrides.autogun_p3_m3.overrides.power_distribution.attack[2]"
+                  }
+                }
+              ]
+            },
+            {
+              "tableKey": "overrides.autogun_p3_m3.overrides.power_distribution.impact",
+              "quantity": "power_distribution.impact",
+              "unit": "impact",
+              "sourceLocator": {
+                "sourceRef": {
+                  "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                  "gameReleaseId": "darktide:1.13.4"
+                },
+                "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                "line": 807,
+                "fieldPath": "overrides.autogun_p3_m3.overrides.power_distribution.impact"
+              },
+              "orderedValues": [
+                {
+                  "ordinal": 1,
+                  "rawValue": "2",
+                  "decimal": "2",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 810,
+                    "fieldPath": "overrides.autogun_p3_m3.overrides.power_distribution.impact[1]"
+                  }
+                },
+                {
+                  "ordinal": 2,
+                  "rawValue": "4",
+                  "decimal": "4",
+                  "sourceLocator": {
+                    "sourceRef": {
+                      "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                      "gameReleaseId": "darktide:1.13.4"
+                    },
+                    "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+                    "line": 811,
+                    "fieldPath": "overrides.autogun_p3_m3.overrides.power_distribution.impact[2]"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/effective-parent-profile-resolution",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/target-order-and-target-applicability",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/unimported-override-fields",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/rawSourceDefinition",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/rawSourceDefinition/leaves",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/rawSourceDefinition/tables",
+          "dimension": "evidence"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m3:action_shoot_hip",
+      "kind": "attack-profile",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "familyId": "autogun_p3",
+        "markId": "autogun_p3_m3",
+        "templateKey": "autogun_p3_m3",
+        "action": "action_shoot_hip",
+        "mode": "hipfire",
+        "weaponRef": {
+          "recordId": "darktide:weapon:autogun:p3-m3:e46",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "damageProfileRefs": [
+          {
+            "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m3:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "targetProfileRefs": [],
+        "contexts": [
+          {
+            "weaponRef": {
+              "recordId": "darktide:weapon:autogun:p3-m3:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "markKey": "autogun_p3_m3",
+            "action": "action_shoot_hip",
+            "mode": "hipfire",
+            "damageProfileRef": {
+              "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m3:e46",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/targetProfileRefs",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/actionResolution",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/target-profile-and-applicability",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/effective-parent-profile-resolution",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/all-attack-actions-and-combinations",
+            "reasonCode": "NOT_IMPORTED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/damageProfileRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/targetProfileRefs",
+          "dimension": "context"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:weapon:autogun:p3-m3:e46",
+      "kind": "weapon",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "familyId": "autogun_p3",
+        "markId": "autogun_p3_m3",
+        "templateKey": "autogun_p3_m3",
+        "statRefs": [
+          {
+            "recordId": "darktide:stat-definition:autogun-p3-m3-ammo-clips-e46",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:stat-definition:autogun-p3-m3-ammo-reserve-e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "attackProfileRefs": [
+          {
+            "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m3:action_shoot_hip",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "statTables": [
+          {
+            "statKey": "ammunition_clips",
+            "tableKey": "weapon_ammo_templates.autogun_p3_m3.ammunition_clips",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 179,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_clips"
+            },
+            "properties": [
+              {
+                "property": "ammunition_clips",
+                "unit": "instance-count",
+                "sourceLocator": {
+                  "sourceRef": {
+                    "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                    "gameReleaseId": "darktide:1.13.4"
+                  },
+                  "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+                  "line": 179,
+                  "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_clips"
+                },
+                "orderedValues": [
+                  {
+                    "key": "lerp_basic",
+                    "rawValue": "22",
+                    "decimal": "22",
+                    "line": 181,
+                    "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_clips[1].lerp_basic"
+                  },
+                  {
+                    "key": "lerp_perfect",
+                    "rawValue": "35",
+                    "decimal": "35",
+                    "line": 182,
+                    "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_clips[1].lerp_perfect"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "statKey": "ammunition_reserve",
+            "tableKey": "weapon_ammo_templates.autogun_p3_m3.ammunition_reserve",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 185,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_reserve"
+            },
+            "properties": [
+              {
+                "property": "ammunition_reserve",
+                "unit": "instance-count",
+                "sourceLocator": {
+                  "sourceRef": {
+                    "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                    "gameReleaseId": "darktide:1.13.4"
+                  },
+                  "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+                  "line": 185,
+                  "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_reserve"
+                },
+                "orderedValues": [
+                  {
+                    "key": "lerp_basic",
+                    "rawValue": "162",
+                    "decimal": "162",
+                    "line": 186,
+                    "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_reserve.lerp_basic"
+                  },
+                  {
+                    "key": "lerp_perfect",
+                    "rawValue": "270",
+                    "decimal": "270",
+                    "line": 187,
+                    "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_reserve.lerp_perfect"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "sourceRows": [
+          {
+            "rawValue": "autogun_p3_m3",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/weapon_templates.lua",
+              "line": 220,
+              "fieldPath": "weapon_templates.autoguns.autogun_p3_m3"
+            }
+          },
+          {
+            "rawValue": "action_shoot_hip",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m3.lua",
+              "line": 836,
+              "fieldPath": "weapon_template.entry_actions.primary_action"
+            }
+          },
+          {
+            "rawValue": "action_zoom",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m3.lua",
+              "line": 837,
+              "fieldPath": "weapon_template.entry_actions.secondary_action"
+            }
+          },
+          {
+            "rawValue": "autogun_p3_m3",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m3.lua",
+              "line": 846,
+              "fieldPath": "weapon_template.ammo_template"
+            }
+          },
+          {
+            "rawValue": "burst",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m3.lua",
+              "line": 1145,
+              "fieldPath": "weapon_template.displayed_attacks.primary.fire_mode"
+            }
+          },
+          {
+            "rawValue": "burst",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m3.lua",
+              "line": 1150,
+              "fieldPath": "weapon_template.displayed_attacks.secondary.fire_mode"
+            }
+          },
+          {
+            "rawValue": "hipfire",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m3.lua",
+              "line": 1146,
+              "fieldPath": "weapon_template.displayed_attacks.primary.type"
+            }
+          },
+          {
+            "rawValue": "ammo_trait_templates.default_ammo_stat",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m3.lua",
+              "line": 954,
+              "fieldPath": "weapon_template.base_stats.autogun_p3_m1_ammo_stat.ammo.base"
+            }
+          },
+          {
+            "rawValue": "HitScanTemplates.autogun_p3_m3_bullet",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/autogun_p3_m3.lua",
+              "line": 324,
+              "fieldPath": "weapon_template.actions.action_shoot_hip.fire_configuration.hit_scan_template"
+            }
+          },
+          {
+            "rawValue": "autogun_p3_m3_bullet",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 135,
+              "fieldPath": "hitscan_templates.autogun_p3_m3_bullet"
+            }
+          },
+          {
+            "rawValue": "100",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 136,
+              "fieldPath": "hitscan_templates.autogun_p3_m3_bullet.range"
+            }
+          },
+          {
+            "rawValue": "autogun_p3_m3",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_hitscan_templates.lua",
+              "line": 139,
+              "fieldPath": "hitscan_templates.autogun_p3_m3_bullet.damage_profile"
+            }
+          },
+          {
+            "rawValue": "22",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 181,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_clips[1].lerp_basic"
+            }
+          },
+          {
+            "rawValue": "35",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 182,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_clips[1].lerp_perfect"
+            }
+          },
+          {
+            "rawValue": "162",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 186,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_reserve.lerp_basic"
+            }
+          },
+          {
+            "rawValue": "270",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua",
+              "line": 187,
+              "fieldPath": "weapon_ammo_templates.autogun_p3_m3.ammunition_reserve.lerp_perfect"
+            }
+          },
+          {
+            "rawValue": "autogun_p3_burst_shot",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 796,
+              "fieldPath": "overrides.autogun_p3_m3.parent_template_name"
+            }
+          },
+          {
+            "rawValue": "100",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 802,
+              "fieldPath": "overrides.autogun_p3_m3.overrides.power_distribution.attack[1]"
+            }
+          },
+          {
+            "rawValue": "220",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 803,
+              "fieldPath": "overrides.autogun_p3_m3.overrides.power_distribution.attack[2]"
+            }
+          },
+          {
+            "rawValue": "2",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 810,
+              "fieldPath": "overrides.autogun_p3_m3.overrides.power_distribution.impact[1]"
+            }
+          },
+          {
+            "rawValue": "4",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/autoguns/settings_templates/autogun_damage_profile_templates.lua",
+              "line": 811,
+              "fieldPath": "overrides.autogun_p3_m3.overrides.power_distribution.impact[2]"
+            }
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-weapon-registry",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-remaining8-e46-autogun_p3_m3-weapon-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-hitscan-template",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-348153646ac6",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:autogun-p1-m1-e46-damage-profile",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-212b78f8f348",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w13-lasgun-p1-m1-166474325c89",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-ad7704d76e893889",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/actionProfileResolution",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/displayedAttacks",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/actionContinuations",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/zoomed-and-special-profiles",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/player-obtainable-ammo-ranges",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/effective-damage-profile-inheritance",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/target-profile-applicability",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/markId",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/statRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/attackProfileRefs",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/statTables",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/sourceRows",
+          "dimension": "evidence"
+        }
+      ],
+      "reviewState": "approved"
+    }
+  ],
+  "reviewReceipts": [
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m1-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableInputRange",
+        "dimension": "context"
+      },
+      "targetDigest": "1edd38f769586d239769b2364bc515c17a60cbd557e0787d981318f3bf29f3e1",
+      "dependenciesDigest": "900d1da280d824f28f20bf88cb5be4ef67ada5f6fc7c8fda332567dbb80f49fb",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m1-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableInputRange",
+        "dimension": "context"
+      },
+      "targetDigest": "1edd38f769586d239769b2364bc515c17a60cbd557e0787d981318f3bf29f3e1",
+      "dependenciesDigest": "2ef4da4f2e3ee78078a08eccf4e82b01395f06a7be425bfa96abb9e7016e5f18",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m2-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableInputRange",
+        "dimension": "context"
+      },
+      "targetDigest": "1edd38f769586d239769b2364bc515c17a60cbd557e0787d981318f3bf29f3e1",
+      "dependenciesDigest": "2eb504c392b990426a4f1129e375944f10e9cdf22eee25342703a99db06f79ed",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m2-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableInputRange",
+        "dimension": "context"
+      },
+      "targetDigest": "1edd38f769586d239769b2364bc515c17a60cbd557e0787d981318f3bf29f3e1",
+      "dependenciesDigest": "cdb77f8cd17b4ed7de686a82bf2aca54c57bdeb7738e10acf69f9dd1598465b1",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m3-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableInputRange",
+        "dimension": "context"
+      },
+      "targetDigest": "1edd38f769586d239769b2364bc515c17a60cbd557e0787d981318f3bf29f3e1",
+      "dependenciesDigest": "560df55d211a768c95ad355855cf7fa7a533524c48ec3b62cf171ba5102b08e8",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m3-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableInputRange",
+        "dimension": "context"
+      },
+      "targetDigest": "1edd38f769586d239769b2364bc515c17a60cbd557e0787d981318f3bf29f3e1",
+      "dependenciesDigest": "1f22c5c7f7137a2cf245df9177277ee95173d4b1f603866d4f8a99bf21a1cb09",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m1:action_shoot_hip",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetProfileRefs",
+        "dimension": "context"
+      },
+      "targetDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "dependenciesDigest": "65aee12119dc4bd1ea3f7f014591ddd831538b4dbcc065a2c8670c3c6bff4364",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m2:action_shoot_hip",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetProfileRefs",
+        "dimension": "context"
+      },
+      "targetDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "dependenciesDigest": "477b790d96e053cb1ba65af3054104f24dc06074013386e979aaaa88e8b9dc4f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m3:action_shoot_hip",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetProfileRefs",
+        "dimension": "context"
+      },
+      "targetDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "dependenciesDigest": "89b7508064af0d7e823c249191a8d02bc59fb5512896ed671e574b46a30c0cd5",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-curve:autogun-p3-m1-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/knots",
+        "dimension": "evidence"
+      },
+      "targetDigest": "a533c81d2f417d8b1a82cf99f88f9c79399fbd47f679e0c9e33bbf4166b1d569",
+      "dependenciesDigest": "0e4f205a2ad4b08ed25ac8c2cb2f33285dcf66dad9fcdaa7be17f3387761aa4f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-curve:autogun-p3-m1-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/knots",
+        "dimension": "evidence"
+      },
+      "targetDigest": "f8ec92975c2696207bc1def95d52008105d111bcf4785cf740ca7dfd5eec4b56",
+      "dependenciesDigest": "5d1615c400e56e8362988471cfefc6c582f3ee5a8c227c84ccad5e952abebf64",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-curve:autogun-p3-m2-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/knots",
+        "dimension": "evidence"
+      },
+      "targetDigest": "b5ae262f8f41b460b1d5764148352ed69345d3fe372045e8df1fa804fbf8b246",
+      "dependenciesDigest": "ee54650e8fa1cf5e44896136e5e19e79a491d764bc758e38dd9335fe7cf9cc4c",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-curve:autogun-p3-m2-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/knots",
+        "dimension": "evidence"
+      },
+      "targetDigest": "2019e2988aba6666abd5b3d7a90db90726494e3781598b0df639a62c68f724fd",
+      "dependenciesDigest": "de3c5f27f717d9b2156725317c3ed2a10fabf14c6112d69c6fc9d28873c83eee",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-curve:autogun-p3-m3-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/knots",
+        "dimension": "evidence"
+      },
+      "targetDigest": "a4e61e9c59ec52ef143ace19649a3376193b469c13ae89e9dcf3ff9b3b7b6ca7",
+      "dependenciesDigest": "6e89b1ccf460d46815f710075c1fe3726e8b39b06966c16eda80feebd1246827",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-curve:autogun-p3-m3-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/knots",
+        "dimension": "evidence"
+      },
+      "targetDigest": "fbbde55695a1d0ef69ceb8e861f39bdf644ea0957800e8bbb2ed3aa0b738e1f0",
+      "dependenciesDigest": "c02ab02896b20440f2b6040ccbe6f39c291452e737c72d7f8c7d0d99dbca25e4",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m1-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rangeEvidence",
+        "dimension": "evidence"
+      },
+      "targetDigest": "efd4149bf010c450050781848b6500e9ca2ca23f27907d6511ef9326367ca647",
+      "dependenciesDigest": "900d1da280d824f28f20bf88cb5be4ef67ada5f6fc7c8fda332567dbb80f49fb",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m1-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rangeEvidence",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ea5e66e8019c8489135f45bbfea149770f47e44d1b3ff20788961223b0cb9fd6",
+      "dependenciesDigest": "2ef4da4f2e3ee78078a08eccf4e82b01395f06a7be425bfa96abb9e7016e5f18",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m2-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rangeEvidence",
+        "dimension": "evidence"
+      },
+      "targetDigest": "efd4149bf010c450050781848b6500e9ca2ca23f27907d6511ef9326367ca647",
+      "dependenciesDigest": "2eb504c392b990426a4f1129e375944f10e9cdf22eee25342703a99db06f79ed",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m2-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rangeEvidence",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ea5e66e8019c8489135f45bbfea149770f47e44d1b3ff20788961223b0cb9fd6",
+      "dependenciesDigest": "cdb77f8cd17b4ed7de686a82bf2aca54c57bdeb7738e10acf69f9dd1598465b1",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m3-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rangeEvidence",
+        "dimension": "evidence"
+      },
+      "targetDigest": "efd4149bf010c450050781848b6500e9ca2ca23f27907d6511ef9326367ca647",
+      "dependenciesDigest": "560df55d211a768c95ad355855cf7fa7a533524c48ec3b62cf171ba5102b08e8",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m3-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rangeEvidence",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ea5e66e8019c8489135f45bbfea149770f47e44d1b3ff20788961223b0cb9fd6",
+      "dependenciesDigest": "1f22c5c7f7137a2cf245df9177277ee95173d4b1f603866d4f8a99bf21a1cb09",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m1:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rawSourceDefinition/leaves",
+        "dimension": "evidence"
+      },
+      "targetDigest": "a914246aa4445dd36facbd936f9a1901a8aae061fe40c39383ef819e17566434",
+      "dependenciesDigest": "d30cec7bf57f8fde341d18df4761f7af0bbc288e6541db451fe90244f28de2aa",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m2:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rawSourceDefinition/leaves",
+        "dimension": "evidence"
+      },
+      "targetDigest": "51e83bcf850e5811a6985110d20d8142bbf54d1768df1e777d41bc628582341a",
+      "dependenciesDigest": "0f825cab9fc2b6b038a6d7d2a7d1f2dd5f9df4a8754ba14db7088f0bb26c3a93",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m3:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rawSourceDefinition/leaves",
+        "dimension": "evidence"
+      },
+      "targetDigest": "261be9174e41f79bc4d34835fb7ce43c5bc7c27a4e6fa12caf9bcbdb14598599",
+      "dependenciesDigest": "7bf5faea32fccf287839de517c52baa53d53d9630fd0b3cf19474ed928d0a3ed",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:damage-profile:autogun-shared:autogun_p3_burst_shot:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rawSourceDefinition/leaves",
+        "dimension": "evidence"
+      },
+      "targetDigest": "063f224df4a79e80083098d64f245731276bfd6d701b9cefce3cba232619ddc3",
+      "dependenciesDigest": "c8b24a22c1b35d32dd9523c5735b9021fe20e373fe5529630ae089b4d8d67ad7",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m1:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rawSourceDefinition/tables",
+        "dimension": "evidence"
+      },
+      "targetDigest": "64a961ee80e53898b3dbee344d6bb79fde9485aa7db6aa05e838af0b4a0056e1",
+      "dependenciesDigest": "d30cec7bf57f8fde341d18df4761f7af0bbc288e6541db451fe90244f28de2aa",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m2:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rawSourceDefinition/tables",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ba61874ae6efbe7a327c97fe52882c1efd94d5d2202134a4be64b6c2dbeb79c0",
+      "dependenciesDigest": "0f825cab9fc2b6b038a6d7d2a7d1f2dd5f9df4a8754ba14db7088f0bb26c3a93",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m3:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rawSourceDefinition/tables",
+        "dimension": "evidence"
+      },
+      "targetDigest": "361a266946d9557c5591c5f364e64289eeafdd2632b4ae91cc148f223967ca4a",
+      "dependenciesDigest": "7bf5faea32fccf287839de517c52baa53d53d9630fd0b3cf19474ed928d0a3ed",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m1:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/sourceRows",
+        "dimension": "evidence"
+      },
+      "targetDigest": "b1b0d28a5f9b6a37c8589c080c80ef87aac290ffd296a77e3be0a2a6cabd2c31",
+      "dependenciesDigest": "6dab92a5810b0328d38112c43711ef1cf6d461c6c997b5c90e86e74bf44c5be9",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m2:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/sourceRows",
+        "dimension": "evidence"
+      },
+      "targetDigest": "dd21f64c465154bd3b428d621dcfea6a646bbd9ed3940fa46159390fa203cd5d",
+      "dependenciesDigest": "93542c76dfcc7d7e3cc702ce09b48419eb0cac0dd90a7bdf093706827c7919c3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m3:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/sourceRows",
+        "dimension": "evidence"
+      },
+      "targetDigest": "8acb7a8a454634fdd20c5a7129b485175f90b4b7734e096e97e2eec9954acf0f",
+      "dependenciesDigest": "0b6b6baba40a28c0edb303b284fb787e71403ac967b53c02c9f30a626e7b3f5e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m1:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/statTables",
+        "dimension": "evidence"
+      },
+      "targetDigest": "277a6c7ce914442369a9a2fd12df93b3efc64d93cf53da386d1906afceb75346",
+      "dependenciesDigest": "6dab92a5810b0328d38112c43711ef1cf6d461c6c997b5c90e86e74bf44c5be9",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m2:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/statTables",
+        "dimension": "evidence"
+      },
+      "targetDigest": "527b681ac54381563c74981f48674931ed7bd5698f3929ecb34a7dbd9af44977",
+      "dependenciesDigest": "93542c76dfcc7d7e3cc702ce09b48419eb0cac0dd90a7bdf093706827c7919c3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m3:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/statTables",
+        "dimension": "evidence"
+      },
+      "targetDigest": "11d784ae7a499c667de60fb021ee4c6042bea98dfb2aaa71155ab674c5be1f76",
+      "dependenciesDigest": "0b6b6baba40a28c0edb303b284fb787e71403ac967b53c02c9f30a626e7b3f5e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m1:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/markId",
+        "dimension": "identity"
+      },
+      "targetDigest": "d594070e19d99de8ee319410f0c93cca3a6b588f07f94c2d47a977b400d3ac46",
+      "dependenciesDigest": "6dab92a5810b0328d38112c43711ef1cf6d461c6c997b5c90e86e74bf44c5be9",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m2:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/markId",
+        "dimension": "identity"
+      },
+      "targetDigest": "96b8b6cbc08ac9bbe4d8a6f08d2962f1c4809bd516e1c15b42d4e6ccc901a5a6",
+      "dependenciesDigest": "93542c76dfcc7d7e3cc702ce09b48419eb0cac0dd90a7bdf093706827c7919c3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m3:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/markId",
+        "dimension": "identity"
+      },
+      "targetDigest": "c28f8b3e484cbcfbefc7c77298f8547250b365078f220494127119a5cda6dd95",
+      "dependenciesDigest": "0b6b6baba40a28c0edb303b284fb787e71403ac967b53c02c9f30a626e7b3f5e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m1-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/quantity",
+        "dimension": "identity"
+      },
+      "targetDigest": "23424e51c34b1b6544ac90702e6f874a3778a187db70989ecf82640e705e1c23",
+      "dependenciesDigest": "900d1da280d824f28f20bf88cb5be4ef67ada5f6fc7c8fda332567dbb80f49fb",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m1-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/quantity",
+        "dimension": "identity"
+      },
+      "targetDigest": "b79259e4843eeee196953c61845fcff03433ae3ca2f9049d45c8767d3cba4a7f",
+      "dependenciesDigest": "2ef4da4f2e3ee78078a08eccf4e82b01395f06a7be425bfa96abb9e7016e5f18",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m2-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/quantity",
+        "dimension": "identity"
+      },
+      "targetDigest": "23424e51c34b1b6544ac90702e6f874a3778a187db70989ecf82640e705e1c23",
+      "dependenciesDigest": "2eb504c392b990426a4f1129e375944f10e9cdf22eee25342703a99db06f79ed",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m2-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/quantity",
+        "dimension": "identity"
+      },
+      "targetDigest": "b79259e4843eeee196953c61845fcff03433ae3ca2f9049d45c8767d3cba4a7f",
+      "dependenciesDigest": "cdb77f8cd17b4ed7de686a82bf2aca54c57bdeb7738e10acf69f9dd1598465b1",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m3-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/quantity",
+        "dimension": "identity"
+      },
+      "targetDigest": "23424e51c34b1b6544ac90702e6f874a3778a187db70989ecf82640e705e1c23",
+      "dependenciesDigest": "560df55d211a768c95ad355855cf7fa7a533524c48ec3b62cf171ba5102b08e8",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m3-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/quantity",
+        "dimension": "identity"
+      },
+      "targetDigest": "b79259e4843eeee196953c61845fcff03433ae3ca2f9049d45c8767d3cba4a7f",
+      "dependenciesDigest": "1f22c5c7f7137a2cf245df9177277ee95173d4b1f603866d4f8a99bf21a1cb09",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m1:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/attackProfileRefs",
+        "dimension": "technical"
+      },
+      "targetDigest": "3cbe7079ae7b2020075e30684161e97e75c9ac8725bdbf2cc0935d09623812bb",
+      "dependenciesDigest": "6dab92a5810b0328d38112c43711ef1cf6d461c6c997b5c90e86e74bf44c5be9",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m2:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/attackProfileRefs",
+        "dimension": "technical"
+      },
+      "targetDigest": "23050b665311982cfb09e579e288e4633534b1a9ef125b18d159d16e7f906ad1",
+      "dependenciesDigest": "93542c76dfcc7d7e3cc702ce09b48419eb0cac0dd90a7bdf093706827c7919c3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m3:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/attackProfileRefs",
+        "dimension": "technical"
+      },
+      "targetDigest": "663eb387700ca12da51a6df857c313580865c8702ed0497d91242bf961760071",
+      "dependenciesDigest": "0b6b6baba40a28c0edb303b284fb787e71403ac967b53c02c9f30a626e7b3f5e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m1-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/curveRef",
+        "dimension": "technical"
+      },
+      "targetDigest": "c8e96e0b30acc6d891c9309666ca7157283784a5d608d2ab6a5d1f7be9fa6cb6",
+      "dependenciesDigest": "900d1da280d824f28f20bf88cb5be4ef67ada5f6fc7c8fda332567dbb80f49fb",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m1-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/curveRef",
+        "dimension": "technical"
+      },
+      "targetDigest": "37bf3152bae920d83e277c23c72fdeb00cd1d9154aa17bc89096e0d409f497ca",
+      "dependenciesDigest": "2ef4da4f2e3ee78078a08eccf4e82b01395f06a7be425bfa96abb9e7016e5f18",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m2-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/curveRef",
+        "dimension": "technical"
+      },
+      "targetDigest": "f851cf51e48bc5a93c9768cdf9a5de5ddad563957cee78cb04604d9cda9fad48",
+      "dependenciesDigest": "2eb504c392b990426a4f1129e375944f10e9cdf22eee25342703a99db06f79ed",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m2-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/curveRef",
+        "dimension": "technical"
+      },
+      "targetDigest": "55b04162c5a6a060b8faf3fe3a84e8f1a6fb179e4af41f8aeb5fb17148f25dcf",
+      "dependenciesDigest": "cdb77f8cd17b4ed7de686a82bf2aca54c57bdeb7738e10acf69f9dd1598465b1",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m3-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/curveRef",
+        "dimension": "technical"
+      },
+      "targetDigest": "aeabca48321dfcd49ddf7cabc501f025f7dac934c2942ad8ffd7909c49d9d0c4",
+      "dependenciesDigest": "560df55d211a768c95ad355855cf7fa7a533524c48ec3b62cf171ba5102b08e8",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-definition:autogun-p3-m3-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/curveRef",
+        "dimension": "technical"
+      },
+      "targetDigest": "4b0a1cc4b695c93f971ed2bd6f580c444376fe7c9565343a266cffe7adb8deee",
+      "dependenciesDigest": "1f22c5c7f7137a2cf245df9177277ee95173d4b1f603866d4f8a99bf21a1cb09",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m1:action_shoot_hip",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/damageProfileRefs",
+        "dimension": "technical"
+      },
+      "targetDigest": "70fa829347389e9086d8c14849ed876f0e906f53ad5ed8f1932bef26d2450fa6",
+      "dependenciesDigest": "65aee12119dc4bd1ea3f7f014591ddd831538b4dbcc065a2c8670c3c6bff4364",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m2:action_shoot_hip",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/damageProfileRefs",
+        "dimension": "technical"
+      },
+      "targetDigest": "0a2829802fb8bd61054c14069d6f42d5098bdb409fec92dffe387875c940b3f7",
+      "dependenciesDigest": "477b790d96e053cb1ba65af3054104f24dc06074013386e979aaaa88e8b9dc4f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:attack-profile:autogun:p3:autogun_p3_m3:action_shoot_hip",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/damageProfileRefs",
+        "dimension": "technical"
+      },
+      "targetDigest": "f08cd2e10e8a30448a6de78f28586d02480bb2b4cc983941e24467f9dad8ba7b",
+      "dependenciesDigest": "89b7508064af0d7e823c249191a8d02bc59fb5512896ed671e574b46a30c0cd5",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-curve:autogun-p3-m1-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/interpolation",
+        "dimension": "technical"
+      },
+      "targetDigest": "63137e07e7a7b9eae43b7c56032fa3418c81dfa091f11d75d9944e322c3f7efa",
+      "dependenciesDigest": "0e4f205a2ad4b08ed25ac8c2cb2f33285dcf66dad9fcdaa7be17f3387761aa4f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-curve:autogun-p3-m1-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/interpolation",
+        "dimension": "technical"
+      },
+      "targetDigest": "63137e07e7a7b9eae43b7c56032fa3418c81dfa091f11d75d9944e322c3f7efa",
+      "dependenciesDigest": "5d1615c400e56e8362988471cfefc6c582f3ee5a8c227c84ccad5e952abebf64",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-curve:autogun-p3-m2-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/interpolation",
+        "dimension": "technical"
+      },
+      "targetDigest": "63137e07e7a7b9eae43b7c56032fa3418c81dfa091f11d75d9944e322c3f7efa",
+      "dependenciesDigest": "ee54650e8fa1cf5e44896136e5e19e79a491d764bc758e38dd9335fe7cf9cc4c",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-curve:autogun-p3-m2-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/interpolation",
+        "dimension": "technical"
+      },
+      "targetDigest": "63137e07e7a7b9eae43b7c56032fa3418c81dfa091f11d75d9944e322c3f7efa",
+      "dependenciesDigest": "de3c5f27f717d9b2156725317c3ed2a10fabf14c6112d69c6fc9d28873c83eee",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-curve:autogun-p3-m3-ammo-clips-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/interpolation",
+        "dimension": "technical"
+      },
+      "targetDigest": "63137e07e7a7b9eae43b7c56032fa3418c81dfa091f11d75d9944e322c3f7efa",
+      "dependenciesDigest": "6e89b1ccf460d46815f710075c1fe3726e8b39b06966c16eda80feebd1246827",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:stat-curve:autogun-p3-m3-ammo-reserve-e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/interpolation",
+        "dimension": "technical"
+      },
+      "targetDigest": "63137e07e7a7b9eae43b7c56032fa3418c81dfa091f11d75d9944e322c3f7efa",
+      "dependenciesDigest": "c02ab02896b20440f2b6040ccbe6f39c291452e737c72d7f8c7d0d99dbca25e4",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m1:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rawSourceDefinition",
+        "dimension": "technical"
+      },
+      "targetDigest": "eade4a8d215458dc76b6484b3434ace8208a287f1752c8a61ecc25d6bd6ff5b2",
+      "dependenciesDigest": "d30cec7bf57f8fde341d18df4761f7af0bbc288e6541db451fe90244f28de2aa",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m2:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rawSourceDefinition",
+        "dimension": "technical"
+      },
+      "targetDigest": "658fa5bd7e7db412e912ca13b52187f140931785b4719c143c195d1bb8f5a812",
+      "dependenciesDigest": "0f825cab9fc2b6b038a6d7d2a7d1f2dd5f9df4a8754ba14db7088f0bb26c3a93",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:damage-profile:autogun-p3:autogun_p3_m3:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rawSourceDefinition",
+        "dimension": "technical"
+      },
+      "targetDigest": "b02934374ef797d94067cf12991c97276f1e1100465feed70f06d131e40e9d69",
+      "dependenciesDigest": "7bf5faea32fccf287839de517c52baa53d53d9630fd0b3cf19474ed928d0a3ed",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:damage-profile:autogun-shared:autogun_p3_burst_shot:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/rawSourceDefinition/tables",
+        "dimension": "technical"
+      },
+      "targetDigest": "150eb400428eb4b5ad29574b37165ad6576fb677aaab16689e211f6963488c87",
+      "dependenciesDigest": "c8b24a22c1b35d32dd9523c5735b9021fe20e373fe5529630ae089b4d8d67ad7",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m1:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/statRefs",
+        "dimension": "technical"
+      },
+      "targetDigest": "f21f930d51b86664849f8e1053b85c0a2c3b8fe79fa91524b13540ee4fa2ba15",
+      "dependenciesDigest": "6dab92a5810b0328d38112c43711ef1cf6d461c6c997b5c90e86e74bf44c5be9",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m2:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/statRefs",
+        "dimension": "technical"
+      },
+      "targetDigest": "ff79812fb9f5109fdc8cdb79c4a52ec4c2ce4b98978f8867f5ddea4281fe7ea5",
+      "dependenciesDigest": "93542c76dfcc7d7e3cc702ce09b48419eb0cac0dd90a7bdf093706827c7919c3",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:weapon:autogun:p3-m3:e46",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/statRefs",
+        "dimension": "technical"
+      },
+      "targetDigest": "f8ee2d3520b332d8b69545829588330c5562aecc967509750889bed2dbe81543",
+      "dependenciesDigest": "0b6b6baba40a28c0edb303b284fb787e71403ac967b53c02c9f30a626e7b3f5e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-02T08:21:03.000Z"
+    }
+  ]
+}

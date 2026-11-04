@@ -1,3 +1,4 @@
+import { splitAuthoringBundle } from './lib/authoring-bundle.mjs';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -2214,7 +2215,7 @@ function markdownForManifest(manifest) {
 export async function writeW07WeaponBundle({ root = ROOT, outputRoot = root } = {}) {
   const built = await buildW07WeaponBundle({ root });
   const outputs = new Map([
-    ['content/authoring/v2/w07-weapons.json', jsonBytes(built.candidate)],
+    ...splitAuthoringBundle(built.candidate),
     ['docs/contracts/w07/source-import.json', jsonBytes(built.manifest)],
     ['docs/contracts/w07/source-import.md', Buffer.from(markdownForManifest(built.manifest), 'utf8')]
   ]);

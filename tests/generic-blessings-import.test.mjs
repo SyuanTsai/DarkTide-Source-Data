@@ -1,3 +1,5 @@
+import { readAuthoringBundle } from '../scripts/content/lib/authoring-bundle.mjs';
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
@@ -19,7 +21,7 @@ import {
 const DEFAULT_SOURCE_REPO = 'F:/GitFile/Persion - Games/Darktide-Source-Code';
 const sourceCodeRepo = process.env.DARKTIDE_SOURCE_CODE_REPO ?? DEFAULT_SOURCE_REPO;
 const registryPath = 'scripts/settings/equipment/weapon_traits/weapon_trait_templates.lua';
-const authoringUrl = new URL('../content/authoring/v2/w07-weapons.json', import.meta.url);
+const authoringRoot = fileURLToPath(new URL('..', import.meta.url));
 const probe = spawnSync('git', [
   '-c', `safe.directory=${sourceCodeRepo}`,
   '-C', sourceCodeRepo,
@@ -276,7 +278,7 @@ test('InterT28_blessing_claim_refs_cover_each_format_tier_and_evidence', { skip:
 // Purpose: Prevent approved-record copies while exercising all cross-bundle references with the real v2 validator.
 test('InterT30_minimal_candidate_is_disjoint_and_merged_bundle_passes_validator', { skip: integrationSkip }, async () => {
   const result = await build();
-  const authoring = stripGenericBlessingsFold(JSON.parse(await readFile(authoringUrl, 'utf8')), new Set(result.generatedRecords.map((record) => record.recordId)), result.candidate);
+  const authoring = stripGenericBlessingsFold((await readAuthoringBundle(authoringRoot)).bundle, new Set(result.generatedRecords.map((record) => record.recordId)), result.candidate);
   const existingRecordIds = new Set(authoring.records.map((record) => record.recordId));
   const merged = mergeGenericBlessingsCandidate({ authoringBundles: [authoring], candidate: result.candidate });
   const validation = await validateSourceContractFromDisk(merged);

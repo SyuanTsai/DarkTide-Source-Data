@@ -68,3 +68,7 @@ node scripts/content/imports/generic-weapon-templates.mjs `
 ```
 
 The command writes one pretty-printed candidate part per UI weapon family under `weapon-templates/`, plus `weapon-templates/_shared.json`, a SHA-256 `weapon-templates/index.json`, and `weapons-snapshot.json`; its loader reassembles the same candidate object that is merged with the authoring bundle and validated in memory before the command returns successfully.
+
+### W07 authoring bundle
+
+W07 authoring data lives in `content/authoring/v2/w07/`. The index records the size and SHA-256 of each shared, weapon-family, and blessing part; oversized weapon families use numbered parts. Use `readAuthoringBundle` and `writeAuthoringBundle` from `scripts/content/lib/authoring-bundle.mjs` to assemble and update the bundle. W09 defaults to the `splitW07` input preset; `acceptedW07` remains available for historical replay.

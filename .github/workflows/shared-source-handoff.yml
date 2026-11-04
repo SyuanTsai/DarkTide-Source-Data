@@ -69,7 +69,7 @@ jobs:
           fi
       - name: Prepare a pending candidate request for review
         if: steps.scope.outputs.prepare == 'true'
-        run: node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode candidate --input-preset acceptedW07
+        run: node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode candidate --input-preset splitW07
       - name: Upload the request and packet for workflow diagnostics
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -107,9 +107,9 @@ jobs:
           WEB_HANDOFF_TOKEN: ${{ secrets.WEB_HANDOFF_TOKEN }}
         run: |
           if [ "$SOURCE_EVENT_NAME" = "workflow_dispatch" ]; then
-            node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode formal --input-preset acceptedW07 --fallback-candidate --publish-archive --dispatch --release-id "$REQUESTED_RELEASE_ID"
+            node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode formal --input-preset splitW07 --fallback-candidate --publish-archive --dispatch --release-id "$REQUESTED_RELEASE_ID"
           else
-            node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode formal --input-preset acceptedW07 --fallback-candidate --publish-archive --dispatch --all-releases
+            node scripts/content/contract-w09-request.mjs --prepare --source-root "$GITHUB_WORKSPACE" --output-root "$RUNNER_TEMP/w09-source-handoff" --mode formal --input-preset splitW07 --fallback-candidate --publish-archive --dispatch --all-releases
           fi
       - name: Upload the request and packet for workflow diagnostics
         if: ${{ always() }}
