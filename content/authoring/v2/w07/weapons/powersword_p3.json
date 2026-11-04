@@ -425,107 +425,6 @@
       "reviewState": "approved"
     },
     {
-      "recordId": "darktide:weapon:powersword:p3-m1:e46",
-      "owner": "source",
-      "kind": "weapon",
-      "gameReleaseId": "darktide:1.13.4",
-      "payload": {
-        "familyId": "powersword_p3",
-        "markId": "powersword_p3_m1",
-        "templateKey": "powersword_p3_m1",
-        "statRefs": [
-          {
-            "recordId": "darktide:stat-definition:powersword_p3_m1-action_light_1-attack-power-source-curve-e46",
-            "gameReleaseId": "darktide:1.13.4"
-          },
-          {
-            "recordId": "darktide:stat-definition:powersword_p3_m1-action_heavy_1-attack-power-source-curve-e46",
-            "gameReleaseId": "darktide:1.13.4"
-          }
-        ],
-        "attackProfileRefs": [
-          {
-            "recordId": "darktide:attack-profile:powersword:p3:powersword_p3_m1:action_light_1",
-            "gameReleaseId": "darktide:1.13.4"
-          },
-          {
-            "recordId": "darktide:attack-profile:powersword:p3:powersword_p3_m1:action_heavy_1",
-            "gameReleaseId": "darktide:1.13.4"
-          }
-        ]
-      },
-      "sourceRefs": [
-        {
-          "sourceId": "public-code:weapon-template-powersword_p3_m1-e46b8926cfa3",
-          "gameReleaseId": "darktide:1.13.4"
-        },
-        {
-          "sourceId": "public-code:weapon-source-powersword_p3_m1-e46b8926cfa3-power_sword_damage_profile_templates",
-          "gameReleaseId": "darktide:1.13.4"
-        },
-        {
-          "sourceId": "public-code:weapon-source-powersword_p3_m1-e46b8926cfa3-damage_trait_templates",
-          "gameReleaseId": "darktide:1.13.4"
-        }
-      ],
-      "dataCoverage": {
-        "status": "partial",
-        "missing": [
-          {
-            "field": "/payload/actionProfileResolution",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-powersword_p3_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/payload/all-base-stat-definitions-and-rating-mapping",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-powersword_p3_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/payload/all-actions-and-display-segments",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-powersword_p3_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/payload/effective-target-and-override-resolution",
-            "reasonCode": "NOT_VERIFIED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-powersword_p3_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/player-visible-values-and-game-runtime",
-            "reasonCode": "NOT_VERIFIED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-powersword_p3_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          }
-        ]
-      },
-      "reviewTargets": [
-        {
-          "fieldPath": "/payload/statRefs",
-          "dimension": "technical"
-        },
-        {
-          "fieldPath": "/payload/attackProfileRefs",
-          "dimension": "technical"
-        }
-      ],
-      "reviewState": "approved"
-    },
-    {
       "recordId": "darktide:stat-definition:powersword_p3_m1-action_light_1-attack-power-source-curve-e46",
       "kind": "stat-definition",
       "owner": "source",
@@ -1814,22 +1713,6 @@
     {
       "target": {
         "gameReleaseId": "darktide:1.13.4",
-        "recordId": "darktide:weapon:powersword:p3-m1:e46",
-        "fieldPath": "/payload/attackProfileRefs",
-        "dimension": "technical"
-      },
-      "targetDigest": "b20983b5ae5e371ee840a53cc7e1e694515060c2e8d25be27bc9c24c5d8b08ea",
-      "dependenciesDigest": "5bfd44e12eeb9972de9818876f2d433d102a091cbc7dfd7aa3247628dc1b935b",
-      "decision": "approved",
-      "reviewer": {
-        "kind": "human",
-        "id": "SyuanTsai"
-      },
-      "reviewedAt": "2026-11-01T09:48:49.000Z"
-    },
-    {
-      "target": {
-        "gameReleaseId": "darktide:1.13.4",
         "recordId": "darktide:stat-definition:powersword_p3_m1-action_heavy_1-attack-power-source-curve-e46",
         "fieldPath": "/payload/curveMapping",
         "dimension": "technical"
@@ -2076,22 +1959,6 @@
       },
       "targetDigest": "84ce85b1956b9391adfb9d07a9b3eac7641cbda88ed1e19bf3bc787e8170c2e3",
       "dependenciesDigest": "217daa13a5795505b79efe3125e1699a84a1880ff801c18ad0df94dd69a0f8be",
-      "decision": "approved",
-      "reviewer": {
-        "kind": "human",
-        "id": "SyuanTsai"
-      },
-      "reviewedAt": "2026-11-01T09:48:49.000Z"
-    },
-    {
-      "target": {
-        "gameReleaseId": "darktide:1.13.4",
-        "recordId": "darktide:weapon:powersword:p3-m1:e46",
-        "fieldPath": "/payload/statRefs",
-        "dimension": "technical"
-      },
-      "targetDigest": "e7b210890a49eaa8cb7c710c583bfb8e87f448dd106f5efc50c8ad0cdf8424f2",
-      "dependenciesDigest": "5bfd44e12eeb9972de9818876f2d433d102a091cbc7dfd7aa3247628dc1b935b",
       "decision": "approved",
       "reviewer": {
         "kind": "human",

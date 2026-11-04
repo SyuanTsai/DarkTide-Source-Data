@@ -213,99 +213,6 @@
       "reviewState": "approved"
     },
     {
-      "recordId": "darktide:weapon:ogryn_gauntlet:p1-m1:e46",
-      "owner": "source",
-      "kind": "weapon",
-      "gameReleaseId": "darktide:1.13.4",
-      "payload": {
-        "familyId": "ogryn_gauntlet_p1",
-        "markId": "ogryn_gauntlet_p1_m1",
-        "templateKey": "ogryn_gauntlet_p1_m1",
-        "statRefs": [
-          {
-            "recordId": "darktide:stat-definition:ogryn_gauntlet_p1_m1-action_swing-attack-power-source-curve-e46",
-            "gameReleaseId": "darktide:1.13.4"
-          }
-        ],
-        "attackProfileRefs": [
-          {
-            "recordId": "darktide:attack-profile:ogryn_gauntlet:p1:ogryn_gauntlet_p1_m1:action_swing",
-            "gameReleaseId": "darktide:1.13.4"
-          }
-        ]
-      },
-      "sourceRefs": [
-        {
-          "sourceId": "public-code:weapon-template-ogryn_gauntlet_p1_m1-e46b8926cfa3",
-          "gameReleaseId": "darktide:1.13.4"
-        },
-        {
-          "sourceId": "public-code:weapon-source-ogryn_gauntlet_p1_m1-e46b8926cfa3-grenadier_gauntlet_damage_profile_templates",
-          "gameReleaseId": "darktide:1.13.4"
-        },
-        {
-          "sourceId": "public-code:weapon-source-ogryn_gauntlet_p1_m1-e46b8926cfa3-damage_trait_templates",
-          "gameReleaseId": "darktide:1.13.4"
-        }
-      ],
-      "dataCoverage": {
-        "status": "partial",
-        "missing": [
-          {
-            "field": "/payload/actionProfileResolution",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-ogryn_gauntlet_p1_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/payload/all-base-stat-definitions-and-rating-mapping",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-ogryn_gauntlet_p1_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/payload/all-actions-and-display-segments",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-ogryn_gauntlet_p1_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/payload/effective-target-and-override-resolution",
-            "reasonCode": "NOT_VERIFIED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-ogryn_gauntlet_p1_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/player-visible-values-and-game-runtime",
-            "reasonCode": "NOT_VERIFIED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-ogryn_gauntlet_p1_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          }
-        ]
-      },
-      "reviewTargets": [
-        {
-          "fieldPath": "/payload/statRefs",
-          "dimension": "technical"
-        },
-        {
-          "fieldPath": "/payload/attackProfileRefs",
-          "dimension": "technical"
-        }
-      ],
-      "reviewState": "approved"
-    },
-    {
       "recordId": "darktide:stat-definition:ogryn_gauntlet_p1_m1-action_swing-attack-power-source-curve-e46",
       "kind": "stat-definition",
       "owner": "source",
@@ -952,22 +859,6 @@
     {
       "target": {
         "gameReleaseId": "darktide:1.13.4",
-        "recordId": "darktide:weapon:ogryn_gauntlet:p1-m1:e46",
-        "fieldPath": "/payload/attackProfileRefs",
-        "dimension": "technical"
-      },
-      "targetDigest": "a1203f94e09968a90510079828c8a0feba819d9e8edbc6183060f1d4ae4085fd",
-      "dependenciesDigest": "1c063735f6f2a13472f7b68090969bb358b6ab570fa22bc39d1147ff17bced8a",
-      "decision": "approved",
-      "reviewer": {
-        "kind": "human",
-        "id": "SyuanTsai"
-      },
-      "reviewedAt": "2026-11-01T09:48:49.000Z"
-    },
-    {
-      "target": {
-        "gameReleaseId": "darktide:1.13.4",
         "recordId": "darktide:stat-definition:ogryn_gauntlet_p1_m1-action_swing-attack-power-source-curve-e46",
         "fieldPath": "/payload/curveMapping",
         "dimension": "technical"
@@ -1086,22 +977,6 @@
       },
       "targetDigest": "864ade13c5faed1be02d9f5ff810d4fa117b1fbc0008eae5b0a792235bb28faf",
       "dependenciesDigest": "56e56b5fe56d3e26f2f7d0f1c6d98d23a45022cbe4ac9a874070c18513229227",
-      "decision": "approved",
-      "reviewer": {
-        "kind": "human",
-        "id": "SyuanTsai"
-      },
-      "reviewedAt": "2026-11-01T09:48:49.000Z"
-    },
-    {
-      "target": {
-        "gameReleaseId": "darktide:1.13.4",
-        "recordId": "darktide:weapon:ogryn_gauntlet:p1-m1:e46",
-        "fieldPath": "/payload/statRefs",
-        "dimension": "technical"
-      },
-      "targetDigest": "11684383bf9b348f1f33a2467621730ed8eca36c0332352f321195efa5a36bc9",
-      "dependenciesDigest": "1c063735f6f2a13472f7b68090969bb358b6ab570fa22bc39d1147ff17bced8a",
       "decision": "approved",
       "reviewer": {
         "kind": "human",

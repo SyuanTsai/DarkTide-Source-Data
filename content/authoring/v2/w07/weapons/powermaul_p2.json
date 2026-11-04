@@ -425,107 +425,6 @@
       "reviewState": "approved"
     },
     {
-      "recordId": "darktide:weapon:powermaul:p2-m1:e46",
-      "owner": "source",
-      "kind": "weapon",
-      "gameReleaseId": "darktide:1.13.4",
-      "payload": {
-        "familyId": "powermaul_p2",
-        "markId": "powermaul_p2_m1",
-        "templateKey": "powermaul_p2_m1",
-        "statRefs": [
-          {
-            "recordId": "darktide:stat-definition:powermaul_p2_m1-action_light_1-attack-power-source-curve-e46",
-            "gameReleaseId": "darktide:1.13.4"
-          },
-          {
-            "recordId": "darktide:stat-definition:powermaul_p2_m1-action_heavy_1-attack-power-source-curve-e46",
-            "gameReleaseId": "darktide:1.13.4"
-          }
-        ],
-        "attackProfileRefs": [
-          {
-            "recordId": "darktide:attack-profile:powermaul:p2:powermaul_p2_m1:action_light_1",
-            "gameReleaseId": "darktide:1.13.4"
-          },
-          {
-            "recordId": "darktide:attack-profile:powermaul:p2:powermaul_p2_m1:action_heavy_1",
-            "gameReleaseId": "darktide:1.13.4"
-          }
-        ]
-      },
-      "sourceRefs": [
-        {
-          "sourceId": "public-code:weapon-template-powermaul_p2_m1-e46b8926cfa3",
-          "gameReleaseId": "darktide:1.13.4"
-        },
-        {
-          "sourceId": "public-code:weapon-source-powermaul_p2_m1-e46b8926cfa3-power_maul_damage_profile_templates",
-          "gameReleaseId": "darktide:1.13.4"
-        },
-        {
-          "sourceId": "public-code:weapon-source-powermaul_p2_m1-e46b8926cfa3-damage_trait_templates",
-          "gameReleaseId": "darktide:1.13.4"
-        }
-      ],
-      "dataCoverage": {
-        "status": "partial",
-        "missing": [
-          {
-            "field": "/payload/actionProfileResolution",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-powermaul_p2_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/payload/all-base-stat-definitions-and-rating-mapping",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-powermaul_p2_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/payload/all-actions-and-display-segments",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-powermaul_p2_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/payload/effective-target-and-override-resolution",
-            "reasonCode": "NOT_VERIFIED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-powermaul_p2_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/player-visible-values-and-game-runtime",
-            "reasonCode": "NOT_VERIFIED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-powermaul_p2_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          }
-        ]
-      },
-      "reviewTargets": [
-        {
-          "fieldPath": "/payload/statRefs",
-          "dimension": "technical"
-        },
-        {
-          "fieldPath": "/payload/attackProfileRefs",
-          "dimension": "technical"
-        }
-      ],
-      "reviewState": "approved"
-    },
-    {
       "recordId": "darktide:stat-definition:powermaul_p2_m1-action_light_1-attack-power-source-curve-e46",
       "kind": "stat-definition",
       "owner": "source",
@@ -1814,22 +1713,6 @@
     {
       "target": {
         "gameReleaseId": "darktide:1.13.4",
-        "recordId": "darktide:weapon:powermaul:p2-m1:e46",
-        "fieldPath": "/payload/attackProfileRefs",
-        "dimension": "technical"
-      },
-      "targetDigest": "b496c104160457b50e6cd638c9a34cf0f84ebb63c6e5a2ebc3796c87c125f5df",
-      "dependenciesDigest": "6221b1c5f0e6a72de26c3276aefda50aaeec146a70b70806162a3c65f470fca8",
-      "decision": "approved",
-      "reviewer": {
-        "kind": "human",
-        "id": "SyuanTsai"
-      },
-      "reviewedAt": "2026-11-01T09:48:49.000Z"
-    },
-    {
-      "target": {
-        "gameReleaseId": "darktide:1.13.4",
         "recordId": "darktide:stat-definition:powermaul_p2_m1-action_heavy_1-attack-power-source-curve-e46",
         "fieldPath": "/payload/curveMapping",
         "dimension": "technical"
@@ -2076,22 +1959,6 @@
       },
       "targetDigest": "a25533a21440c7fba54bf621b98e8c650b22b8edfb98e3cd8c154d798b612139",
       "dependenciesDigest": "62f485eafb0193abfe06bd296f458a5253e83ea3a6a8e575899794329d2c988f",
-      "decision": "approved",
-      "reviewer": {
-        "kind": "human",
-        "id": "SyuanTsai"
-      },
-      "reviewedAt": "2026-11-01T09:48:49.000Z"
-    },
-    {
-      "target": {
-        "gameReleaseId": "darktide:1.13.4",
-        "recordId": "darktide:weapon:powermaul:p2-m1:e46",
-        "fieldPath": "/payload/statRefs",
-        "dimension": "technical"
-      },
-      "targetDigest": "23ac860683e0ddadf7a722e7cef5bd749cdb04c01a7bebc789b9d9eb66061644",
-      "dependenciesDigest": "6221b1c5f0e6a72de26c3276aefda50aaeec146a70b70806162a3c65f470fca8",
       "decision": "approved",
       "reviewer": {
         "kind": "human",

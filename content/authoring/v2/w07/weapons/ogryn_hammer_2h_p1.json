@@ -425,107 +425,6 @@
       "reviewState": "approved"
     },
     {
-      "recordId": "darktide:weapon:ogryn_hammer_2h:p1-m1:e46",
-      "owner": "source",
-      "kind": "weapon",
-      "gameReleaseId": "darktide:1.13.4",
-      "payload": {
-        "familyId": "ogryn_hammer_2h_p1",
-        "markId": "ogryn_hammer_2h_p1_m1",
-        "templateKey": "ogryn_hammer_2h_p1_m1",
-        "statRefs": [
-          {
-            "recordId": "darktide:stat-definition:ogryn_hammer_2h_p1_m1-action_light_1-attack-power-source-curve-e46",
-            "gameReleaseId": "darktide:1.13.4"
-          },
-          {
-            "recordId": "darktide:stat-definition:ogryn_hammer_2h_p1_m1-action_heavy_1-attack-power-source-curve-e46",
-            "gameReleaseId": "darktide:1.13.4"
-          }
-        ],
-        "attackProfileRefs": [
-          {
-            "recordId": "darktide:attack-profile:ogryn_hammer_2h:p1:ogryn_hammer_2h_p1_m1:action_light_1",
-            "gameReleaseId": "darktide:1.13.4"
-          },
-          {
-            "recordId": "darktide:attack-profile:ogryn_hammer_2h:p1:ogryn_hammer_2h_p1_m1:action_heavy_1",
-            "gameReleaseId": "darktide:1.13.4"
-          }
-        ]
-      },
-      "sourceRefs": [
-        {
-          "sourceId": "public-code:weapon-template-ogryn_hammer_2h_p1_m1-e46b8926cfa3",
-          "gameReleaseId": "darktide:1.13.4"
-        },
-        {
-          "sourceId": "public-code:weapon-source-ogryn_hammer_2h_p1_m1-e46b8926cfa3-ogryn_hammer_2h_damage_profile_templates",
-          "gameReleaseId": "darktide:1.13.4"
-        },
-        {
-          "sourceId": "public-code:weapon-source-ogryn_hammer_2h_p1_m1-e46b8926cfa3-damage_trait_templates",
-          "gameReleaseId": "darktide:1.13.4"
-        }
-      ],
-      "dataCoverage": {
-        "status": "partial",
-        "missing": [
-          {
-            "field": "/payload/actionProfileResolution",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-ogryn_hammer_2h_p1_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/payload/all-base-stat-definitions-and-rating-mapping",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-ogryn_hammer_2h_p1_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/payload/all-actions-and-display-segments",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-ogryn_hammer_2h_p1_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/payload/effective-target-and-override-resolution",
-            "reasonCode": "NOT_VERIFIED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-ogryn_hammer_2h_p1_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/player-visible-values-and-game-runtime",
-            "reasonCode": "NOT_VERIFIED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-template-ogryn_hammer_2h_p1_m1-e46b8926cfa3",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          }
-        ]
-      },
-      "reviewTargets": [
-        {
-          "fieldPath": "/payload/statRefs",
-          "dimension": "technical"
-        },
-        {
-          "fieldPath": "/payload/attackProfileRefs",
-          "dimension": "technical"
-        }
-      ],
-      "reviewState": "approved"
-    },
-    {
       "recordId": "darktide:stat-definition:ogryn_hammer_2h_p1_m1-action_light_1-attack-power-source-curve-e46",
       "kind": "stat-definition",
       "owner": "source",
@@ -1814,22 +1713,6 @@
     {
       "target": {
         "gameReleaseId": "darktide:1.13.4",
-        "recordId": "darktide:weapon:ogryn_hammer_2h:p1-m1:e46",
-        "fieldPath": "/payload/attackProfileRefs",
-        "dimension": "technical"
-      },
-      "targetDigest": "46cd5fc29282f59e52cc7279102dff2f93f821a759346bd592b18b3bd2a3a67d",
-      "dependenciesDigest": "3a04073aca1cb56a6f92f09613ae88908eb8714ad413465ee55f5fb6986f4f4f",
-      "decision": "approved",
-      "reviewer": {
-        "kind": "human",
-        "id": "SyuanTsai"
-      },
-      "reviewedAt": "2026-11-01T09:48:49.000Z"
-    },
-    {
-      "target": {
-        "gameReleaseId": "darktide:1.13.4",
         "recordId": "darktide:stat-definition:ogryn_hammer_2h_p1_m1-action_heavy_1-attack-power-source-curve-e46",
         "fieldPath": "/payload/curveMapping",
         "dimension": "technical"
@@ -2076,22 +1959,6 @@
       },
       "targetDigest": "dfe3b7abad61cf0f3d232c38833ea7a7c7d65df235575708e511d4844d072f7e",
       "dependenciesDigest": "fc9b55a3cb8da92e52a3291aacb78a41d2fbcc0b6f133e24ef10359552a24788",
-      "decision": "approved",
-      "reviewer": {
-        "kind": "human",
-        "id": "SyuanTsai"
-      },
-      "reviewedAt": "2026-11-01T09:48:49.000Z"
-    },
-    {
-      "target": {
-        "gameReleaseId": "darktide:1.13.4",
-        "recordId": "darktide:weapon:ogryn_hammer_2h:p1-m1:e46",
-        "fieldPath": "/payload/statRefs",
-        "dimension": "technical"
-      },
-      "targetDigest": "fbad70c441f02af60d2dbcbcd4f405bbb5ca58366213c09874d84d4a9ce6b455",
-      "dependenciesDigest": "3a04073aca1cb56a6f92f09613ae88908eb8714ad413465ee55f5fb6986f4f4f",
       "decision": "approved",
       "reviewer": {
         "kind": "human",

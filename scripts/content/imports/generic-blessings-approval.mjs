@@ -1,18 +1,18 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { createReviewReceipt, validateSourceContractFromDisk } from '../contract-validator.mjs';
 import { buildContractCandidate } from '../contract-w05-build.mjs';
+import { readAuthoringBundle, splitAuthoringBundle, writeAuthoringBundle } from '../lib/authoring-bundle.mjs';
 import { mergeGenericBlessingsCandidate } from './generic-blessings.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const CANDIDATE_RELATIVE = path.join('content', 'imports', 'generic', 'blessings-candidates.json');
 const TEXT_RELATIVE = path.join('content', 'imports', 'generic', 'blessings-text.json');
-const AUTHORING_RELATIVE = path.join('content', 'authoring', 'v2', 'w07-weapons.json');
 const PINNED_COMMIT = 'e46b8926cfa3fa35503e4b80b15aab7a804314e4';
 const PUBLIC_REPOSITORY = 'https://github.com/Aussiemon/Darktide-Source-Code';
 const DEFAULT_SOURCE_CODE_REPO = process.env.DARKTIDE_SOURCE_CODE_REPO ?? 'F:/GitFile/Persion - Games/Darktide-Source-Code';
@@ -320,7 +320,7 @@ export async function applyGenericBlessingsApproval({ root = ROOT, approvalPath,
   const [candidate, text, authoring, approval] = await Promise.all([
     readJson(path.join(root, CANDIDATE_RELATIVE)),
     readJson(path.join(root, TEXT_RELATIVE)),
-    readJson(path.join(root, AUTHORING_RELATIVE)),
+    readAuthoringBundle(root).then(({ bundle }) => bundle),
     readJson(approvalPath)
   ]);
   const discovered = nameKeyEvidenceByKey === undefined ? discoverNameKeyEvidence(candidate, text, sourceCodeRepo) : {
@@ -358,9 +358,11 @@ export async function applyGenericBlessingsApproval({ root = ROOT, approvalPath,
   } finally {
     await rm(formalOutputRoot, { recursive: true, force: true });
   }
-  const bytes = Buffer.from(JSON.stringify(merged, null, 2) + '\n', 'utf8');
-  await writeFile(path.join(root, AUTHORING_RELATIVE), bytes);
-  return { packageDigest, addedReceiptCount: newReceipts.length, w07Bytes: bytes.length, validation, formalReceipt: formalBuild.receipt };
+  await writeAuthoringBundle(root, merged);
+  const files = [...splitAuthoringBundle(merged).keys()];
+  const sizes = await Promise.all(files.map((file) => stat(path.join(root, file)).then((entry) => entry.size)));
+  const authoringBytes = sizes.reduce((total, size) => total + size, 0);
+  return { packageDigest, addedReceiptCount: newReceipts.length, authoringBytes, authoringFileCount: files.length, validation, formalReceipt: formalBuild.receipt };
 }
 
 function option(argv, name) {
@@ -380,7 +382,7 @@ async function runCli(argv) {
   }
   if (argv.length !== 3 || !option(argv, '--approval')) throw new Error('Usage: node scripts/content/imports/generic-blessings-approval.mjs --apply --approval <human-approval.json>');
   const result = await applyGenericBlessingsApproval({ approvalPath: option(argv, '--approval') });
-  process.stdout.write(`Applied ${result.addedReceiptCount} review receipts; w07-weapons.json is ${result.w07Bytes} bytes.\n`);
+  process.stdout.write(`Applied ${result.addedReceiptCount} review receipts; authoring contains ${result.authoringFileCount} files and ${result.authoringBytes} bytes.\n`);
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {

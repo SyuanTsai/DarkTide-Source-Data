@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { readAuthoringBundle, writeAuthoringBundle } from '../scripts/content/lib/authoring-bundle.mjs';
 import { createReviewReceipt, validateSourceContractFromDisk } from '../scripts/content/contract-validator.mjs';
 import {
   applyGenericBlessingsApproval,
@@ -77,7 +78,7 @@ async function writeFixture(root) {
   await Promise.all([
     writeFile(path.join(root, 'content', 'imports', 'generic', 'blessings-candidates.json'), `${JSON.stringify(fixtureCandidate, null, 2)}\n`),
     writeFile(path.join(root, 'content', 'imports', 'generic', 'blessings-text.json'), `${JSON.stringify(fixtureText, null, 2)}\n`),
-    writeFile(path.join(root, 'content', 'authoring', 'v2', 'w07-weapons.json'), `${JSON.stringify(fixtureAuthoring, null, 2)}\n`)
+    writeAuthoringBundle(root, fixtureAuthoring)
   ]);
   return { trait, records };
 }
@@ -139,10 +140,16 @@ test('UnitT20_apply_writes_complete_human_receipts_and_formal_compile_accepts_th
   }, null, 2)}\n`);
 
   const result = await applyGenericBlessingsApproval({ root, approvalPath, nameKeyEvidenceByKey });
-  const applied = JSON.parse(await readFile(path.join(root, 'content', 'authoring', 'v2', 'w07-weapons.json'), 'utf8'));
+  const { bundle: applied } = await readAuthoringBundle(root);
   const appliedIds = new Set(prepared.subset.records.map((record) => record.recordId));
   const validation = await validateSourceContractFromDisk(applied);
 
+  const authoringPath = path.join(root, 'content', 'authoring', 'v2', 'w07');
+  const entries = await readdir(authoringPath, { recursive: true, withFileTypes: true });
+  const files = entries.filter((entry) => entry.isFile()).map((entry) => path.join(entry.parentPath, entry.name));
+  const fileBytes = await Promise.all(files.map((file) => readFile(file)));
+  assert.equal(result.authoringFileCount, files.length);
+  assert.equal(result.authoringBytes, fileBytes.reduce((total, bytes) => total + bytes.length, 0));
   assert.equal(result.addedReceiptCount, prepared.subset.records.reduce((count, record) => count + (record.reviewTargets?.length ?? 0), 0));
   assert.equal(validation.valid, true, JSON.stringify(validation.issues, null, 2));
   assert.equal(result.formalReceipt.publicationEligible, true);
@@ -157,8 +164,13 @@ test('UnitT30_rejects_nonapproved_or_mismatched_approval_without_writing_the_tem
   context.after(() => rm(root, { recursive: true, force: true }));
   await writeFixture(root);
   await prepareGenericBlessingsApproval({ root, outputDir: path.join(root, 'review'), nameKeyEvidenceByKey: new Map() });
-  const w07Path = path.join(root, 'content', 'authoring', 'v2', 'w07-weapons.json');
-  const before = await readFile(w07Path);
+  const authoringPath = path.join(root, 'content', 'authoring', 'v2', 'w07');
+  const snapshot = async () => {
+    const entries = await readdir(authoringPath, { recursive: true, withFileTypes: true });
+    const files = entries.filter((entry) => entry.isFile()).map((entry) => path.join(entry.parentPath, entry.name)).sort();
+    return Promise.all(files.map(async (file) => [path.relative(authoringPath, file), await readFile(file)]));
+  };
+  const before = await snapshot();
   const approvalPath = path.join(root, 'bad-approval.json');
   await writeFile(approvalPath, JSON.stringify({
     decision: 'rejected',
@@ -168,5 +180,11 @@ test('UnitT30_rejects_nonapproved_or_mismatched_approval_without_writing_the_tem
   }));
 
   await assert.rejects(applyGenericBlessingsApproval({ root, approvalPath }), /approved/);
-  assert.deepEqual(await readFile(w07Path), before);
+  assert.deepEqual(await snapshot(), before);
+  await writeFile(approvalPath, JSON.stringify({
+    decision: 'approved', reviewer: { kind: 'human', id: 'synthetic-test-reviewer' },
+    reviewedAt: '2026-11-03T00:00:00.000Z', reviewedPackage: { packageDigest: '0'.repeat(64) }
+  }));
+  await assert.rejects(applyGenericBlessingsApproval({ root, approvalPath, nameKeyEvidenceByKey: new Map() }), /packageDigest/);
+  assert.deepEqual(await snapshot(), before);
 });
