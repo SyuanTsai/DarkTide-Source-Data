@@ -7,7 +7,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "test": "node --test",
+    "test": "node --test --test-concurrency=2",
     "content:preview": "node scripts/content/build.mjs --mode preview",
     "content:formal": "node scripts/content/build.mjs --mode formal",
     "content:request": "node scripts/content/request.mjs",
