@@ -71,6 +71,34 @@ function requireExport(name) {
   return api[name];
 }
 
+test('batched Git reads preserve binary bytes and reject non-regular paths', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'w09-git-batch-'));
+  const git = (...args) => {
+    const result = spawnSync('git', ['-C', root, ...args], { encoding: null });
+    assert.equal(result.status, 0, Buffer.from(result.stderr ?? '').toString());
+    return result.stdout;
+  };
+  try {
+    git('init');
+    await mkdir(path.join(root, 'files'));
+    await writeFile(path.join(root, 'files', 'one'), Buffer.from([0, 10, 255, 13]));
+    await writeFile(path.join(root, 'files', 'two'), Buffer.from('second\n'));
+    await writeFile(path.join(root, 'empty'), Buffer.alloc(0));
+    git('add', '.');
+    const oid = git('hash-object', '-w', 'files/one').toString().trim();
+    git('update-index', '--add', '--cacheinfo', `120000,${oid},files/link`);
+    git('-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'fixture');
+    const commit = git('rev-parse', 'HEAD').toString().trim();
+    for (const name of ['files/one', 'files/two', 'empty']) {
+      assert.deepEqual(api.readGitBlob(root, commit, name), git('show', `${commit}:${name}`));
+    }
+    assert.throws(() => api.readGitBlob(root, commit, 'files/link'), /pinned Source input is not a regular Git file: files\/link/u);
+    assert.throws(() => api.readGitBlob(root, commit, 'files/missing'), /pinned Source input is not a regular Git file/u);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 // Scenario: The W09 request contract is consumed by a separate Web repository without importing Source files.
 // Purpose: Keep its validator and packet verifier available from the one-file cache interface.
 test('UnitT01_request_module_exports_standalone_receiver_contract', () => {
