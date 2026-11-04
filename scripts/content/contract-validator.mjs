@@ -436,6 +436,7 @@ function createReviewDigestContext(contract, { recordMap, releaseMap } = {}) {
   // while validateReceipts shares one only across its synchronous checks of this contract.
   const digestsByTarget = new Map();
   const dependencyDigestsByItem = new WeakMap();
+  const dependencyEntriesByItem = new WeakMap();
   return (target) => {
     const key = receiptKey(target);
     const cached = digestsByTarget.get(key);
@@ -449,20 +450,31 @@ function createReviewDigestContext(contract, { recordMap, releaseMap } = {}) {
     let dependenciesDigest = dependencyDigestsByItem.get(found.item);
     if (!dependenciesDigest) {
       const deps = dependencyClosure(contract, found.item, indexedRecords, sourceMap, indexedReleases);
-      dependenciesDigest = sha256(deps.map(({ key: dependencyKey, mode, expandsClaimRefs, item, isTombstone, release, sourceRefs }) => ({
-        key: dependencyKey,
-        dependencyMode: mode,
-        kind: isTombstone ? 'tombstone' : item.kind,
-        owner: item.owner ?? 'source',
-        payload: mode === 'identity' ? identityPayloadProjection(item) : reviewProjection(item.payload ?? null, { omitClaimRefs: !expandsClaimRefs }),
-        aliases: item.aliases ?? [],
-        sourceLinks: reviewProjection(item.sourceRefs ?? [], { omitClaimRefs: true }),
-        dataCoverage: reviewProjection(item.dataCoverage ?? null, { omitClaimRefs: true }),
-        reviewTargets: item.reviewTargets ?? [],
-        tombstoneReason: item.reason ?? null,
-        release: releaseReviewProjection(release),
-        sourceRefs: sourceRefs.map(sourceReviewProjection)
-      })));
+      const parts = deps.map(({ key: dependencyKey, mode, expandsClaimRefs, item, isTombstone, release, sourceRefs }) => {
+        let entries = dependencyEntriesByItem.get(item);
+        if (!entries) { entries = new Map(); dependencyEntriesByItem.set(item, entries); }
+        const entryKey = JSON.stringify([dependencyKey, mode, expandsClaimRefs, isTombstone]);
+        let entry = entries.get(entryKey);
+        if (entry === undefined) {
+          entry = canonical({
+            key: dependencyKey,
+            dependencyMode: mode,
+            kind: isTombstone ? 'tombstone' : item.kind,
+            owner: item.owner ?? 'source',
+            payload: mode === 'identity' ? identityPayloadProjection(item) : reviewProjection(item.payload ?? null, { omitClaimRefs: !expandsClaimRefs }),
+            aliases: item.aliases ?? [],
+            sourceLinks: reviewProjection(item.sourceRefs ?? [], { omitClaimRefs: true }),
+            dataCoverage: reviewProjection(item.dataCoverage ?? null, { omitClaimRefs: true }),
+            reviewTargets: item.reviewTargets ?? [],
+            tombstoneReason: item.reason ?? null,
+            release: releaseReviewProjection(release),
+            sourceRefs: sourceRefs.map(sourceReviewProjection)
+          });
+          entries.set(entryKey, entry);
+        }
+        return entry;
+      });
+      dependenciesDigest = createHash('sha256').update(`[${parts.join(',')}]`, 'utf8').digest('hex');
       dependencyDigestsByItem.set(found.item, dependenciesDigest);
     }
 
@@ -474,6 +486,12 @@ function createReviewDigestContext(contract, { recordMap, releaseMap } = {}) {
 
 export function computeReviewDigests(contract, target) {
   return createReviewDigestContext(contract)(target);
+}
+
+// Returns a digest function that shares one index and dependency cache across many targets of
+// the same contract. Use it only while the contract's records, sources and releases are unchanged.
+export function createReviewDigester(contract) {
+  return createReviewDigestContext(contract);
 }
 
 export function createReviewReceipt(contract, target, { decision = 'approved', reviewer, reviewedAt } = {}) {
