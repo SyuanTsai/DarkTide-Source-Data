@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -7,6 +8,7 @@ import {
   CONTRACT_RECORD_KINDS,
   assertSchemaValidatorParity,
   computeReviewDigests,
+  createReviewDigester,
   createReviewReceipt,
   loadContractSchema,
   loadRepresentativeFixture,
@@ -50,6 +52,18 @@ function addSyntheticGameTestEvidence(candidate, gameReleaseId) {
   });
   return { recordId, gameReleaseId };
 }
+
+// Golden aggregate was generated with the original sha256(deps.map(entry)) formula.
+test('shared review digester preserves original dependency digests for all fixture targets', () => {
+  const targets = [...fixture.records, ...fixture.tombstones].flatMap((item) =>
+    (item.reviewTargets ?? []).map((target) => ({ recordId: item.recordId, gameReleaseId: item.gameReleaseId, ...target })));
+  assert.equal(targets.length, 36);
+  const digest = createReviewDigester(fixture);
+  const shared = targets.map(digest);
+  assert.deepEqual(shared, targets.map((target) => computeReviewDigests(fixture, target)));
+  assert.equal(createHash('sha256').update(JSON.stringify(shared)).digest('hex'),
+    'dea846a1c5f48cab9374ebf26f76369299218755e03dca8cc79d76fccd59d574');
+});
 
 // Scenario: The representative fixture contains every formal Source technical kind and two releases.
 // Purpose: Enforce substantive schema/validator parity and ensure fixtures remain synthetic and unpublished.

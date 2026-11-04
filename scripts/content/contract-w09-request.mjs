@@ -29,6 +29,13 @@ export const W09_APPROVED_SOURCE_RUNTIME_THIRD_FILES = Object.freeze([
   Object.freeze({ path: 'scripts/content/contract-w05-build.mjs', sizeBytes: 26306, sha256: '5e06ec7866cd7b34493312a59f141493166e5686929f7d760de3c0b2ff4fa8ac' }),
   Object.freeze({ path: 'scripts/content/contract-w05-merge.mjs', sizeBytes: 10794, sha256: '4358882ab207e5e753674f3527eec0cf2c62b0cec3d09b0506260ac2d5bae40b' })
 ]);
+export const W09_APPROVED_SOURCE_RUNTIME_FOURTH_COMMIT = '45031c87205a23c8d2e186b8ce46ec11d19774fd';
+export const W09_APPROVED_SOURCE_RUNTIME_FOURTH_FILES = Object.freeze([
+  Object.freeze({ path: 'content/schema/v2/source-contract.schema.json', sizeBytes: 128106, sha256: '79039dee3d35b0d2d2525ef69631fe6c32afcca0259e58adff520828e844ee2a' }),
+  Object.freeze({ path: 'scripts/content/contract-validator.mjs', sizeBytes: 145188, sha256: 'eefb27f7253cb5fb3bc9d2f144129d1299ac807bac22fa1b4c0266029f04c4ee' }),
+  Object.freeze({ path: 'scripts/content/contract-w05-build.mjs', sizeBytes: 26533, sha256: 'b0582ede9fb957e626283698f0ffa5a63329ee2bd33016398f8c6a0eab4c8d75' }),
+  Object.freeze({ path: 'scripts/content/contract-w05-merge.mjs', sizeBytes: 10794, sha256: '4358882ab207e5e753674f3527eec0cf2c62b0cec3d09b0506260ac2d5bae40b' })
+]);
 export const W09_ACCEPTED_W07_BASELINE_COMMIT = '8e48334619f448794aab666f1805cb2bd6adf11a';
 export const W09_ACCEPTED_W07_BASELINE_SHA256 = 'a728b2e8dc65078ade88b01f87537323eb781fc8665f16c8166140292eb63acb';
 export const W09_SOURCE_PACKET_FILES = Object.freeze([
@@ -514,8 +521,8 @@ export function verifyW09SourceArchive({ bytes, request } = {}) {
   return { archive, files };
 }
 
-function gitResult(sourceRoot, args, { maxBuffer = 32 * 1024 * 1024 } = {}) {
-  const result = spawnSync('git', ['-C', sourceRoot, ...args], { encoding: null, maxBuffer, windowsHide: true });
+function gitResult(sourceRoot, args, { maxBuffer = 32 * 1024 * 1024, input } = {}) {
+  const result = spawnSync('git', ['-C', sourceRoot, ...args], { encoding: null, maxBuffer, input, windowsHide: true });
   if (result.error) throw new Error(`git ${args[0]} failed: ${result.error.message}`);
   if (result.status !== 0) throw new Error(`git ${args[0]} failed: ${Buffer.from(result.stderr ?? '').toString('utf8').trim()}`);
   return Buffer.from(result.stdout ?? '');
@@ -546,22 +553,64 @@ async function assertSourceRepository(sourceRoot, expectedCommit) {
   return { sourceRoot: absoluteRoot, sourceCommit, currentCommit };
 }
 
-function assertRegularGitFile(sourceRoot, commit, relativePath) {
-  const line = gitText(sourceRoot, ['ls-tree', commit, '--', relativePath]);
-  const [mode, type] = line.split('\t', 1)[0].split(' ');
-  if (type !== 'blob' || !['100644', '100755'].includes(mode)) throw new Error(`pinned Source input is not a regular Git file: ${relativePath}`);
-}
+const gitTrees = new Map();
 
-function readGitBlob(sourceRoot, commit, relativePath) {
-  assertRegularGitFile(sourceRoot, commit, relativePath);
-  return gitResult(sourceRoot, ['show', `${commit}:${relativePath}`], { maxBuffer: 32 * 1024 * 1024 });
+// The commit and its objects are immutable for the lifetime of this process.
+export function readGitBlob(sourceRoot, commit, relativePath) {
+  const cacheKey = JSON.stringify([sourceRoot, commit]);
+  let cache = gitTrees.get(cacheKey);
+  if (!cache) {
+    const tree = gitResult(sourceRoot, ['ls-tree', '-r', '-z', '--full-tree', commit], { maxBuffer: 1024 * 1024 * 1024 });
+    const entries = new Map();
+    for (const line of tree.toString('utf8').split('\0')) {
+      if (!line) continue;
+      const tab = line.indexOf('\t');
+      const [mode, type, oid] = line.slice(0, tab).split(' ');
+      entries.set(line.slice(tab + 1), { mode, type, oid });
+    }
+    cache = { entries, blobs: new Map(), directories: new Map() };
+    for (const [name, entry] of entries) {
+      if (entry.type !== 'blob' || !['100644', '100755'].includes(entry.mode)) continue;
+      const dir = path.posix.dirname(name);
+      if (!cache.directories.has(dir)) cache.directories.set(dir, new Set());
+      cache.directories.get(dir).add(entry.oid);
+    }
+    gitTrees.set(cacheKey, cache);
+  }
+  const entry = cache.entries.get(relativePath);
+  if (!entry || entry.type !== 'blob' || !['100644', '100755'].includes(entry.mode)) {
+    throw new Error(`pinned Source input is not a regular Git file: ${relativePath}`);
+  }
+  if (!cache.blobs.has(entry.oid)) {
+    const oids = [...cache.directories.get(path.posix.dirname(relativePath))].filter((oid) => !cache.blobs.has(oid));
+    const output = gitResult(sourceRoot, ['cat-file', '--batch'], {
+      input: `${oids.join('\n')}\n`, maxBuffer: 1024 * 1024 * 1024
+    });
+    let offset = 0;
+    for (const oid of oids) {
+      const end = output.indexOf(10, offset);
+      const header = end < 0 ? '' : output.toString('ascii', offset, end);
+      const match = /^([0-9a-f]+) blob ([0-9]+)$/u.exec(header);
+      if (!match || match[1] !== oid) throw new Error('git cat-file returned an invalid batch header');
+      const size = Number(match[2]);
+      const start = end + 1;
+      if (!Number.isSafeInteger(size) || start + size >= output.length || output[start + size] !== 10) {
+        throw new Error('git cat-file returned invalid batch bytes');
+      }
+      cache.blobs.set(oid, Buffer.from(output.subarray(start, start + size)));
+      offset = start + size + 1;
+    }
+    if (offset !== output.length) throw new Error('git cat-file returned unexpected batch bytes');
+  }
+  return Buffer.from(cache.blobs.get(entry.oid));
 }
 
 function readApprovedRuntimePinSet(sourceRoot, sourceCommit) {
   const approvedSets = [
     { approvedAtCommit: W09_APPROVED_SOURCE_RUNTIME_COMMIT, files: W09_APPROVED_SOURCE_RUNTIME_FILES },
     { approvedAtCommit: W09_APPROVED_SOURCE_RUNTIME_NEXT_COMMIT, files: W09_APPROVED_SOURCE_RUNTIME_NEXT_FILES },
-    { approvedAtCommit: W09_APPROVED_SOURCE_RUNTIME_THIRD_COMMIT, files: W09_APPROVED_SOURCE_RUNTIME_THIRD_FILES }
+    { approvedAtCommit: W09_APPROVED_SOURCE_RUNTIME_THIRD_COMMIT, files: W09_APPROVED_SOURCE_RUNTIME_THIRD_FILES },
+    { approvedAtCommit: W09_APPROVED_SOURCE_RUNTIME_FOURTH_COMMIT, files: W09_APPROVED_SOURCE_RUNTIME_FOURTH_FILES }
   ];
   for (const runtimeSet of approvedSets) {
     const verifiedFiles = [];

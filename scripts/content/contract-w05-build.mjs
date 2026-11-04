@@ -12,7 +12,7 @@ import {
   sortJsonValue
 } from './contract-w05-merge.mjs';
 import {
-  computeReviewDigests,
+  createReviewDigester,
   loadContractSchema,
   validateSourceContract
 } from './contract-validator.mjs';
@@ -37,9 +37,10 @@ function validateInputDocument(document, label, schema) {
   }
   const neutral = structuredClone(document);
   neutral.publicationEligible = false;
+  const receiptOwners = new Set(neutral.reviewReceipts.map((receipt) =>
+    JSON.stringify([receipt.target.gameReleaseId, receipt.target.recordId])));
   for (const item of [...neutral.records, ...neutral.tombstones]) {
-    const hasReceipt = neutral.reviewReceipts.some((receipt) =>
-      receipt.target.gameReleaseId === item.gameReleaseId && receipt.target.recordId === item.recordId);
+    const hasReceipt = receiptOwners.has(JSON.stringify([item.gameReleaseId, item.recordId]));
     if (hasReceipt || item.reviewState !== 'draft') item.reviewState = 'pending';
   }
   return neutral;
@@ -51,6 +52,8 @@ function receiptKey(target) {
 
 function deriveReviewStates(contract) {
   const receipts = new Map(contract.reviewReceipts.map((receipt) => [receiptKey(receipt.target), receipt]));
+  // Digests do not read reviewState, so one shared digester stays valid while this loop updates it.
+  const digestReviewTarget = createReviewDigester(contract);
   for (const item of [...contract.records, ...contract.tombstones]) {
     const priorState = item.reviewState;
     let receiptCount = 0;
@@ -71,7 +74,7 @@ function deriveReviewStates(contract) {
       }
       receiptCount += 1;
       try {
-        const actual = computeReviewDigests(contract, fullTarget);
+        const actual = digestReviewTarget(fullTarget);
         if (actual.targetDigest !== receipt.targetDigest || actual.dependenciesDigest !== receipt.dependenciesDigest) stale = true;
       } catch {
         stale = true;
