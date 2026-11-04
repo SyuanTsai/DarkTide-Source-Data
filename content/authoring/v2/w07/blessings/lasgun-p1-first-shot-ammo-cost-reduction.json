@@ -1,0 +1,931 @@
+{
+  "records": [
+    {
+      "recordId": "darktide:blessing-variant:lasgun:p1-first-shot-ammo-cost-reduction",
+      "kind": "blessing-variant",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableTiers",
+            "reasonCode": "NOT_VERIFIED"
+          },
+          {
+            "field": "/payload/weaponRefs/unmapped-source-templates",
+            "reasonCode": "NOT_IMPORTED"
+          },
+          {
+            "field": "/payload/formatValues/ammo",
+            "reasonCode": "NOT_EXPOSED_BY_SOURCE"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "blessingRef": {
+          "recordId": "darktide:blessing:lasgun:p1-first-shot-ammo-cost-reduction",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "weaponRefs": [
+          {
+            "recordId": "darktide:weapon:lasgun:p1-m1",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "definedTiers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "obtainableTiers": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "tierValues": [
+          {
+            "tier": 1,
+            "value": {
+              "status": "known",
+              "decimal": "1.25",
+              "unit": "point"
+            }
+          },
+          {
+            "tier": 2,
+            "value": {
+              "status": "known",
+              "decimal": "1",
+              "unit": "point"
+            }
+          },
+          {
+            "tier": 3,
+            "value": {
+              "status": "known",
+              "decimal": "0.75",
+              "unit": "point"
+            }
+          },
+          {
+            "tier": 4,
+            "value": {
+              "status": "known",
+              "decimal": "0.5",
+              "unit": "point"
+            }
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/blessingRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/weaponRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/definedTiers",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/obtainableTiers",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/tierValues",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:blessing:lasgun:p1-first-shot-ammo-cost-reduction",
+      "kind": "blessing",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/nameKey",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "nameKey": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "variantRefs": [
+          {
+            "recordId": "darktide:blessing-variant:lasgun:p1-first-shot-ammo-cost-reduction",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "claimRefs": [
+          {
+            "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier1-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier2-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier3-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier4-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/nameKey",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/variantRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/claimRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier1-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p1-first-shot-ammo-cost-reduction",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.defined_tier_1_display_value",
+        "value": {
+          "status": "known",
+          "decimal": "1.25",
+          "unit": "s"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p1-first-shot-ammo-cost-reduction-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier2-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p1-first-shot-ammo-cost-reduction",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.defined_tier_2_display_value",
+        "value": {
+          "status": "known",
+          "decimal": "1",
+          "unit": "s"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p1-first-shot-ammo-cost-reduction-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier3-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p1-first-shot-ammo-cost-reduction",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.defined_tier_3_display_value",
+        "value": {
+          "status": "known",
+          "decimal": "0.75",
+          "unit": "s"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p1-first-shot-ammo-cost-reduction-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier4-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:lasgun:p1-first-shot-ammo-cost-reduction",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.defined_tier_4_display_value",
+        "value": {
+          "status": "known",
+          "decimal": "0.5",
+          "unit": "s"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:lasgun:p1-first-shot-ammo-cost-reduction-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:lasgun:p1-first-shot-ammo-cost-reduction-time-display-value-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-lasgun-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_lasgun_p1.lua, scripts/utilities/trait_value_parser.lua resolve trait_override format value time at cooldown_duration; defined tier literals are tier 1=1.25, tier 2=1, tier 3=0.75, tier 4=0.5."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    }
+  ],
+  "reviewReceipts": [
+    {
+      "target": {
+        "recordId": "darktide:evidence:lasgun:p1-first-shot-ammo-cost-reduction-time-display-value-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "913d39562e8717999ee1a50567baf70543cc8c364e091d5169f5246f2c80f8ca",
+      "dependenciesDigest": "0d367127632b60f7f276792332fee44c055c1778d2ec4afadd09786cc449eca6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p1-first-shot-ammo-cost-reduction",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/blessingRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "920f3f2555d89a463b56aa0cde8cc569793648b2445f2416a8f27fc6802d08fb",
+      "dependenciesDigest": "5b75854675b7d7390b42205b265e350ec1a67b26db1bea431a25b4edf9212ea2",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p1-first-shot-ammo-cost-reduction",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/definedTiers",
+        "dimension": "technical"
+      },
+      "targetDigest": "f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f",
+      "dependenciesDigest": "5b75854675b7d7390b42205b265e350ec1a67b26db1bea431a25b4edf9212ea2",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p1-first-shot-ammo-cost-reduction",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableTiers",
+        "dimension": "context"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "5b75854675b7d7390b42205b265e350ec1a67b26db1bea431a25b4edf9212ea2",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p1-first-shot-ammo-cost-reduction",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/tierValues",
+        "dimension": "technical"
+      },
+      "targetDigest": "b56a2f438d15b9214caa0f280420e2a1f8de8ef50fe53b68fe6129c452f45f74",
+      "dependenciesDigest": "5b75854675b7d7390b42205b265e350ec1a67b26db1bea431a25b4edf9212ea2",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:lasgun:p1-first-shot-ammo-cost-reduction",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/weaponRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "442889be63a2a9da259d8411e585a338ae0f42f6a672d6d757476430df29c7a8",
+      "dependenciesDigest": "5b75854675b7d7390b42205b265e350ec1a67b26db1bea431a25b4edf9212ea2",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:lasgun:p1-first-shot-ammo-cost-reduction",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/claimRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "561a28fdf79bdcadcc313d974e27e7a3a814e489f56b2f8f52f281d833ef5315",
+      "dependenciesDigest": "f15b63e3bea80ebf761c5c8d19ab2a45368f5fe5b73f4c67110ddc205dae1b80",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:lasgun:p1-first-shot-ammo-cost-reduction",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/nameKey",
+        "dimension": "identity"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "f15b63e3bea80ebf761c5c8d19ab2a45368f5fe5b73f4c67110ddc205dae1b80",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:lasgun:p1-first-shot-ammo-cost-reduction",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/variantRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "b08423f689a2e266acc9082bfbfa9ff2460c79e7e67b0a91d1d172d346dfd0f8",
+      "dependenciesDigest": "f15b63e3bea80ebf761c5c8d19ab2a45368f5fe5b73f4c67110ddc205dae1b80",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "7d634467714b2aeef4129e09639012118979b145c9896ca2c6eee2ae765ad2ca",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "7d634467714b2aeef4129e09639012118979b145c9896ca2c6eee2ae765ad2ca",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ea9761d1bd1aaa6b8dda545470dca8cd184374b3e6b6b42e61a240b62b5cb18a",
+      "dependenciesDigest": "7d634467714b2aeef4129e09639012118979b145c9896ca2c6eee2ae765ad2ca",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "c9bc572ea020c0db57db39ef9fe2f023193f1f6be4225521caf9b2134efc568b",
+      "dependenciesDigest": "7d634467714b2aeef4129e09639012118979b145c9896ca2c6eee2ae765ad2ca",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier1-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "75c7a97422dd15e6a12b7512d9a403d8dd583e3023ebcd5bee35ff8ff0942953",
+      "dependenciesDigest": "7d634467714b2aeef4129e09639012118979b145c9896ca2c6eee2ae765ad2ca",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "fde09a7ff5df153f01e85ed7d156d5883200702aea232fe1b2c0cd063f058ef9",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "fde09a7ff5df153f01e85ed7d156d5883200702aea232fe1b2c0cd063f058ef9",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ea9761d1bd1aaa6b8dda545470dca8cd184374b3e6b6b42e61a240b62b5cb18a",
+      "dependenciesDigest": "fde09a7ff5df153f01e85ed7d156d5883200702aea232fe1b2c0cd063f058ef9",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "c9bc572ea020c0db57db39ef9fe2f023193f1f6be4225521caf9b2134efc568b",
+      "dependenciesDigest": "fde09a7ff5df153f01e85ed7d156d5883200702aea232fe1b2c0cd063f058ef9",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier2-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "a0857678f00408c5853d45915ea5fc78c2e0d63b94d85c10feba70a4ab03bb62",
+      "dependenciesDigest": "fde09a7ff5df153f01e85ed7d156d5883200702aea232fe1b2c0cd063f058ef9",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "bfe9234765db29adf039e8cc7de355bd899710fe2d86ad2898f947c5283192cd",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "bfe9234765db29adf039e8cc7de355bd899710fe2d86ad2898f947c5283192cd",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ea9761d1bd1aaa6b8dda545470dca8cd184374b3e6b6b42e61a240b62b5cb18a",
+      "dependenciesDigest": "bfe9234765db29adf039e8cc7de355bd899710fe2d86ad2898f947c5283192cd",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "c9bc572ea020c0db57db39ef9fe2f023193f1f6be4225521caf9b2134efc568b",
+      "dependenciesDigest": "bfe9234765db29adf039e8cc7de355bd899710fe2d86ad2898f947c5283192cd",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier3-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "909639f3dc18e5b09f05ca3b5daf168da9926310b7b68295a0e2485bbf20a20d",
+      "dependenciesDigest": "bfe9234765db29adf039e8cc7de355bd899710fe2d86ad2898f947c5283192cd",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "7777d16085dc3c0634b57126cec9e57e74df322811ea49a470f97c9b9f61a52f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "7777d16085dc3c0634b57126cec9e57e74df322811ea49a470f97c9b9f61a52f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ea9761d1bd1aaa6b8dda545470dca8cd184374b3e6b6b42e61a240b62b5cb18a",
+      "dependenciesDigest": "7777d16085dc3c0634b57126cec9e57e74df322811ea49a470f97c9b9f61a52f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "c9bc572ea020c0db57db39ef9fe2f023193f1f6be4225521caf9b2134efc568b",
+      "dependenciesDigest": "7777d16085dc3c0634b57126cec9e57e74df322811ea49a470f97c9b9f61a52f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:lasgun:p1-first-shot-ammo-cost-reduction-time-tier4-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "aca9d51beb013d5e86464a396f3ce7819ba5fc8e4f51338d6516399ea4915649",
+      "dependenciesDigest": "7777d16085dc3c0634b57126cec9e57e74df322811ea49a470f97c9b9f61a52f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    }
+  ]
+}

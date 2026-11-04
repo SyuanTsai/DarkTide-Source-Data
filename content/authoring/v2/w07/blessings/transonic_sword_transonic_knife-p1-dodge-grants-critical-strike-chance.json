@@ -1,0 +1,1145 @@
+{
+  "records": [
+    {
+      "recordId": "darktide:blessing-variant:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+      "kind": "blessing-variant",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-transonic-sword-transonic-knife-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableTiers",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "blessingRef": {
+          "recordId": "darktide:blessing:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "weaponRefs": [
+          {
+            "recordId": "darktide:weapon:transonic_sword_transonic_knife:p1-m1:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "definedTiers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "obtainableTiers": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "tierValues": [
+          {
+            "tier": 1,
+            "value": {
+              "status": "known",
+              "decimal": "0.1",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 2,
+            "value": {
+              "status": "known",
+              "decimal": "0.12",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 3,
+            "value": {
+              "status": "known",
+              "decimal": "0.14",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 4,
+            "value": {
+              "status": "known",
+              "decimal": "0.16",
+              "unit": "ratio"
+            }
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/blessingRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/weaponRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/definedTiers",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/obtainableTiers",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/tierValues",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:blessing:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+      "kind": "blessing",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-transonic-sword-transonic-knife-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/nameKey",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "nameKey": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "variantRefs": [
+          {
+            "recordId": "darktide:blessing-variant:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "claimRefs": [
+          {
+            "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier1-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier2-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier3-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier4-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-time-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/nameKey",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/variantRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/claimRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier1-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-transonic-sword-transonic-knife-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.crit_chance.defined_tier_1_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "10",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier2-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-transonic-sword-transonic-knife-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.crit_chance.defined_tier_2_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "12",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier3-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-transonic-sword-transonic-knife-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.crit_chance.defined_tier_3_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "14",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier4-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-transonic-sword-transonic-knife-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.crit_chance.defined_tier_4_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "16",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-time-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-transonic-sword-transonic-knife-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-transonic-sword-transonic-knife-p1-buff-templates-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-base-weapon-trait-buff-templates-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-buff-settings-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.time.display_value",
+        "value": {
+          "status": "known",
+          "decimal": "4",
+          "unit": "s"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-time-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-display-percent-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-transonic-sword-transonic-knife-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_transonic_sword_transonic_knife_p1.lua, scripts/utilities/trait_value_parser.lua resolve trait_override format value crit_chance at proc_stat_buffs.stat_buffs.critical_strike_chance; defined tier literals are tier 1=0.1, tier 2=0.12, tier 3=0.14, tier 4=0.16."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-time-display-value-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-transonic-sword-transonic-knife-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-transonic-sword-transonic-knife-p1-buff-templates-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-base-weapon-trait-buff-templates-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-buff-settings-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-buff-settings-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_transonic_sword_transonic_knife_p1.lua, scripts/utilities/trait_value_parser.lua, scripts/settings/buff/weapon_traits_buff_templates/weapon_traits_bespoke_transonic_sword_transonic_knife_p1_buff_templates.lua, scripts/settings/buff/weapon_traits_buff_templates/base_weapon_trait_buff_templates.lua, scripts/settings/buff/buff_settings.lua resolve buff_template format value time at active_duration; defined tier literals are tier 1=4, tier 2=4, tier 3=4, tier 4=4."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    }
+  ],
+  "reviewReceipts": [
+    {
+      "target": {
+        "recordId": "darktide:evidence:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-display-percent-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "2fe4dcae12ac7ff584e2e59e04c60b98f9ba6a92bb6614537c7759ca25e9e3d4",
+      "dependenciesDigest": "88cd981ea6463ad7b44f9a64ed43b695da0c6e1b96ebb1c56886c89011eb8c1e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:evidence:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-time-display-value-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "2bbaea30697e68909b22c06d62b4ae5da3649cd503c6908b35a4bf69c98a4509",
+      "dependenciesDigest": "bf1e837a649aa62ce33497a53205428309390a0c678c9664f2d7fcb02c903d07",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/blessingRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "0ac572d7fdcc3686a2cf22552b7bc1f80b21d9cf6718ba330591162186c05f37",
+      "dependenciesDigest": "c5029dc284e99f02b0ffc56b8bf54ce166cf1898b6c265f0560704660a4f0918",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/definedTiers",
+        "dimension": "technical"
+      },
+      "targetDigest": "f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f",
+      "dependenciesDigest": "c5029dc284e99f02b0ffc56b8bf54ce166cf1898b6c265f0560704660a4f0918",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableTiers",
+        "dimension": "context"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "c5029dc284e99f02b0ffc56b8bf54ce166cf1898b6c265f0560704660a4f0918",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/tierValues",
+        "dimension": "technical"
+      },
+      "targetDigest": "a1305d63e705a6c0584369edad01b362b1fbb76a0bd5f1399465bdab7e395b3d",
+      "dependenciesDigest": "c5029dc284e99f02b0ffc56b8bf54ce166cf1898b6c265f0560704660a4f0918",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/weaponRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "3ccc2f70b65048aaf8f9846e8a22ae7dae063d4632fdafdfa4b956ca4fd6d4af",
+      "dependenciesDigest": "c5029dc284e99f02b0ffc56b8bf54ce166cf1898b6c265f0560704660a4f0918",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/claimRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "b54bb3c7f7e919676d257be05addbe807517e7207a80df974c3ecd8ae88be4f4",
+      "dependenciesDigest": "252d4c6176c4102a1f27fc8ac42b500249cda606bcbf9e68e115fca03acf4e87",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/nameKey",
+        "dimension": "identity"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "252d4c6176c4102a1f27fc8ac42b500249cda606bcbf9e68e115fca03acf4e87",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/variantRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "b0dc5179a5a6f39baca1211abb9e9bbb5a72aae35515ec39d87dfe363c51e84e",
+      "dependenciesDigest": "252d4c6176c4102a1f27fc8ac42b500249cda606bcbf9e68e115fca03acf4e87",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "4ffa2f0a56a6b08cd8fbb03544a19acef84527ad4ec171cfd0a2e8ca754ac757",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "4ffa2f0a56a6b08cd8fbb03544a19acef84527ad4ec171cfd0a2e8ca754ac757",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "8242afaba5196ee6b9b903c27e54fbeb6955e4ad8da75923d9c492112f1b21ac",
+      "dependenciesDigest": "4ffa2f0a56a6b08cd8fbb03544a19acef84527ad4ec171cfd0a2e8ca754ac757",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "a37fa3743b51fd045efc57797dca1dc7633fcec851980b3232cbb3a5c16ca054",
+      "dependenciesDigest": "4ffa2f0a56a6b08cd8fbb03544a19acef84527ad4ec171cfd0a2e8ca754ac757",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "4a359a3c0d4901f80a2f4356f9a4dbdb367050473f282ce3b7a11a5928091c16",
+      "dependenciesDigest": "4ffa2f0a56a6b08cd8fbb03544a19acef84527ad4ec171cfd0a2e8ca754ac757",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "980eff3350e5dc8aa9a020a70d5399cda8b4f9da3087617b67f3269bbec8e08e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "980eff3350e5dc8aa9a020a70d5399cda8b4f9da3087617b67f3269bbec8e08e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "8242afaba5196ee6b9b903c27e54fbeb6955e4ad8da75923d9c492112f1b21ac",
+      "dependenciesDigest": "980eff3350e5dc8aa9a020a70d5399cda8b4f9da3087617b67f3269bbec8e08e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "a37fa3743b51fd045efc57797dca1dc7633fcec851980b3232cbb3a5c16ca054",
+      "dependenciesDigest": "980eff3350e5dc8aa9a020a70d5399cda8b4f9da3087617b67f3269bbec8e08e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "bbca1ab2aed7babdd1cc33ff5bfd6a83460020c45f502c0fb668ac705ec176f9",
+      "dependenciesDigest": "980eff3350e5dc8aa9a020a70d5399cda8b4f9da3087617b67f3269bbec8e08e",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "e30d75bbd0a65617217064ee5513dcf18c949a2624f9e9f845aa92ec6a151fca",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "e30d75bbd0a65617217064ee5513dcf18c949a2624f9e9f845aa92ec6a151fca",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "8242afaba5196ee6b9b903c27e54fbeb6955e4ad8da75923d9c492112f1b21ac",
+      "dependenciesDigest": "e30d75bbd0a65617217064ee5513dcf18c949a2624f9e9f845aa92ec6a151fca",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "a37fa3743b51fd045efc57797dca1dc7633fcec851980b3232cbb3a5c16ca054",
+      "dependenciesDigest": "e30d75bbd0a65617217064ee5513dcf18c949a2624f9e9f845aa92ec6a151fca",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "55e17fee047cdde990efba6208b55b264fd8c7bde6ccac0897de1a76da052039",
+      "dependenciesDigest": "e30d75bbd0a65617217064ee5513dcf18c949a2624f9e9f845aa92ec6a151fca",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "21beb7e83e2a92c38b0cd949c920d19a239454b9830294ddcef7b185fca06621",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "21beb7e83e2a92c38b0cd949c920d19a239454b9830294ddcef7b185fca06621",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "8242afaba5196ee6b9b903c27e54fbeb6955e4ad8da75923d9c492112f1b21ac",
+      "dependenciesDigest": "21beb7e83e2a92c38b0cd949c920d19a239454b9830294ddcef7b185fca06621",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "a37fa3743b51fd045efc57797dca1dc7633fcec851980b3232cbb3a5c16ca054",
+      "dependenciesDigest": "21beb7e83e2a92c38b0cd949c920d19a239454b9830294ddcef7b185fca06621",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-crit-chance-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "fd58fba94a25690fa07901402c861a83b853a3b0c4a44ea476747f80cc281cd1",
+      "dependenciesDigest": "21beb7e83e2a92c38b0cd949c920d19a239454b9830294ddcef7b185fca06621",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-time-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "993955521fffbf0a97d6f61904be5f084dcb6ca14eb393de313ea7f638252d3a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-time-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "993955521fffbf0a97d6f61904be5f084dcb6ca14eb393de313ea7f638252d3a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-time-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "2ec76d71e85182e1f76756f5b5320587efec3ff5f69301b039eff16bb40c0d60",
+      "dependenciesDigest": "993955521fffbf0a97d6f61904be5f084dcb6ca14eb393de313ea7f638252d3a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-time-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "a37fa3743b51fd045efc57797dca1dc7633fcec851980b3232cbb3a5c16ca054",
+      "dependenciesDigest": "993955521fffbf0a97d6f61904be5f084dcb6ca14eb393de313ea7f638252d3a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:transonic_sword_transonic_knife:p1-dodge-grants-critical-strike-chance-time-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "698946f84674aa506661cea7089e043f670aa5d9ff62fca4ec3ce00fe5eae67d",
+      "dependenciesDigest": "993955521fffbf0a97d6f61904be5f084dcb6ca14eb393de313ea7f638252d3a",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    }
+  ]
+}

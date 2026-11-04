@@ -1,0 +1,931 @@
+{
+  "records": [
+    {
+      "recordId": "darktide:blessing-variant:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+      "kind": "blessing-variant",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-combataxe-p2-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableTiers",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "blessingRef": {
+          "recordId": "darktide:blessing:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "weaponRefs": [
+          {
+            "recordId": "darktide:weapon:combataxe:p2-m1:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:weapon:combataxe:p2-m2:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:weapon:combataxe:p2-m3:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "definedTiers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "obtainableTiers": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "tierValues": [
+          {
+            "tier": 1,
+            "value": {
+              "status": "known",
+              "decimal": "0.075",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 2,
+            "value": {
+              "status": "known",
+              "decimal": "0.1",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 3,
+            "value": {
+              "status": "known",
+              "decimal": "0.125",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 4,
+            "value": {
+              "status": "known",
+              "decimal": "0.15",
+              "unit": "ratio"
+            }
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/blessingRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/weaponRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/definedTiers",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/obtainableTiers",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/tierValues",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:blessing:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+      "kind": "blessing",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-combataxe-p2-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/nameKey",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "nameKey": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "variantRefs": [
+          {
+            "recordId": "darktide:blessing-variant:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "claimRefs": [
+          {
+            "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier1-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier2-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier3-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier4-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/nameKey",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/variantRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/claimRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier1-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-combataxe-p2-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.weakspot_damage.defined_tier_1_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "7.5",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier2-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-combataxe-p2-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.weakspot_damage.defined_tier_2_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "10",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier3-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-combataxe-p2-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.weakspot_damage.defined_tier_3_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "12.5",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier4-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-combataxe-p2-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.weakspot_damage.defined_tier_4_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "15",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-display-percent-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-combataxe-p2-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_combataxe_p2.lua, scripts/utilities/trait_value_parser.lua resolve trait_override format value weakspot_damage at stat_buffs.stat_buffs.melee_weakspot_damage; defined tier literals are tier 1=0.075, tier 2=0.1, tier 3=0.125, tier 4=0.15."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    }
+  ],
+  "reviewReceipts": [
+    {
+      "target": {
+        "recordId": "darktide:evidence:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-display-percent-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "aee35301ca2f349d94fb3949d0f4b038d3bf7e153aa26cda96b51a7c93bc4989",
+      "dependenciesDigest": "2f078f5b2385ed9c86e5e6e69363adbf74b1c7d140453a8eb98bdc54f3d03f4f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/blessingRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "ac11840df79bbb0ad55b265cc8f4b985c57a4887970a9139a36efe471b7b9137",
+      "dependenciesDigest": "7a5c25d4490b15e73924a1ddb709a3ada7df11d559a6c51d4143b50f128209fc",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/definedTiers",
+        "dimension": "technical"
+      },
+      "targetDigest": "f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f",
+      "dependenciesDigest": "7a5c25d4490b15e73924a1ddb709a3ada7df11d559a6c51d4143b50f128209fc",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableTiers",
+        "dimension": "context"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "7a5c25d4490b15e73924a1ddb709a3ada7df11d559a6c51d4143b50f128209fc",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/tierValues",
+        "dimension": "technical"
+      },
+      "targetDigest": "1617399c9efaddc59c2064c840b343ecfdaf103bbcbfe2105ff2bd610c7411b1",
+      "dependenciesDigest": "7a5c25d4490b15e73924a1ddb709a3ada7df11d559a6c51d4143b50f128209fc",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/weaponRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "a55980d05f865a0abc3c1eba7d4e27cc660b841a5a12f39554b939692a723424",
+      "dependenciesDigest": "7a5c25d4490b15e73924a1ddb709a3ada7df11d559a6c51d4143b50f128209fc",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/claimRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "67338dd1d834d633cba0b8eb542c72d545c0a03afb2e645c2057579fd1deefc7",
+      "dependenciesDigest": "1aa25ce80a8ef885b432672f19f2f0d476c1406885c9a4fc1ccf9655a4e443ad",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/nameKey",
+        "dimension": "identity"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "1aa25ce80a8ef885b432672f19f2f0d476c1406885c9a4fc1ccf9655a4e443ad",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:combataxe:p2-infinite-melee-cleave-on-weakspot-kill",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/variantRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "c5c13b64095f930134425e53cfba6b9e9b97e59946f8c8e648af0bbcd9df8a67",
+      "dependenciesDigest": "1aa25ce80a8ef885b432672f19f2f0d476c1406885c9a4fc1ccf9655a4e443ad",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "00c9439e2521bb17816111632ad71cb4c31c02a1cc2c7fc0609f1c39d7ebbf0f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "00c9439e2521bb17816111632ad71cb4c31c02a1cc2c7fc0609f1c39d7ebbf0f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "d96cb1a4776ca33f023b2aa283ce1e07f7fe0142c0942d3c5b7ccd4e4e4effc8",
+      "dependenciesDigest": "00c9439e2521bb17816111632ad71cb4c31c02a1cc2c7fc0609f1c39d7ebbf0f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "6a5a859a9e7ef547531716ffad4ebbf245923870e7621c7498b240c6625db94a",
+      "dependenciesDigest": "00c9439e2521bb17816111632ad71cb4c31c02a1cc2c7fc0609f1c39d7ebbf0f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "3417672b5a4f4aaae12565ff2723f7b7d5343a582bd72fa864981f1680560dd1",
+      "dependenciesDigest": "00c9439e2521bb17816111632ad71cb4c31c02a1cc2c7fc0609f1c39d7ebbf0f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "aa38a12f0540b4ad8b3837e6017bb88119b379c0430390697cf2b7b4558a734f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "aa38a12f0540b4ad8b3837e6017bb88119b379c0430390697cf2b7b4558a734f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "d96cb1a4776ca33f023b2aa283ce1e07f7fe0142c0942d3c5b7ccd4e4e4effc8",
+      "dependenciesDigest": "aa38a12f0540b4ad8b3837e6017bb88119b379c0430390697cf2b7b4558a734f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "6a5a859a9e7ef547531716ffad4ebbf245923870e7621c7498b240c6625db94a",
+      "dependenciesDigest": "aa38a12f0540b4ad8b3837e6017bb88119b379c0430390697cf2b7b4558a734f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "4a359a3c0d4901f80a2f4356f9a4dbdb367050473f282ce3b7a11a5928091c16",
+      "dependenciesDigest": "aa38a12f0540b4ad8b3837e6017bb88119b379c0430390697cf2b7b4558a734f",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "870fa245d444ce87b1f2b4c2fece4e70b36a7b943e44adef981feae09ed51ec6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "870fa245d444ce87b1f2b4c2fece4e70b36a7b943e44adef981feae09ed51ec6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "d96cb1a4776ca33f023b2aa283ce1e07f7fe0142c0942d3c5b7ccd4e4e4effc8",
+      "dependenciesDigest": "870fa245d444ce87b1f2b4c2fece4e70b36a7b943e44adef981feae09ed51ec6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "6a5a859a9e7ef547531716ffad4ebbf245923870e7621c7498b240c6625db94a",
+      "dependenciesDigest": "870fa245d444ce87b1f2b4c2fece4e70b36a7b943e44adef981feae09ed51ec6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "7a477ac5d3a13b136ff1e07c91f4f9cfb809f2f2447249ab5cd463d9229e70ab",
+      "dependenciesDigest": "870fa245d444ce87b1f2b4c2fece4e70b36a7b943e44adef981feae09ed51ec6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "dc2e74af38385957e88d13fffbbfc603f52585fb31ae713e3818ddc646b0413c",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "dc2e74af38385957e88d13fffbbfc603f52585fb31ae713e3818ddc646b0413c",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "d96cb1a4776ca33f023b2aa283ce1e07f7fe0142c0942d3c5b7ccd4e4e4effc8",
+      "dependenciesDigest": "dc2e74af38385957e88d13fffbbfc603f52585fb31ae713e3818ddc646b0413c",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "6a5a859a9e7ef547531716ffad4ebbf245923870e7621c7498b240c6625db94a",
+      "dependenciesDigest": "dc2e74af38385957e88d13fffbbfc603f52585fb31ae713e3818ddc646b0413c",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:combataxe:p2-infinite-melee-cleave-on-weakspot-kill-weakspot-damage-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "739df5e9349af5eb505bd3ba2a4e62bc4772d8de7f00fad260f9b5a1335af027",
+      "dependenciesDigest": "dc2e74af38385957e88d13fffbbfc603f52585fb31ae713e3818ddc646b0413c",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    }
+  ]
+}

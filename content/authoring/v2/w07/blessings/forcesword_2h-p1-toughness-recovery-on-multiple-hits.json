@@ -1,0 +1,1125 @@
+{
+  "records": [
+    {
+      "recordId": "darktide:blessing-variant:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+      "kind": "blessing-variant",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcesword-2h-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/obtainableTiers",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "blessingRef": {
+          "recordId": "darktide:blessing:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "weaponRefs": [
+          {
+            "recordId": "darktide:weapon:forcesword_2h:p1-m1:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:weapon:forcesword_2h:p1-m2:e46",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "definedTiers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "obtainableTiers": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "tierValues": [
+          {
+            "tier": 1,
+            "value": {
+              "status": "known",
+              "decimal": "0.12",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 2,
+            "value": {
+              "status": "known",
+              "decimal": "0.13",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 3,
+            "value": {
+              "status": "known",
+              "decimal": "0.14",
+              "unit": "ratio"
+            }
+          },
+          {
+            "tier": 4,
+            "value": {
+              "status": "known",
+              "decimal": "0.15",
+              "unit": "ratio"
+            }
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/blessingRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/weaponRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/definedTiers",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/obtainableTiers",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/tierValues",
+          "dimension": "technical"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:blessing:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+      "kind": "blessing",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcesword-2h-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/nameKey",
+            "reasonCode": "NOT_VERIFIED"
+          }
+        ]
+      },
+      "reviewState": "approved",
+      "payload": {
+        "nameKey": {
+          "status": "unknown",
+          "reasonCode": "NOT_VERIFIED"
+        },
+        "variantRefs": [
+          {
+            "recordId": "darktide:blessing-variant:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ],
+        "claimRefs": [
+          {
+            "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier1-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier2-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier3-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier4-display-percent",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          {
+            "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-multiple-hit-display-value",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/nameKey",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/variantRefs",
+          "dimension": "evidence"
+        },
+        {
+          "fieldPath": "/payload/claimRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-multiple-hit-display-value",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcesword-2h-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.multiple_hit.display_value",
+        "value": {
+          "status": "known",
+          "decimal": "3",
+          "unit": "point"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:forcesword_2h:p1-toughness-recovery-on-multiple-hits-multiple-hit-display-value-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier1-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcesword-2h-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.toughness.defined_tier_1_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "12",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier2-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcesword-2h-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.toughness.defined_tier_2_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "13",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier3-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcesword-2h-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.toughness.defined_tier_3_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "14",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier4-display-percent",
+      "kind": "claim",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcesword-2h-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "targetRef": {
+          "recordId": "darktide:blessing-variant:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "property": "description.format_values.toughness.defined_tier_4_display_percent",
+        "value": {
+          "status": "known",
+          "decimal": "15",
+          "unit": "percent"
+        },
+        "context": {},
+        "basis": "code-derived",
+        "evidenceRefs": [
+          {
+            "recordId": "darktide:evidence:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-display-percent-code",
+            "gameReleaseId": "darktide:1.13.4"
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/targetRef",
+          "dimension": "identity"
+        },
+        {
+          "fieldPath": "/payload/value",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/context",
+          "dimension": "context"
+        },
+        {
+          "fieldPath": "/payload/basis",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/evidenceRefs",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:forcesword_2h:p1-toughness-recovery-on-multiple-hits-multiple-hit-display-value-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcesword-2h-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_forcesword_2h_p1.lua, scripts/utilities/trait_value_parser.lua resolve trait_override format value multiple_hit at buff_data.required_num_hits; defined tier literals are tier 1=3, tier 2=3, tier 3=3, tier 4=3."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    },
+    {
+      "recordId": "darktide:evidence:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-display-percent-code",
+      "kind": "evidence",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:generic-blessings-weapon-traits-bespoke-forcesword-2h-p1-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "complete",
+        "missing": []
+      },
+      "reviewState": "approved",
+      "payload": {
+        "evidenceKind": "code-observed",
+        "sourceRef": {
+          "sourceId": "public-code:generic-blessings-trait-value-parser-e46b8926cfa3",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        "safeSummary": "Pinned Lua source paths scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_forcesword_2h_p1.lua, scripts/utilities/trait_value_parser.lua resolve trait_override format value toughness at buff_data.replenish_percentage; defined tier literals are tier 1=0.12, tier 2=0.13, tier 3=0.14, tier 4=0.15."
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload",
+          "dimension": "evidence"
+        }
+      ]
+    }
+  ],
+  "reviewReceipts": [
+    {
+      "target": {
+        "recordId": "darktide:evidence:forcesword_2h:p1-toughness-recovery-on-multiple-hits-multiple-hit-display-value-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "50a35fce7632032e645bf70b2418459159a1a2282bc96425bef6f7a692598f47",
+      "dependenciesDigest": "723777dbb45ed341f43a8ea567315d267e783de047db3cdebf917938d5234b5d",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:evidence:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-display-percent-code",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload",
+        "dimension": "evidence"
+      },
+      "targetDigest": "d906fe0aeeb7727127bf679ec2b9f6669291734fdb3207b3dfe0efde3c24b1e9",
+      "dependenciesDigest": "fe59f0069f4f2779e0400a650341b1bc541ff9fed3f8f8e24d67a258031eb758",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-03T10:58:07.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/blessingRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "aaaa9980eb84c1ce88883a06d1d9b7b4c079a21448967bba27b9da9c4d3ea515",
+      "dependenciesDigest": "22a901beedf732b99b3ae9508b9b8d4c72ce746a4ced2eaf50bc912145c2d134",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/definedTiers",
+        "dimension": "technical"
+      },
+      "targetDigest": "f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f",
+      "dependenciesDigest": "22a901beedf732b99b3ae9508b9b8d4c72ce746a4ced2eaf50bc912145c2d134",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/obtainableTiers",
+        "dimension": "context"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "22a901beedf732b99b3ae9508b9b8d4c72ce746a4ced2eaf50bc912145c2d134",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/tierValues",
+        "dimension": "technical"
+      },
+      "targetDigest": "5f83ae9dffb192b804184a44562c07543a4992e8a8073295a00d9137c8c346d5",
+      "dependenciesDigest": "22a901beedf732b99b3ae9508b9b8d4c72ce746a4ced2eaf50bc912145c2d134",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing-variant:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/weaponRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "ae8350e46ff754b68df95f4de904c049cf1dac5ff244f44d0ae98e0a0d34a81c",
+      "dependenciesDigest": "22a901beedf732b99b3ae9508b9b8d4c72ce746a4ced2eaf50bc912145c2d134",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/claimRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "266ccaf3c2d241406ed3d30aa7bc88ffc60538e940dfefbd782e1158027a813e",
+      "dependenciesDigest": "bdd8d7a39bea1d2d0721f8107903b1b47624d2b896a68bb8e804d7416376f1fe",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/nameKey",
+        "dimension": "identity"
+      },
+      "targetDigest": "5d139595ba9da6941c993f48cd01767076d5454a3a8452dd18519c4490a19cfa",
+      "dependenciesDigest": "bdd8d7a39bea1d2d0721f8107903b1b47624d2b896a68bb8e804d7416376f1fe",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:blessing:forcesword_2h:p1-toughness-recovery-on-multiple-hits",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/variantRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "b4db99836ea73a7be4c35cbfcb57f32979523da3f1e258379d9b639bac8457ec",
+      "dependenciesDigest": "bdd8d7a39bea1d2d0721f8107903b1b47624d2b896a68bb8e804d7416376f1fe",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-multiple-hit-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "e7df7cc1c02fbfb5d2643a2f4868bb8d1c5cb2cf5fb4a0c7003a1687870dce35",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-multiple-hit-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "e7df7cc1c02fbfb5d2643a2f4868bb8d1c5cb2cf5fb4a0c7003a1687870dce35",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-multiple-hit-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "1dff17478dbaacc2b487e2843ca6e6f8a5f3cfcb0dc5dd12d37d0f354c19643e",
+      "dependenciesDigest": "e7df7cc1c02fbfb5d2643a2f4868bb8d1c5cb2cf5fb4a0c7003a1687870dce35",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-multiple-hit-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "74abdb450b36a463396be8462d6e5c61f345eeace27ea739ace31bbefb821f99",
+      "dependenciesDigest": "e7df7cc1c02fbfb5d2643a2f4868bb8d1c5cb2cf5fb4a0c7003a1687870dce35",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-multiple-hit-display-value",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "9926c02f3a35cfd08b23139f1903cde86470e0e90bdb7b23c3291922d0146f10",
+      "dependenciesDigest": "e7df7cc1c02fbfb5d2643a2f4868bb8d1c5cb2cf5fb4a0c7003a1687870dce35",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "a638e7719b562e3b62d6b552f9b68aaabfb1f3bff19e7fc6a68a62126ee2aed6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "a638e7719b562e3b62d6b552f9b68aaabfb1f3bff19e7fc6a68a62126ee2aed6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "642c3655d8c313e0b2dd818930fe174154b633d5d0a7235a6015d6a6f2dc945f",
+      "dependenciesDigest": "a638e7719b562e3b62d6b552f9b68aaabfb1f3bff19e7fc6a68a62126ee2aed6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "74abdb450b36a463396be8462d6e5c61f345eeace27ea739ace31bbefb821f99",
+      "dependenciesDigest": "a638e7719b562e3b62d6b552f9b68aaabfb1f3bff19e7fc6a68a62126ee2aed6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier1-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "bbca1ab2aed7babdd1cc33ff5bfd6a83460020c45f502c0fb668ac705ec176f9",
+      "dependenciesDigest": "a638e7719b562e3b62d6b552f9b68aaabfb1f3bff19e7fc6a68a62126ee2aed6",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "737f172ed6ed260fa8dc9133e62b5f4a0eb3bb51ffcb31f0c850a71625c23b81",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "737f172ed6ed260fa8dc9133e62b5f4a0eb3bb51ffcb31f0c850a71625c23b81",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "642c3655d8c313e0b2dd818930fe174154b633d5d0a7235a6015d6a6f2dc945f",
+      "dependenciesDigest": "737f172ed6ed260fa8dc9133e62b5f4a0eb3bb51ffcb31f0c850a71625c23b81",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "74abdb450b36a463396be8462d6e5c61f345eeace27ea739ace31bbefb821f99",
+      "dependenciesDigest": "737f172ed6ed260fa8dc9133e62b5f4a0eb3bb51ffcb31f0c850a71625c23b81",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier2-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "c5c2cd04ba2ad82701f6cddb9d83ed168b8c5854205ba15274be60335faa30e2",
+      "dependenciesDigest": "737f172ed6ed260fa8dc9133e62b5f4a0eb3bb51ffcb31f0c850a71625c23b81",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "3778a34d895c52897362051e9d76d5e38d762577e0f4cf4e8156041b7da61fcc",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "3778a34d895c52897362051e9d76d5e38d762577e0f4cf4e8156041b7da61fcc",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "642c3655d8c313e0b2dd818930fe174154b633d5d0a7235a6015d6a6f2dc945f",
+      "dependenciesDigest": "3778a34d895c52897362051e9d76d5e38d762577e0f4cf4e8156041b7da61fcc",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "74abdb450b36a463396be8462d6e5c61f345eeace27ea739ace31bbefb821f99",
+      "dependenciesDigest": "3778a34d895c52897362051e9d76d5e38d762577e0f4cf4e8156041b7da61fcc",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier3-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "55e17fee047cdde990efba6208b55b264fd8c7bde6ccac0897de1a76da052039",
+      "dependenciesDigest": "3778a34d895c52897362051e9d76d5e38d762577e0f4cf4e8156041b7da61fcc",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/basis",
+        "dimension": "technical"
+      },
+      "targetDigest": "f42ef7c08e9c0c2be702eeb923d24d08333308dc970e1c54fee3ce17e8bc07d3",
+      "dependenciesDigest": "86d458194dee3d419db9fd96923d7750f03a6c92d3b3f75cf7d6aef4824771da",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/context",
+        "dimension": "context"
+      },
+      "targetDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "dependenciesDigest": "86d458194dee3d419db9fd96923d7750f03a6c92d3b3f75cf7d6aef4824771da",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/evidenceRefs",
+        "dimension": "evidence"
+      },
+      "targetDigest": "642c3655d8c313e0b2dd818930fe174154b633d5d0a7235a6015d6a6f2dc945f",
+      "dependenciesDigest": "86d458194dee3d419db9fd96923d7750f03a6c92d3b3f75cf7d6aef4824771da",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/targetRef",
+        "dimension": "identity"
+      },
+      "targetDigest": "74abdb450b36a463396be8462d6e5c61f345eeace27ea739ace31bbefb821f99",
+      "dependenciesDigest": "86d458194dee3d419db9fd96923d7750f03a6c92d3b3f75cf7d6aef4824771da",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    },
+    {
+      "target": {
+        "recordId": "darktide:claim:forcesword_2h:p1-toughness-recovery-on-multiple-hits-toughness-tier4-display-percent",
+        "gameReleaseId": "darktide:1.13.4",
+        "fieldPath": "/payload/value",
+        "dimension": "technical"
+      },
+      "targetDigest": "739df5e9349af5eb505bd3ba2a4e62bc4772d8de7f00fad260f9b5a1335af027",
+      "dependenciesDigest": "86d458194dee3d419db9fd96923d7750f03a6c92d3b3f75cf7d6aef4824771da",
+      "decision": "approved",
+      "reviewer": {
+        "kind": "human",
+        "id": "SyuanTsai"
+      },
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
+    }
+  ]
+}

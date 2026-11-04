@@ -1,12 +1,12 @@
 # Generic weapon-template approval review package
 
-- Package digest: `01869002d2a36c8f0d4b7e88749f0b99d4ffb33a607ea7b333db50c6daefddc6`
+- Package digest: `7f171ec8135680cedece71a4e0fa8eaef695024213bbae042b512a16fe76a696`
 - New records: 8769 (attack-profile: 771; damage-profile: 290; evidence: 134; stat-curve: 3760; stat-definition: 3760; weapon: 54)
 - Patched records: 82 (weapon: 82)
-- Dependency-stale records: 229 (attack-profile: 149; claim: 76; stat-definition: 4)
-- Review targets: 13829
-- Added bytes in the compact pending contract, excluding receipts: 66177633
-- Review package bytes: 7566661
+- Dependency-stale records: 2516 (attack-profile: 149; blessing: 341; blessing-variant: 341; claim: 1681; stat-definition: 4)
+- Review targets: 24558
+- Added bytes in the compact pending contract, excluding receipts: 66172581
+- Review package bytes: 12670229
 
 ## New marks
 

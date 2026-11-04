@@ -1,22 +1,32 @@
 {
   "schema": "syp-287-generic-weapons-human-approval/1",
-  "reviewer": { "kind": "human", "id": "SyuanTsai" },
-  "reviewedAt": "2026-11-04T04:40:21.000Z",
+  "reviewer": {
+    "kind": "human",
+    "id": "SyuanTsai"
+  },
+  "reviewedAt": "2026-11-04T05:14:03.000Z",
   "reviewedAtMeaning": "Time the explicit human decision was recorded into receipts, not an inferred time of the user click.",
   "decision": "approved",
-  "humanDecision": "核准",
+  "humanDecision": "核准新包",
   "provenance": {
     "kind": "direct-user-chat-reply",
-    "question": "要核准這個武器核准包（digest 01869002…）嗎？",
-    "reviewedFiles": ["content/reviews/syp-287-generic-weapons/review-package.json", "content/reviews/syp-287-generic-weapons/review-package.md"]
+    "question": "要核准新的武器核准包（digest 7f171ec8…）嗎？",
+    "reviewedFiles": [
+      "content/reviews/syp-287-generic-weapons/review-package.json",
+      "content/reviews/syp-287-generic-weapons/review-package.md"
+    ],
+    "supersedes": {
+      "packageDigest": "01869002d2a36c8f0d4b7e88749f0b99d4ffb33a607ea7b333db50c6daefddc6",
+      "reason": "After SYP-288 blessings merged (af06d43), 341 blessings and 341 variants that reference patched weapons became dependency-stale; the package was recomputed."
+    }
   },
   "reviewedPackage": {
-    "packageDigest": "01869002d2a36c8f0d4b7e88749f0b99d4ffb33a607ea7b333db50c6daefddc6",
+    "packageDigest": "7f171ec8135680cedece71a4e0fa8eaef695024213bbae042b512a16fe76a696",
     "newRecords": 8769,
     "newWeaponMarks": 54,
     "patchedRecords": 82,
-    "restaledRecords": 229,
-    "reviewTargets": 13829
+    "restaledRecords": 2516,
+    "reviewTargets": 24558
   },
   "knownLimitations": [
     "Values are static reads of the pinned game source; not verified by executing the game runtime (124 weapon records NOT_VERIFIED for player-visible values)",

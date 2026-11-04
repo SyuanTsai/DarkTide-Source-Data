@@ -4,7 +4,8 @@ import { createReadStream } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readAuthoringBundle, writeAuthoringBundle } from '../lib/authoring-bundle.mjs';
-import { createReviewDigestContext, validateSourceContractFromDisk } from '../contract-validator.mjs';
+import { computeReviewDigests, validateSourceContractFromDisk } from '../contract-validator.mjs';
+import { createRecordDependencyWalker } from '../lib/authoring-walk.mjs';
 import { loadGenericWeaponTemplateCandidate, mergeGenericWeaponCandidate } from './generic-weapon-templates.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -13,10 +14,34 @@ const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 const key = x => JSON.stringify([x.gameReleaseId, x.recordId]);
 const targetKey = x => JSON.stringify([x.gameReleaseId, x.recordId, x.fieldPath, x.dimension]);
 const canonical = x => Array.isArray(x) ? x.map(canonical) : x && typeof x === 'object' ? Object.fromEntries(Object.keys(x).sort(compare).map(k => [k, canonical(x[k])])) : x;
+const digestCanonical = x => Array.isArray(x) ? `[${x.map(digestCanonical).join(',')}]` : x && typeof x === 'object' ? `{${Object.keys(x).sort().map(k => `${JSON.stringify(k)}:${digestCanonical(x[k])}`).join(',')}}` : JSON.stringify(x);
 export const canonicalJsonBytes = x => Buffer.from(JSON.stringify(canonical(x), null, 2) + '\n');
 const sha256 = x => createHash('sha256').update(x).digest('hex');
 const targets = records => records.flatMap(r => (r.reviewTargets ?? []).map(t => ({ recordId: r.recordId, gameReleaseId: r.gameReleaseId, ...t })));
 function pointer(obj, p) { return p.slice(1).split('/').reduce((v,k) => v?.[k.replaceAll('~1','/').replaceAll('~0','~')], obj); }
+function digestContext(contract) {
+  const items = new Map([...contract.records, ...contract.tombstones].map(item => [key(item), item]));
+  const recordKeys = new Set(contract.records.map(key));
+  const walk = createRecordDependencyWalker(contract);
+  const dependencies = new Map(), cache = new Map();
+  return target => {
+    const id = key(target), targetId = targetKey(target);
+    if (cache.has(targetId)) return cache.get(targetId);
+    let result;
+    if (!dependencies.has(id)) {
+      const closure = walk(items.get(id));
+      const scoped = { ...contract, records: closure.filter(item => recordKeys.has(key(item))), tombstones: closure.filter(item => !recordKeys.has(key(item))) };
+      result = computeReviewDigests(scoped, target);
+      dependencies.set(id, result.dependenciesDigest);
+    } else {
+      const value = pointer(items.get(id), target.fieldPath);
+      if (value === undefined) throw new Error(`Review field path does not exist: ${target.fieldPath}`);
+      result = { targetDigest: sha256(typeof value === 'string' ? value : digestCanonical(value)), dependenciesDigest: dependencies.get(id) };
+    }
+    cache.set(targetId, result);
+    return result;
+  };
+}
 function collectClosure(candidate) {
   const records = new Map(candidate.records.map(r => [key(r), r]));
   const ids = new Set(candidate.records.filter(r => r.kind === 'weapon').map(key));
@@ -63,8 +88,8 @@ export async function buildWeaponApprovalPackage({ authoring, candidate, coverag
   const originals = new Map(authoring.records.map(r=>[key(r),r]));
   const mergedByKey = new Map(pending.records.map(r=>[key(r),r]));
   const patchKeys = new Set(candidate.patches.map(key));
-  const digest = createReviewDigestContext(pending);
-  const originalDigest = createReviewDigestContext(authoring);
+  const digest = digestContext(pending);
+  const walk = createRecordDependencyWalker(pending, { details: true });
   const stale = [];
   for (const receipt of authoring.reviewReceipts) {
     const actual = digest(receipt.target);
@@ -76,9 +101,8 @@ export async function buildWeaponApprovalPackage({ authoring, candidate, coverag
     const id = key(receipt.target);
     if (patchKeys.has(id)) continue;
     if (!restaled.has(id)) {
-      const previous = new Map(originalDigest.dependencies(receipt.target).map(d=>[key(d), d]));
-      const patchedDependencies = digest.dependencies(receipt.target).filter(d=>patchKeys.has(key(d)) && previous.get(key(d))?.digest !== d.digest)
-        .map(({recordId,gameReleaseId,mode})=>({recordId,gameReleaseId,mode}));
+      const patchedDependencies = walk(mergedByKey.get(id)).filter(({item})=>patchKeys.has(key(item)))
+        .map(({item,mode})=>({recordId:item.recordId,gameReleaseId:item.gameReleaseId,mode}));
       if (!patchedDependencies.length) throw new Error(`Stale receipt without patched dependency: ${id}`);
       restaled.set(id, { record: originals.get(id), reason: 'dependency digest changed after patched weapon merge', patchedDependencies, reviewTargets: [] });
     }
@@ -137,8 +161,7 @@ export function approveWeaponMerge({ authoring, built, approval }) {
   for (const record of merged.tombstones) record.reviewState = originalTombstones.get(key(record))?.reviewState ?? record.reviewState;
   const replaced = new Set(built.document.reviewTargets.map(targetKey));
   merged.reviewReceipts = authoring.reviewReceipts.filter(r=>!replaced.has(targetKey(r.target)));
-  const digest = createReviewDigestContext(merged);
-  for (const {targetDigest, dependenciesDigest, ...target} of built.document.reviewTargets) merged.reviewReceipts.push({target:structuredClone(target),...digest(target),decision:'approved',reviewer:structuredClone(approval.reviewer),reviewedAt:approval.reviewedAt});
+  for (const {targetDigest, dependenciesDigest, ...target} of built.document.reviewTargets) merged.reviewReceipts.push({target:structuredClone(target),targetDigest,dependenciesDigest,decision:'approved',reviewer:structuredClone(approval.reviewer),reviewedAt:approval.reviewedAt});
   merged.publicationEligible = !merged.fixtureOnly;
   return merged;
 }

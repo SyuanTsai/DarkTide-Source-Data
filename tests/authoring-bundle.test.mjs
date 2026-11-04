@@ -1,15 +1,20 @@
 ﻿import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { readAuthoringBundle, splitAuthoringBundle, assembleAuthoringBundle, readAuthoringBundleAtCommit, AUTHORING_PART_TARGET_BYTES, W07_INDEX } from '../scripts/content/lib/authoring-bundle.mjs';
 import { validateSourceContract } from '../scripts/content/contract-validator.mjs';
 
-const legacy = JSON.parse(execFileSync('git', ['show', 'e2020f1851951b1ada0824d652ec7032076b151b:content/authoring/v2/w07-weapons.json'], { maxBuffer: 64 * 1024 * 1024 }));
-const split = splitAuthoringBundle(legacy);
-const assembled = await assembleAuthoringBundle((name) => split.get(name));
+const loadLegacy = () => JSON.parse(execFileSync('git', ['show', 'e2020f1851951b1ada0824d652ec7032076b151b:content/authoring/v2/w07-weapons.json'], { maxBuffer: 64 * 1024 * 1024 }));
+const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
-test('real bundle preserves review state and every receipt digest', () => {
+// Scenario: A historical bundle is split and assembled.
+// Purpose: Preserve approved state and receipt digests across conversion.
+test('UnitT10_real_bundle_preserves_review_state_and_every_receipt_digest', async () => {
+  const legacy = loadLegacy();
+  const split = splitAuthoringBundle(legacy);
+  const assembled = await assembleAuthoringBundle((name) => split.get(name));
   const before = validateSourceContract(legacy);
   const after = validateSourceContract(assembled.bundle);
   assert.equal(before.valid, true, JSON.stringify(before.issues));
@@ -22,15 +27,24 @@ test('real bundle preserves review state and every receipt digest', () => {
   assert.equal(assembled.bundle.reviewReceipts.length, legacy.reviewReceipts.length);
 });
 
-test('split assembly is byte stable', async () => {
+// Scenario: The current on-disk bundle is assembled and split again.
+// Purpose: Preserve every part and index byte across a round trip.
+test('UnitT20_split_assembly_is_byte_stable', async () => {
   const disk = await readAuthoringBundle(process.cwd());
-  assert.deepEqual(disk.bundle, assembled.bundle);
-  const again = splitAuthoringBundle(assembled.bundle);
-  assert.deepEqual([...again.keys()], [...split.keys()]);
-  assert.ok([...split].filter(([name]) => name !== W07_INDEX).every(([, bytes]) => bytes.length <= 16 * 1024 * 1024));
-  assert.ok(split.has('content/authoring/v2/w07/weapons/chainaxe_p1.1.json'));
-  assert.ok(split.has('content/authoring/v2/w07/weapons/chainaxe_p1.2.json'));
-  for (const [name, bytes] of split) assert.deepEqual(again.get(name), bytes, name);
+  const originalHash = hash(disk.bytes);
+  const again = splitAuthoringBundle(disk.bundle);
+  const index = JSON.parse(await readFile(W07_INDEX));
+  const names = [...index.parts.map((part) => `content/authoring/v2/w07/${part.path}`), W07_INDEX];
+  assert.deepEqual([...again.keys()], names);
+  assert.ok(again.has('content/authoring/v2/w07/weapons/chainaxe_p1.1.json'));
+  assert.ok(again.has('content/authoring/v2/w07/weapons/chainaxe_p1.2.json'));
+  for (const name of names) {
+    const bytes = await readFile(name);
+    if (name !== W07_INDEX) assert.ok(bytes.length <= 16 * 1024 * 1024);
+    assert.equal(hash(again.get(name)), hash(bytes), name);
+  }
+  const reassembled = await assembleAuthoringBundle((name) => again.get(name));
+  assert.equal(hash(reassembled.bytes), originalHash);
 });
 
 test('real on-disk parts meet the 8 MiB target', async () => {
@@ -42,6 +56,7 @@ test('real on-disk parts meet the 8 MiB target', async () => {
 });
 
 test('chunks an oversized synthetic owner into consecutive parts', () => {
+  const legacy = loadLegacy();
   const padding = 'x'.repeat(4 * 1024 * 1024);
   const synthetic = {
     ...legacy,
@@ -62,6 +77,7 @@ test('chunks an oversized synthetic owner into consecutive parts', () => {
 });
 
 test('rejects a tampered part', async () => {
+  const split = splitAuthoringBundle(loadLegacy());
   const index = JSON.parse(split.get(W07_INDEX));
   const tampered = `${W07_INDEX.slice(0, -10)}${index.parts[0].path}`;
   const bytes = Buffer.from(split.get(tampered));
@@ -70,6 +86,7 @@ test('rejects a tampered part', async () => {
 });
 
 test('rejects duplicate blessing slugs', () => {
+  const legacy = loadLegacy();
   const blessing = legacy.records.find((record) => record.kind === 'blessing');
   const copy = structuredClone(blessing);
   copy.recordId = copy.recordId.replace(':', '-');
@@ -79,14 +96,17 @@ test('rejects duplicate blessing slugs', () => {
 });
 
 test('rejects a record too large for a part', () => {
+  const legacy = loadLegacy();
   const record = { ...legacy.records.find((item) => item.kind === 'weapon'), payload: { ...legacy.records.find((item) => item.kind === 'weapon').payload, oversized: 'x'.repeat(17 * 1024 * 1024) } };
   const bundle = { ...legacy, records: legacy.records.map((item) => item === legacy.records.find((entry) => entry.kind === 'weapon') ? record : item) };
   assert.throws(() => splitAuthoringBundle(bundle), /exceeds 8 MiB authoring part target/u);
 });
 
-test('ownership walker stays identical to validator dependency traversal', async () => {
-  const validator = await readFile(new URL('../scripts/content/contract-validator.mjs', import.meta.url), 'utf8');
-  const walker = await readFile(new URL('../scripts/content/lib/authoring-walk.mjs', import.meta.url), 'utf8');
+// Scenario: Validator and ownership walker implement the same traversal.
+// Purpose: Detect semantic drift regardless of checkout line endings.
+test('UnitT80_ownership_walker_stays_identical_to_validator_dependency_traversal', async () => {
+  const validator = (await readFile(new URL('../scripts/content/contract-validator.mjs', import.meta.url), 'utf8')).replaceAll('\r\n', '\n');
+  const walker = (await readFile(new URL('../scripts/content/lib/authoring-walk.mjs', import.meta.url), 'utf8')).replaceAll('\r\n', '\n');
   for (const [begin, end] of [
     ['const DIGEST_BACKLINK_FIELDS', 'const REF_EXPECTED_KINDS'],
     ['function walkObjects(', 'function getRecordRefEdges('],
@@ -100,6 +120,8 @@ test('ownership walker stays identical to validator dependency traversal', async
 });
 
 test('commit reader uses the same pin for the index and every part', async () => {
+  const split = splitAuthoringBundle(loadLegacy());
+  const expected = await assembleAuthoringBundle((name) => split.get(name));
   const commit = 'a'.repeat(40);
   const reads = [];
   const result = await readAuthoringBundleAtCommit((pin, name) => {
@@ -108,5 +130,37 @@ test('commit reader uses the same pin for the index and every part', async () =>
   }, commit);
   assert.ok(reads.length > 1);
   assert.ok(reads.every(([pin]) => pin === commit));
-  assert.deepEqual(result.bytes, assembled.bytes);
+  assert.equal(hash(result.bytes), hash(expected.bytes));
+});
+
+const syntheticBundle = (records, reviewReceipts = []) => ({
+  schemaVersion: 'test', contractKind: 'test', fixtureOnly: true, publicationEligible: false,
+  gameReleases: [], sourceRefs: [], records, tombstones: [], reviewReceipts, sourceSnapshots: []
+});
+const syntheticRecord = (recordId, kind, payload) => ({ recordId, gameReleaseId: 'release', kind, payload });
+
+test('blessing weapon references do not assign weapons to shared', () => {
+  const weapon = syntheticRecord('weapon', 'weapon', { familyId: 'family', child: { recordId: 'child', gameReleaseId: 'release' } });
+  const blessing = syntheticRecord('darktide:blessing:test', 'blessing', {});
+  const variant = syntheticRecord('variant', 'blessing-variant', { blessingRef: { recordId: blessing.recordId, gameReleaseId: 'release' }, weaponRefs: [{ recordId: weapon.recordId, gameReleaseId: 'release' }] });
+  const child = syntheticRecord('child', 'term', {});
+  const output = splitAuthoringBundle(syntheticBundle([weapon, blessing, variant, child]));
+  const part = (name) => JSON.parse(output.get(`content/authoring/v2/w07/${name}.json`));
+  assert.deepEqual(part('shared').records, []);
+  assert.deepEqual(part('weapons/family').records.map((r) => r.recordId), ['weapon', 'child']);
+  assert.deepEqual(part('blessings/test').records.map((r) => r.recordId), [blessing.recordId, 'variant']);
+});
+
+test('shared overflow uses ordered record-only parts and round trips', async () => {
+  const records = Array.from({ length: 5 }, (_, i) => syntheticRecord(`shared-${i}`, 'term', { padding: 'x'.repeat(2 * 1024 * 1024) }));
+  const receipts = records.map((record) => ({ target: { recordId: record.recordId, gameReleaseId: record.gameReleaseId } }));
+  const bundle = syntheticBundle(records, receipts);
+  const output = splitAuthoringBundle(bundle);
+  const index = JSON.parse(output.get(W07_INDEX));
+  assert.deepEqual(index.parts.map((part) => part.path), ['shared.json', 'weapons/_shared.1.json']);
+  for (const part of index.parts) assert.ok(part.sizeBytes <= AUTHORING_PART_TARGET_BYTES);
+  const overflow = JSON.parse(output.get('content/authoring/v2/w07/weapons/_shared.1.json'));
+  assert.deepEqual(Object.keys(overflow), ['records', 'reviewReceipts']);
+  assert.deepEqual((await assembleAuthoringBundle((name) => output.get(name))).bundle, bundle);
+  assert.throws(() => splitAuthoringBundle(syntheticBundle([syntheticRecord('w', 'weapon', { familyId: '_shared' })])), /familyId/u);
 });

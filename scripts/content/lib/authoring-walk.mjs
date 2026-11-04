@@ -128,10 +128,17 @@ function dependencyClosure(contract, rootItem, recordMap, sourceMap, releaseMap)
   return [...visited.values()].sort((a, b) => compareLexical(a.key, b.key));
 }
 
-
-export function createRecordDependencyWalker(contract) {
-  const records = new Map(contract.records.map((item) => [recordKey(item.recordId, item.gameReleaseId), item]));
+export function createRecordDependencyWalker(contract, { blessingOwnership = false, details = false } = {}) {
+  const omitWeaponRefs = (value) => {
+    if (Array.isArray(value)) return value.map(omitWeaponRefs);
+    if (!value || typeof value !== 'object') return value;
+    return Object.fromEntries(Object.entries(value).filter(([field]) => field !== 'weaponRefs').map(([field, child]) => [field, omitWeaponRefs(child)]));
+  };
+  const items = blessingOwnership
+    ? contract.records.filter((item) => item.kind !== 'weapon').map((item) => ({ ...item, payload: omitWeaponRefs(item.payload) }))
+    : contract.records;
+  const records = new Map(items.map((item) => [recordKey(item.recordId, item.gameReleaseId), item]));
   const sources = new Map(contract.sourceRefs.map((item) => [`${item.gameReleaseId}\u0000${item.sourceId}`, item]));
   const releases = new Map(contract.gameReleases.map((item) => [item.gameReleaseId, item]));
-  return (item) => dependencyClosure(contract, item, records, sources, releases).map(({ item: dependency }) => dependency);
+  return (item) => dependencyClosure(contract, blessingOwnership ? records.get(recordKey(item.recordId, item.gameReleaseId)) : item, records, sources, releases).map(({ item: dependency, mode }) => details ? { item: dependency, mode } : dependency);
 }

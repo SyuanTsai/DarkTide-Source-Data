@@ -39,6 +39,22 @@ node scripts/content/imports/generic-blessing-text.mjs `
   --output-dir content/imports/generic
 ```
 
+After both generic inputs are available, prepare the bounded human-review package. It includes only traits with a found name key, their variant/claim/evidence closure, a stable SHA-256 package digest, every v2 review target, and a short Traditional Chinese sample. The command does not change authoring data.
+
+```powershell
+node scripts/content/imports/generic-blessings-approval.mjs `
+  --prepare `
+  --output-dir content/reviews/syp-288-generic-blessings
+```
+
+An explicit human approval must contain `decision: "approved"`, a `reviewer` whose `kind` is `human`, a timestamp, and `reviewedPackage.packageDigest` copied from the review package. Only then may the apply command create the v2 review receipts and merge into w07; use it in an isolated copy first. A rejected or mismatched approval leaves authoring unchanged.
+
+```powershell
+node scripts/content/imports/generic-blessings-approval.mjs `
+  --apply `
+  --approval C:\review\human-approval.json
+```
+
 ## Generic weapon-template import
 
 The generic weapon-template importer uses the same pinned, Git-only source boundary. It statically records the UI player-mark inventory, action tables, literal continuations, displayed attacks, direct and registered projectile damage-profile bindings, inherited damage-profile bodies, and `base_stats` mappings from trait ranges to the affected damage or weapon-template endpoints without executing Lua functions. Literal values retain source lines and raw spellings; UI marks without registered templates, registered templates absent from the UI, and indirect damage-profile support files that cannot be parsed are reported as precise coverage gaps instead of guessed values. Its candidate contains field patches for existing weapons plus pending weapon, profile, stat, and evidence records for registered UI marks missing from authoring; the approved records themselves are not copied.

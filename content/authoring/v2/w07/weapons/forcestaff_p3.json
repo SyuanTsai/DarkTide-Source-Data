@@ -1,218 +1,6 @@
 {
   "records": [
     {
-      "recordId": "darktide:damage-profile:raw-source:forcestaff_p3_m1:default_chain_lighting_attack:00ae266f",
-      "kind": "damage-profile",
-      "owner": "source",
-      "gameReleaseId": "darktide:1.13.4",
-      "payload": {
-        "profileKey": "default_chain_lighting_attack",
-        "rawSourceDefinition": {
-          "sourceRef": {
-            "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
-            "gameReleaseId": "darktide:1.13.4"
-          },
-          "path": "scripts/settings/equipment/weapon_templates/force_staffs/settings_templates/force_staff_damage_profile_templates.lua",
-          "line": 738,
-          "fieldPath": "damage_templates.default_chain_lighting_attack",
-          "leaves": [
-            {
-              "line": 844,
-              "fieldPath": "damage_templates.default_chain_lighting_attack.targets[1].power_distribution.attack",
-              "rawValue": "[400, 800]",
-              "sourceRef": {
-                "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/force_staffs/settings_templates/force_staff_damage_profile_templates.lua"
-            }
-          ]
-        }
-      },
-      "sourceRefs": [
-        {
-          "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
-          "gameReleaseId": "darktide:1.13.4"
-        }
-      ],
-      "dataCoverage": {
-        "status": "partial",
-        "missing": [
-          {
-            "field": "/payload/segments",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/effective-runtime-profile-values",
-            "reasonCode": "NOT_VERIFIED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          }
-        ]
-      },
-      "reviewTargets": [
-        {
-          "fieldPath": "/payload/rawSourceDefinition",
-          "dimension": "technical"
-        }
-      ],
-      "reviewState": "approved"
-    },
-    {
-      "recordId": "darktide:stat-curve:raw-profile:forcestaff_p3_m1:default_chain_lighting_attack:7cd932ab",
-      "kind": "stat-curve",
-      "owner": "source",
-      "gameReleaseId": "darktide:1.13.4",
-      "payload": {
-        "inputUnit": "ratio",
-        "outputUnit": "attack-power-point",
-        "knots": [
-          {
-            "input": "0",
-            "output": "400",
-            "sourceOrdinal": 1,
-            "rawEndpoint": "400",
-            "sourceLocator": {
-              "sourceRef": {
-                "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/force_staffs/settings_templates/force_staff_damage_profile_templates.lua",
-              "line": 845,
-              "fieldPath": "targets[1].power_distribution.attack.1"
-            }
-          },
-          {
-            "input": "1",
-            "output": "800",
-            "sourceOrdinal": 2,
-            "rawEndpoint": "800",
-            "sourceLocator": {
-              "sourceRef": {
-                "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
-                "gameReleaseId": "darktide:1.13.4"
-              },
-              "path": "scripts/settings/equipment/weapon_templates/force_staffs/settings_templates/force_staff_damage_profile_templates.lua",
-              "line": 846,
-              "fieldPath": "targets[1].power_distribution.attack.2"
-            }
-          }
-        ],
-        "interpolation": {
-          "value": "linear",
-          "sourceLocator": {
-            "sourceRef": {
-              "sourceId": "public-code:w07-static-ba6c148-06f7c3f72a72072b",
-              "gameReleaseId": "darktide:1.13.4"
-            },
-            "path": "scripts/utilities/attack/damage_profile.lua",
-            "line": 379,
-            "fieldPath": "DamageProfile.lerp_damage_profile_entry"
-          }
-        },
-        "edgePolicy": {
-          "value": "extrapolate",
-          "scope": "math.lerp function only",
-          "sourceLocator": {
-            "sourceRef": {
-              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
-              "gameReleaseId": "darktide:1.13.4"
-            },
-            "path": "scripts/foundation/utilities/math.lua",
-            "line": 72,
-            "fieldPath": "math.lerp"
-          }
-        },
-        "panelInputRange": {
-          "status": "not-applicable"
-        },
-        "callsiteLocators": [
-          {
-            "sourceRef": {
-              "sourceId": "public-code:w07-static-ba6c148-06f7c3f72a72072b",
-              "gameReleaseId": "darktide:1.13.4"
-            },
-            "path": "scripts/utilities/attack/damage_profile.lua",
-            "line": 379,
-            "fieldPath": "DamageProfile.lerp_damage_profile_entry"
-          },
-          {
-            "sourceRef": {
-              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
-              "gameReleaseId": "darktide:1.13.4"
-            },
-            "path": "scripts/foundation/utilities/math.lua",
-            "line": 72,
-            "fieldPath": "math.lerp"
-          }
-        ]
-      },
-      "sourceRefs": [
-        {
-          "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
-          "gameReleaseId": "darktide:1.13.4"
-        },
-        {
-          "sourceId": "public-code:w07-static-ba6c148-06f7c3f72a72072b",
-          "gameReleaseId": "darktide:1.13.4"
-        },
-        {
-          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
-          "gameReleaseId": "darktide:1.13.4"
-        }
-      ],
-      "dataCoverage": {
-        "status": "partial",
-        "missing": [
-          {
-            "field": "/player-visible-damage-value",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/effective-runtime-profile-and-overrides",
-            "reasonCode": "NOT_VERIFIED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          },
-          {
-            "field": "/weapon-stat-definition-and-rating-mapping",
-            "reasonCode": "NOT_IMPORTED",
-            "sourceRef": {
-              "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
-              "gameReleaseId": "darktide:1.13.4"
-            }
-          }
-        ]
-      },
-      "reviewTargets": [
-        {
-          "fieldPath": "/payload/knots",
-          "dimension": "technical"
-        },
-        {
-          "fieldPath": "/payload/interpolation",
-          "dimension": "technical"
-        },
-        {
-          "fieldPath": "/payload/edgePolicy",
-          "dimension": "technical"
-        }
-      ],
-      "reviewState": "approved"
-    },
-    {
       "recordId": "darktide:weapon:forcestaff:p3-m1:e46",
       "owner": "source",
       "kind": "weapon",
@@ -4873,6 +4661,218 @@
       "reviewState": "approved"
     },
     {
+      "recordId": "darktide:damage-profile:raw-source:forcestaff_p3_m1:default_chain_lighting_attack:00ae266f",
+      "kind": "damage-profile",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "profileKey": "default_chain_lighting_attack",
+        "rawSourceDefinition": {
+          "sourceRef": {
+            "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
+            "gameReleaseId": "darktide:1.13.4"
+          },
+          "path": "scripts/settings/equipment/weapon_templates/force_staffs/settings_templates/force_staff_damage_profile_templates.lua",
+          "line": 738,
+          "fieldPath": "damage_templates.default_chain_lighting_attack",
+          "leaves": [
+            {
+              "line": 844,
+              "fieldPath": "damage_templates.default_chain_lighting_attack.targets[1].power_distribution.attack",
+              "rawValue": "[400, 800]",
+              "sourceRef": {
+                "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/force_staffs/settings_templates/force_staff_damage_profile_templates.lua"
+            }
+          ]
+        }
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/payload/segments",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/effective-runtime-profile-values",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/rawSourceDefinition",
+          "dimension": "technical"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
+      "recordId": "darktide:stat-curve:raw-profile:forcestaff_p3_m1:default_chain_lighting_attack:7cd932ab",
+      "kind": "stat-curve",
+      "owner": "source",
+      "gameReleaseId": "darktide:1.13.4",
+      "payload": {
+        "inputUnit": "ratio",
+        "outputUnit": "attack-power-point",
+        "knots": [
+          {
+            "input": "0",
+            "output": "400",
+            "sourceOrdinal": 1,
+            "rawEndpoint": "400",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/force_staffs/settings_templates/force_staff_damage_profile_templates.lua",
+              "line": 845,
+              "fieldPath": "targets[1].power_distribution.attack.1"
+            }
+          },
+          {
+            "input": "1",
+            "output": "800",
+            "sourceOrdinal": 2,
+            "rawEndpoint": "800",
+            "sourceLocator": {
+              "sourceRef": {
+                "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
+                "gameReleaseId": "darktide:1.13.4"
+              },
+              "path": "scripts/settings/equipment/weapon_templates/force_staffs/settings_templates/force_staff_damage_profile_templates.lua",
+              "line": 846,
+              "fieldPath": "targets[1].power_distribution.attack.2"
+            }
+          }
+        ],
+        "interpolation": {
+          "value": "linear",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-06f7c3f72a72072b",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/utilities/attack/damage_profile.lua",
+            "line": 379,
+            "fieldPath": "DamageProfile.lerp_damage_profile_entry"
+          }
+        },
+        "edgePolicy": {
+          "value": "extrapolate",
+          "scope": "math.lerp function only",
+          "sourceLocator": {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 72,
+            "fieldPath": "math.lerp"
+          }
+        },
+        "panelInputRange": {
+          "status": "not-applicable"
+        },
+        "callsiteLocators": [
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-06f7c3f72a72072b",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/utilities/attack/damage_profile.lua",
+            "line": 379,
+            "fieldPath": "DamageProfile.lerp_damage_profile_entry"
+          },
+          {
+            "sourceRef": {
+              "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+              "gameReleaseId": "darktide:1.13.4"
+            },
+            "path": "scripts/foundation/utilities/math.lua",
+            "line": 72,
+            "fieldPath": "math.lerp"
+          }
+        ]
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-06f7c3f72a72072b",
+          "gameReleaseId": "darktide:1.13.4"
+        },
+        {
+          "sourceId": "public-code:w07-static-ba6c148-0be6a23d5beb9721",
+          "gameReleaseId": "darktide:1.13.4"
+        }
+      ],
+      "dataCoverage": {
+        "status": "partial",
+        "missing": [
+          {
+            "field": "/player-visible-damage-value",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/effective-runtime-profile-and-overrides",
+            "reasonCode": "NOT_VERIFIED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          },
+          {
+            "field": "/weapon-stat-definition-and-rating-mapping",
+            "reasonCode": "NOT_IMPORTED",
+            "sourceRef": {
+              "sourceId": "public-code:weapon-source-forcestaff_p3_m1-e46b8926cfa3-force_staff_damage_profile_templates",
+              "gameReleaseId": "darktide:1.13.4"
+            }
+          }
+        ]
+      },
+      "reviewTargets": [
+        {
+          "fieldPath": "/payload/knots",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/interpolation",
+          "dimension": "technical"
+        },
+        {
+          "fieldPath": "/payload/edgePolicy",
+          "dimension": "technical"
+        }
+      ],
+      "reviewState": "approved"
+    },
+    {
       "recordId": "darktide:stat-definition:forcestaff_p3_m1-action_shoot_charged-attack-power-source-curve-e46",
       "kind": "stat-definition",
       "owner": "source",
@@ -9170,7 +9170,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9186,7 +9186,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9202,7 +9202,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9218,7 +9218,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9234,7 +9234,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9250,7 +9250,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9266,7 +9266,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9282,7 +9282,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9298,7 +9298,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9314,7 +9314,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9330,7 +9330,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9346,7 +9346,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9362,7 +9362,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9378,7 +9378,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9394,7 +9394,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9410,7 +9410,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9426,7 +9426,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9442,7 +9442,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9458,7 +9458,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9474,7 +9474,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9490,7 +9490,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9506,7 +9506,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9522,7 +9522,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9538,7 +9538,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9554,7 +9554,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9570,7 +9570,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9586,7 +9586,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9602,7 +9602,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9618,7 +9618,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9634,7 +9634,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9650,7 +9650,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9666,7 +9666,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9682,7 +9682,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9698,7 +9698,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9714,7 +9714,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9730,7 +9730,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9746,7 +9746,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9762,7 +9762,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9778,7 +9778,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9794,7 +9794,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9810,7 +9810,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9826,7 +9826,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9842,7 +9842,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9858,7 +9858,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9874,7 +9874,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9890,7 +9890,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9906,7 +9906,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9922,7 +9922,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9938,7 +9938,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9954,7 +9954,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9970,7 +9970,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -9986,7 +9986,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10002,7 +10002,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10018,7 +10018,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10034,7 +10034,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10050,7 +10050,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10066,7 +10066,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10082,7 +10082,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10098,7 +10098,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10114,7 +10114,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10130,7 +10130,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10146,7 +10146,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10162,7 +10162,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10178,7 +10178,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10194,7 +10194,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10210,7 +10210,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10226,7 +10226,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10242,7 +10242,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10258,7 +10258,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     },
     {
       "target": {
@@ -10274,7 +10274,7 @@
         "kind": "human",
         "id": "SyuanTsai"
       },
-      "reviewedAt": "2026-11-04T04:40:21.000Z"
+      "reviewedAt": "2026-11-04T05:14:03.000Z"
     }
   ]
 }

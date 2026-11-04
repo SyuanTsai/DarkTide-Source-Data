@@ -418,7 +418,7 @@ function dependencyClosure(contract, rootItem, recordMap, sourceMap, releaseMap)
   return [...visited.values()].sort((a, b) => compareLexical(a.key, b.key));
 }
 
-export function createReviewDigestContext(contract, { recordMap, releaseMap } = {}) {
+function createReviewDigestContext(contract, { recordMap, releaseMap } = {}) {
   const indexedRecords = recordMap ?? new Map(contract.records.map((item) => [recordKey(item.recordId, item.gameReleaseId), item]));
   const sourceMap = new Map(contract.sourceRefs.map((item) => [`${item.gameReleaseId}\u0000${item.sourceId}`, item]));
   const indexedReleases = releaseMap ?? new Map(contract.gameReleases.map((release) => [release.gameReleaseId, release]));
@@ -436,7 +436,7 @@ export function createReviewDigestContext(contract, { recordMap, releaseMap } = 
   // while validateReceipts shares one only across its synchronous checks of this contract.
   const digestsByTarget = new Map();
   const dependencyDigestsByItem = new WeakMap();
-  const digest = (target) => {
+  return (target) => {
     const key = receiptKey(target);
     const cached = digestsByTarget.get(key);
     if (cached) return { ...cached };
@@ -470,20 +470,6 @@ export function createReviewDigestContext(contract, { recordMap, releaseMap } = 
     digestsByTarget.set(key, result);
     return { ...result };
   };
-  digest.dependencies = (target) => {
-    const found = getReviewNode(contract, target, reviewNodeMap);
-    if (!found) throw new Error(`Unknown review target ${target.gameReleaseId}:${target.recordId}`);
-    return dependencyClosure(contract, found.item, indexedRecords, sourceMap, indexedReleases)
-      .map(({ item, mode, expandsClaimRefs, isTombstone, release, sourceRefs }) => ({
-        recordId: item.recordId, gameReleaseId: item.gameReleaseId, mode,
-        digest: sha256({ mode, expandsClaimRefs, kind: isTombstone ? 'tombstone' : item.kind,
-          owner: item.owner ?? 'source', payload: mode === 'identity' ? identityPayloadProjection(item) : reviewProjection(item.payload ?? null, { omitClaimRefs: !expandsClaimRefs }),
-          aliases: item.aliases ?? [], sourceLinks: reviewProjection(item.sourceRefs ?? [], { omitClaimRefs: true }),
-          dataCoverage: reviewProjection(item.dataCoverage ?? null, { omitClaimRefs: true }), reviewTargets: item.reviewTargets ?? [],
-          tombstoneReason: item.reason ?? null, release: releaseReviewProjection(release), sourceRefs: sourceRefs.map(sourceReviewProjection) })
-      }));
-  };
-  return digest;
 }
 
 export function computeReviewDigests(contract, target) {
