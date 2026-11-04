@@ -806,6 +806,12 @@ test('InterT07_exact_runtime_pin_sets_accept_all_complete_sets_but_reject_mixed'
     try { assert.equal(thirdRuntime.identity.approvedAtCommit, thirdCommit); }
     finally { await cleanupRuntime(thirdRuntime); }
 
+    const fourthCommit = api.W09_APPROVED_SOURCE_RUNTIME_FOURTH_COMMIT;
+    const fourthRuntimeCommit = await writePinSet(api.W09_APPROVED_SOURCE_RUNTIME_FOURTH_FILES, fourthCommit);
+    const fourthRuntime = await loadRuntime({ sourceRoot: fixtureRoot, sourceCommit: fourthRuntimeCommit });
+    try { assert.equal(fourthRuntime.identity.approvedAtCommit, fourthCommit); }
+    finally { await cleanupRuntime(fourthRuntime); }
+
     const builderRelativePath = 'scripts/content/contract-w05-build.mjs';
     const builderPath = path.join(fixtureRoot, ...builderRelativePath.split('/'));
     const pinnedBuilderBytes = await readFile(builderPath);
@@ -828,7 +834,7 @@ test('InterT07_exact_runtime_pin_sets_accept_all_complete_sets_but_reject_mixed'
     assert.equal(restoreCommitResult.status, 0, restoreCommitResult.stderr);
     const restoredCommit = git(['rev-parse', 'HEAD']).trim();
     const restoredRuntime = await loadRuntime({ sourceRoot: fixtureRoot, sourceCommit: restoredCommit });
-    try { assert.equal(restoredRuntime.identity.approvedAtCommit, thirdCommit); }
+    try { assert.equal(restoredRuntime.identity.approvedAtCommit, fourthCommit); }
     finally { await cleanupRuntime(restoredRuntime); }
 
     const oldValidator = sourceBlob(api.W09_APPROVED_SOURCE_RUNTIME_COMMIT, 'scripts/content/contract-validator.mjs');
