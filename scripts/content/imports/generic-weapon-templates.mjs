@@ -1,3 +1,4 @@
+import { makeAttackActionResolution, staticAttackClosureRefs, actionProfileBindingCount } from '../contract-w07-weapons.mjs';
 import { readAuthoringBundle } from '../lib/authoring-bundle.mjs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -74,6 +75,9 @@ function partitionGenericWeaponCandidate(candidate, authoring) {
   const familyByWeaponKey = new Map([...authoring.records, ...candidate.records]
     .filter((record) => record.gameReleaseId === GAME_RELEASE_ID && record.kind === 'weapon')
     .map((record) => [`${record.gameReleaseId}\0${record.recordId}`, record.payload.familyId]));
+  for (const weapon of [...authoring.records, ...candidate.records].filter(r => r.kind === 'weapon')) {
+    for (const ref of weapon.payload.attackProfileRefs ?? []) familyByWeaponKey.set(`${ref.gameReleaseId}\0${ref.recordId}`, weapon.payload.familyId);
+  }
   const familyIds = [...new Set(familyByWeaponKey.values())].sort(lexical);
   for (const familyId of familyIds) {
     invariant(/^[a-z0-9_]+$/u.test(familyId), `Weapon familyId is not safe for a filename: ${familyId}`);
@@ -134,6 +138,103 @@ function partitionGenericWeaponCandidate(candidate, authoring) {
   ];
 }
 
+export function assertAttackActionResolution(profile, weapon, resolution = profile.payload.actionResolution) {
+  const closure = weapon.payload.actionProfileResolution;
+  const rows = resolution?.origin === 'weapon-template' ? closure.localActions : resolution?.origin === 'base-template-settings' ? closure.fallbackActions : [];
+  const matches = rows.filter(row => row.action === profile.payload.action);
+  invariant(matches.length === 1, `Attack action must match exactly one origin row: ${profile.recordId}`);
+  const startInput = matches[0].startInput ?? null;
+  const outgoing = new Map();
+  for (const edge of weapon.payload.actionContinuations.filter(edge => edge.fromAction === profile.payload.action)) {
+    if (!outgoing.has(edge.inputKey)) outgoing.set(edge.inputKey, { inputKey: edge.inputKey, role: 'continuation', sourceLocator: edge.sourceLocator });
+  }
+  const expected = {
+    startInput,
+    inputBindings: [...(startInput ? [{ inputKey: startInput.inputKey, role: 'start-input', sourceLocator: startInput.sourceLocator }] : []), ...outgoing.values()],
+    entryBindings: weapon.payload.actionContinuations.filter(edge => edge.toAction === profile.payload.action),
+    targetApplicability: 'all-static-registry-minion-hit-schemas'
+  };
+  for (const field of Object.keys(expected)) {
+    invariant(canonical(resolution[field]) === canonical(expected[field]), `Invalid action resolution ${field}: ${profile.recordId}`);
+  }
+  invariant(canonical(resolution.branchBindings ?? []) === canonical(profile.payload.sourceBindings ?? []), `Invalid action resolution branchBindings: ${profile.recordId}`);
+  for (const condition of resolution.runtimeConditions ?? []) {
+    invariant(condition.execution === 'not-evaluated' && typeof condition.rawValue === 'string' && condition.sourceLocator && condition.fieldPath,
+      `Invalid action resolution runtimeConditions: ${profile.recordId}`);
+  }
+}
+
+/** Build a minimal patch, or retain the caller's missing marker when the owner is ambiguous. */
+export function makeAttackActionResolutionPatch(profile, weapon, sourceBindingContext, closureRecords) {
+  const unresolved = reason => ({ unresolved: { weapon: weapon.recordId, profile: profile.recordId, action: profile.payload.action, reason } });
+  const closure = weapon.payload.actionProfileResolution;
+  const matches = [...closure.localActions, ...closure.fallbackActions].filter(row => row.action === profile.payload.action);
+  if (matches.length !== 1) return unresolved(`Expected one action row; found ${matches.length}`);
+  let resolvedProfile = profile;
+  const fields = [], reviewTargets = [];
+  if (!profile.payload.sourceBindings?.length) {
+    if (!sourceBindingContext) return unresolved('Missing source bindings and pinned parser context');
+    const { template, resolveSource, indirectProfileCatalog, recordsByKey } = sourceBindingContext;
+    const rows = actionRowsForTemplate(template, resolveSource).filter(row => row.action === profile.payload.action);
+    if (rows.length !== 1) return unresolved(`Expected one pinned template action row; found ${rows.length}`);
+    const rawBindings = directProfileBindings(rows[0], resolveSource, template, indirectProfileCatalog);
+    if (!rawBindings.length) return unresolved('Pinned parser returned no direct profile bindings');
+    const sourceBindings = [];
+    for (const binding of rawBindings) {
+      const matchingRefs = (profile.payload.damageProfileRefs ?? []).filter(ref => {
+        const damage = recordsByKey.get(`${ref.gameReleaseId}\0${ref.recordId}`);
+        return damage?.kind === 'damage-profile' && damage.gameReleaseId === profile.gameReleaseId && damage.payload.profileKey === binding.profileKey;
+      });
+      if (matchingRefs.length !== 1) return unresolved(`Pinned profile key ${binding.profileKey} matches ${matchingRefs.length} existing damageProfileRefs`);
+      sourceBindings.push({ branch: binding.branch, profileRef: structuredClone(matchingRefs[0]), rawValue: binding.rawValue, sourceLocator: binding.sourceLocator });
+    }
+    resolvedProfile = { ...profile, payload: { ...profile.payload, sourceBindings } };
+    fields.push({ fieldPath: '/payload/sourceBindings', value: sourceBindings });
+    reviewTargets.push({ fieldPath: '/payload/sourceBindings', dimension: 'technical' });
+  }
+  if (closureRecords) {
+    const continuations = weapon.payload.actionContinuations.filter(edge => edge.fromAction === profile.payload.action);
+    resolvedProfile = { ...resolvedProfile, payload: { ...resolvedProfile.payload, continuations } };
+    for (const [name, value] of Object.entries({ continuations, ...staticAttackClosureRefs(closureRecords, profile.gameReleaseId) })) {
+      fields.push({ fieldPath: `/payload/${name}`, value });
+      reviewTargets.push({ fieldPath: `/payload/${name}`, dimension: 'technical' });
+    }
+  }
+  const value = makeAttackActionResolution(resolvedProfile, weapon);
+  assertAttackActionResolution(resolvedProfile, weapon, value);
+  const resolvedPaths = ['/payload/actionResolution', ...fields.map(field => field.fieldPath)];
+  const missing = (profile.dataCoverage.missing ?? []).filter(item => !resolvedPaths.includes(item.field));
+  fields.push({ fieldPath: '/payload/actionResolution', value });
+  reviewTargets.push({ fieldPath: '/payload/actionResolution', dimension: 'technical' });
+  const sourceRefs = [...collectSourceLinks([profile.sourceRefs, value]).values()];
+  const dataCoverage = { ...profile.dataCoverage, status: missing.length ? 'partial' : 'complete', missing };
+  if (fields.every(field => canonical(profile.payload[field.fieldPath.slice('/payload/'.length)]) === canonical(field.value))
+    && canonical(profile.dataCoverage) === canonical(dataCoverage)
+    && canonical(profile.sourceRefs) === canonical(sourceRefs)
+    && reviewTargets.every(target => profile.reviewTargets.some(t => t.fieldPath === target.fieldPath && t.dimension === target.dimension))) return {};
+  return { patch: {
+    recordId: profile.recordId, gameReleaseId: profile.gameReleaseId,
+    fields, sourceRefs, dataCoverage, reviewTargets
+  } };
+}
+
+/** Use the same pinned parser and indirect-profile catalog as the full generic import. */
+export function createAttackSourceBindingContext({ authoring, sourceCodeRepo, commit = PINNED_COMMIT }) {
+  invariant(commit === PINNED_COMMIT, `Generic action import is pinned to ${PINNED_COMMIT}.`);
+  const reader = makeSourceReader(sourceCodeRepo, commit);
+  const sourceRefs = [];
+  const resolveSource = sourceResolver(authoring, reader, sourceRefs);
+  const templates = new Map(weaponTemplateInventory(reader.read(WEAPON_REGISTRY)).map(t => [t.templateKey, t]));
+  const { catalog: indirectProfileCatalog } = buildIndirectDamageProfileCatalog(reader, resolveSource);
+  const recordsByKey = new Map(authoring.records.map(record => [`${record.gameReleaseId}\0${record.recordId}`, record]));
+  return { sourceRefs, forWeapon(weapon) {
+    const template = templates.get(weapon.payload.templateKey);
+    invariant(template, `Pinned weapon template is missing: ${weapon.payload.templateKey}`);
+    template.source ??= reader.read(template.path);
+    return { template, resolveSource, indirectProfileCatalog, recordsByKey };
+  } };
+}
+
 function invariant(condition, message) {
   if (!condition) throw new Error(message);
 }
@@ -184,7 +285,7 @@ export function mergeGenericWeaponCandidate(authoringBundle, candidate) {
     invariant(!patchedKeys.has(key), `Duplicate weapon patch: ${key}`);
     patchedKeys.add(key);
     const record = merged.records.find((item) => item.gameReleaseId === patch.gameReleaseId && item.recordId === patch.recordId);
-    invariant(record?.kind === 'weapon', `Weapon patch target was not found: ${key}`);
+    invariant(['weapon', 'attack-profile'].includes(record?.kind), `Patch target was not found: ${key}`);
     for (const field of patch.fields ?? []) pointerSet(record, field.fieldPath, field.value);
     const sourceSeen = new Map((record.sourceRefs ?? []).map((item) => [`${item.gameReleaseId}\0${item.sourceId}`, item]));
     appendUnique(record.sourceRefs ??= [], sourceSeen, patch.sourceRefs, (item) => `${item.gameReleaseId}\0${item.sourceId}`, 'patch sourceRefs');
@@ -991,8 +1092,7 @@ function makeGenericResolution({ template, weapon, authoring, common, resolveSou
   const generatorBindings = generatorBindingsForTemplate(template, rows, fallbackActions, common, resolveSource);
   const generatedCounts = generatedClosureCounts(actionGenerators, generatorBindings);
   const recordByKey = new Map(authoring.records.map((record) => [`${record.gameReleaseId}\0${record.recordId}`, record]));
-  const profileBindingCount = weapon.payload.attackProfileRefs.reduce((sum, profileRef) =>
-    sum + (recordByKey.get(`${profileRef.gameReleaseId}\0${profileRef.recordId}`)?.payload?.sourceBindings?.length ?? 0), 0);
+  const profileBindingCount = actionProfileBindingCount(weapon.payload.attackProfileRefs.map(profileRef => recordByKey.get(`${profileRef.gameReleaseId}\0${profileRef.recordId}`)).filter(Boolean));
   return {
     actionContinuations,
     resolution: {
@@ -2139,6 +2239,7 @@ function makeWeaponCandidate({ authoring, templates, reader, uiMarks, registered
   };
   const patches = [];
   const records = [];
+  coverageGaps.unresolvedActionResolutions = [];
   for (const weapon of weapons) {
     const template = templateByKey.get(weapon.payload.templateKey);
     invariant(template, `Registered static template is missing for authoring weapon ${weapon.payload.templateKey}`);
@@ -2192,15 +2293,35 @@ function makeWeaponCandidate({ authoring, templates, reader, uiMarks, registered
       });
       records.push(...profiles.damageRecords, ...profiles.attackRecords);
       attackProfileRefs.push(...profiles.attackRefs);
-      resolution.staticClosure.profileBindingCount += profiles.attackRecords.reduce(
-        (sum, record) => sum + record.payload.sourceBindings.length,
-        0
-      );
       displayedAttacks = displayedAttacksForTemplate(template, {
         ...weapon,
         payload: { ...weapon.payload, attackProfileRefs }
       }, { ...authoring, records: [...authoring.records, ...records] }, resolveSource, evidenceId);
     }
+    const resolvedWeapon = { ...weapon, payload: { ...weapon.payload, actionProfileResolution: resolution, actionContinuations } };
+    const resolvedProfiles = [];
+    for (const profileRef of attackProfileRefs) {
+      const profile = records.find(r => r.recordId === profileRef.recordId && r.gameReleaseId === profileRef.gameReleaseId)
+        ?? recordById.get(`${profileRef.gameReleaseId}\0${profileRef.recordId}`);
+      invariant(profile, `Attack profile is missing: ${profileRef.recordId}`);
+      const { patch, unresolved } = makeAttackActionResolutionPatch(profile, resolvedWeapon, {
+        template, resolveSource, indirectProfileCatalog, recordsByKey: recordById
+      }, [...authoring.records, ...records]);
+      if (unresolved) { coverageGaps.unresolvedActionResolutions.push(unresolved); resolvedProfiles.push(profile); continue; }
+      if (!patch) { resolvedProfiles.push(profile); continue; }
+      if (records.includes(profile)) {
+        for (const field of patch.fields) pointerSet(profile, field.fieldPath, field.value);
+        profile.dataCoverage = patch.dataCoverage;
+        profile.reviewTargets.push(...patch.reviewTargets);
+        profile.sourceRefs = patch.sourceRefs;
+        resolvedProfiles.push(profile);
+      } else {
+        patches.push(patch);
+        const binding = patch.fields.find(field => field.fieldPath === '/payload/sourceBindings');
+        resolvedProfiles.push(binding ? { ...profile, payload: { ...profile.payload, sourceBindings: binding.value } } : profile);
+      }
+    }
+    resolution.staticClosure.profileBindingCount = actionProfileBindingCount(resolvedProfiles);
     const hasMissingBaseStats = (weapon.dataCoverage.missing ?? []).some((item) =>
       item.field === '/payload/all-base-stat-definitions-and-rating-mapping');
     const stats = hasMissingBaseStats ? generateBaseStatValues({

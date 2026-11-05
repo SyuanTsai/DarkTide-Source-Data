@@ -29,3 +29,20 @@ test('prepare writes only review files and leaves authoring untouched',async()=>
 
 test('compact digest changes when a single record value changes',async()=>{const data=await fixture();const first=await buildWeaponApprovalPackage({...data,validate:false});data.candidate.records[0].payload.templateKey+='-changed';const second=await buildWeaponApprovalPackage({...data,validate:false});assert.notEqual(first.packageDigest,second.packageDigest);});
 test('full output is optional and must be outside the repository',async()=>{const data=await fixture(),root=await mkdtemp(path.join(os.tmpdir(),'syp287-root-')),outside=await mkdtemp(path.join(os.tmpdir(),'syp287-full-'));try{await assert.rejects(prepareGenericWeaponApproval({root,inputData:data,fullOut:path.join(root,'full')}),/outside the repository/);const built=await prepareGenericWeaponApproval({root,inputData:data,fullOut:outside});const full=JSON.parse(await readFile(path.join(outside,'review-package.json'),'utf8'));assert.deepEqual(full,built.fullDocument);assert.ok(full.newRecords[0].payload);}finally{await rm(root,{recursive:true,force:true});await rm(outside,{recursive:true,force:true});}});
+
+// Exercise the action-resolution receipt path entirely in memory with synthetic approval.
+test('action-resolution approval checks pending graph and replaces reviewed receipts', async () => {
+ const { approveActionResolution } = await import('../scripts/content/imports/generic-action-resolution-approval.mjs');
+ const data = await fixture();
+ const built = await buildWeaponApprovalPackage({...data, validate:false});
+ const current = structuredClone(built.pending);
+ current.reviewReceipts = structuredClone(data.authoring.reviewReceipts);
+ for (const record of [...current.records, ...current.tombstones]) record.reviewState = 'approved';
+ current.records.reverse();
+ const result = approveActionResolution({current, base:data.authoring, built, approval:approval(built.packageDigest)});
+ assert.equal(validateSourceContract(result,{schema}).valid, true);
+ assert.ok(result.reviewReceipts.some(r => r.target.recordId === 'fixture:weapon:new'));
+ current.records[0].payload.fixtureTampering = true;
+ assert.throws(() => approveActionResolution({current, base:data.authoring, built, approval:approval(built.packageDigest)}), /differs/);
+ assert.throws(() => approveActionResolution({current:built.pending, base:{...data.authoring, reviewReceipts:[]}, built, approval:approval('0'.repeat(64))}), /packageDigest/);
+});

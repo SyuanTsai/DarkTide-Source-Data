@@ -204,8 +204,19 @@ test('InterT25_lasgun_action_display_and_related_record_goldens_match', { skip: 
   for (const profileRef of weapon.payload.attackProfileRefs) {
     const approved = approvedById.get(`${profileRef.gameReleaseId}\0${profileRef.recordId}`);
     const merged = mergedById.get(`${profileRef.gameReleaseId}\0${profileRef.recordId}`);
-    assert.deepEqual(merged.payload, approved.payload);
-    assert.deepEqual(merged.sourceRefs, approved.sourceRefs);
+    const profilePatch = result.candidate.patches.find((item) => item.recordId === approved.recordId);
+    const expectedPayload = structuredClone(approved.payload);
+    const allowed = new Set(['actionResolution', 'sourceBindings', 'continuations', 'armorClassRefs', 'modifierRuleRefs', 'targetProfileRefs']);
+    for (const field of profilePatch?.fields ?? []) {
+      const name = field.fieldPath.replace('/payload/', '');
+      assert.ok(allowed.has(name), `unexpected profile field: ${field.fieldPath}`);
+      expectedPayload[name] = field.value;
+    }
+    assert.deepEqual(merged.payload, expectedPayload);
+    assert.ok(merged.payload.actionResolution);
+    const expectedRefs = [...approved.sourceRefs];
+    for (const sourceRef of profilePatch?.sourceRefs ?? []) if (!expectedRefs.some((item) => item.sourceId === sourceRef.sourceId && item.gameReleaseId === sourceRef.gameReleaseId)) expectedRefs.push(sourceRef);
+    assert.deepEqual(merged.sourceRefs, expectedRefs);
     assert.ok(resolution.localActions.some((action) => action.action === approved.payload.action));
     for (const damageRef of approved.payload.damageProfileRefs) {
       assert.deepEqual(
@@ -231,7 +242,10 @@ test('InterT30_candidate_is_minimal_and_merged_bundle_passes_validator', { skip:
   const validation = await validateSourceContractFromDisk(merged);
   const weapons = merged.records.filter((record) => record.gameReleaseId === 'darktide:1.13.4' && record.kind === 'weapon');
 
-  assert.equal(result.candidate.patches.length, 82);
+  // The original 82 weapon patches are joined by one patch per existing attack profile requiring action resolution.
+  const profilePatches = result.candidate.patches.filter((patch) => patch.fields.some((field) => field.fieldPath === '/payload/actionResolution'));
+  assert.equal(result.candidate.patches.length, 82 + profilePatches.length);
+  assert.ok(profilePatches.length > 0);
   assert.ok(result.candidate.patches.every((patch) => !Object.hasOwn(patch, 'payload')));
   assert.ok(result.candidate.records.every((record) => record.reviewState === 'pending'));
   assert.ok(result.candidate.records.every((record) => !existingIds.has(`${record.gameReleaseId}\0${record.recordId}`)));
@@ -333,7 +347,7 @@ test('InterT40_candidate_adds_only_new_source_traced_profile_and_stat_records', 
     }
   }
 
-  for (const patch of result.candidate.patches) {
+  for (const patch of result.candidate.patches.filter((item) => item.fields.some((field) => field.fieldPath === '/payload/actionProfileResolution'))) {
     const resolution = patch.fields.find((field) => field.fieldPath === '/payload/actionProfileResolution').value;
     for (const generator of resolution.actionGenerators) {
       assert.equal(generator.effectiveDefinitionIndex, generator.definitions.at(-1).definitionIndex);
