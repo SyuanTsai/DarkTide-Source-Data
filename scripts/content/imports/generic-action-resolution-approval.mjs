@@ -150,6 +150,15 @@ export async function prepareActionResolution({ root = ROOT, writeAuthoring = fa
 
 // Compare the entire pending graph while allowing the expected derived review states.
 export function approveActionResolution({ current, base, built, approval }) {
+  const receiptsEqual = (left, right) => {
+    if (left.length !== right.length) return false;
+    const sorted = receipts => receipts
+      .map(receipt => canonicalJsonBytes(receipt))
+      .sort((a, b) => Buffer.compare(a, b));
+    const sortedLeft = sorted(left);
+    const sortedRight = sorted(right);
+    return sortedLeft.every((receipt, index) => receipt.equals(sortedRight[index]));
+  };
   const normalize = bundle => {
     const copy = structuredClone(bundle);
     for (const item of [...copy.records, ...copy.tombstones]) delete item.reviewState;
@@ -159,7 +168,7 @@ export function approveActionResolution({ current, base, built, approval }) {
     return canonicalJsonBytes(copy);
   };
   if (!normalize(current).equals(normalize(built.pending)) ||
-      !canonicalJsonBytes(current.reviewReceipts).equals(canonicalJsonBytes(base.reviewReceipts))) {
+      !receiptsEqual(current.reviewReceipts, base.reviewReceipts)) {
     throw new Error('Current authoring differs from the reviewed pending graph.');
   }
   // Dependency-stale records are also covered by the review package.

@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { makeAttackActionResolution } from '../scripts/content/contract-w07-weapons.mjs';
 import { assertAttackActionResolution, makeAttackActionResolutionPatch, mergeGenericWeaponCandidate } from '../scripts/content/imports/generic-weapon-templates.mjs';
-import { buildActionResolutionCandidate, inspectActionResolutions } from '../scripts/content/imports/generic-action-resolution-approval.mjs';
+import { buildActionResolutionCandidate, inspectActionResolutions, approveActionResolution } from '../scripts/content/imports/generic-action-resolution-approval.mjs';
 
 function fixture(origin = 'weapon-template') {
   const sourceRef = { sourceId: 'fixture:source', gameReleaseId: 'fixture:release' };
@@ -130,4 +130,23 @@ test('apply CLI accepts the approval option and rejects a missing file before wr
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /ENOENT/);
   assert.doesNotMatch(result.stderr, /Usage:/);
+});
+
+test('action-resolution approval compares receipts without depending on order', async () => {
+  const { profile, weapon } = fixture();
+  const authoring = { records: [profile, weapon], reviewReceipts: [
+    { target: { recordId: 'fixture:receipt-a', gameReleaseId: 'fixture:release', fieldPath: '/payload/a', dimension: 'technical' }, decision: 'approved' },
+    { target: { recordId: 'fixture:receipt-b', gameReleaseId: 'fixture:release', fieldPath: '/payload/b', dimension: 'technical' }, decision: 'approved' }
+  ], gameReleases: [], sourceRefs: [], sourceSnapshots: [], tombstones: [] };
+  const { candidate } = buildActionResolutionCandidate(authoring);
+  const pending = mergeGenericWeaponCandidate(authoring, candidate);
+  const current = structuredClone(pending);
+  current.reviewReceipts = structuredClone(authoring.reviewReceipts);
+  current.reviewReceipts.reverse();
+  const built = { pending, document: { newRecords: [], patchedRecords: [], restaledRecords: [], reviewTargets: [] }, packageDigest: 'fixture-package-digest' };
+  const approval = { decision: 'approved', reviewer: { kind: 'human', id: 'fixture-human-reviewer' }, reviewedAt: '2026-11-05T00:00:00Z', reviewedPackage: { packageDigest: built.packageDigest } };
+
+  assert.doesNotThrow(() => approveActionResolution({ current, base: authoring, built, approval }));
+  current.reviewReceipts[0].decision = 'rejected';
+  assert.throws(() => approveActionResolution({ current, base: authoring, built, approval }), /Current authoring differs from the reviewed pending graph\./);
 });
