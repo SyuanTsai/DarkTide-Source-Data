@@ -2412,7 +2412,7 @@ function summarizeValueExtraction(authoringWeapons, candidate) {
   };
 }
 
-export async function buildGenericWeaponTemplates({ sourceCodeRepo, commit = PINNED_COMMIT, sourceRoot = ROOT } = {}) {
+export async function buildGenericWeaponTemplates({ sourceCodeRepo, commit = PINNED_COMMIT, sourceRoot = ROOT, baseAuthoring } = {}) {
   invariant(sourceCodeRepo, 'sourceCodeRepo is required. Set --source-code-repo or DARKTIDE_SOURCE_CODE_REPO.');
   invariant(commit === PINNED_COMMIT, `Generic weapon-template import is pinned to ${PINNED_COMMIT}.`);
   const reader = makeSourceReader(sourceCodeRepo, commit);
@@ -2428,7 +2428,7 @@ export async function buildGenericWeaponTemplates({ sourceCodeRepo, commit = PIN
   })).sort((left, right) => lexical(left.path, right.path));
   const inventory = scanTemplateInventory(reader, templates);
   const uiMarks = deriveUiWeaponMarks(reader.read(UI_WEAPON_PATTERNS));
-  const authoring = (await readAuthoringBundle(sourceRoot)).bundle;
+  const authoring = baseAuthoring ?? (await readAuthoringBundle(sourceRoot)).bundle;
   const authoringWeapons = authoring.records.filter((record) => record.gameReleaseId === GAME_RELEASE_ID && record.kind === 'weapon');
   const { candidate, coverageGaps } = makeWeaponCandidate({
     authoring,

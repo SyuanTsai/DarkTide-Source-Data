@@ -132,3 +132,35 @@ test('commit reader uses the same pin for the index and every part', async () =>
   assert.ok(reads.every(([pin]) => pin === commit));
   assert.equal(hash(result.bytes), hash(expected.bytes));
 });
+
+const syntheticBundle = (records, reviewReceipts = []) => ({
+  schemaVersion: 'test', contractKind: 'test', fixtureOnly: true, publicationEligible: false,
+  gameReleases: [], sourceRefs: [], records, tombstones: [], reviewReceipts, sourceSnapshots: []
+});
+const syntheticRecord = (recordId, kind, payload) => ({ recordId, gameReleaseId: 'release', kind, payload });
+
+test('blessing weapon references do not assign weapons to shared', () => {
+  const weapon = syntheticRecord('weapon', 'weapon', { familyId: 'family', child: { recordId: 'child', gameReleaseId: 'release' } });
+  const blessing = syntheticRecord('darktide:blessing:test', 'blessing', {});
+  const variant = syntheticRecord('variant', 'blessing-variant', { blessingRef: { recordId: blessing.recordId, gameReleaseId: 'release' }, weaponRefs: [{ recordId: weapon.recordId, gameReleaseId: 'release' }] });
+  const child = syntheticRecord('child', 'term', {});
+  const output = splitAuthoringBundle(syntheticBundle([weapon, blessing, variant, child]));
+  const part = (name) => JSON.parse(output.get(`content/authoring/v2/w07/${name}.json`));
+  assert.deepEqual(part('shared').records, []);
+  assert.deepEqual(part('weapons/family').records.map((r) => r.recordId), ['weapon', 'child']);
+  assert.deepEqual(part('blessings/test').records.map((r) => r.recordId), [blessing.recordId, 'variant']);
+});
+
+test('shared overflow uses ordered record-only parts and round trips', async () => {
+  const records = Array.from({ length: 5 }, (_, i) => syntheticRecord(`shared-${i}`, 'term', { padding: 'x'.repeat(2 * 1024 * 1024) }));
+  const receipts = records.map((record) => ({ target: { recordId: record.recordId, gameReleaseId: record.gameReleaseId } }));
+  const bundle = syntheticBundle(records, receipts);
+  const output = splitAuthoringBundle(bundle);
+  const index = JSON.parse(output.get(W07_INDEX));
+  assert.deepEqual(index.parts.map((part) => part.path), ['shared.json', 'weapons/_shared.1.json']);
+  for (const part of index.parts) assert.ok(part.sizeBytes <= AUTHORING_PART_TARGET_BYTES);
+  const overflow = JSON.parse(output.get('content/authoring/v2/w07/weapons/_shared.1.json'));
+  assert.deepEqual(Object.keys(overflow), ['records', 'reviewReceipts']);
+  assert.deepEqual((await assembleAuthoringBundle((name) => output.get(name))).bundle, bundle);
+  assert.throws(() => splitAuthoringBundle(syntheticBundle([syntheticRecord('w', 'weapon', { familyId: '_shared' })])), /familyId/u);
+});

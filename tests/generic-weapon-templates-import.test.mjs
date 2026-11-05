@@ -6,6 +6,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { validateSourceContractFromDisk } from '../scripts/content/contract-validator.mjs';
+import { readAuthoringBundle, readAuthoringBundleAtCommit } from '../scripts/content/lib/authoring-bundle.mjs';
 import {
   PINNED_COMMIT,
   buildGenericWeaponTemplates,
@@ -30,7 +31,16 @@ const integrationSkip = probe.status === 0
   : `Set DARKTIDE_SOURCE_CODE_REPO to a clone containing ${PINNED_COMMIT}; ${probe.stderr.trim() || 'source clone unavailable'}`;
 
 let builtPromise;
-const build = () => (builtPromise ??= buildGenericWeaponTemplates({ sourceCodeRepo, commit: PINNED_COMMIT }));
+const baseCommit = '332aab5388050960f0d7f279f24b061282a6d038';
+const build = () => (builtPromise ??= (async () => {
+  const { bundle: baseAuthoring } = await readAuthoringBundleAtCommit((commit, name) => {
+    const result = spawnSync('git', ['show', `${commit}:${name}`], { maxBuffer: 32 * 1024 * 1024 });
+    if (result.error) throw result.error;
+    assert.equal(result.status, 0, result.stderr.toString('utf8'));
+    return result.stdout;
+  }, baseCommit);
+  return buildGenericWeaponTemplates({ sourceCodeRepo, commit: PINNED_COMMIT, baseAuthoring });
+})());
 
 async function outputFiles(root, current = root) {
   const entries = await readdir(current, { withFileTypes: true });
@@ -232,6 +242,17 @@ test('InterT30_candidate_is_minimal_and_merged_bundle_passes_validator', { skip:
       && missing.reasonCode === 'NOT_IMPORTED')));
   assert.equal(validation.valid, true, JSON.stringify(validation.issues, null, 2));
   assert.deepEqual(validation.issues, []);
+});
+
+// Scenario: The candidate has been folded into the current authoring bundle.
+// Purpose: Verify every candidate record and patch has an approved current counterpart.
+test('InterT32_candidate_records_and_patches_are_approved_in_current_authoring', { skip: integrationSkip }, async () => {
+  const { candidate } = await build();
+  const { bundle } = await readAuthoringBundle(process.cwd());
+  const current = new Map(bundle.records.map((record) => [`${record.gameReleaseId}\0${record.recordId}`, record]));
+  for (const record of [...candidate.records, ...candidate.patches]) {
+    assert.equal(current.get(`${record.gameReleaseId}\0${record.recordId}`)?.reviewState, 'approved', record.recordId);
+  }
 });
 
 // Scenario: A pinned UI player mark has a registered template but no approved 1.13.4 weapon record.

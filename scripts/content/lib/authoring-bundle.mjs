@@ -1,4 +1,4 @@
-﻿import { createHash } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createRecordDependencyWalker } from './authoring-walk.mjs';
@@ -22,7 +22,7 @@ export function splitAuthoringBundle(bundle) {
   for (const record of bundle.records) {
     if (record.kind === 'weapon') {
       const family = record.payload.familyId;
-      if (typeof family !== 'string' || !/^[A-Za-z0-9._-]+$/u.test(family) || family === '.' || family === '..') throw new Error('Invalid weapon familyId');
+      if (typeof family !== 'string' || !/^[A-Za-z0-9._-]+$/u.test(family) || family.startsWith('_') || family === '.' || family === '..') throw new Error('Invalid weapon familyId');
       addRoot(`weapons/${family}`, record);
     } else if (record.kind === 'blessing') {
       if (!record.recordId.startsWith('darktide:blessing:')) throw new Error('Invalid blessing recordId');
@@ -40,10 +40,11 @@ export function splitAuthoringBundle(bundle) {
     if (roots.has(`blessings/${slug}`)) addRoot(`blessings/${slug}`, record);
   }
   const walk = createRecordDependencyWalker(bundle);
+  const walkBlessing = createRecordDependencyWalker(bundle, { blessingOwnership: true });
   const ownership = new Map();
   for (const [owner, records] of roots) {
     const visited = new Set();
-    for (const record of records) for (const dependency of walk(record)) visited.add(key(dependency));
+    for (const record of records) for (const dependency of (owner.startsWith('blessings/') ? walkBlessing(record) : walk(record))) visited.add(key(dependency));
     for (const id of visited) {
       if (!ownership.has(id)) ownership.set(id, new Set());
       ownership.get(id).add(owner);
@@ -70,7 +71,38 @@ export function splitAuthoringBundle(bundle) {
     entries.push({ path: name, sizeBytes: bytes.length, sha256: sha256(bytes) });
     output.set(`${W07_DIRECTORY}/${name}`, bytes);
   };
-  append('shared.json', shared);
+  if (jsonBytes(shared).length <= AUTHORING_PART_TARGET_BYTES) append('shared.json', shared);
+  else {
+    const receipts = new Map();
+    for (const receipt of shared.reviewReceipts) {
+      const id = key(receipt.target);
+      if (!receipts.has(id)) receipts.set(id, []);
+      receipts.get(id).push(receipt);
+    }
+    const recordKeys = new Set(shared.records.map(key));
+    const unmatched = shared.reviewReceipts.filter((receipt) => !recordKeys.has(key(receipt.target)));
+    const makePart = (start, end, includeMetadata) => {
+      const records = shared.records.slice(start, end);
+      const reviewReceipts = records.flatMap((record) => receipts.get(key(record)) ?? []);
+      return includeMetadata
+        ? { ...shared, records, reviewReceipts: [...unmatched, ...reviewReceipts] }
+        : { records, reviewReceipts };
+    };
+    let start = 0, number = 0;
+    do {
+      const includeMetadata = number === 0;
+      let low = start, high = shared.records.length, best = start - 1;
+      while (low <= high) {
+        const middle = Math.floor((low + high) / 2);
+        if (jsonBytes(makePart(start, middle, includeMetadata)).length <= AUTHORING_PART_TARGET_BYTES) { best = middle; low = middle + 1; }
+        else high = middle - 1;
+      }
+      if (best < start || (!includeMetadata && best === start)) throw new Error(`Shared metadata or record exceeds 8 MiB authoring part target: ${shared.records[start]?.recordId ?? 'metadata'}`);
+      append(includeMetadata ? 'shared.json' : `weapons/_shared.${number}.json`, makePart(start, best, includeMetadata));
+      start = best;
+      number++;
+    } while (start < shared.records.length);
+  }
   for (const owner of ownerNames.filter((name) => name.startsWith('weapons/')).concat(ownerNames.filter((name) => name.startsWith('blessings/')))) {
     const part = groups.get(owner);
     if (jsonBytes(part).length <= AUTHORING_PART_TARGET_BYTES) { append(`${owner}.json`, part); continue; }
