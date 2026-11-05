@@ -1897,7 +1897,7 @@ function makeWeaponActionProfileResolution(staticFacts, markFacts, weapon, attac
       generatedContinuationEdgeCount += definition.generatedActions.reduce((total, action) => total + action.continuationEdges.length, 0);
     }
   }
-  const profileBindingCount = attackResult.records.reduce((total, record) => total + record.payload.sourceBindings.length, 0);
+  const profileBindingCount = actionProfileBindingCount(attackResult.records);
   const resolution = {
     inputSetup: {
       setupKey: 'melee_action_input_setup_mid',
@@ -1920,7 +1920,17 @@ function makeWeaponActionProfileResolution(staticFacts, markFacts, weapon, attac
   };
   return resolution;
 }
-function makeAttackActionResolution(attack, weapon, state) {
+export function staticAttackClosureRefs(records, gameReleaseId) {
+  const targets = records.filter(r => r.gameReleaseId === gameReleaseId && r.kind === 'target-profile' && r.payload.sourceStatic?.breedType === 'minion');
+  const refOf = r => ({ recordId: r.recordId, gameReleaseId: r.gameReleaseId });
+  const armor = targets.flatMap(r => [r.payload.sourceStatic.baseArmorClassRef, ...(r.payload.sourceStatic.toughnessArmorClassRef ? [r.payload.sourceStatic.toughnessArmorClassRef] : []), ...r.payload.sourceStatic.armorOverrides.map(x => x.armorClassRef)]);
+  return { targetProfileRefs: targets.map(refOf), armorClassRefs: [...new Map(armor.map(r => [r.recordId, r])).values()], modifierRuleRefs: records.filter(r => r.gameReleaseId === gameReleaseId && r.kind === 'modifier-rule' && r.payload.sourceBranchModel).map(refOf) };
+}
+export function actionProfileBindingCount(profiles) {
+  return profiles.reduce((total, profile) => total + (profile.payload.sourceBindings?.length ?? 0), 0);
+}
+export function makeAttackActionResolution(attack, weapon, state) {
+  invariant(attack.payload.sourceBindings?.length > 0, 'Attack action resolution requires nonempty source bindings: ' + attack.recordId);
   const actionName = attack.payload.action;
   const actionRow = weapon.payload.actionProfileResolution.localActions.find((row) => row.action === actionName)
     ?? weapon.payload.actionProfileResolution.fallbackActions.find((row) => row.action === actionName);
@@ -1930,7 +1940,7 @@ function makeAttackActionResolution(attack, weapon, state) {
   const inputBindings = [];
   if (startInput) inputBindings.push({ inputKey: startInput.inputKey, role: 'start-input', sourceLocator: startInput.sourceLocator });
   const seenContinuationInputs = new Set();
-  for (const edge of attack.payload.continuations ?? []) {
+  for (const edge of weapon.payload.actionContinuations.filter((edge) => edge.fromAction === actionName)) {
     if (seenContinuationInputs.has(edge.inputKey)) continue;
     seenContinuationInputs.add(edge.inputKey);
     inputBindings.push({ inputKey: edge.inputKey, role: 'continuation', sourceLocator: edge.sourceLocator });
