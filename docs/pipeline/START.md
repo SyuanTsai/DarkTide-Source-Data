@@ -1,4 +1,4 @@
-﻿# Darktide 內容更新：固定啟動提示詞
+# Darktide 內容更新：固定啟動提示詞
 
 > 使用方式：在 DarkTide-Source-Data repo 根目錄開一個 AI 對話（Claude Code 或 Codex 皆可），把本檔「提示詞」一節整段貼上。不需要其他說明。
 
