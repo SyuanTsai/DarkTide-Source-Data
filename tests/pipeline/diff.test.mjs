@@ -113,3 +113,32 @@ test('--mark-described 空白或缺少 ID 時拒絕且不改動 state/cloud', as
     assert.deepEqual(await snapshot(a.cloud), cloudBefore);
   }
 });
+
+// Scenario: AI errata anchors are checked against extracted English and Chinese text. Purpose: reject invalid locations without changing state.
+test('InterT40_mark described validates errata anchors', async (t) => {
+  const a = await setup(t), extractPath = join(a.work, 'extract/blessings.json'), extract = await read(extractPath);
+  const item = extract.items.find((x) => x.id === 'darktide:blessing:fixture_d');
+  item.official = { en: 'Gain 10% damage. Gain 10% damage.', zh: '提升傷害。' };
+  await writeFile(extractPath, stringifyCanonical(extract)); a.run();
+  const id = item.id, input = await read(join(a.base, 'ai/input', itemFileName(id))), dir = join(a.base, 'ai/output');
+  await mkdir(dir, { recursive: true }); const outputPath = join(dir, itemFileName(id));
+  const entry = { locale: 'en', official: '10%', corrected: '20%', valueRef: '/params/test/value', anchor: { field: 'official', locale: 'en', text: 'Gain 10% damage', occurrence: 1 } };
+  const output = { schemaVersion: '1.0.0', id, inputHash: input.inputHash, explanation: { effect: '效果', conditions: '', calculation: '', notes: '', extra: '' }, errata: [entry] };
+  const before = await readFile(a.state);
+  for (const [bad, expected] of [
+    [{ ...entry, anchor: undefined }, /anchor/],
+    [{ ...entry, anchor: { ...entry.anchor, text: 'missing' } }, /Anchor text not found at occurrence/],
+    [{ ...entry, anchor: { ...entry.anchor, occurrence: 3 } }, /Anchor text not found at occurrence/],
+    [{ ...entry, anchor: { ...entry.anchor, locale: 'zh' } }, /Anchor locale must match errata locale/],
+  ]) {
+    await writeFile(outputPath, JSON.stringify({ ...output, errata: [bad] }));
+    const result = a.fail(expected, '--mark-described', id);
+    assert.match(result.stderr, /ai\/output\/.*驗證失敗/); assert.ok(!result.stderr.includes(a.dir)); assert.deepEqual(await readFile(a.state), before);
+  }
+  for (const good of [entry, { ...entry, anchor: { ...entry.anchor, occurrence: 2 } }, { ...entry, locale: 'zh', anchor: { field: 'official', locale: 'zh', text: '提升傷害', occurrence: 1 } }]) {
+    await writeFile(outputPath, JSON.stringify({ ...output, errata: [good] }));
+    const result = spawnSync(process.execPath, ['pipeline/diff.mjs', ...a.args, '--mark-described', id], { cwd: repo, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr); assert.equal((await read(a.state)).run.items[id].stage, 'described');
+    await writeFile(a.state, before);
+  }
+});
