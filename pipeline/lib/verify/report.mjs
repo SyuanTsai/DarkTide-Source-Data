@@ -4,7 +4,7 @@ export function makeReport(version) {
   return { schemaVersion: '1.0.0', scriptVersion: SCRIPT_VERSION, gameVersion: version.sourceGameVersion,
     sourceCommit: version.sourceCommit, textBatch: version.textBatch, result: 'pass', haltReason: null,
     gates: { input: { status: 'pass', errors: [] }, values: { failedItems: 0 }, text: { failedItems: 0 },
-      output: { status: 'skipped', errors: [], knownExceptions: [], build: null },
+      output: { status: 'skipped', errors: [], build: null },
       deploy: { status: 'not-run', note: '部署由 Web CI 執行，結果於回報步驟確認' } },
     categories: {}, items: [], translationConflicts: [], issues: [],
     notAutomated: ['說明是否加入資料沒有的條件，須人工確認', '條件與腳本資料是否一致，無法由數字判斷的部分須人工確認'] };
@@ -26,8 +26,8 @@ export function categoryReport(entry, reason) {
   const undescribed = [...new Set((Array.isArray(entry.extract?.items) ? entry.extract.items : []).map((i) => i?.id))]
     .filter((id) => typeof id === 'string' && !currentIds.has(id)).sort(compare);
   if (undescribed.length) anomalies.push({ code: 'NOT_DESCRIBED', ids: undescribed, message: 'extract 有但候選沒有，尚未寫說明' });
-  if (reason && !entry.previous) anomalies.push({ code: 'missing-no-previous', message: '沒有上一版可保留，此類別不輸出檔案' });
-  return { status: reason ? 'kept-previous' : 'ok', reason, counts: { candidate: candidate.length, previous: previous.length,
+  if (reason && !entry.previous) anomalies.push({ code: 'missing-no-previous', message: '沒有上一版可保留，此類別輸出空檔' });
+  return { status: reason ? 'kept-previous' : 'ok', reason, candidateSha256: entry.candidateSha256, counts: { candidate: candidate.length, previous: previous.length,
     merged: 0, added: added.length, removed: removed.length, unknownParams, previousUnknownParams }, anomalies };
 }
 export function finishReport(report) {

@@ -74,9 +74,17 @@ export function checkDataFile(category, text) {
       prev = x.id;
       if (!x.id.startsWith(`darktide:${prefix[category]}:`)) add(`${p}/id`, 'ID category mismatch');
     }
-    if (x.source?.commit !== value.sourceCommit) add(`${p}/source/commit`, 'Commit mismatch');
-    if (x.source?.text && x.source.text.batch !== value.textBatch)
-      add(`${p}/source/text/batch`, 'Batch mismatch');
+    const retained = x.retainedFrom;
+    if (x.source?.commit !== (retained ? retained.sourceCommit : value.sourceCommit))
+      add(`${p}/source/commit`, retained ? 'Retained commit mismatch' : 'Commit mismatch');
+    if (x.source?.text && x.source.text.batch !== (retained ? retained.textBatch : value.textBatch))
+      add(`${p}/source/text/batch`, retained ? 'Retained batch mismatch' : 'Batch mismatch');
+    if (retained) {
+      try {
+        if (compareVersions(retained.gameVersion, value.gameVersion) >= 0)
+          add(`${p}/retainedFrom/gameVersion`, 'Retained version must be older');
+      } catch { /* Schema validation reports malformed versions. */ }
+    }
     if (category === 'blessings' && Array.isArray(x.values?.tiers)) {
       let last = 0;
       x.values.tiers.forEach((t, j) => {
@@ -86,6 +94,16 @@ export function checkDataFile(category, text) {
     }
   });
   return result(errors);
+}
+
+export function retainItem(previousItem, previousFileHeader) {
+  const item = structuredClone(previousItem);
+  item.retainedFrom ??= {
+    gameVersion: previousFileHeader.gameVersion,
+    sourceCommit: previousFileHeader.sourceCommit,
+    textBatch: previousFileHeader.textBatch,
+  };
+  return item;
 }
 
 export function compareVersions(a, b) {

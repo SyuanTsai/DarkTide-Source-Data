@@ -4,11 +4,12 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { stringifyCanonical } from './lib/canonical-json.mjs';
 import { checkCurrent, checkDataFile, CATEGORIES } from './lib/data-files.mjs';
-import { readState, writeState, registerItem, advanceItem, pendingItems, STAGES } from './lib/state.mjs';
+import { readState, writeState, registerItem, unregisterItem, advanceItem, reopenItem, pendingItems, STAGES } from './lib/state.mjs';
 import { loadSchemas } from './lib/json-schema.mjs';
 import { diffCategory, inputHashFor } from './lib/diff-core.mjs';
 import { resolveCloudRoot, cloudLayout, itemFileName, copyIfChanged } from './lib/cloud-dir.mjs';
 import { resolveGlossary, matchGlossary } from './lib/glossary.mjs';
+import { dataFile } from './lib/candidate.mjs';
 
 const repo = fileURLToPath(new URL('../', import.meta.url));
 const schemas = loadSchemas(join(repo, 'pipeline/schema'));
@@ -44,7 +45,6 @@ function parse(text, file) { try { return JSON.parse(text); } catch { throw new 
 function checked(result, file) {
   if (!result.valid) throw new Error(`${file} 驗證失敗：\n${result.errors.slice(0, 20).map((e) => `${e.path} ${e.message}`).join('\n')}`);
 }
-function dataFile(category, run, items) { return { schemaVersion: '1.0.0', category, ...Object.fromEntries(fields.map((k) => [k, run[k]])), items }; }
 async function writeChanged(file, value) {
   const text = stringifyCanonical(value);
   if (await optional(file) === text) return;
@@ -70,7 +70,7 @@ async function main() {
   }
   if (Object.hasOwn(options, '--mark-described')) {
     const id = options['--mark-described'], entry = run.items[id];
-    if (!entry || entry.change === 'removed' || entry.outcome !== null) throw new Error(`無法標記項目：${id}`);
+    if (!entry || entry.change === 'removed' || (entry.outcome !== null && !(entry.outcome === 'kept-previous' && STAGES.indexOf(entry.stage) < STAGES.indexOf('described')))) throw new Error(`無法標記項目：${id}`);
     if (STAGES.indexOf(entry.stage) >= STAGES.indexOf('described')) { console.log(`已標記：${id}`); return; }
     const { input: inputPath, output: outputPath } = paths(id);
     const inputText = await optional(inputPath), outputText = await optional(outputPath);
@@ -81,6 +81,7 @@ async function main() {
     if (input.id !== id || input.item.id !== id || output.id !== id || input.category !== entry.category || input.change !== entry.change) throw new Error('項目 id、category 或 change 不符');
     if (input.inputHash !== entry.inputHash || output.inputHash !== entry.inputHash || inputHashFor(entry.category, entry.change, input.item) !== entry.inputHash) throw new Error('inputHash 不符；說明可能已過期，請依新輸入重寫');
     checked(checkDataFile(entry.category, stringifyCanonical(dataFile(entry.category, run, [{ ...input.item, explanation: output.explanation, errata: output.errata }]))), logical(outputPath));
+    if (entry.outcome === 'kept-previous') state = reopenItem(state, id);
     state = advanceItem(state, id, 'described'); await writeState(stateFile, state);
     console.log(`已標記：${id}`); return;
   }
@@ -123,7 +124,12 @@ async function main() {
   }
   checked(schemas.validate('diff-report.schema.json', report), 'diff 報告');
   const active = new Set(registrations.map((x) => x.id));
-  for (const id of Object.keys(run.items).sort()) if (!active.has(id)) console.log(`警告：已登記項目不在本次差異中：${id}`);
+  for (const [id, item] of Object.entries(run.items))
+    if (item.change === 'removed' && report.categories[item.category]?.status === 'structure-mismatch') active.add(id);
+  for (const id of Object.keys(run.items).sort()) if (!active.has(id)) {
+    if (run.items[id].stage === 'written') console.log(`警告：已登記項目不在本次差異中：${id}`);
+    else { state = unregisterItem(state, id); console.log(`已移除過期登記：${id}`); }
+  }
   for (const { id, ...info } of registrations.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0)) {
     state = registerItem(state, id, info);
     if (info.change === 'removed' && state.run.items[id].stage === 'extracted') state = advanceItem(state, id, 'described');

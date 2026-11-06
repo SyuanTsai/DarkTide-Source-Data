@@ -70,6 +70,13 @@ export function registerItem(s, id, info) {
   return n;
 }
 
+export function unregisterItem(s, id) {
+  const n = copy(s), items = active(n).items;
+  if (items[id]?.stage === 'written') throw new Error('Cannot unregister written item');
+  delete items[id];
+  return n;
+}
+
 export function advanceItem(s, id, stage) {
   const n = copy(s),
     item = active(n).items[id];
@@ -94,6 +101,15 @@ export function keepPrevious(s, id, reason) {
   if (!item) throw new Error(`Unknown item ${id}`);
   item.outcome = 'kept-previous';
   item.reason = reason;
+  return n;
+}
+
+export function reopenItem(s, id) {
+  const n = copy(s), item = active(n).items[id];
+  if (!item) throw new Error(`Unknown item ${id}`);
+  if (item.stage === 'written') throw new Error('Cannot reopen written item');
+  item.outcome = null;
+  item.reason = null;
   return n;
 }
 
