@@ -1,6 +1,7 @@
 import './extract-skills.test.mjs';
 import './json-schema.test.mjs';
 import './data-format.test.mjs';
+import './diff.test.mjs';
 import './state.test.mjs';
 import './start-doc.test.mjs';
 import './inputs.test.mjs';

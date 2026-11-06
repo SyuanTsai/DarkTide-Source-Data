@@ -253,3 +253,31 @@ test('InterT30_inconsistent source commit identifies the file', (t) => {
   assert.equal(result.status, 1);
   assert.ok(result.stderr.split(/\r?\n/).some((line) => line === 'data/0.0.0/weapons.json: /sourceCommit Files disagree'));
 });
+
+// Scenario: validate optional errata anchors against schema and source text. Purpose: preserve old records and enforce precise locations.
+test('UnitT50_errata anchors validate structure and overlapping locations', () => {
+  const x = file('blessings'), entry = x.items[0].errata[0];
+  x.items[0].official.en = 'aaa';
+  const check = () => checkDataFile('blessings', stringifyCanonical(x));
+  assert.equal(check().valid, true);
+  const anchor = { field: 'official', locale: 'en', text: 'aa', occurrence: 1 };
+  entry.anchor = anchor;
+  assert.equal(check().valid, true);
+  entry.anchor = { ...anchor, occurrence: 2 }; assert.equal(check().valid, true);
+  const cases = [
+    [{ field: 'official', locale: 'en', text: 'aa' }, null],
+    [{ ...anchor, extra: true }, null],
+    ...[0, -1, 1.5].map((occurrence) => [{ ...anchor, occurrence }, null]),
+    [{ ...anchor, text: '' }, null], [{ ...anchor, field: 'other' }, null],
+    [{ ...anchor, locale: 'zh' }, 'Anchor locale must match errata locale'],
+    [{ ...anchor, text: 'missing' }, 'Anchor text not found at occurrence'],
+    [{ ...anchor, text: 'AA' }, 'Anchor text not found at occurrence'],
+    [{ ...anchor, occurrence: 3 }, 'Anchor text not found at occurrence'],
+  ];
+  for (const [candidate, message] of cases) {
+    entry.anchor = candidate; const result = check(); assert.equal(result.valid, false, JSON.stringify(candidate));
+    if (message) assert.ok(result.errors.some((e) => e.path === '/items/0/errata/0/anchor' && e.message === message));
+  }
+  entry.anchor = { ...anchor, field: 'name', locale: 'zh' }; entry.locale = 'zh'; x.items[0].name.zh = null;
+  assert.ok(check().errors.some((e) => e.path === '/items/0/errata/0/anchor' && e.message === 'Anchor target text does not exist'));
+});
