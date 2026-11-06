@@ -26,3 +26,4 @@ import './review4.test.mjs';
 import './review5.test.mjs';
 import './review6.test.mjs';
 import './review7.test.mjs';
+import './review8.test.mjs';

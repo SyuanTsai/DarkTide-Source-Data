@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 import { getTableField as field, getTableArray as array, getTableEntries as entries, tokenizeLua } from './lib/lua-static-reader.mjs';
 import { bespokeTraitDefinitions, playerWeaponTemplates, bespokeTraitsForTemplate } from './lib/weapon-inventory.mjs';
 import { runExtractCli, itemId, nameFromText } from './lib/extract-output.mjs';
@@ -73,4 +74,4 @@ export function build({reader,text,envelope}) {
   }
   return {items,problems,excluded};
 }
-await runExtractCli({category:'blessings',scriptVersion:SCRIPT,build});
+if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) await runExtractCli({category:'blessings',scriptVersion:SCRIPT,build});

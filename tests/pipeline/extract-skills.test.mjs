@@ -18,24 +18,27 @@ function setup(t) {
   return {...f,run};
 }
 
-test('skills static values, trees, DSL, text and provenance',t=>{
+// Scenario: the fixture DSL helper has an unaudited return followed by member calls.
+// Purpose: preserve direct values and downgrade shared helper dependencies under spec12.
+test('InterT10_skills static values trees DSL text provenance and denied aliases',t=>{
   const f=setup(t),data=f.run();assert.equal(data.status,'ok');
   const get=k=>data.items.find(i=>i.key===k);assert.equal(data.items.length,7);
   const basic=get('basic');assert.equal(basic.values.icon,'first');assert.equal(basic.name.en,'Veteran');assert.equal(basic.name.origin,'official');
   assert.deepEqual(basic.official,{en:'A soldier\nAura',zh:'士兵\n光環'});
   assert.equal(basic.source.text.keys.description,'loc_class_veteran_description');
   const p=basic.values.params;
-  assert.deepEqual(p.direct,{unit:'percent',value:15});assert.equal(p.path.value,0.3);assert.equal(p.computed.value,4);assert.equal(p.arithmetic.value,9);assert.equal(p.transform.value,15);assert.equal(p.localize.value,'loc_key');assert.equal(p.upper.value,3);assert.ok(!p.format_type);assert.ok(!p['bad-key']);
-  assert.ok(basic.source.files.some(x=>x.path.endsWith('talent_settings_soldier.lua') && x.line===1));
+  assert.deepEqual(p.direct,{unit:'percent',value:15});assert.deepEqual(p.path,{value:null,unknown:'DYNAMIC_VALUE'});assert.deepEqual(p.computed,{value:null,unknown:'DYNAMIC_VALUE'});assert.equal(p.arithmetic.value,9);assert.deepEqual(p.transform,{value:null,unknown:'DYNAMIC_VALUE'});assert.equal(p.localize.value,'loc_key');assert.equal(p.upper.value,3);assert.ok(!p.format_type);assert.ok(!p['bad-key']);
+  assert.ok(basic.source.files.some(x=>x.path.endsWith('talent_settings.lua')));
   assert.equal(p.literal.value,'function');
-  assert.ok(basic.source.files.some(x=>x.path.endsWith('soldier_buff_templates.lua') && x.line===1));
-  assert.deepEqual(get('tiered').values.params.power,{unit:'percent',value:[10,20,30]});
+  assert.ok(data.problems.some(x=>x.code==='UNRESOLVED_VALUE'&&x.id===basic.id));
+  assert.deepEqual(get('tiered').values.params.power,{value:null,unknown:'DYNAMIC_VALUE'});
   assert.deepEqual(get('tiered').values.parents,['darktide:skill:soldier:basic']);assert.equal(get('tiered').values.maxPoints,3);assert.deepEqual(get('tiered').official,{en:null,zh:null});
   assert.equal(get('dynamic').name.origin,'internal');assert.equal(get('dynamic').name.zh,null);
   for(const v of Object.values(get('dynamic').values.params)) assert.deepEqual(v,{value:null,unknown:'DYNAMIC_VALUE'});
   assert.equal(get('shadow').values.params.v.value,2);assert.equal(get('bad').values.nodeType,'default');assert.equal(get('bad').values.icon,'fallback');
-  assert.equal(get('stimm_a').values.nodeType,'broker_stimm');assert.equal(get('stimm_a').values.params.power_level_modifier.value,4);assert.equal(get('stimm_a').values.params.stun.value,2);
-  assert.equal(get('stimm_b').values.params.amount_1.value,4);assert.equal(get('stimm_b').values.params.power_level_modifier.value,8);
+  assert.equal(get('stimm_a').values.nodeType,'broker_stimm');
+  for(const key of ['stimm_a','stimm_b'])for(const value of Object.values(get(key).values.params))assert.deepEqual(value,{value:null,unknown:'DYNAMIC_VALUE'});
+  assert.ok(get('stimm_a').values.params.power_level_modifier);
   for(const code of ['MULTI_NODE','MISSING_DEFINITION','UNKNOWN_NODE_TYPE','PARAM_NAME','SHADOWED_DEFINITION','UNRESOLVED_VALUE','MISSING_TEXT','MISSING_EN_TEXT']) assert.ok(data.problems.some(p=>p.code===code),code);
   assert.ok(data.excluded.some(e=>e.key==='unused_soldier' && e.reason==='not-in-tree'));
   const bytes=readFileSync(path.join(f.work,'extract/skills.json'));f.run();assert.deepEqual(readFileSync(path.join(f.work,'extract/skills.json')),bytes);

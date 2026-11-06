@@ -38,7 +38,11 @@ test('InterT90_real weapon smoke',{skip:process.env.PIPELINE_REAL_SMOKE!=='1'},t
    counts.unresolvedReasons[problem.reason]=(counts.unresolvedReasons[problem.reason]??0)+1;
   }
  }
- assert.ok(counts.stats>0,'真實資料必須解析出數值 stats');
+ // Spec12 pinned closure revokes all stat endpoints, retaining independent ammo values.
+ assert.equal(counts.stats,0);assert.equal(counts.unknown,4065);
+ assert.equal(counts.problems.UNRESOLVED_STAT,4061);
+ assert.equal(counts.unresolvedReasons.DYNAMIC_VALUE,4061);
+ assert.deepEqual(data.items.find(i=>i.key==='bolter_p1_m1').values.params.ammo_clip,{value:[10,20]});
  t.diagnostic(JSON.stringify(counts));
  const samples={};
  for(const p of data.problems.filter(x=>x.code==='UNRESOLVED_STAT'))if((samples[p.reason]??=[]).length<3)samples[p.reason].push({id:p.id,key:p.key});

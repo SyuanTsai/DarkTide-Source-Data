@@ -31,7 +31,7 @@ function setPath(root,keys,value,child) {
   if(node?.type!=='table')return false;
   let next=child(node,key);
   if(!next){next={type:'table',entries:[]};node.entries.push({key:{type:typeof key==='number'?'number':'string',value:key},value:next});}
-  if(i===keys.length-1){const e=node.entries.find(e=>e.value===next);e.value=value;}else node=next;
+  if(i===keys.length-1){const e=node.entries.find(e=>e.value===next);if(!e)return false;e.value=value;}else node=next;
  }
  return true;
 }
@@ -127,7 +127,7 @@ export function createWeaponStats(reader) {
  }
  function deref(node,seen=new Set()) {
   if(node?.type==='table'&&!revoked.has(node)&&effects.moduleTainted(node._file)) {
-   revoked.add(node);invalidateReachable(node,{resolve:deref,dynamic:{type:'unsupported',reason:'DYNAMIC_VALUE',_file:node._file,startLine:node.startLine}});
+   revoked.add(node);invalidateReachable(node,{resolve:deref,numericOnly:true,dynamic:{type:'unsupported',reason:'DYNAMIC_VALUE',_file:node._file,startLine:node.startLine}});
   }
   if(node?.type!=='reference')return node;
   const file=node._file,key=file+':'+node.ref;if(!file||seen.has(key))return node;
@@ -150,7 +150,9 @@ export function createWeaponStats(reader) {
   const key=kind+':'+name;if(seen.has(key))return null;
   if(effectiveCache.has(key))return effectiveCache.get(key);
   const d=catalog(kind).get(name);if(!d)return null;
-  const n=deref(d.node);if(!d.override){const result=initialization.template(n,kind,name);effectiveCache.set(key,result);return result;}
+  const n=deref(d.node);
+  if(n?.numericDynamic){effectiveCache.set(key,n);return n;}
+  if(!d.override){const result=initialization.template(n,kind,name);effectiveCache.set(key,result);return result;}
   const parent=field(n,'parent_template_name');
   const base=effective(kind,parent?.value,new Set([...seen,key]));if(!base)return null;
   const out=structuredClone(base);
@@ -333,7 +335,7 @@ export function createWeaponStats(reader) {
    const report=(key,error)=>collected.push({kind,target,profile:name,key,error,unknown,override,notApplicable});
    if(!base){report(prefix+'.'+keys.join('.'),catalogFailures.has(kind)?'BASE_TEMPLATE_PARSE_FAILED':kind==='damage'?'DAMAGE_PROFILE_NOT_FOUND':'BASE_TEMPLATE_NOT_FOUND');continue;}
    const isDefault=sentinel(keys.at(-1),'DEFAULT_LERP_VALUE'),scope=keys.slice(0,-1);
-   const read=k=>kind==='damage'?damageNode(base,k):traverse(base,k,kind);
+   const read=k=>base.numericDynamic?{type:'blocked',cause:base.numericDynamic}:kind==='damage'?damageNode(base,k):traverse(base,k,kind);
    const paths=isDefault?endpointPaths(read(scope),scope,kind):[keys];
    if(isDefault&&!paths.length){const n=read(scope);if(n&&['blocked','reference','call','unsupported'].includes(n.type))report(prefix+'.'+keys.join('.'),reason(n));else notApplicable();}
    for(const actual of paths) {

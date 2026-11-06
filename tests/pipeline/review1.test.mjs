@@ -110,7 +110,9 @@ test('review F7: negative half rounds away from zero in blessings and skills',()
  assert.equal(manipulate({...fn,file:'test.lua'},-2.5),-3);
 });
 
-test('bounded stimm data-copy loop rejects a conditionally changed iterator binding',()=>{
+// Scenario: a stimm loop writes through a computed key.
+// Purpose: spec12 denies nonliteral destinations even with a bounded key set.
+test('UnitT95_stimm computed destinations revoke dependent values',()=>{
  const file='scripts/settings/ability/archetype_talents/talents/broker_talents.lua';
  for(const branch of ['', 'if runtime_flag then stimm_talent_settings=runtime_data end']) {
   const r=createSkillResolver(reader({[file]:`local TalentSettings=require("scripts/settings/talent/talent_settings")
@@ -124,7 +126,7 @@ return archetype_talents`,'generated.lua':'return {format_values={damage={format
   r.setStimmDefinitions(new Map([['generated',r.returned('generated.lua')]]));
   const talents=r.get(r.returned(file),'talents'),problems=[];
   const params=skillParams(r,r.get(talents,'basic'),'test',problems,[]);
-  assert.deepEqual(params.damage,branch?{value:null,unknown:'DYNAMIC_VALUE'}:{value:10});
-  if(!branch)assert.equal(r.scalar(r.get(r.get(r.get(talents,'generated'),'format_values'),'damage')?.entries?.find(e=>e.key.value==='value')?.value),20);
+  assert.deepEqual(params.damage,{value:null,unknown:'DYNAMIC_VALUE'});
+  if(!branch)assert.equal(r.get(r.get(r.get(talents,'generated'),'format_values'),'damage')?.type,'table');
  }
 });

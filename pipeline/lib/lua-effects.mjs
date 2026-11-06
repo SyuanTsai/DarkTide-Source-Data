@@ -4,6 +4,7 @@ import {finiteHelperName} from './lua-finite-helpers.mjs';
 
 const BUILTINS=new Set(['require','settings','pairs','ipairs','type','select','rawget','unpack','Vector2','Vector3','Vector4','Quaternion','Color','Application.can_get_resource','upairs','string.format','Script.new_map','Script.new_array','Vector3Box','QuaternionBox','bit.bor',...['abs','floor','ceil','round','max','min','rad','degrees_to_radians','lerp'].map(n=>'math.'+n),...['clone','clone_instance','enum','keys','ukeys','unpack','contains','enum_from_array','index_lookup_table'].map(n=>'table.'+n)]);
 const MODELED=new Set(['table.merge','table.add_missing','table.append','table.make_unique','table.make_strict','table.set_readonly','table.shallow_copy','table.set','table.array_to_map','table.sort','table.insert','table.remove','table.clear','table.add_mirrored_entry','table.merge_recursive']);
+const SCALAR_RETURNS=new Set(['type','string.format','bit.bor','table.contains',...['abs','floor','ceil','round','max','min','rad','degrees_to_radians','lerp'].map(n=>'math.'+n)]);
 // Audited finite data DSLs already implemented by the registry/inheritance readers.
 // A changed token body is never accepted as that DSL. This list does not fold
 // numeric results; each consumer still applies its bounded data-only model.
@@ -89,7 +90,7 @@ function finiteDataHelper(fn) {
  return Object.entries(dependencies[sig]??{}).every(([name,wanted])=>{const dependency=fn.lookup?.(name);return dependency&&signature(dependency)===wanted;});
 }
 const identity=p=>'@'+p.replace(/\.lua$/,'');
-const overlaps=(a,b)=>{a=a.split('.*')[0];b=b.split('.*')[0];return a===b||a.startsWith(b+'.')||b.startsWith(a+'.');};
+const overlaps=(a,b)=>{if(a==='*'||b==='*')return true;a=a.split('.*')[0];b=b.split('.*')[0];return a===b||a.startsWith(b+'.')||b.startsWith(a+'.');};
 
 /** One token-only effect analysis for all readers. Abstract aliases are sets:
  * a conditional assignment joins old/new targets, never chooses a branch.
@@ -98,10 +99,26 @@ const overlaps=(a,b)=>{a=a.split('.*')[0];b=b.split('.*')[0];return a===b||a.sta
  */
 export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,bindingsIntact=()=>true,pureBindings=new Set()}={}) {
  const t=tokenizeLua(source),functions=new Map(),slots=new Map(),calls=[],bindings=new Map(),models=new Map(),evaluating=new Set(),opaqueReturns=new Set();
+ const externalImports=new Set();for(let i=0;i<t.length;i++)if(t[i].value==='require'){const arg=t[i+1]?.value==='('?t[i+2]:t[i+1];if(arg?.type==='string')externalImports.add(identity(arg.value));}
  let dirtyFrom=Infinity;
  const pathAt=i=>{if(t[i]?.type!=='identifier')return null;const parts=[t[i++].value];let method=false;while(true){if(['.',':'].includes(t[i]?.value)&&t[i+1]?.type==='identifier'){method||=t[i].value===':';parts.push(t[i+1].value);i+=2;}else if(t[i]?.value==='['){const end=close(i,'[',']');parts.push(end===i+2&&['string','number'].includes(t[i+1]?.type)?String(t[i+1].value):'*');i=end+1;}else break;}return {parts,end:i,method};};
  function close(i,open='(',end=')'){let depth=1;while(++i<t.length){if(['string','number'].includes(t[i].type))continue;if(t[i].value===open)depth++;if(t[i].value===end&&!--depth)return i;}return t.length-1;}
- const expand=(parts,env)=>{let out=env.get(parts[0])??new Set([parts[0]]);for(const key of parts.slice(1)){const next=new Set();for(const p of out)for(const q of slots.get(p+'.'+key)??[p+'.'+key])next.add(q);out=next;}return out;};
+ // Parse the suffix only to discover an effect, never to certify its identity.
+ function prefixAt(i) {
+  if(t[i]?.value!=='(')return null;
+  // This is an argument list, not a parenthesized prefix expression. Its
+  // callee and any chained effects are handled by acceptCall below.
+  if(t[i-1]?.type==='identifier'||[')',']'].includes(t[i-1]?.value))return null;
+  let end=close(i)+1;const parts=['?any'];let method=false;
+  if(!['.',':','[','('].includes(t[end]?.value))return null;
+  while(true){if(['.',':'].includes(t[end]?.value)&&t[end+1]?.type==='identifier'){method||=t[end].value===':';parts.push(t[end+1].value);end+=2;}else if(t[end]?.value==='['){parts.push('*');end=close(end,'[',']')+1;}else break;}
+  return {parts,end,method};
+ }
+ const uncertain=()=>new Set(['?any']);
+ // A snapshot index keeps graph walks bounded by reachable edges instead of
+ // rescanning the entire module's slot map for every copied descendant.
+ const indexSlots=()=>{const index=new Map();for(const entry of slots){const key=entry[0];for(let at=key.indexOf('.');at>=0;at=key.indexOf('.',at+1)){const prefix=key.slice(0,at);if(!index.has(prefix))index.set(prefix,[]);index.get(prefix).push(entry);}}return index;};
+ const expand=(parts,env)=>{let out=env.get(parts[0])??new Set([parts[0]]);for(const key of parts.slice(1)){if(key==='*'||out.has('?any'))return uncertain();const next=new Set();for(const p of out){if(slots.has(p+'.*'))return uncertain();for(const q of slots.get(p+'.'+key)??[p+'.'+key])next.add(q);}out=next;}return out;};
  function fnAt(i,env) {
   const end=luaBlockEnd(t,i);let p=i+1;while(t[p]?.value!=='('&&p<end)p++;
   const stop=close(p),params=t.slice(p+1,stop).filter(x=>x.type==='identifier').map(x=>x.value);
@@ -111,13 +128,13 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
   const id='!fn:'+file+':'+i;functions.set(id,fn);return new Set([id]);
  }
  function valueAt(i,env) {
-  if(['string','number'].includes(t[i]?.type))return new Set();
+  if(['string','number'].includes(t[i]?.type))return ['+','-','*','/','%','^','..','and','or'].includes(t[i+1]?.value)?uncertain():new Set();
   if(t[i]?.value==='(') {
    const stop=close(i),out=valueAt(i+1,env);
-   if(valueEnd(i+1)===stop)return out;
+   if(valueEnd(i+1)===stop&&!['.','[',':','('].includes(t[stop+1]?.value))return out;
    // An expression we cannot fully evaluate may still select any referenced alias.
    for(let j=i+1;j<stop;j++){const p=pathAt(j);if(p&&t[j-1]?.value!=='.'&&t[j-1]?.value!==':'){expand(p.parts,env).forEach(x=>out.add(x));j=p.end-1;}}
-   return out;
+   return uncertain();
   }
   if(t[i]?.value==='function')return fnAt(i,env);
   if(t[i]?.value==='{') {
@@ -125,7 +142,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
    for(let j=i+1;j<stop;j++) {
     let key=String(++index),v=j;
     if(t[j]?.type==='identifier'&&t[j+1]?.value==='='){key=t[j].value;v=j+2;}
-    else if(t[j]?.value==='['){const k=close(j,'[',']');key=String(t[j+1]?.value);v=k+2;}
+    else if(t[j]?.value==='['){const k=close(j,'[',']');key=k===j+2&&['string','number'].includes(t[j+1]?.type)?String(t[j+1].value):'*';v=k+2;}
     slots.set(id+'.'+key,valueAt(v,env));
     j=v;if(t[j]?.value==='function')j=luaBlockEnd(t,j);else if(t[j]?.value==='{')j=close(j,'{','}');else {const p=pathAt(j);if(p)j=p.end-1;if(t[j+1]?.value==='(')j=close(j+1);}
     while(j+1<stop&&![';',','].includes(t[j+1].value))j++;
@@ -133,13 +150,20 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
    }
    return new Set([id]);
   }
-  const p=pathAt(i);if(!p)return ['or','and'].includes(t[i+1]?.value)?valueAt(i+2,env):new Set();
+  const p=pathAt(i);if(!p)return ['and','or'].includes(t[i+1]?.value)?uncertain():['true','false','nil','<eof>'].includes(t[i]?.value)?new Set():uncertain();
   if(p.parts.join('.')==='require') {
    const arg=t[p.end]?.value==='('?t[p.end+1]:t[p.end];
    if(arg?.type==='string')return new Set([identity(arg.value)]);
   }
   if(isCall(p.end)) {
-   if(['table.clone','table.clone_instance','table.shallow_copy'].includes(p.parts.join('.')))return new Set(['!table:'+file+':'+i]);
+   if(['.','[',':','('].includes(t[valueEnd(i)]?.value))return uncertain();
+   if(['table.clone','table.clone_instance','table.shallow_copy'].includes(p.parts.join('.'))&&expand(p.parts,env).size===1&&expand(p.parts,env).has(p.parts.join('.'))&&bindingsIntact(['table'])) {
+    const id='!table:'+file+':'+i,deep=p.parts.at(-1)!=='shallow_copy',copied=new Map(),descendants=indexSlots();
+    const copy=old=>{if(old.startsWith('?')||old.startsWith('!fn:'))return old;if(copied.has(old))return copied.get(old);const fresh=id+':'+copied.size;copied.set(old,fresh);for(const [key,values] of descendants.get(old)??[])slots.set(fresh+key.slice(old.length),new Set([...values].map(v=>deep?copy(v):v)));return fresh;};
+    const source=valueAt(p.end+1,env);
+    for(const old of source){copied.set(old,id);if(!deep&&!old.startsWith('!table:'))slots.set(id+'.*',uncertain());for(const [key,values] of descendants.get(old)??[])slots.set(id+key.slice(old.length),new Set([...values].map(v=>deep?copy(v):v)));}
+    return new Set([id]);
+   }
    const targets=expand(p.parts,env),out=new Set(),args=p.method?[expand(p.parts.slice(0,-1),env)]:[];let j=p.end+1;
    if(t[p.end]?.value!=='(')args.push(valueAt(p.end,env));
    else while(j<close(p.end)){args.push(valueAt(j,env));j=valueEnd(j);if(t[j]?.value!==',')break;j++;}
@@ -148,8 +172,11 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
    // An unmodeled return can alias an argument. Retain every candidate rather
    // than silently treating the result as a private/non-table value.
    if(!out.size) {
-    args.forEach(a=>a.forEach(x=>out.add(x)));
-    if(!out.size&&[...targets].some(id=>!resolveFn(id)&&!BUILTINS.has(id)&&!MODELED.has(id)))out.add('?call:'+file+':'+i);
+    // Purity of a call is not a proof of the identity of its return value.
+    // Only modeled fresh/scalar returns may be treated as non-aliases.
+    if([...targets].every(id=>SCALAR_RETURNS.has(id)))return new Set();
+    if([...targets].every(id=>['table.enum','table.keys','table.ukeys','table.enum_from_array','table.index_lookup_table','Script.new_map','Script.new_array'].includes(id)))return new Set(['!table:'+file+':'+i]);
+    return uncertain();
    }
    return out;
   }
@@ -160,6 +187,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
    if(t[j]?.value==='or')return new Set([...rhs,...valueAt(j+1,env)]);
    return rhs;
   }
+  if(['+','-','*','/','%','^','..','==','~=','<','>','<=','>='].includes(t[p.end]?.value))return uncertain();
   return expand(p.parts,env);
  }
  function valueEnd(i) {
@@ -180,13 +208,26 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
  }
  function resolveFn(id){return functions.get(id)??imported(id);}
  function run(begin,end,env,own=new Set(),inFunction=false,conditional=false,active=new Set(),allocations=new Set()) {
-  let impure=false;const shared=new Set(),effects=[],returned=new Set();
+  let impure=false,scopeRevoked=false;const shared=new Set(),effects=[],effectCounts=new Map(),returned=new Set();
   // Only allocations defined here have a sequential data model. A write to
   // any external member revokes the entire external table's binding proof.
-  const record=p=>{if(!p.startsWith('!'))p=p.split('.')[0];effects.push(p);if(!p.startsWith('!'))shared.add(p);};
+  // Two occurrences retain initialization-versus-rewrite evidence. Further
+  // repetitions cannot restore trust and need not grow transitive summaries.
+  const record=p=>{if(!p.startsWith('!'))p=p.split('.')[0];const count=effectCounts.get(p)??0;if(count<2){effects.push(p);effectCounts.set(p,count+1);}if(!p.startsWith('!'))shared.add(p);};
+  const revokeAll=()=>{
+   if(scopeRevoked)return;scopeRevoked=true;
+   impure=true;if(!inFunction)dirtyFrom=0;
+   // Unknown identity can reach every shared table in this scope. Do not
+   // confuse imported tables with the require function's own binding.
+   for(const root of ['math','table','string'])record(root);
+   externalImports.forEach(record);
+   const descendants=indexSlots(),seen=new Set(),visit=id=>{if(seen.has(id))return;seen.add(id);if(!id.startsWith('!')&&!id.startsWith('?'))record(id);for(const [,values]of descendants.get(id)??[])values.forEach(visit);};
+   for(const values of env.values())values.forEach(visit);
+  };
   const write=(p,local)=>{
    const targets=p.length===1?expand(p,env):new Set([...expand(p.slice(0,-1),env)].map(x=>x+'.'+p.at(-1)));
    if(!local) {
+    if(p.length>1&&(p.includes('*')||[...targets].some(x=>x.startsWith('?')))){revokeAll();return;}
     if(!inFunction&&p.length>1&&[...targets].some(target=>[...opaqueReturns].some(id=>overlaps(target,id))))dirtyFrom=0;
     if(inFunction&&(!own.has(p[0])||p.length>1&&(!targets.size||[...targets].some(x=>![...allocations].some(a=>x.startsWith(a+'.'))))))impure=true;
     if(p.length>1||conditional)for(const target of targets)record(target);
@@ -227,7 +268,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
    }
    if(token.value==='{') {const stop=close(i,'{','}');scanExpressions(i+1,stop,env,own,inFunction,conditional,active,acceptCall);i=stop;continue;}
    if(t[i-1]?.value==='.'||t[i-1]?.value===':')continue;
-   const p=pathAt(i);if(!p)continue;
+   const p=pathAt(i)??prefixAt(i);if(!p)continue;
    if(t[p.end]?.type==='string'){acceptCall(p,i,env);continue;}
    if(t[p.end]?.value===',') {
     const targets=[p];let j=p.end;
@@ -268,6 +309,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
    for(const target of targets) {
     if((BUILTINS.has(target)||MODELED.has(target)||pureBindings.has(target))&&bindingsIntact([target.split('.')[0],...(pureBindings.has(target)?['math']:[])])) {
      const index=['table.merge','table.merge_recursive','table.add_missing','table.append','table.make_unique','table.make_strict'].includes(target)?0:mutationArgument(target);
+     if(index!==null&&[...(args[index]??[])].some(x=>x.startsWith('?')))revokeAll();
      // Consumers model literal helper names. An aliased callee still writes,
      // but cannot claim that the ordered AST model applied that mutation.
      if(index!==null&&p.parts.join('.')!==target)safe=false;
@@ -301,8 +343,14 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
     if(r.impure)safe=false;r.shared.forEach(x=>callShared.add(x));
    }
    if(isCall(stop+1)){const next=new Map(scope);next.set('!returned',results);acceptCall({parts:['!returned'],end:stop+1},i,next);}
+   if(['.',':','['].includes(t[stop+1]?.value)&&!model) {
+    let j=stop+1;
+    while(['.',':','['].includes(t[j]?.value)){if(t[j].value==='[')j=close(j,'[',']')+1;else j+=2;}
+    if(t[j]?.value==='='||isCall(j)){safe=false;revokeAll();}
+   }
    if(!inFunction){const name=p.parts.join('.');models.set(name,models.has(name)&&models.get(name)?.definition!==model?.definition?null:model);}
    if(!safe) {
+    if(args.some(a=>[...a].some(x=>x.startsWith('?')))||[...targets].some(x=>x.startsWith('?')))revokeAll();
     impure=true;for(const p of callShared)record(p);
     // All tables reachable through arguments may escape an unknown function.
     const seen=new Set();const reachable=p=>{if(seen.has(p))return;seen.add(p);if(!p.startsWith('!'))record(p);for(const [key,values] of slots)if(key.startsWith(p+'.'))for(const v of values)reachable(v);};
@@ -317,7 +365,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
   for(let i=begin;i<end;i++) {
    if(t[i].type==='keyword'&&t[i].value==='function'){i=immediate(i,env,accept);continue;}
    if(t[i-1]?.value==='.'||t[i-1]?.value===':')continue;
-   const p=pathAt(i);if(p&&isCall(p.end))accept(p,i,env);
+   const p=pathAt(i)??prefixAt(i);if(p&&isCall(p.end))accept(p,i,env);
   }
  }
  function invoke(fn,args,active) {const env=new Map(fn.env);fn.params.forEach((p,i)=>env.set(p,args[i]??new Set([p])));return run(fn.start,fn.end,env,new Set(),true,false,new Set([...active,fn]));}
@@ -331,10 +379,24 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
   functionAt(path){let values=new Set(exports);for(const key of path.split('.').filter(Boolean)){const next=new Set();for(const v of values)for(const x of slots.get(v+'.'+key)??[])next.add(x);values=next;}return values.size===1?functions.get([...values][0]):null;}};
 }
 
-/** Preserve table shape/keys for diagnostics while revoking every reachable value. */
-export function invalidateReachable(node,{resolve=n=>n,dynamic,seen=new Set()}={}) {
- node=resolve(node);if(node?.type!=='table'||seen.has(node))return;seen.add(node);node.dynamic=dynamic;
- for(const e of node.entries){const n=resolve(e.value);if(n?.type==='table'){invalidateReachable(n,{resolve,dynamic,seen});e.value=n;}else if(!['unknown','unsupported'].includes(n?.type))e.value=dynamic;}
+/** Revoke numeric evidence, retaining names, keys and structural references.
+ * Resolved string/boolean/nil leaves carry structure rather than numeric proof.
+ * Explicit structural writes are still handled by each reader's assignment logic.
+ */
+export function invalidateReachable(node,{resolve=n=>n,dynamic,numericOnly=false,seen=new Set()}={}) {
+ node=resolve(node);if(node?.type!=='table'||seen.has(node))return;seen.add(node);
+ // Numeric uncertainty must not invent absent optional structure (find_value,
+ // tier, inheritance, etc.). Only structural invalidation supplies that fallback.
+ if(numericOnly)node.numericDynamic=dynamic;else node.dynamic=dynamic;
+ for(const e of node.entries){
+  const n=resolve(e.value),key=resolve(e.key)?.value;
+  // A display value can encode a concrete number as text. Names/ids and loc
+  // keys remain structural, including numeric-looking keys outside value.
+  const numericText=key==='value'&&typeof n?.value==='string'&&/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)%?$/.test(n.value);
+  if(n?.type==='table'){invalidateReachable(n,{resolve,dynamic,numericOnly,seen});e.value=n;}
+  else if(numericOnly&&!numericText&&(['string','boolean','nil'].includes(n?.type)||n?.type==='literal'&&typeof n.value!=='number'))e.value=n;
+  else if(!['unknown','unsupported'].includes(n?.type))e.value=dynamic;
+ }
 }
 
 /** Apply finite helper write summaries to actual AST identities. This is shared

@@ -16,7 +16,9 @@ function extract(sources,kind,{source='',actions='{}',target='base',group=`{${ki
 const trait=(kind,rows)=>({[root+`weapon_trait_templates/${kind}_trait_templates.lua`]:`local ${kind}_trait_templates={test={${rows}}}\nreturn ${kind}_trait_templates`});
 const range=s=>[s.min,s.max];
 
-test('review2 F1 bolter m1/m2 initialize all 12 offset pitch/yaw rows from source',()=>{
+// Scenario: recoil initialization writes through computed movement and array indices.
+// Purpose: spec12 revokes dependent endpoints instead of synthesizing known zeros.
+test('UnitT10_bolter computed initialization revokes endpoints',()=>{
  const sources={...trait('recoil',['still','moving'].flatMap(state=>['pitch','yaw'].map(k=>`{"${state}","offset_random_range",4,"${k}",0.5}`)).join(',')),
  'scripts/settings/equipment/recoil_templates.lua':`local recoil_templates={bolter_p1_m1={still={rise={1},offset={1,2,3,4},offset_random_range={{pitch=1,yaw=2},{pitch=1,yaw=2},{pitch=1,yaw=2}}},moving={inherits={"bolter_p1_m1","still"}}},bolter_p1_m2={still={rise={1},offset={1,2,3,4},offset_random_range={{pitch=1,yaw=2},{pitch=1,yaw=2},{pitch=1,yaw=2}}},moving={inherits={"bolter_p1_m2","still"}}}}
 for name, template in pairs(recoil_templates) do
@@ -42,12 +44,15 @@ return settings("RecoilTemplates",recoil_templates)`};
  const alt=extract(sources,'recoil',{target:'alternate_fire',actions:'{alternate_fire={recoil_template="bolter_p1_m2"}}'});
  const zeros=[...m1.stats,...m2.stats,...alt.stats].filter(s=>s.min===0&&s.max===0);
  // The finding uses still/moving, plus m2 alternate_fire still/moving.
- assert.equal(zeros.length,12);assert.equal(m1.stats.length,4);
- assert.equal(m2.stats.length+alt.stats.length,8);assert.deepEqual([...m1.unknown,...m2.unknown,...alt.unknown],[]);
- assert.ok(m2.files.some(f=>f.path.endsWith('recoil_templates.lua')&&f.line>1));
+ assert.equal(zeros.length,0);assert.equal(m1.stats.length+m2.stats.length+alt.stats.length,0);
+ assert.ok([...m1.unknown,...m2.unknown,...alt.unknown].every(x=>x.reason==='DYNAMIC_VALUE'));
+ assert.equal(m1.unknown.length+m2.unknown.length+alt.unknown.length,12);
+ assert.ok(m2.unknown.length>0);
 });
 
-test('review2 F2 finite 29 stimm keys preserve broker focus damage=3% and stacks=5',()=>{
+// Scenario: a bounded stimm loop uses nonliteral table indices.
+// Purpose: finite key enumeration must not override the spec12 alias grammar.
+test('UnitT20_stimm computed writes revoke focus values',()=>{
  const file='scripts/settings/buff/archetype_buff_templates/broker_buff_templates.lua';
  const sources={[file]:`local TalentSettings=require("scripts/settings/talent/talent_settings")
 local stimm_talent_settings=TalentSettings.broker_stimm
@@ -65,8 +70,8 @@ return templates`};
  const r=createSkillResolver(reader(sources));const keys=[...['1','2','3','4','5a','5b','5c'].map(n=>'broker_stimm_celerity_'+n),...['1','2','3','4a','5a','4b','5b','4c','5c'].map(n=>'broker_stimm_combat_'+n),...['1','2','3','4','5a','5b'].map(n=>'broker_stimm_durability_'+n),...['1','2','3','4','5a','5b','5c'].map(n=>'broker_stimm_concentration_'+n)];
  assert.equal(keys.length,29);r.setStimmDefinitions(new Map(keys.map(key=>[key,{}])));
  const buffs=r.returned(file),focus=r.get(buffs,'broker_focus_sub_2_damage');
- assert.equal(r.scalar(r.get(r.get(focus,'stat_buffs'),'ranged_damage'))*100,3);
- assert.equal(r.scalar(r.get(focus,'max_stacks')),5);
+ assert.equal(r.get(r.get(focus,'stat_buffs'),'ranged_damage').reason,'DYNAMIC_VALUE');
+ assert.equal(r.get(focus,'max_stacks').reason,'DYNAMIC_VALUE');
  assert.equal(r.get(buffs,'broker_stimm_celerity_1').reason,'CONDITIONAL_ASSIGNMENT');
  assert.equal(r.get(r.get(buffs,'syringe_broker_buff'),'stat_buffs').dynamic.reason,'CONDITIONAL_ASSIGNMENT');
  const dynamic=createSkillResolver(reader(sources));assert.equal(dynamic.get(dynamic.get(dynamic.returned(file),'broker_focus_sub_2_damage'),'max_stacks').reason,'CONDITIONAL_ASSIGNMENT');
