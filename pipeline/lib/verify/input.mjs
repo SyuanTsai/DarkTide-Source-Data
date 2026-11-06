@@ -1,4 +1,4 @@
-import { readFile, stat, mkdir, rm } from 'node:fs/promises';
+import { readFile, stat, mkdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { CATEGORIES, checkDataFile } from '../data-files.mjs';
@@ -61,16 +61,16 @@ export async function loadInput(options) {
     previousDir = resolve(options.root, current.value.path);
   }
   options.extractDir ??= join(cloudBase(), 'extract');
+  let diffReport;
   if (!options.candidateDir) {
     options.candidateDir = join(cloudBase(), 'candidate');
-    const diffReport = (await readJson(join(cloudBase(), 'diff/diff.json'))).value;
+    diffReport = (await readJson(join(cloudBase(), 'diff/diff.json'))).value;
     const candidates = await buildCandidates({ run: state.run, extractDir: options.extractDir,
       aiOutputDir: join(cloudBase(), 'ai/output'), previousDir, diffReport });
     await mkdir(options.candidateDir, { recursive: true });
     for (const category of CATEGORIES) {
       const file = join(options.candidateDir, `${category}.json`);
-      if (candidates[category] === null) await rm(file, { force: true });
-      else await writeCanonicalFile(file, candidates[category]);
+      if (candidates[category] !== null) await writeCanonicalFile(file, candidates[category]);
     }
   }
   if (defaults || options.cloudDir || (state.run && process.env.DARKTIDE_PIPELINE_CLOUD_DIR)) {
@@ -86,16 +86,19 @@ export async function loadInput(options) {
   }
   const loaded = {};
   for (const category of [...CATEGORIES].sort()) {
+    const diffCategory = diffReport?.categories?.[category];
+    const diffBlocked = diffReport && diffCategory?.status !== 'ok';
     const bytes = await readCandidateBytes(join(options.candidateDir, `${category}.json`));
     let candidate = null;
-    if (bytes) {
+    if (bytes && !diffBlocked) {
       const text = bytes.toString('utf8');
       try { candidate = { value: JSON.parse(text), text }; }
       catch { throw new InputError(`無法解析 JSON：${join(options.candidateDir, `${category}.json`)}`); }
     }
-    const extract = await readJson(join(options.extractDir, `${category}.json`), true);
+    const extract = diffBlocked ? null : await readJson(join(options.extractDir, `${category}.json`), true);
     const previous = previousDir && previousDir !== 'none' ? await readJson(join(previousDir, `${category}.json`), true) : null;
     loaded[category] = { candidate: candidate?.value ?? null, extract: extract?.value ?? null, previous: previous?.value ?? null,
+      diffReason: diffBlocked ? (diffCategory?.reason?.trim() || `本輪 diff 缺少或無法使用 extract（${diffCategory?.status ?? 'missing'}）`) : null,
       candidateSha256: sha256(bytes), schemaErrors: candidate ? checkDataFile(category, candidate.text).errors : [] };
   }
   return { version, translation, current, loaded, state };
@@ -110,6 +113,7 @@ export function inputHalt({ version, loaded }) {
     return `Source-Code ${version.sourceGameVersion}（${version.sourceCommit.slice(0, 7)}）與解包批次 ${version.textBatch}（${version.textGameVersion}）遊戲版本不一致`;
   const keys = { gameVersion: 'sourceGameVersion', sourceCommit: 'sourceCommit', textBatch: 'textBatch' };
   for (const [category, entry] of Object.entries(loaded))
+    if (!entry.diffReason)
     for (const kind of ['candidate', 'extract'])
       for (const [key, versionKey] of Object.entries(keys))
         if (entry[kind] && Object.hasOwn(entry[kind], key) && entry[kind][key] !== version[versionKey])
@@ -117,6 +121,7 @@ export function inputHalt({ version, loaded }) {
   return null;
 }
 export function categoryReason(entry) {
+  if (entry.diffReason) return entry.diffReason;
   if (!entry.extract) return '缺少 extract 輸出';
   if (entry.extract.status !== 'ok') return typeof entry.extract.reason === 'string' && entry.extract.reason.trim() ? entry.extract.reason : 'extract 輸出結構不符';
   if (!entry.candidate) return '缺少候選檔';

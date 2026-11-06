@@ -124,7 +124,7 @@ export async function runWrite(inputOptions = {}) {
     catch (error) { const code = error.message.match(/（([^（）]+)）$/)?.[1]; throw new InputError(`無法讀取 candidate/${category}.json${code ? `（${code}）` : ''}`); }
     if (sha256(bytes) !== report.categories[category].candidateSha256)
       throw new WriteError('候選資料在檢查後已變動，請重跑 node pipeline/verify.mjs');
-    try { candidates[category] = bytes === null ? null : JSON.parse(bytes.toString('utf8')); }
+    try { candidates[category] = bytes === null || report.categories[category].status === 'kept-previous' ? null : JSON.parse(bytes.toString('utf8')); }
     catch { throw new WriteError(`候選資料 JSON 無法解析：${category}`); }
   }
   const current = await safeJson(join(root, 'data/current.json'), 'data/current.json', true);
@@ -153,7 +153,7 @@ export async function runWrite(inputOptions = {}) {
       candidate: candidates[category], previous, rows: report.items, version: run }); }
     catch (error) { throw new WriteError(error.message); }
     for (const [id, item] of Object.entries(run.items)) {
-      if (item.category === category && item.change === 'removed' && item.stage !== 'written' &&
+      if (report.categories[category].status === 'ok' && item.category === category && item.change === 'removed' && item.stage !== 'written' &&
         final[category].items.some((entry) => entry.id === id)) throw new WriteError(`項目 ${id} 登記為移除但仍在本次資料中，請重跑 node pipeline/diff.mjs 再執行 verify`);
       if (item.category === category && item.stage === 'written' && item.outcome === 'removed' &&
         final[category].items.some((entry) => entry.id === id)) throw writtenConflict(id);

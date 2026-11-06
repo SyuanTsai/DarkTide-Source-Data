@@ -124,6 +124,8 @@ async function main() {
   }
   checked(schemas.validate('diff-report.schema.json', report), 'diff 報告');
   const active = new Set(registrations.map((x) => x.id));
+  for (const [id, item] of Object.entries(run.items))
+    if (item.change === 'removed' && report.categories[item.category]?.status === 'structure-mismatch') active.add(id);
   for (const id of Object.keys(run.items).sort()) if (!active.has(id)) {
     if (run.items[id].stage === 'written') console.log(`警告：已登記項目不在本次差異中：${id}`);
     else { state = unregisterItem(state, id); console.log(`已移除過期登記：${id}`); }

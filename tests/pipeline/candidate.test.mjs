@@ -53,7 +53,7 @@ test('InterT40_candidate IO omits unsafe output and canonicalizes valid output',
   await writeCanonicalFile(join(previousDir, 'skills.json'), previous);
   const inputHash = '0'.repeat(64), active = { ...run, items: { [item.id]: { category: 'skills', change: 'changed', inputHash } } };
   const output = { schemaVersion: '1.0.0', id: item.id, inputHash, explanation: previous.items[0].explanation, errata: previous.items[0].errata };
-  const build = () => buildCandidates({ run: active, extractDir, aiOutputDir, previousDir, diffReport: { categories: {} } });
+  const build = () => buildCandidates({ run: active, extractDir, aiOutputDir, previousDir, diffReport: { categories: { skills: { status: 'ok' } } } });
   assert.deepEqual((await build()).skills.items, []);
   for (const text of ['{', '{}', JSON.stringify({ ...output, inputHash: '1'.repeat(64) }), JSON.stringify({ ...output, id: 'darktide:skill:other' })]) {
     await writeFile(join(aiOutputDir, itemFileName(item.id)), text); assert.deepEqual((await build()).skills.items, []);
@@ -62,4 +62,12 @@ test('InterT40_candidate IO omits unsafe output and canonicalizes valid output',
   const a = await build(), b = await build();
   assert.equal(stringifyCanonical(a), stringifyCanonical(b)); assert.deepEqual(a.skills.items[0].errata, output.errata);
   assert.equal(a.weapons, null); assert.equal(a.blessings, null); assert.equal(a.terms, null);
+});
+
+// Scenario: diff marks a category missing while an old extract exists. Purpose: avoid reading stale extract bytes.
+test('InterT50_candidate ignores extract when diff status is not ok', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'candidate-test-')); t.after(() => rm(root, { recursive: true, force: true }));
+  await mkdir(root, { recursive: true }); await writeFile(join(root, 'skills.json'), '{invalid');
+  const result = await buildCandidates({ run, extractDir: root, aiOutputDir: root, previousDir: root, diffReport: { categories: { skills: { status: 'missing' } } } });
+  assert.equal(result.skills, null);
 });

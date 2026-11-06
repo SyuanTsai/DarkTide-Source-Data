@@ -42,6 +42,7 @@ async function optionalJson(file, tolerateInvalid = false) {
 export async function buildCandidates({ run, extractDir, aiOutputDir, previousDir, diffReport }) {
   const result = {};
   for (const category of CATEGORIES) {
+    if (diffReport.categories?.[category]?.status !== 'ok') { result[category] = null; continue; }
     const extract = await optionalJson(join(extractDir, `${category}.json`));
     if (extract?.status !== 'ok') { result[category] = null; continue; }
     const previous = previousDir && previousDir !== 'none' ? await optionalJson(join(previousDir, `${category}.json`)) : null;

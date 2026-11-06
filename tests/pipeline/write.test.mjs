@@ -158,12 +158,13 @@ for (const repeated of [false, true]) {
 }
 
 for (const previous of [false, true]) {
-  // Scenario: extractor rejects a whole category. Purpose: emit four valid new envelopes with retained items or an empty category.
+  // Scenario: extractor rejects a whole category and an old candidate remains. Purpose: preserve the cloud file and emit valid retained or empty data.
   test(`InterT${previous ? '32' : '30'}_category fallback ${previous ? 'retains all' : 'emits empty file'}`, async (t) => {
     const f = await fixture(t, { previous, mismatch: true });
-    await writeCanonicalFile(join(f.base, 'candidate/terms.json'), { stale: true });
+    await mkdir(join(f.base, 'candidate'), { recursive: true });
+    await writeFile(join(f.base, 'candidate/terms.json'), '{stale');
     await writeFile(join(f.base, 'candidate/keep.txt'), 'keep');
-    f.verify(); await assert.rejects(readFile(join(f.base, 'candidate/terms.json')), { code: 'ENOENT' });
+    f.verify(); assert.equal(await readFile(join(f.base, 'candidate/terms.json'), 'utf8'), '{stale');
     assert.equal(await readFile(join(f.base, 'candidate/keep.txt'), 'utf8'), 'keep');
     f.success(f.write()); f.validate();
     const data = await read(join(f.root, 'data', meta.gameVersion, 'terms.json'));
@@ -405,4 +406,31 @@ test('InterT82_category report state mismatch blocks and recovers', async (t) =>
   assert.equal(result.status, 1); assert.match(result.stderr, /檢查報告與狀態檔不一致/); assert.deepEqual(await snapshot(f.root), before);
   f.verify(); f.success(f.write()); f.validate(); const category = (await read(f.state)).run.categories.terms;
   assert.equal(category.status, 'kept-previous'); assert.equal(category.reason, '測試結構不符');
+});
+
+// Scenario: a rerun loses the local extract while its cloud copy remains. Purpose: preserve the entire previous category.
+test('InterT83_missing local extract retains previous category despite stale cloud extract', async (t) => {
+  const f = await fixture(t, { previous: true }); f.verify();
+  const cloudExtract = await readFile(join(f.base, 'extract/terms.json'));
+  await rm(join(f.root, 'work/extract/terms.json')); f.success(f.cli('diff', f.diffArgs));
+  assert.deepEqual(await readFile(join(f.base, 'extract/terms.json')), cloudExtract);
+  f.verify(); const report = await read(join(f.base, 'verify/report.json'));
+  assert.equal(report.categories.terms.status, 'kept-previous'); assert.match(report.categories.terms.reason, /missing|缺少/i);
+  f.success(f.write()); f.validate();
+  const data = await read(join(f.root, 'data', meta.gameVersion, 'terms.json'));
+  assert.equal(data.gameVersion, meta.gameVersion);
+  assert.deepEqual(data.items.map((item) => item.id), f.previousData.terms.items.map((item) => item.id));
+  for (const item of data.items) assert.deepEqual(item.retainedFrom, old);
+  assert.equal((await read(f.state)).run.categories.terms.status, 'kept-previous');
+});
+
+// Scenario: a registered removal is followed by a structure mismatch. Purpose: retain it with the whole category.
+test('InterT84_removed registration is kept when category degrades', async (t) => {
+  const f = await fixture(t, { previous: true });
+  const id = f.previousData.terms.items[2].id; assert.equal((await read(f.state)).run.items[id].change, 'removed');
+  const path = join(f.root, 'work/extract/terms.json'), extract = await read(path);
+  extract.status = 'structure-mismatch'; extract.reason = '測試結構不符'; extract.items = []; await writeCanonicalFile(path, extract);
+  f.success(f.cli('diff', f.diffArgs)); f.verify(); f.success(f.write()); f.validate();
+  assert.equal((await read(f.state)).run.items[id].outcome, 'kept-previous');
+  assert.deepEqual((await read(join(f.root, 'data', meta.gameVersion, 'terms.json'))).items.map((item) => item.id), f.previousData.terms.items.map((item) => item.id));
 });
