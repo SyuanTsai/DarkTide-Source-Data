@@ -33,8 +33,15 @@ function checked(check, label) {
   if (!check.valid) throw new WriteError(`${label}驗證失敗：${check.errors.map((e) => `${e.path} ${e.message}`).join('；')}`);
 }
 const inconsistent = () => new WriteError('檢查報告與狀態檔不一致，請重跑 node pipeline/verify.mjs');
+const writtenConflict = (id) => new WriteError(`已寫入的項目 ${id} 與新的檢查報告衝突：請把該項目的說明改回能通過檢查的內容後重跑 verify，或執行 node pipeline/check-version.mjs 重新開始此版本`);
 function checkReportState(run, report) {
   for (const [id, item] of Object.entries(run.items)) {
+    if (item.stage === 'written' && ['updated', 'removed'].includes(item.outcome)) {
+      const rows = report.items.filter((row) => row.category === item.category && row.id === id);
+      if (report.categories[item.category]?.status !== 'ok' ||
+        (item.change !== 'removed' && item.outcome === 'updated' && (rows.length !== 1 || rows[0].decision !== 'pass'))) throw writtenConflict(id);
+      continue;
+    }
     if (report.categories[item.category]?.status !== 'ok' || item.stage === 'written' || item.change === 'removed') continue;
     const rows = report.items.filter((row) => row.category === item.category && row.id === id);
     if (rows.length !== 1 || !((rows[0].decision === 'pass' && item.outcome === null && item.stage === 'verified') ||
@@ -141,6 +148,10 @@ export async function runWrite(inputOptions = {}) {
     try { final[category] = composeFinal({ category, status: report.categories[category].status,
       candidate: candidates[category], previous, rows: report.items, version: run }); }
     catch (error) { throw new WriteError(error.message); }
+    for (const [id, item] of Object.entries(run.items)) {
+      if (item.category === category && item.stage === 'written' && item.outcome === 'removed' &&
+        final[category].items.some((entry) => entry.id === id)) throw writtenConflict(id);
+    }
     checked(checkDataFile(category, stringifyCanonical(final[category])), `${category} 最終資料`);
   }
   const index = { schemaVersion: '1.0.0', gameVersion: run.gameVersion, path: `data/${run.gameVersion}`,

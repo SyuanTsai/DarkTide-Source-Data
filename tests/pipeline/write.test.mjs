@@ -211,6 +211,53 @@ test('InterT42_resume after current publication and completed fallback replay pr
   f.success(f.write()); assert.deepEqual(await snapshot(join(f.root, 'data')), data); assert.deepEqual(await readFile(f.state), completed);
 });
 
+// Scenario: verification changes after a category checkpoint. Purpose: reject conflicting written items without writes and allow recovery with identical bytes.
+test('InterT43_written item conflict blocks resume until description is corrected', async (t) => {
+  const f = await fixture(t, { previous: true }); f.verify();
+  const { runWrite } = await import('../../pipeline/lib/write.mjs');
+  await assert.rejects(runWrite({ root: f.root, state: f.state, cloudDir: f.cloud, afterCategory: (c) => { if (c === 'skills') throw new Error('interrupted'); } }), /interrupted/);
+  const id = f.previousData.skills.items[1].id, path = join(f.base, 'ai/output', itemFileName(id)), good = structuredClone(f.ai[id]);
+  f.ai[id].explanation.effect = '提升987654%'; await writeCanonicalFile(path, f.ai[id]);
+  const verification = f.verify(); assert.match(verification.stdout, new RegExp(`已寫入的項目與本次檢查結果不同：${id}`));
+  const data = await snapshot(f.root), state = await readFile(f.state), result = f.write();
+  assert.equal(result.status, 1); assert.ok(result.stderr.includes(`已寫入的項目 ${id} 與新的檢查報告衝突`));
+  assert.ok(!result.stderr.includes(f.root)); assert.deepEqual(await snapshot(f.root), data); assert.deepEqual(await readFile(f.state), state);
+  await writeCanonicalFile(path, good); f.verify(); f.success(f.write()); f.validate();
+  const resumed = await snapshot(join(f.root, 'data')), completed = await readFile(f.state);
+  const reset = JSON.parse(state); for (const item of Object.values(reset.run.items)) { if (item.stage === 'written') { item.stage = item.change === 'removed' ? 'described' : 'verified'; item.outcome = null; } }
+  await writeState(f.state, reset); f.success(f.write());
+  assert.deepEqual(await snapshot(join(f.root, 'data')), resumed); assert.deepEqual(await readFile(f.state), completed);
+});
+
+// Scenario: a category with written items becomes structurally mismatched. Purpose: prevent resuming with retained category data.
+test('InterT44_written category degradation blocks resume without writes', async (t) => {
+  const f = await fixture(t, { previous: true }); f.verify();
+  const { runWrite } = await import('../../pipeline/lib/write.mjs');
+  await assert.rejects(runWrite({ root: f.root, state: f.state, cloudDir: f.cloud, afterCategory: (c) => { if (c === 'skills') throw new Error('interrupted'); } }), /interrupted/);
+  const path = join(f.base, 'extract/skills.json'), extract = await read(path);
+  extract.status = 'structure-mismatch'; extract.reason = '測試結構不符'; extract.items = []; await writeCanonicalFile(path, extract);
+  f.verify(); const data = await snapshot(f.root), state = await readFile(f.state), result = f.write();
+  assert.equal(result.status, 1); assert.match(result.stderr, /已寫入的項目 .* 與新的檢查報告衝突/);
+  assert.deepEqual(await snapshot(f.root), data); assert.deepEqual(await readFile(f.state), state);
+});
+
+// Scenario: a written removal reappears in the new final data. Purpose: reject the conflict before changing data or state.
+test('InterT45_written removal cannot reappear in final data', async (t) => {
+  const f = await fixture(t, { previous: true }); f.verify();
+  const { runWrite } = await import('../../pipeline/lib/write.mjs');
+  await assert.rejects(runWrite({ root: f.root, state: f.state, cloudDir: f.cloud, afterCategory: (c) => { if (c === 'skills') throw new Error('interrupted'); } }), /interrupted/);
+  const state = await read(f.state), id = Object.keys(state.run.items).find((key) => state.run.items[key].category === 'skills' && state.run.items[key].outcome === 'removed');
+  assert.ok(id);
+  const candidatePath = join(f.base, 'candidate/skills.json'), candidate = await read(candidatePath), item = structuredClone(candidate.items[0]);
+  item.id = id; candidate.items.push(item); candidate.items.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0); await writeCanonicalFile(candidatePath, candidate);
+  const reportPath = join(f.base, 'verify/report.json'), report = await read(reportPath);
+  report.categories.skills.candidateSha256 = createHash('sha256').update(await readFile(candidatePath)).digest('hex');
+  report.items.push({ id, category: 'skills', decision: 'pass', failures: [], notes: [] }); await writeCanonicalFile(reportPath, report);
+  const before = await snapshot(join(f.root, 'data')), stateBytes = await readFile(f.state), result = f.write();
+  assert.equal(result.status, 1); assert.ok(result.stderr.includes(`已寫入的項目 ${id} 與新的檢查報告衝突`));
+  assert.deepEqual(await snapshot(join(f.root, 'data')), before); assert.deepEqual(await readFile(f.state), stateBytes);
+});
+
 // Scenario: reports, candidates or publication version are unsafe. Purpose: reject before creating any output or changing state.
 test('InterT50_write guards reject halted changed mismatched older and invalid inputs', async (t) => {
   const f = await fixture(t); f.verify();

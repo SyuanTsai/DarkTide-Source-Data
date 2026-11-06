@@ -111,7 +111,9 @@ export async function runVerify(inputOptions) {
     const state = updatedState(input.state, stateMatches, report);
     if (options.report) await writeCanonicalFile(options.report, report);
     if (options.state && stateMatches) await writeState(options.state, state);
-    return { exitCode: report.result === 'halted' ? 3 : 0, report, merged, state };
+    const writtenWarnings = stateMatches ? report.items.filter((row) => row.decision !== 'pass' &&
+      input.state.run.items[row.id]?.category === row.category && input.state.run.items[row.id]?.stage === 'written').map((row) => row.id) : [];
+    return { exitCode: report.result === 'halted' ? 3 : 0, report, merged, state, writtenWarnings };
   } catch (error) {
     if (error instanceof InputError) throw error;
     throw new InputError(`無法寫入檢查結果（${error.code ?? '輸出失敗'}）`);

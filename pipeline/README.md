@@ -68,6 +68,8 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 `node pipeline/write.mjs` 先核對 state.run 與報告版本、候選檔雜湊及 current 版本，再用與 verify 相同的 composeFinal 組出四類並全部驗證。任何最終資料驗證錯誤均在寫入前停止。
 
+中斷後接續時，已寫入項目必須與新的檢查報告一致；若衝突，請將說明改回能通過檢查的內容後重跑 verify，或執行 `node pipeline/check-version.mjs` 重新開始此版本。
+
 | 參數 | 預設值／作用 |
 | --- | --- |
 | `--root` | repo 根目錄，正式資料位於 `<root>/data` |
