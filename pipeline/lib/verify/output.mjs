@@ -1,6 +1,7 @@
 import { checkDataFile, checkCurrent, checkVersionDir } from '../data-files.mjs';
 import { stringifyCanonical, writeCanonicalFile } from '../canonical-json.mjs';
 import { join } from 'node:path';
+import { rm } from 'node:fs/promises';
 import { compare, failure, itemIndex, validationMessage } from './common.mjs';
 
 export function decide(row, previous) {
@@ -19,6 +20,8 @@ export function verifyMerged(loaded, categories, rows, checker = checkDataFile) 
         selected = entry.candidate.items.map((item, index) => ({ item, row: categoryRows[index] }))
           .filter(({ row }) => row.decision !== 'excluded')
           .map(({ item, row }) => ({ item: row.decision === 'kept-previous' ? entry.previous.items.find((old) => old?.id === row.id) : item, row }))
+          .concat(categoryRows.slice(entry.candidate.items.length).filter((row) => row.decision === 'kept-previous')
+            .map((row) => ({ item: entry.previous.items.find((old) => old?.id === row.id), row })))
           .sort((a, b) => compare(a.item?.id ?? '', b.item?.id ?? ''));
         data = { ...entry.candidate, items: selected.map(({ item }) => item) };
       }
@@ -52,6 +55,8 @@ export function checkOldVersions(root, current) {
   return errors;
 }
 export async function writeMerged(outDir, gameVersion, merged) {
+  for (const category of ['skills', 'weapons', 'blessings', 'terms'])
+    if (!Object.hasOwn(merged, category)) await rm(join(outDir, 'data', gameVersion, `${category}.json`), { force: true });
   for (const category of Object.keys(merged).sort(compare))
     await writeCanonicalFile(join(outDir, 'data', gameVersion, `${category}.json`), merged[category]);
 }

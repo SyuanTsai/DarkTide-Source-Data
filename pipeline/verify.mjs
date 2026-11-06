@@ -10,7 +10,7 @@ function parse(args) {
   const seen = new Set();
   for (let i = 0; i < args.length; i += 2) {
     const flag = args[i], name = names[flag.slice(2)];
-    if (!flag.startsWith('--') || !name) throw new InputError(`未知參數：${flag}`);
+    if (!flag.startsWith('--') || !Object.hasOwn(names, flag.slice(2))) throw new InputError(`未知參數：${flag}`);
     if (seen.has(name)) throw new InputError(`參數重複：${flag}`);
     if (!args[i + 1] || args[i + 1].startsWith('--')) throw new InputError(`參數缺少值：${flag}`);
     seen.add(name); options[name] = args[i + 1];

@@ -74,6 +74,12 @@ export async function runVerify(inputOptions) {
         row.failures.push(...text.failures); row.notes.push(...text.notes);
         decide(row, entry.previous); report.items.push(row);
       }
+      for (const item of entry.extract.items) {
+        if (entry.candidate.items.some((candidate) => candidate?.id === item?.id)) continue;
+        const row = { id: item.id, category, decision: 'pass', failures: [failure('values', 'V_NOT_DESCRIBED',
+          '/explanation', '候選資料缺少此項目，尚未完成說明')], notes: [] };
+        decide(row, entry.previous); report.items.push(row);
+      }
     }
     const output = verifyMerged(loaded, report.categories, report.items);
     merged = output.merged;

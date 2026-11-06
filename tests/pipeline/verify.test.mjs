@@ -72,6 +72,60 @@ const args = (f) => [cli, '--root', f.root, '--candidate-dir', f.dirs.candidate,
   '--previous-dir', f.dirs.previous, '--version-info', f.options.versionInfo, '--translation', f.options.translation,
   '--issues', 'dry-run', '--mods-commit', 'c'.repeat(40), '--out-dir', f.dirs.out];
 
+// Scenario: an extracted item is missing from the candidate, with and without previous data or state. Purpose: keep reports, output and state consistent.
+test('InterT11_未說明項目依上一版保留或排除', async (t) => {
+  for (const mode of ['previous', 'new', 'state']) {
+    const f = await fixture(t), item = f.data.skills.items.shift(), id = item.id;
+    if (mode === 'new') f.previous.skills.items.shift();
+    let state;
+    if (mode === 'state') {
+      state = join(f.root, 'state.json');
+      let s = stateApi.startRun(stateApi.emptyState(), meta);
+      s = stateApi.registerItem(s, id, { category: 'skills', change: 'changed', inputHash: '0'.repeat(64) });
+      await stateApi.writeState(state, s);
+    }
+    const r = await f.run(state ? { state } : {}), row = failures(r, 'V_NOT_DESCRIBED').find((x) => x.id === id);
+    assert.equal(row?.decision, mode === 'new' ? 'excluded' : 'kept-previous');
+    assert.deepEqual(row.failures[0], { gate: 'values', code: 'V_NOT_DESCRIBED', path: '/explanation', message: '候選資料缺少此項目，尚未完成說明' });
+    assert.equal(r.report.result, 'degraded');
+    assert.deepEqual(r.merged.skills.items.find((x) => x.id === id), mode === 'new' ? undefined : f.previous.skills.items.find((x) => x.id === id));
+    if (mode !== 'new') assert.ok(r.report.gates.output.knownExceptions.some((x) => x.id === id));
+    if (state) {
+      const saved = await stateApi.readState(state);
+      assert.equal(saved.run.items[id].outcome, 'kept-previous');
+      assert.match(saved.run.items[id].reason, /V_NOT_DESCRIBED/);
+    }
+  }
+});
+
+// Scenario: a category disappears on a second run in the same output directory. Purpose: remove only its stale fixed-name file.
+test('InterT12_重用輸出目錄移除過期類別檔', async (t) => {
+  const f = await fixture(t); await f.run();
+  const dir = join(f.dirs.out, 'data', meta.gameVersion);
+  await writeFile(join(dir, 'keep.txt'), 'keep');
+  f.extracts.skills.status = 'structure-mismatch';
+  await f.run({ previousDir: 'none' });
+  await assert.rejects(readFile(join(dir, 'skills.json')), { code: 'ENOENT' });
+  for (const c of ['weapons', 'blessings', 'terms']) assert.ok(await readFile(join(dir, `${c}.json`)));
+  assert.equal(await readFile(join(dir, 'keep.txt'), 'utf8'), 'keep');
+});
+
+// Scenario: inherited object property names are passed as CLI flags. Purpose: reject every unknown flag.
+test('InterT13_CLI 拒絕繼承屬性參數', async (t) => {
+  const f = await fixture(t);
+  for (const flag of ['--constructor', '--toString', '--__proto__'])
+    assert.equal(spawnSync(process.execPath, [...args(f), flag, 'x'], { encoding: 'utf8' }).status, 2);
+});
+
+// Scenario: hyphens separate ranges or precede signed values. Purpose: distinguish range endpoints from direction.
+test('UnitT14_範圍連字號與正負號', () => {
+  assert.deepEqual(checkNumbers({ params: { a: { value: 3 }, b: { value: 5 } } }, '3-5 秒').failures, []);
+  assert.deepEqual(checkNumbers({ params: { a: { value: 0.1 }, b: { value: 0.2 } } }, '10%-20%').failures, []);
+  assert.equal(extractNumbers('造成 -25% 傷害')[0].value, -25);
+  assert.deepEqual(extractNumbers('3 - 5、10% −20%').map((x) => x.value), [3, 5, 10, 20]);
+  assert.equal(checkNumbers({ params: { a: { value: -0.25 } } }, '+25%').failures[0].code, 'T_DIRECTION');
+});
+
 // Scenario: four valid categories include unknown parameters. Purpose: protect pass, canonical output and determinism.
 test('InterT10_合法候選與 unknown 通過且輸出可重現', async (t) => {
   const f = await fixture(t), a = await f.run(), b = await f.run();
@@ -333,14 +387,14 @@ test('InterT76_錯誤欄位型別與參數陣列降級', async (t) => {
   assert.match(row.failures.find((e) => e.code === 'V_UNKNOWN_REGRESSION').message, /\[1,2\]/);
 });
 
-// Scenario: omitted candidate/extract files and empty candidates occur. Purpose: protect fallback and informational anomalies.
-test('InterT78_缺檔與數量異常不誤判項目', async (t) => {
+// Scenario: omitted files and candidate items occur. Purpose: protect fallback, missing-item failures and informational anomalies.
+test('InterT78_缺檔與數量異常正確降級', async (t) => {
   const f = await fixture(t);
   f.data.skills.items = []; f.data.weapons.items.pop();
   f.data.terms.items[0].values.params.extra = { value: null, unknown: 'DYNAMIC_VALUE' };
   f.extracts.terms.items[0].values.params.extra = { value: null, unknown: 'DYNAMIC_VALUE' };
   let r = await f.run();
-  assert.equal(r.report.result, 'pass');
+  assert.equal(r.report.result, 'degraded');
   assert.ok(r.report.categories.skills.anomalies.some((a) => a.code === 'EMPTY_CATEGORY'));
   assert.ok(r.report.categories.weapons.anomalies.some((a) => a.code === 'COUNT_CHANGED'));
   assert.ok(r.report.categories.weapons.anomalies.some((a) => a.code === 'NOT_DESCRIBED'));

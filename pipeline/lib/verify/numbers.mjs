@@ -7,8 +7,9 @@ export function extractNumbers(text) {
   const normalized = normalizeNumbers(typeof text === 'string' ? text : '');
   const result = [];
   for (const match of normalized.matchAll(/[+\-−]?\d+(?:\.\d+)?/g)) {
-    const raw = match[0], value = Number(raw.replace('−', '-'));
-    const before = normalized.slice(0, match.index), after = normalized.slice(match.index + raw.length);
+    const before = normalized.slice(0, match.index), after = normalized.slice(match.index + match[0].length);
+    const raw = /^[+\-−]/.test(match[0]) && /[\d%]\s*$/.test(before) ? match[0].slice(1) : match[0];
+    const value = Number(raw.replace('−', '-'));
     if (/^[1-4]$/.test(raw) && (/(?:LV|Lv|第)\s*$/.test(before) || /^\s*階/.test(after))) continue;
     result.push({ value, raw, signed: /^[+\-−]/.test(raw), decimals: raw.split('.')[1]?.length ?? 0 });
   }
