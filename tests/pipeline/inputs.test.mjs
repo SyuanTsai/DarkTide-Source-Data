@@ -38,7 +38,7 @@ test('resolves commit version, maximum numeric batch, pinned blobs and validates
   assert.equal(reader.read(file),original);assert.equal(reader.exists(file),true);
   assert.deepEqual(reader.list('scripts/test/'),[file]);assert.throws(() => reader.read('missing'),StructureError);
   for (const p of ['../a','/a','C:/a','a\\b','a/../b']) assert.throws(() => reader.exists(p));
-  assert.ok(workDir({root:f.dir,gameVersion:'1.2.3'}).endsWith('.pipeline-work\\1.2.3'));
+  assert.ok(workDir({root:f.dir,gameVersion:'1.2.3'}).endsWith(path.join('.pipeline-work','1.2.3')));
   assert.equal(workDir({override:f.work}),f.work);
   commit(f.source,'wrong subject');assert.throws(() => resolveSourceCode({repo:f.source}),StructureError);
 });
