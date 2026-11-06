@@ -1,0 +1,241 @@
+import { tokenizeLua } from './lua-static-reader.mjs';
+
+// A deliberately bounded Lua expression reader. It builds data, never runs Lua.
+// Unsupported operators/calls remain nodes and cannot become numeric values.
+const precedence = {or:1,and:2,'==':3,'~=':3,'<':3,'>':3,'<=':3,'>=':3,'..':4,'+':5,'-':5,'*':6,'/':6,'%':6,'^':7};
+export class SkillLua {
+  constructor(source, file, env = new Map()) {
+    this.source=source; this.file=file; this.env=env; this.tokens=tokenizeLua(source); this.i=0;
+    this.assignments=[]; this.calls=[];
+  }
+  peek(n=0) { return this.tokens[this.i+n] ?? this.tokens.at(-1); }
+  take() { return this.tokens[this.i++]; }
+  match(v) { if(!['string','number'].includes(this.peek().type) && this.peek().value===v) {this.take();return true;} return false; }
+  expect(v) { if(!this.match(v)) throw new Error(`${this.file}:${this.peek().line}: expected ${v}`); }
+  node(type, data, start) { return {type,...data,file:this.file,line:start.line,raw:this.source.slice(start.start,this.tokens[this.i-1]?.end)}; }
+  block() {
+    const start=this.take(), stack=[{close:start.value==='repeat'?'until':'end',awaitDo:['for','while'].includes(start.value)}];
+    while(stack.length && this.peek().type!=='eof') {
+      const t=this.take();
+      if(t.type!=='keyword') continue;
+      if(['function','if','for','while'].includes(t.value)) stack.push({close:'end',awaitDo:['for','while'].includes(t.value)});
+      else if(t.value==='repeat') stack.push({close:'until'});
+      else if(t.value==='do') {
+        if(stack.at(-1)?.awaitDo) stack.at(-1).awaitDo=false;
+        else stack.push({close:'end'});
+      }
+      else if(t.value===stack.at(-1)?.close) stack.pop();
+    }
+    return this.node('function',{},start);
+  }
+  expression(min=0) {
+    const start=this.peek(); let n;
+    if(this.match('-') || this.match('#') || this.match('not')) n=this.node('unary',{op:start.value,arg:this.expression(8)},start);
+    else if(this.match('(')) {n=this.expression();this.expect(')');}
+    else if(start.type==='keyword' && start.value==='function') n=this.block();
+    else if(this.match('{')) {
+      const entries=[];let index=0;
+      while(this.peek().type!=='eof' && !this.match('}')) {
+        let key;
+        if(this.match('[')) {key=this.expression();this.expect(']');this.expect('=');}
+        else if(this.peek().type==='identifier' && this.peek(1).value==='=') {key=this.node('literal',{value:this.take().value},this.tokens[this.i-1]);this.take();}
+        else key={type:'literal',value:++index,file:this.file,line:this.peek().line};
+        entries.push({key,value:this.expression()});
+        if(!this.match(',') && !this.match(';') && this.peek().value!=='}') throw new Error(`${this.file}:${this.peek().line}: table separator`);
+      }
+      n=this.node('table',{entries},start);
+    } else if(['string','number'].includes(start.type)) {this.take();n=this.node('literal',{value:start.value},start);}
+    else if(['true','false','nil'].includes(start.value)) {this.take();n=this.node('literal',{value:start.value==='nil'?null:start.value==='true'},start);}
+    else {this.take();n=this.node('reference',{name:start.value,binding:this.env.get(start.value)},start);}
+    while(true) {
+      if(this.match('.')) {const key=this.take();n=this.node('index',{base:n,key:{type:'literal',value:key.value,file:this.file,line:key.line}},start);}
+      else if(this.match('[')) {const key=this.expression();this.expect(']');n=this.node('index',{base:n,key},start);}
+      else if(this.match('(')) {const args=[];if(this.peek().value!==')') {do {args.push(this.expression());} while(this.match(','));}this.expect(')');n=this.node('call',{callee:n,args},start);}
+      else if(this.peek().type==='string' || this.peek().value==='{') {n=this.node('call',{callee:n,args:[this.expression(8)]},start);}
+      else break;
+    }
+    while((precedence[this.peek().value] ?? -1)>=min) {const op=this.take().value; n=this.node('binary',{op,left:n,right:this.expression(precedence[op]+1)},start);}
+    return n;
+  }
+  chunk(set) {
+    let returned;
+    while(this.peek().type!=='eof') {
+      const before=this.i;
+      if(this.match(';')) continue;
+      if(['function','if','for','while','repeat','do'].includes(this.peek().value)) {this.block();continue;}
+      if(this.match('return')) {returned=this.expression();break;}
+      const local=this.match('local');
+      if(local && this.peek().value==='function') {this.block();continue;}
+      const target=this.expression();
+      if(this.match('=')) {
+        const value=this.expression();
+        if(target.type==='reference') this.env.set(target.name,value);
+        else set(target,value);
+        this.assignments.push({target,value});
+      } else if(target.type==='call') this.calls.push(target);
+      // Consume multi-local declarations safely (their values are not static).
+      if(this.peek().value===',') while(this.peek().type!=='eof' && this.peek().line===this.tokens[this.i-1].line) this.take();
+      if(this.i<=before) this.take();
+    }
+    return {returned,env:this.env,assignments:this.assignments,calls:this.calls};
+  }
+}
+
+export function callName(n) {
+  if(n?.type==='reference') return n.name;
+  if(n?.type==='index' && n.key.type==='literal') return `${callName(n.base)}.${n.key.value}`;
+  return '';
+}
+
+export function createSkillResolver(reader) {
+  const chunks=new Map(), active=new Set(), compositions=new Map();
+  const unknown=(n,reason) => ({...n,type:'unknown',reason});
+  const literal=(value,n) => ({type:'literal',value,file:n.file,line:n.line});
+  function load(file) {
+    if(chunks.has(file)) return chunks.get(file);
+    if(!reader.exists(file)) return {};
+    const pending={}; chunks.set(file,pending);
+    const parser=new SkillLua(reader.read(file),file);
+    Object.assign(pending,parser.chunk((target,value) => {
+      const base=resolve(target.base),key=scalar(target.key);
+      if(base?.type==='table' && key!==undefined) base.entries.push({key:literal(key,target),value});
+    }));
+    // Recognized data-only registry includes. No function bodies are evaluated.
+    for(const c of pending.calls) {
+      const name=callName(c.callee);
+      if(['table.merge','table.add_missing','table.append'].includes(name)) mergeCall(c);
+      const includeTarget=name==='_create_entry'?'templates':
+        file==='scripts/settings/damage/explosion_templates.lua' && name==='_add_template_entries'?'explosion_templates':
+        file==='scripts/settings/projectile/projectile_templates.lua' && name==='_require_templates'?'projectile_templates':null;
+      if(includeTarget && c.args[0]?.type==='literal' && typeof c.args[0].value==='string') {
+        const target=resolve(pending.env.get(includeTarget)),source=returned(c.args[0].value+'.lua');
+        merge(target,source);
+      }
+    }
+    if(file==='scripts/settings/ability/player_abilities/player_abilities.lua') {
+      const target=resolve(pending.env.get('player_abilities'));
+      for(const p of reader.list('scripts/settings/ability/player_abilities/abilities/').filter(p=>p.endsWith('_abilities.lua'))) merge(target,returned(p));
+      pending.returned=target;
+    }
+    if(file==='scripts/settings/ability/ability_templates/ability_templates.lua') {
+      const target=resolve(pending.env.get('ability_templates'));
+      const abilities=returned('scripts/settings/ability/player_abilities/player_abilities.lua');
+      for(const [,ability] of entries(abilities)) {
+        const name=scalar(get(ability,'ability_template'));
+        if(typeof name!=='string' || !/^[a-z0-9_]+$/.test(name)) continue;
+        const template=returned(`scripts/settings/ability/ability_templates/${name}.lua`);
+        if(target?.type==='table' && template) target.entries.push({key:literal(name,template),value:template});
+      }
+      pending.returned=target;
+    }
+    return pending;
+  }
+  function merge(target,source,missing=false,append=false) {
+    if(target?.type!=='table' || source?.type!=='table') return;
+    const entries=[...source.entries];
+    for(const e of entries) {
+      const key=scalar(e.key);
+      if(missing && field(target,key)) continue;
+      target.entries.push(append?{...e,key:literal(target.entries.length+1,e.key)}:e);
+    }
+  }
+  function mergeCall(n) {
+    if(compositions.has(n)) return compositions.get(n);
+    const name=callName(n.callee), target=resolve(n.args[0]);
+    for(const arg of n.args.slice(1)) merge(target,resolve(arg),name==='table.add_missing',name==='table.append');
+    compositions.set(n,target);
+    return target;
+  }
+  function returned(file) {const c=load(file);return resolve(c.returned);}
+  function resolve(n,trace) {
+    if(!n) return undefined;
+    if(active.has(n)) return unknown(n,'循環參照');
+    active.add(n);
+    try {
+      if(trace && n.file) trace.push({path:n.file,line:n.line});
+      if(n.type==='reference') return n.binding?resolve(n.binding,trace):unknown(n,`未解析參照 ${n.name}`);
+      if(n.type==='index') {
+        const base=resolve(n.base,trace),key=scalar(n.key,trace);
+        return resolve(field(base,key),trace) ?? unknown(n,`未解析索引 ${String(key)}`);
+      }
+      if(n.type==='call') {
+        const name=callName(n.callee);
+        if(name==='require' && typeof scalar(n.args[0])==='string') return resolve(returned(scalar(n.args[0]).replace(/\.lua$/,'')+'.lua'),trace);
+        if(name==='settings') return resolve(n.args[1],trace);
+        if(['table.enum','table.keys','unpack','table.unpack'].includes(name)) {
+          if(compositions.has(n)) return compositions.get(n);
+          let values;
+          if(name==='table.keys') {
+            const table=resolve(n.args[0],trace);
+            if(table?.type!=='table') return unknown(n,'table.keys 非靜態 table');
+            values=[...new Map(table.entries.map(e=>[scalar(e.key,trace),e.key])).values()];
+          } else if(name==='unpack' || name==='table.unpack') {
+            const table=resolve(n.args[0],trace);
+            if(table?.type!=='table') return unknown(n,'unpack 非靜態 table');
+            values=table.entries.map(e=>e.value);
+          } else {
+            values=[];
+            for(const arg of n.args) {
+              const value=resolve(arg,trace);
+              if(value?.type==='spread') values.push(...value.values);
+              else values.push(value);
+            }
+          }
+          const result=name==='unpack' || name==='table.unpack'?{...n,type:'spread',values}:
+            {...n,type:'table',entries:values.map((v,i)=>({key:name==='table.enum'?v:literal(i+1,n),value:v}))};
+          compositions.set(n,result);return result;
+        }
+        if(name==='table.clone') {
+          if(compositions.has(n)) return compositions.get(n);
+          const value=resolve(n.args[0],trace);
+          if(value?.type!=='table') return unknown(n,'clone 非靜態 table');
+          const clone={...value,entries:[...value.entries]};compositions.set(n,clone);return clone;
+        }
+        if(['table.merge','table.add_missing','table.append'].includes(name)) return mergeCall(n);
+        if(/^math\.(abs|floor|ceil|round)$/.test(name)) {
+          const v=scalar(n.args[0],trace); if(typeof v==='number') return literal(math(name.slice(5),v),n);
+        }
+        return unknown(n,`函式 ${name}`);
+      }
+      if(n.type==='unary') {const v=scalar(n.arg,trace);return n.op==='-' && typeof v==='number'?literal(-v,n):unknown(n,'非靜態 unary');}
+      if(n.type==='binary') {
+        const a=scalar(n.left,trace),b=scalar(n.right,trace);
+        if(typeof a==='number' && typeof b==='number' && ['+','-','*','/'].includes(n.op)) {
+          const v=n.op==='+'?a+b:n.op==='-'?a-b:n.op==='*'?a*b:a/b;
+          return Number.isFinite(v)?literal(v,n):unknown(n,'非有限數值');
+        }
+        return unknown(n,`不支援運算 ${n.op}`);
+      }
+      return n;
+    } finally {active.delete(n);}
+  }
+  function scalar(n,trace) {const v=resolve(n,trace);return v?.type==='literal'?v.value:undefined;}
+  function field(table,key) {
+    if(table?.type!=='table' || key===undefined) return undefined;
+    for(let i=table.entries.length-1;i>=0;i--) if(scalar(table.entries[i].key)===key) return table.entries[i].value;
+  }
+  function get(n,key,trace) {return resolve(field(resolve(n,trace),key),trace);}
+  function entries(n) {const t=resolve(n);if(t?.type!=='table') return [];const map=new Map();for(const e of t.entries) {const k=scalar(e.key);if(k!==undefined) map.set(k,e.value);}return [...map];}
+  return {load,returned,resolve,scalar,field,get,entries,literal};
+}
+function math(name,value) {return name==='round'?(value<0?-Math.floor(-value+0.5):Math.floor(value+0.5)):Math[name](value);}
+
+/** Only a single return of whitelisted arithmetic is accepted; no eval/Function. */
+export function manipulate(node,value) {
+  if(node?.type!=='function') return undefined;
+  const match=/^function\s*\(\s*([a-zA-Z_]\w*)\s*\)\s*return\s+([\s\S]*?)\s*end$/.exec(node.raw);
+  if(!match) return undefined;
+  const env=new Map([[match[1],{type:'literal',value}]]),p=new SkillLua(match[2],node.file,env);
+  let ast;try {ast=p.expression();} catch {return undefined;}
+  if(p.peek().type!=='eof') return undefined;
+  function calc(n) {
+    if(n.type==='literal') return typeof n.value==='number'?n.value:undefined;
+    if(n.type==='reference') return n.name===match[1]?value:undefined;
+    if(n.type==='unary' && n.op==='-') return -calc(n.arg);
+    if(n.type==='binary' && ['+','-','*','/'].includes(n.op)) {const a=calc(n.left),b=calc(n.right);return n.op==='+'?a+b:n.op==='-'?a-b:n.op==='*'?a*b:a/b;}
+    const name=callName(n.callee);
+    if(n.type==='call' && /^math\.(abs|floor|ceil|round)$/.test(name) && n.args.length===1) return math(name.slice(5),calc(n.args[0]));
+    return undefined;
+  }
+  const result=calc(ast);return Number.isFinite(result)?result:undefined;
+}
