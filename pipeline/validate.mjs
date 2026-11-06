@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { resolve, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkCurrent, checkVersionDir } from './lib/data-files.mjs';
 import { readState } from './lib/state.mjs';
@@ -13,7 +13,7 @@ let failed = false;
 const report = (file, errors) => {
   for (const e of errors) {
     failed = true;
-    console.error(`${file}: ${e.path} ${e.message}`);
+    console.error(`${relative(root, file).split(sep).join('/')}: ${e.path} ${e.message}`);
   }
 };
 const data = join(root, 'data'),
@@ -30,13 +30,16 @@ if (existsSync(current)) {
   } catch {}
   for (const version of versions) {
     const dir = join(data, version);
-    report(dir, checkVersionDir(dir).errors);
+    for (const error of checkVersionDir(dir).errors) {
+      const [, file, ...pointer] = error.path.split('/');
+      report(join(dir, file), [{ ...error, path: pointer.length ? `/${pointer.join('/')}` : '' }]);
+    }
   }
 } else console.log('data/current.json 不存在：尚無正式版本');
 if (existsSync(data))
   for (const e of readdirSync(data, { withFileTypes: true }))
     if (e.isDirectory() && /^[0-9]+(\.[0-9]+){1,3}$/.test(e.name) && !versions.includes(e.name))
-      report(data, [{ path: `/${e.name}`, message: 'Version directory not listed' }]);
+      report(current, [{ path: '/versions', message: `Version directory ${e.name} not listed` }]);
 const state = join(root, 'pipeline', 'state.json');
 try {
   await readState(state);

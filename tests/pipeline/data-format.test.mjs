@@ -185,5 +185,36 @@ test('InterT10_multiple state errors each include the file', (t) => {
   assert.equal(result.status, 1);
   const lines = result.stderr.trim().split(/\r?\n/);
   assert.ok(lines.length >= 2);
-  assert.ok(lines.every((line) => line.startsWith(`${join(root, 'pipeline', 'state.json')}: `)));
+  assert.ok(lines.every((line) => line.startsWith('pipeline/state.json: ')));
+});
+
+// Scenario: an invalid skill field is validated via the CLI. Purpose: report its file and internal pointer.
+test('InterT20_invalid skill reports its file and pointer', (t) => {
+  const root = mkdtempSync(join(tmpdir(), 'data-cli-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  mkdirSync(join(root, 'data'));
+  cpSync(`${base}/0.0.0-example`, join(root, 'data', '0.0.0'), { recursive: true });
+  cpSync(`${base}/current.json`, join(root, 'data', 'current.json'));
+  const skill = file('skills');
+  skill.items[0].explanation.effect = '';
+  writeFileSync(join(root, 'data', '0.0.0', 'skills.json'), stringifyCanonical(skill));
+  const result = spawnSync(process.execPath, ['pipeline/validate.mjs', '--root', root], { encoding: 'utf8' });
+  assert.equal(result.status, 1);
+  assert.ok(result.stderr.split(/\r?\n/).some((line) => line.startsWith('data/0.0.0/skills.json: /items/0/explanation/effect ')));
+});
+
+// Scenario: one category has a different source commit. Purpose: identify the disagreeing file.
+test('InterT30_inconsistent source commit identifies the file', (t) => {
+  const root = mkdtempSync(join(tmpdir(), 'data-cli-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  mkdirSync(join(root, 'data'));
+  cpSync(`${base}/0.0.0-example`, join(root, 'data', '0.0.0'), { recursive: true });
+  cpSync(`${base}/current.json`, join(root, 'data', 'current.json'));
+  const weapon = file('weapons');
+  weapon.sourceCommit = '1'.repeat(40);
+  weapon.items[0].source.commit = weapon.sourceCommit;
+  writeFileSync(join(root, 'data', '0.0.0', 'weapons.json'), stringifyCanonical(weapon));
+  const result = spawnSync(process.execPath, ['pipeline/validate.mjs', '--root', root], { encoding: 'utf8' });
+  assert.equal(result.status, 1);
+  assert.ok(result.stderr.split(/\r?\n/).some((line) => line === 'data/0.0.0/weapons.json: /sourceCommit Files disagree'));
 });
