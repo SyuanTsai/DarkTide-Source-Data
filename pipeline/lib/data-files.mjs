@@ -64,6 +64,42 @@ export function checkDataFile(category, text) {
         last = t?.tier;
       });
     }
+    if (category === 'weapons' && value.schemaVersion === '1.1.0') {
+      const curves = x.values?.curves, combos = x.values?.attackCombos;
+      if (Array.isArray(curves)) {
+        const ids = new Set(), expected = new Set();
+        for (const bar of Array.isArray(x.values?.bars) ? x.values.bars : []) for (const stat of Array.isArray(bar?.stats) ? bar.stats : []) {
+          if (!stat || typeof stat !== 'object') continue;
+          const id = `${bar.id}.${stat.key}`; expected.add(id);
+          const matches = curves.filter(c => c?.id === stat.curveId);
+          if (stat.curveId !== id || matches.length !== 1 || matches[0]?.bar !== bar.id || matches[0]?.stat !== stat.key)
+            add(`${p}/values/curves`, 'Every stat must have exactly one matching curve');
+        }
+        curves.forEach((curve, j) => {
+          const cp = `${p}/values/curves/${j}`;
+          if (!curve || typeof curve !== 'object') return;
+          if (ids.has(curve.id) || !expected.has(curve.id)) add(`${cp}/id`, 'Curve IDs must uniquely match stats');
+          ids.add(curve.id);
+          if (curve.knots?.[0]?.input !== 0 || curve.knots?.[1]?.input !== 1)
+            add(`${cp}/knots`, 'Knots must be ordered endpoints 0 and 1');
+          const outputs = Array.isArray(curve.knots) ? curve.knots.map(k => k?.output) : [];
+          if (curve.interpolation === 'unknown' && outputs.some(v => v !== null))
+            add(`${cp}/knots`, 'Unknown interpolation must have null outputs');
+          if (outputs.some(Array.isArray) && (!outputs.every(Array.isArray) || outputs[0].length !== outputs[1]?.length))
+            add(`${cp}/knots`, 'Array endpoints must have equal lengths');
+        });
+      }
+      if (Array.isArray(combos)) {
+        const ids = new Set();
+        combos.forEach((combo, j) => {
+          if (!combo || typeof combo !== 'object') return;
+          if (ids.has(combo.id) || combo.id !== combo.kind) add(`${p}/values/attackCombos/${j}/id`, 'Combo IDs must be unique kinds');
+          ids.add(combo.id);
+          if (combo.loopsTo !== null && (!Number.isInteger(combo.loopsTo) || combo.loopsTo < 0 || combo.loopsTo >= (combo.steps?.length ?? 0)))
+            add(`${p}/values/attackCombos/${j}/loopsTo`, 'Loop must refer to an existing step');
+        });
+      }
+    }
   });
   return result(errors);
 }
@@ -123,7 +159,7 @@ export function checkVersionDir(dir) {
         path: `/${category}.json/gameVersion`,
         message: 'Version does not match directory',
       });
-    for (const key of ['gameVersion', 'sourceCommit', 'textBatch'])
+    for (const key of ['schemaVersion', 'gameVersion', 'sourceCommit', 'textBatch'])
       if (values[0]?.value?.[key] !== value?.[key])
         errors.push({ path: `/${category}.json/${key}`, message: 'Files disagree' });
   }

@@ -4,6 +4,7 @@ import {mkdtempSync,rmSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {cli} from './helpers.mjs';
+import {validateExtractItems} from '../../pipeline/lib/extract-output.mjs';
 
 // Scenario: fixed real source and text batch are extracted twice.
 // Purpose: verify inventory, numeric coverage, official names and byte stability.
@@ -17,6 +18,7 @@ test('InterT90_real weapon smoke',{skip:process.env.PIPELINE_REAL_SMOKE!=='1'},t
  run('extract-weapons.mjs',args);
  const file=path.join(dir,'extract/weapons.json'),first=readFileSync(file),data=JSON.parse(first);
  assert.equal(data.status,'ok');
+ assert.deepEqual(validateExtractItems('weapons',data.items,data),[]);
  assert.equal(data.items.length,137);
  assert.ok(data.items.filter(x=>x.values.bars.length).length>=124);
  assert.ok(data.items.filter(x=>x.name.origin==='official').length>=120);
@@ -39,6 +41,21 @@ test('InterT90_real weapon smoke',{skip:process.env.PIPELINE_REAL_SMOKE!=='1'},t
   }
  }
  assert.ok(counts.stats>0,'真實資料必須解析出數值 stats');
+ const summary={weapons:data.items.length,curves:0,curveUnknown:0,curveReasons:{},combos:0,comboUnknown:0,comboReasons:{},damageProfileUnknown:0,melee:0,light:0,heavy:0};
+ for(const item of data.items){
+  const v=item.values;
+  summary.curves+=v.curves.length;summary.combos+=v.attackCombos.length;
+  for(const curve of v.curves)if(curve.unknown){summary.curveUnknown++;summary.curveReasons[curve.unknown]=(summary.curveReasons[curve.unknown]??0)+1;}
+  for(const combo of v.attackCombos){if(combo.unknown){summary.comboUnknown++;summary.comboReasons[combo.unknown]=(summary.comboReasons[combo.unknown]??0)+1;}summary.damageProfileUnknown+=combo.steps.filter(s=>s.damageProfileUnknown).length;}
+  for(const bar of v.bars)for(const stat of bar.stats)assert.equal(v.curves.filter(c=>c.id===stat.curveId&&c.bar===bar.id&&c.stat===stat.key).length,1);
+  assert.equal(v.curves.length,v.bars.reduce((n,b)=>n+b.stats.length,0));
+  if(v.params.keywords?.value.includes('melee')){summary.melee++;for(const kind of ['light','heavy'])if(v.attackCombos.some(c=>c.kind===kind&&c.steps.length))summary[kind]++;}
+ }
+ t.diagnostic('SYP-394 '+JSON.stringify(summary));
+ for(const item of data.items.filter(i=>['combatknife_p1_m1','combatsword_p1_m1'].includes(i.key)))t.diagnostic(JSON.stringify({weapon:item.key,combos:item.values.attackCombos.map(c=>({kind:c.kind,start:c.start,steps:c.steps.map(s=>({action:s.action,input:s.input,profile:s.damageProfile,unknown:s.damageProfileUnknown})),loopsTo:c.loopsTo,unknown:c.unknown})),curves:item.values.curves.filter(c=>c.interpolation==='linear').slice(0,1)}));
+ assert.ok(summary.melee>0);
+ assert.ok(summary.light/summary.melee>=0.7,'大多數近戰必須有輕擊 steps');
+ assert.ok(summary.heavy/summary.melee>=0.7,'大多數近戰必須有重擊 steps');
  t.diagnostic(JSON.stringify(counts));
  const samples={};
  for(const p of data.problems.filter(x=>x.code==='UNRESOLVED_STAT'))if((samples[p.reason]??=[]).length<3)samples[p.reason].push({id:p.id,key:p.key});

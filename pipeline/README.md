@@ -86,4 +86,22 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 ### 武器取數
 
+#### schema 1.1.0：曲線與連段
+
+四類 extractor 的資料檔一律寫 `schemaVersion: "1.1.0"`，同次發布四檔必須一致。驗證器仍接受 1.0.0：該版禁止 `values.curves`、`values.attackCombos` 與 `bars[].stats[].curveId`；1.1.0 三者必填。`schema/examples/1.1.0-example/` 提供新版範例，原 1.0.0 範例保留。current 索引 schema 同樣接受 1.0.0／1.1.0，保留舊索引相容；`state.json` 與 text 中間檔有獨立契約，維持 1.0.0。
+
+`values.curves[]` 與實際輸出的 bar stat 一一對應，id 為 `<barId>.<statKey>`、依 id 排序。輸入是 `base_stat_value`、ratio 0～1，knots 僅含 0／1，直接重用 WP2 min／max，不再解析一次端點。線性曲線可在端點間內插；陣列沿用 WP2 拆成 `.1`、`.2` 等純量 stat。source 指向 lerp_basic 所在檔案／行（常數則指該數值）。未證實單位時 outputUnit 為 null。
+
+無法證實線性的曲線以 `interpolation: "unknown"`、兩個 output 都為 null 並記原因；原有 stat min／max 保留。`LERP_T_OUT_OF_RANGE` 表示單筆 tweak 權重超出 [0,1]；`NONLINEAR_COMBINATION` 表示多筆累積在區間內發生 clamp，無法以兩端點重建；未觸發 clamp 的逐筆線性相加保持 linear；damage profile 的 `damageLerpValue` 路徑保守標 `NONLINEAR_LERP`。曲線仍沿用 WP2「相關 bar 同時變動」語意，不足以重建各 bar 獨立變動的完整傷害公式，缺口見 [公式盤點](../docs/pipeline/weapon-damage-formula-gaps.md)。未解析而進 params 的 stat 不建立曲線。
+
+`values.attackCombos[]` 依 light、heavy 輸入追蹤 action 圖。起點採 `start_input = start_attack`，沒有時才使用有 light/heavy 邊的其他明確 start_input。多起點時 steps 為空、unknown 為 `CHAIN_START_AMBIGUOUS`；受 start 必須為字串的結構限制，start/source 指向來源順序第一個候選，不能視為已確認的唯一入口。連段從已進入 start action 的狀態開始；後續轉入 action（含返回 start）才檢查 action condition。windup 不列入 steps，沿 `start_attack` 推進；只有 kind 可靜態確認的 sweep 或具有靜態 damage profile 的傷害 action 列入。`loopsTo` 是 steps 的零起算索引；無循環為 null。純遠程無此結構則為空陣列。時間不影響順序，未使用時間選分支。原始碼語意依 `scripts/settings/equipment/weapon_templates/default_melee_action_input_setup.lua`、`melee_action_input_setup_mid.lua` 與 `scripts/utilities/action/action_handler.lua` 的 `_valid_action_from_action_input`、`_validate_single_chain_action` 核對；`_anim_end_event` 的 callback 僅控制動畫收尾，不是連段條件。
+
+step 的 profile 綁定重用 WP2 require/catalog 邏輯，唯一靜態 profile 才填值，否則 `damageProfile: null` 及 `DAMAGE_PROFILE_BINDING_NOT_FOUND`。displayed_attacks 必須能以明確 action_name 對應 display_name 才填名稱；群組 gestalt 名稱不推定為每個 action 的名稱。
+
+連段原因碼：`CONDITIONAL_CHAIN`（chain validation／action condition／running action state requirement）、`CHAIN_TARGET_NOT_FOUND`（缺目標）、`CHAIN_START_AMBIGUOUS`（多起點）、`CHAIN_CYCLE_WITHOUT_ATTACK`（無攻擊循環）、`DYNAMIC_VALUE`（函式／動態邊或 kind），另保留既有 `REFERENCE_NOT_FOUND`。遇不確定分支保留已證實的 steps 前綴。`CURVE_UNKNOWN`、`COMBO_UNKNOWN` problems 均帶 reason，可直接彙總；profile unknown 由 steps 的 `damageProfileUnknown` 統計。
+
+`PIPELINE_REAL_SMOKE=1 node --test tests/pipeline/extract-weapons.real.test.mjs` 驗證 schema、curve 一一對應、近戰輕重擊覆蓋及兩次 byte 相同，並只印彙總及少量抽樣。
+
+固定來源 `ba6c148`／文字批次 `25606770` 的基準為 137 把武器、25,372 條曲線、146 組連段；73 把近戰中，light／heavy 各 55 把有至少一個已確認攻擊 step（75.34%，包含帶 unknown 的已確認前綴）。real smoke 的兩種連段覆蓋門檻均設為 70%，保留條件分支的保守 unknown，不以空 steps 充作覆蓋。
+
 `extract-weapons.mjs` 讀取玩家武器模板、官方文字與靜態 trait 列，先建立整把武器的貢獻表；min／max 為所有相關屬性條同時 0%／100% 時的遊戲實際值；同一路徑多條會累加後 clamp 到 0～1，再對實際基礎模板內插，固定數字列也參與累加。保留固定值與陣列的各元素。`lib/weapon-stats.mjs` 處理 registry、require、movement state 繼承及 damage profile parent/overrides；damage key 包含實際 profile／override 名稱；profile 專屬 lerp override 整份優先於通用 action 貢獻，只有被選用的來源參與累加；相同語意來源只輸出一次，所有有貢獻的 bar 都保留該 stat。無法靜態解析的數值記為 unknown，`UNRESOLVED_STAT.reason` 區分缺參照、函式與條件算式；movement sentinel 依遊戲設定展開並套用繼承。不存在且遊戲不讀取的路徑略過，每把武器以一筆 `NOT_APPLICABLE_STAT` 彙總數量，未註冊模板仍會輸出。

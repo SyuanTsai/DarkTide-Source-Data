@@ -19,6 +19,13 @@ function setup(t) {
 test('InterT10_weapon rows interpolate actual templates and preserve contracts',t=>{
  const f=setup(t),data=f.run(),w=data.items.find(x=>x.key==='autogun_p1_m1');
  assert.equal(data.status,'ok');assert.equal(data.items.length,3);
+ assert.equal(data.schemaVersion,'1.1.0');
+ for(const item of data.items)for(const bar of item.values.bars)for(const stat of bar.stats){
+  const curve=item.values.curves.find(c=>c.id===stat.curveId);
+  assert.equal(curve.bar,bar.id);assert.equal(curve.stat,stat.key);
+  assert.deepEqual(curve.name,stat.name);
+  assert.deepEqual(curve.knots,curve.unknown?[{input:0,output:null},{input:1,output:null}]:[{input:0,output:stat.min},{input:1,output:stat.max}]);
+ }
  assert.equal(w.id,'darktide:weapon:autogun_p1_m1');assert.equal(w.values.family,'autogun_p1');assert.equal(w.values.mark,'m1');assert.equal(w.values.weaponType,'darktide:term:weapon-type:autogun_p1');
  assert.deepEqual(w.values.actions.map(x=>x.slot),['primary','secondary','special']);
  assert.deepEqual(w.values.actions[0].name,{en:'Autogun',zh:'自動槍'});assert.deepEqual(w.values.actions[1].name,{en:null,zh:null});
@@ -58,6 +65,53 @@ test('review F5 weapon base_stats conditional alias writes cannot expose earlier
 });
 import './extract-weapons.real.test.mjs';
 
+// Scenario: explicit windups connect damaging actions in a two-light/one-heavy cycle.
+// Purpose: skip windups, bind profiles with WP2 and detect conditional/missing edges.
+test('UnitT50_combos preserve proven prefixes and loop indexes',async()=>{
+ const {createWeaponStats}=await import('../../pipeline/lib/weapon-stats.mjs');
+ const {weaponCombos}=await import('../../pipeline/lib/weapon-combos.mjs');
+ const original=readFileSync(new URL('./fixtures/weapons/combo.lua',import.meta.url),'utf8');
+ const run=source=>{const engine=createWeaponStats({exists:p=>p==='weapon.lua',read:()=>source});return weaponCombos({actions:engine.actions('weapon.lua'),file:'weapon.lua',profiles:engine.profiles,textValue:()=>({en:null,zh:null})});};
+ const [light,heavy]=run(original);
+ assert.deepEqual(light.steps.map(s=>s.action),['light1','light2']);assert.equal(light.start,'start');assert.equal(light.loopsTo,0);assert.equal(light.unknown,null);
+ assert.deepEqual(heavy.steps.map(s=>s.action),['heavy1']);assert.equal(heavy.loopsTo,0);
+ assert.equal(light.steps[0].damageProfile,'light');assert.equal(light.steps[0].damageProfileUnknown,null);
+ assert.equal(light.steps[1].damageProfile,null);assert.equal(light.steps[1].damageProfileUnknown,'DAMAGE_PROFILE_BINDING_NOT_FOUND');
+ assert.deepEqual(light.steps[0].name,{en:null,zh:null});
+ const conditional=run(original.replace('action_name="start2"','action_name="start2",chain_validation=function() return runtime end'))[0];
+ assert.equal(conditional.unknown,'CONDITIONAL_CHAIN');assert.equal(conditional.steps.length,1);
+ const missing=run(original.replace('action_name="start2"','action_name="absent"'))[0];assert.equal(missing.unknown,'CHAIN_TARGET_NOT_FOUND');assert.equal(missing.steps.length,1);
+ const dynamic=run(original.replace('action_name="start2"','action_name=runtime_name'))[0];assert.equal(dynamic.unknown,'DYNAMIC_VALUE');
+ const gatedStart=run(original.replace('kind="windup",start_input','action_condition_func=function() return ready end,kind="windup",start_input'))[0];
+ assert.deepEqual(gatedStart.steps.map(s=>s.action),['light1','light2']);assert.equal(gatedStart.unknown,'CONDITIONAL_CHAIN');assert.equal(gatedStart.loopsTo,null);
+ const animation=run(original.replace('kind="sweep",','anim_end_event_condition_func=function() return finished end,kind="sweep",'))[0];assert.equal(animation.unknown,null);assert.equal(animation.loopsTo,0);
+ const stateGated=run(original.replace('action_name="start2"','action_name="start2",running_action_state_requirement={ready=true}'))[0];assert.equal(stateGated.unknown,'CONDITIONAL_CHAIN');assert.equal(stateGated.steps.length,1);
+ const dynamicKind=run(original.replace('light1 = {kind="sweep"','light1 = {kind=runtime_kind'))[0];assert.equal(dynamicKind.unknown,'DYNAMIC_VALUE');assert.deepEqual(dynamicKind.steps,[]);
+ const mixed=run(original.replace('damage_profile=DamageProfileTemplates.light','damage_profile=DamageProfileTemplates.light,damage_profile_special=runtime_profile'))[0];assert.equal(mixed.steps[0].damageProfile,null);assert.equal(mixed.steps[0].damageProfileUnknown,'DAMAGE_PROFILE_BINDING_NOT_FOUND');
+ assert.deepEqual(run('local weapon_template={}\nweapon_template.actions={shoot={kind="shoot",start_input="shoot"}}\nreturn weapon_template'),[]);
+});
+
+// Scenario: array endpoints, out-of-range weights, accumulated clamp and damage lerps.
+// Purpose: keep WP2 endpoints and expose conservative curve proofs from the same node.
+test('UnitT60_curve flags distinguish linear and unproven interpolation',async()=>{
+ const {createWeaponStats}=await import('../../pipeline/lib/weapon-stats.mjs');
+ const {parseLuaStatic}=await import('../../pipeline/lib/lua-static-reader.mjs');
+ const run=(rows,kind='recoil')=>{
+  const sources={
+   [base+'weapon_trait_templates/'+kind+'_trait_templates.lua']:`local ${kind}_trait_templates={test=${rows}}\nreturn ${kind}_trait_templates`,
+   ['scripts/settings/'+(kind==='damage'?'damage/damage_profile_templates':'equipment/recoil_templates')+'.lua']:`local ${kind==='damage'?'damage_templates':'recoil_templates'}={test={value={lerp_basic={2,10},lerp_perfect={6,18}}}}\nreturn ${kind==='damage'?'damage_templates':'recoil_templates'}`
+  },engine=createWeaponStats({exists:p=>p in sources,read:p=>sources[p]}),stats=[];
+  engine.extract({source:'weapon_template.recoil_template="test"',file:'weapon.lua',kind,target:'base',group:parseLuaStatic(`return {${kind}_trait_templates.test}`).returned,actions:parseLuaStatic('return {base={damage_profile="test"}}').returned,files:[],emit:s=>stats.push(s),unknown:()=>{}});return stats;
+ };
+ const linear=run('{{"value",{min=0.25,max=0.75}}}');assert.equal(linear.length,2);
+ assert.deepEqual(linear.map(s=>[s.min,s.max,s.curveUnknown]),[[3,5,null],[12,16,null]]);
+ assert.ok(linear.every(s=>s.curveSource.line===1&&s.curveSource.path.endsWith('recoil_templates.lua')));
+ assert.ok(run('{{"value",{min=-1,max=2}}}').every(s=>s.curveUnknown==='LERP_T_OUT_OF_RANGE'));
+ assert.ok(run('{{"value",{min=0,max=0.8}},{"value",{min=0,max=0.8}}}').every(s=>s.curveUnknown==='NONLINEAR_COMBINATION'));
+ assert.ok(run('{{"value",{min=0,max=0.4}},{"value",{min=0,max=0.4}}}').every(s=>s.curveUnknown===null));
+ const damage=run('{{"value",{min=0,max=1}}}','damage');assert.equal(damage.length,2);assert.ok(damage.every(s=>s.curveUnknown==='NONLINEAR_LERP'));
+});
+
 
 // Scenario: static catalogs contain unsupported arithmetic between valid declarations.
 // Purpose: preserve readable declarations without executing expressions or functions.
@@ -73,7 +127,7 @@ test('UnitT30_unknown reasons distinguish dynamic values and missing paths',asyn
  const reader={exists:p=>p in sources,read:p=>sources[p]},engine=createWeaponStats(reader),stats=[],unknown=[];
  const group=parseLuaStatic('return {recoil_trait_templates.test}').returned;
  engine.extract({source:'weapon_template.recoil_template = "test"',file:'weapon.lua',kind:'recoil',target:'base',group,files:[],emit:x=>stats.push(x),unknown:(key,reason)=>unknown.push({key,reason})});
- assert.deepEqual(stats,[{key:'recoil.base.ok',min:0.123456,max:0.987654}]);
+ assert.deepEqual(stats,[{key:'recoil.base.ok',min:0.123456,max:0.987654,curveUnknown:null,curveSource:{path:'scripts/settings/equipment/recoil_templates.lua',line:2}}]);
  assert.deepEqual(unknown.map(x=>x.reason),['FUNCTION_VALUE','FUNCTION_VALUE','CONDITIONAL_OR_EXPRESSION']);
 });
 // Scenario: the weapon tree is absent or its registry contains no player templates.
