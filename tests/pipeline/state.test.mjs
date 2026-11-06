@@ -8,6 +8,16 @@ import { isCanonicalText } from '../../pipeline/lib/canonical-json.mjs';
 const meta = { gameVersion: '1.2', sourceCommit: '0'.repeat(40), textBatch: 'example' };
 const id = 'darktide:skill:example';
 const info = { category: 'skills', change: 'changed', inputHash: '0'.repeat(64) };
+// Scenario: reopen a retained item and try again after it is written. Purpose: clear stale outcomes immutably without reopening published items.
+test('UnitT05_reopen clears retained outcome and rejects written items', () => {
+  let s = state.registerItem(state.startRun(state.emptyState(), meta), id, info);
+  s = state.keepPrevious(s, id, 'old failure');
+  const reopened = state.reopenItem(s, id);
+  assert.equal(s.run.items[id].outcome, 'kept-previous');
+  assert.deepEqual([reopened.run.items[id].outcome, reopened.run.items[id].reason], [null, null]);
+  for (const stage of ['described', 'verified', 'written']) s = state.advanceItem(s, id, stage);
+  assert.throws(() => state.reopenItem(s, id));
+});
 // Scenario: exercise state persistence or validation. Purpose: protect state behavior.
 test('UnitT10_state persistence and resumption', async (t) => {
   const dir = await mkdtemp(join(tmpdir(), 'state-'));
@@ -161,4 +171,13 @@ test('UnitT50_null item produces schema error', async (t) => {
     state.readState(path),
     (error) => error.message.includes('/run') && !error.message.includes('Cannot read properties'),
   );
+});
+
+// Scenario: obsolete registrations are removed unless already written. Purpose: preserve immutable state and completed items.
+test('UnitT90_unregister removes pending items and rejects written items', () => {
+  const original = state.registerItem(state.startRun(state.emptyState(), meta), id, info);
+  const updated = state.unregisterItem(original, id);
+  assert.ok(original.run.items[id]); assert.equal(updated.run.items[id], undefined);
+  let written = original; for (const stage of ['described', 'verified', 'written']) written = state.advanceItem(written, id, stage);
+  assert.throws(() => state.unregisterItem(written, id)); assert.ok(written.run.items[id]);
 });

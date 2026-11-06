@@ -4,7 +4,7 @@ import { InputError } from './lib/verify/input.mjs';
 
 const names = { 'candidate-dir': 'candidateDir', 'extract-dir': 'extractDir', 'version-info': 'versionInfo',
   'previous-dir': 'previousDir', root: 'root', translation: 'translation', state: 'state', report: 'report',
-  'out-dir': 'outDir', issues: 'issues', 'mods-repo': 'modsRepo', 'mods-commit': 'modsCommit', 'build-cmd': 'buildCmd' };
+  'out-dir': 'outDir', 'cloud-dir': 'cloudDir', issues: 'issues', 'mods-repo': 'modsRepo', 'mods-commit': 'modsCommit', 'build-cmd': 'buildCmd' };
 function parse(args) {
   const options = { issues: 'create' };
   const seen = new Set();
@@ -21,6 +21,7 @@ try {
   const options = parse(process.argv.slice(2));
   const result = await runVerify(options);
   process.stdout.write(summary(result.report, options.issues));
+  for (const id of result.writtenWarnings) process.stdout.write(`已寫入的項目與本次檢查結果不同：${id}\n`);
   process.exitCode = result.exitCode;
 } catch (error) {
   console.error(`檢查錯誤：${error instanceof InputError ? error.message : '無法完成檢查，請確認輸入與檔案權限'}`);

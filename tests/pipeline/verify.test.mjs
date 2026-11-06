@@ -4,7 +4,8 @@ import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
-import { CATEGORIES, checkDataFile } from '../../pipeline/lib/data-files.mjs';
+import { createHash } from 'node:crypto';
+import { CATEGORIES, checkDataFile, retainItem } from '../../pipeline/lib/data-files.mjs';
 import { stringifyCanonical, isCanonicalText } from '../../pipeline/lib/canonical-json.mjs';
 import * as stateApi from '../../pipeline/lib/state.mjs';
 import { runVerify } from '../../pipeline/lib/verify/index.mjs';
@@ -16,6 +17,7 @@ const cli = resolve('pipeline/verify.mjs');
 const meta = { gameVersion: '1.2.0', sourceCommit: 'a'.repeat(40), textBatch: 'batch-new' };
 const old = { gameVersion: '1.1.0', sourceCommit: 'b'.repeat(40), textBatch: 'batch-old' };
 const json = async (path, value) => writeFile(path, stringifyCanonical(value));
+const retainedFile = (file) => ({ ...file, ...meta, items: file.items.map((item) => retainItem(item, file)) });
 const strip = ({ explanation, errata, ...item }) => item;
 const fakeExec = () => { throw new Error('測試禁止執行外部指令'); };
 
@@ -123,8 +125,9 @@ test('InterT11_未說明項目依上一版保留或排除', async (t) => {
     assert.equal(row?.decision, mode === 'new' ? 'excluded' : 'kept-previous');
     assert.deepEqual(row.failures[0], { gate: 'values', code: 'V_NOT_DESCRIBED', path: '/explanation', message: '候選資料缺少此項目，尚未完成說明' });
     assert.equal(r.report.result, 'degraded');
-    assert.deepEqual(r.merged.skills.items.find((x) => x.id === id), mode === 'new' ? undefined : f.previous.skills.items.find((x) => x.id === id));
-    if (mode !== 'new') assert.ok(r.report.gates.output.knownExceptions.some((x) => x.id === id));
+    assert.deepEqual(r.merged.skills.items.find((x) => x.id === id), mode === 'new' ? undefined : retainItem(f.previous.skills.items.find((x) => x.id === id), f.previous.skills));
+    assert.equal(Object.hasOwn(r.report.gates.output, 'knownExceptions'), false);
+    assert.deepEqual(r.report.gates.output.errors, []);
     if (state) {
       const saved = await stateApi.readState(state);
       assert.equal(saved.run.items[id].outcome, 'kept-previous');
@@ -133,14 +136,14 @@ test('InterT11_未說明項目依上一版保留或排除', async (t) => {
   }
 });
 
-// Scenario: a category disappears on a second run in the same output directory. Purpose: remove only its stale fixed-name file.
-test('InterT12_重用輸出目錄移除過期類別檔', async (t) => {
+// Scenario: a category disappears on a second run in the same output directory. Purpose: replace its stale fixed-name file with an empty envelope.
+test('InterT12_重用輸出目錄覆寫空類別檔', async (t) => {
   const f = await fixture(t); await f.run();
   const dir = join(f.dirs.out, 'data', meta.gameVersion);
   await writeFile(join(dir, 'keep.txt'), 'keep');
   f.extracts.skills.status = 'structure-mismatch';
   await f.run({ previousDir: 'none' });
-  await assert.rejects(readFile(join(dir, 'skills.json')), { code: 'ENOENT' });
+  assert.deepEqual(JSON.parse(await readFile(join(dir, 'skills.json'), 'utf8')).items, []);
   for (const c of ['weapons', 'blessings', 'terms']) assert.ok(await readFile(join(dir, `${c}.json`)));
   assert.equal(await readFile(join(dir, 'keep.txt'), 'utf8'), 'keep');
 });
@@ -173,6 +176,7 @@ test('InterT10_合法候選與 unknown 通過且輸出可重現', async (t) => {
   for (const c of CATEGORIES) {
     const text = await readFile(join(f.dirs.out, 'data', meta.gameVersion, `${c}.json`), 'utf8');
     assert.ok(isCanonicalText(text));
+    assert.match(a.report.categories[c].candidateSha256, /^[a-f0-9]{64}$/);
     assert.ok(checkDataFile(c, text).valid);
   }
   assert.ok(a.report.items.every((i) => i.notes.some((n) => n.code === 'ERRATA_CHECK_SKIPPED_UNKNOWN')));
@@ -204,10 +208,11 @@ for (const [n, [code, mutate]] of cases.entries()) {
     assert.equal(r.exitCode, 0);
     assert.equal(r.report.result, 'degraded');
     assert.equal(failures(r, code).length, 1, stringifyCanonical(r.report.items));
-    assert.deepEqual(r.merged.skills.items[0], f.previous.skills.items[0]);
+    assert.deepEqual(r.merged.skills.items[0], retainItem(f.previous.skills.items[0], f.previous.skills));
     assert.deepEqual(r.merged.skills.items.slice(1), f.data.skills.items.slice(1));
     assert.deepEqual(r.merged.terms, f.data.terms);
-    assert.ok(r.report.gates.output.knownExceptions.some((e) => e.id === f.data.skills.items[0].id && e.message.includes('commit')));
+    assert.equal(Object.hasOwn(r.report.gates.output, 'knownExceptions'), false);
+    assert.deepEqual(r.report.gates.output.errors, []);
   });
 }
 
@@ -227,14 +232,15 @@ test('InterT42_類別結構不符與非 canonical 保留上一版', async (t) =>
   const f = await fixture(t);
   f.extracts.skills.status = 'structure-mismatch'; f.extracts.skills.reason = '結構已變更';
   let r = await f.run();
-  assert.deepEqual(r.merged.skills, f.previous.skills);
+  assert.deepEqual(r.merged.skills, retainedFile(f.previous.skills));
   assert.equal(r.report.items.length, 9);
   assert.equal(r.report.categories.skills.reason, '結構已變更');
   await writeFile(join(f.dirs.candidate, 'terms.json'), JSON.stringify(f.data.terms, null, 2));
   r = await runVerify(f.options);
   assert.equal(r.report.categories.terms.status, 'kept-previous');
   r = await runVerify({ ...f.options, previousDir: 'none' });
-  assert.equal(r.merged.skills, undefined);
+  assert.deepEqual(r.merged.skills.items, []);
+  assert.equal(r.merged.skills.gameVersion, meta.gameVersion);
   assert.ok(r.report.categories.skills.anomalies.some((a) => a.code === 'missing-no-previous'));
 });
 
@@ -274,10 +280,10 @@ test('InterT46_舊版本損壞或建置失敗停止', async (t) => {
 });
 
 // Scenario: checker finds a new merged-item error, then a non-item error. Purpose: protect bounded output retry and halt.
-test('UnitT48_O_MERGED_INVALID 重新降級並忽略限定來源差異', () => {
-  const candidate = { category: 'terms', items: [{ id: 'a' }, { id: 'b' }] };
+test('UnitT48_O_MERGED_INVALID 重新降級並驗證保留資料', () => {
+  const candidate = { schemaVersion: '1.0.0', ...meta, category: 'terms', items: [{ id: 'a' }, { id: 'b' }] };
   const rows = candidate.items.map(({ id }) => ({ id, category: 'terms', decision: 'pass', failures: [], notes: [] }));
-  const loaded = { terms: { candidate, previous: { items: [{ id: 'a', old: true }] } } };
+  const loaded = { terms: { candidate, previous: { schemaVersion: '1.0.0', ...old, items: [{ id: 'a', old: true }] } } };
   const categories = { terms: { status: 'ok' } };
   const checker = (c, text) => ({ errors: JSON.parse(text).items[0]?.old ? [] : [{ path: '/items/0/source', message: '合併後無效' }] });
   const r = verifyMerged(loaded, categories, rows, checker);
@@ -462,9 +468,10 @@ test('InterT78_缺檔與數量異常正確降級', async (t) => {
   await rm(join(f.dirs.candidate, 'skills.json')); await rm(join(f.dirs.extract, 'weapons.json'));
   r = await runVerify(f.options);
   assert.equal(r.report.categories.skills.reason, '缺少候選檔');
+  assert.equal(r.report.categories.skills.candidateSha256, null);
   assert.equal(r.report.categories.weapons.reason, '缺少 extract 輸出');
   assert.equal(r.report.gates.values.failedItems, 0);
-  assert.deepEqual(r.merged.weapons, f.previous.weapons);
+  assert.deepEqual(r.merged.weapons, retainedFile(f.previous.weapons));
 });
 
 // Scenario: current.json selects readable historical files and default translation. Purpose: verify real default paths and old-version checks.
@@ -480,7 +487,7 @@ test('InterT80_預設上一版索引與暫存輸出清理', async (t) => {
     assert.ok(buildRoot.startsWith(tmpdir())); return { status: 0 };
   } });
   assert.equal(r.report.result, 'degraded');
-  assert.deepEqual(r.merged.skills.items[0], f.previous.skills.items[0]);
+  assert.deepEqual(r.merged.skills.items[0], retainItem(f.previous.skills.items[0], f.previous.skills));
   await assert.rejects(readFile(join(buildRoot, 'data', meta.gameVersion, 'skills.json')), { code: 'ENOENT' });
 });
 
@@ -550,3 +557,31 @@ test('InterT88_佔位詞全集與數值來源涵蓋', async (t) => {
   r = await f.run(); assert.equal(r.report.result, 'pass');
 });
 
+// Scenario: raw candidate formatting differs from canonical JSON. Purpose: hash actual input bytes even when that category degrades.
+test('InterT90_候選雜湊對應原始 bytes', async (t) => {
+  const f = await fixture(t), bytes = Buffer.from(JSON.stringify(f.data.skills, null, 2).replaceAll('\n', '\r\n'));
+  await writeFile(join(f.dirs.candidate, 'skills.json'), bytes);
+  const r = await runVerify(f.options);
+  assert.equal(r.report.categories.skills.candidateSha256, createHash('sha256').update(bytes).digest('hex'));
+  assert.equal(r.report.categories.skills.status, 'kept-previous');
+});
+
+// Scenario: translation comes from environment or is explicitly overridden. Purpose: retain path precedence and provide a worktree-specific diagnostic.
+test('InterT92_譯名環境變數與 worktree 提示', async (t) => {
+  const f = await fixture(t), before = process.env.DARKTIDE_GLOSSARY_FILE;
+  t.after(() => { if (before === undefined) delete process.env.DARKTIDE_GLOSSARY_FILE; else process.env.DARKTIDE_GLOSSARY_FILE = before; });
+  process.env.DARKTIDE_GLOSSARY_FILE = f.options.translation;
+  assert.equal((await runVerify({ ...f.options, translation: undefined })).exitCode, 0);
+  process.env.DARKTIDE_GLOSSARY_FILE = join(f.root, 'absent.md');
+  assert.equal((await runVerify(f.options)).exitCode, 0);
+  await assert.rejects(runVerify({ ...f.options, translation: undefined }), /在 worktree 中執行時請用 --translation 指定 Translation.md/);
+});
+
+// Scenario: malformed candidate items are null. Purpose: degrade schema-invalid items without crashing shared composition.
+test('InterT94_null 候選項目逐項排除', async (t) => {
+  const f = await fixture(t); f.data.skills.items[0] = null;
+  const r = await f.run();
+  assert.equal(r.exitCode, 0); assert.equal(r.report.result, 'degraded');
+  assert.ok(r.report.items.some((row) => row.id === 'skills/items/0' && row.decision === 'excluded'));
+  assert.equal(r.merged.skills.items.length, 3);
+});

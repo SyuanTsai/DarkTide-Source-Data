@@ -281,3 +281,29 @@ test('UnitT50_errata anchors validate structure and overlapping locations', () =
   entry.anchor = { ...anchor, field: 'name', locale: 'zh' }; entry.locale = 'zh'; x.items[0].name.zh = null;
   assert.ok(check().errors.some((e) => e.path === '/items/0/errata/0/anchor' && e.message === 'Anchor target text does not exist'));
 });
+
+// Scenario: a retained item keeps an older source. Purpose: enforce provenance without weakening ordinary checks.
+test('UnitT90_retained provenance is validated', () => {
+  const data = file('skills');
+  const item = data.items[0];
+  data.gameVersion = '1.0.0';
+  data.sourceCommit = '1'.repeat(40);
+  data.textBatch = 'new-batch';
+  const errors = () => checkDataFile('skills', stringifyCanonical(data)).errors;
+  assert.ok(errors().some((e) => e.message === 'Commit mismatch'));
+  assert.ok(errors().some((e) => e.message === 'Batch mismatch'));
+  item.retainedFrom = { gameVersion: '0.0.0', sourceCommit: item.source.commit, textBatch: item.source.text?.batch ?? 'old-batch' };
+  assert.equal(errors().length, 0);
+  item.retainedFrom.textBatch = 'different';
+  assert.ok(errors().some((e) => e.message === 'Retained batch mismatch' && e.path === '/items/0/source/text/batch'));
+  item.retainedFrom.textBatch = item.source.text.batch;
+  item.retainedFrom.gameVersion = '1.0.0';
+  assert.ok(errors().some((e) => e.message === 'Retained version must be older'));
+  item.retainedFrom.gameVersion = '2.0.0';
+  assert.ok(errors().some((e) => e.message === 'Retained version must be older'));
+  item.retainedFrom.gameVersion = '0.0.0';
+  item.retainedFrom.sourceCommit = '2'.repeat(40);
+  assert.ok(errors().some((e) => e.message === 'Retained commit mismatch'));
+  item.retainedFrom.extra = true;
+  assert.ok(errors().some((e) => e.path.includes('retainedFrom')));
+});
