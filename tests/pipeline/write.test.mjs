@@ -28,7 +28,7 @@ async function snapshot(dir) {
   }
   await visit(dir); return result;
 }
-async function fixture(t, { previous = false, mismatch = false, repeated = false } = {}) {
+async function fixture(t, { previous = false, mismatch = false, repeated = false, unmarked = false } = {}) {
   const root = await mkdtemp(join(tmpdir(), 'darktide-write-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const state = join(root, 'pipeline/state.json'), cloud = join(root, 'cloud'), work = join(root, 'work');
@@ -72,15 +72,51 @@ async function fixture(t, { previous = false, mismatch = false, repeated = false
     const input = await read(join(base, 'ai/input', file)), value = input.item.values.params.bonus.value;
     ai[input.id] = { schemaVersion: '1.0.0', id: input.id, inputHash: input.inputHash, explanation: explanation(value), errata: errata(value) };
     await writeCanonicalFile(join(base, 'ai/output', itemFileName(input.id)), ai[input.id]);
-    success(cli('diff', [...diffArgs, '--mark-described', input.id]));
+    if (!unmarked) success(cli('diff', [...diffArgs, '--mark-described', input.id]));
   }
   const writeArgs = ['--root', root, '--state', state, '--cloud-dir', cloud];
   const verifyArgs = [...writeArgs, '--translation', translation, '--issues', 'off'];
   const verify = () => success(cli('verify', verifyArgs));
   const write = () => cli('write', writeArgs);
   const validate = () => success(cli('validate', ['--root', root]));
-  return { root, state, cloud, base, ai, previousData, cli, success, verify, write, validate, writeArgs, verifyArgs };
+  return { root, state, cloud, base, ai, previousData, cli, success, verify, write, validate, diffArgs, writeArgs, verifyArgs };
 }
+
+// Scenario: a failed description is corrected and verified again. Purpose: publish the new item after clearing the prior fallback.
+test('InterT23_corrected fallback can be verified and published', async (t) => {
+  const f = await fixture(t, { previous: true }), id = f.previousData.skills.items[1].id;
+  const path = join(f.base, 'ai/output', itemFileName(id)), good = structuredClone(f.ai[id]);
+  f.ai[id].explanation.effect = '提升987654%'; await writeCanonicalFile(path, f.ai[id]);
+  f.verify(); assert.equal((await read(f.state)).run.items[id].outcome, 'kept-previous');
+  await writeCanonicalFile(path, good); f.verify();
+  assert.deepEqual([(await read(f.state)).run.items[id].outcome, (await read(f.state)).run.items[id].reason], [null, null]);
+  f.success(f.write()); f.validate();
+  const item = (await read(join(f.root, 'data', meta.gameVersion, 'skills.json'))).items.find((x) => x.id === id);
+  assert.deepEqual(item.explanation, good.explanation); assert.equal(item.retainedFrom, undefined);
+  assert.deepEqual([(await read(f.state)).run.items[id].stage, (await read(f.state)).run.items[id].outcome], ['written', 'updated']);
+});
+
+// Scenario: a previously passing description becomes invalid. Purpose: persist the latest fallback and publish valid retained data.
+test('InterT24_later_failure_replaces_pass_and_publishes_fallback', async (t) => {
+  const f = await fixture(t, { previous: true }), id = f.previousData.skills.items[1].id;
+  f.verify(); assert.equal((await read(f.state)).run.items[id].stage, 'verified');
+  f.ai[id].explanation.effect = '提升987654%'; await writeCanonicalFile(join(f.base, 'ai/output', itemFileName(id)), f.ai[id]);
+  f.verify(); assert.match((await read(f.state)).run.items[id].reason, /T_NUMBER/);
+  f.success(f.write()); f.validate();
+  assert.deepEqual((await read(join(f.root, 'data', meta.gameVersion, 'skills.json'))).items.find((x) => x.id === id), { ...f.previousData.skills.items[1], retainedFrom: old });
+});
+
+// Scenario: verification precedes marking descriptions. Purpose: allow retained extracted items to be marked and successfully published.
+test('InterT25_unmarked_fallback_can_be_described_and_published', async (t) => {
+  const f = await fixture(t, { previous: true, unmarked: true });
+  f.verify();
+  for (const id of Object.keys(f.ai)) {
+    assert.equal((await read(f.state)).run.items[id].outcome, 'kept-previous');
+    f.success(f.cli('diff', [...f.diffArgs, '--mark-described', id]));
+  }
+  f.verify(); f.success(f.write()); f.validate();
+  for (const id of Object.keys(f.ai)) assert.deepEqual([(await read(f.state)).run.items[id].stage, (await read(f.state)).run.items[id].outcome], ['written', 'updated']);
+});
 
 // Scenario: initial publication traverses real diff, mark, verify, write and validate CLIs. Purpose: prove defaults and durable state work together.
 test('InterT10_first version CLI chain hashes candidates and matches verify bytes', async (t) => {

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { stringifyCanonical } from './lib/canonical-json.mjs';
 import { checkCurrent, checkDataFile, CATEGORIES } from './lib/data-files.mjs';
-import { readState, writeState, registerItem, advanceItem, pendingItems, STAGES } from './lib/state.mjs';
+import { readState, writeState, registerItem, advanceItem, reopenItem, pendingItems, STAGES } from './lib/state.mjs';
 import { loadSchemas } from './lib/json-schema.mjs';
 import { diffCategory, inputHashFor } from './lib/diff-core.mjs';
 import { resolveCloudRoot, cloudLayout, itemFileName, copyIfChanged } from './lib/cloud-dir.mjs';
@@ -70,7 +70,7 @@ async function main() {
   }
   if (Object.hasOwn(options, '--mark-described')) {
     const id = options['--mark-described'], entry = run.items[id];
-    if (!entry || entry.change === 'removed' || entry.outcome !== null) throw new Error(`無法標記項目：${id}`);
+    if (!entry || entry.change === 'removed' || (entry.outcome !== null && !(entry.outcome === 'kept-previous' && STAGES.indexOf(entry.stage) < STAGES.indexOf('described')))) throw new Error(`無法標記項目：${id}`);
     if (STAGES.indexOf(entry.stage) >= STAGES.indexOf('described')) { console.log(`已標記：${id}`); return; }
     const { input: inputPath, output: outputPath } = paths(id);
     const inputText = await optional(inputPath), outputText = await optional(outputPath);
@@ -81,6 +81,7 @@ async function main() {
     if (input.id !== id || input.item.id !== id || output.id !== id || input.category !== entry.category || input.change !== entry.change) throw new Error('項目 id、category 或 change 不符');
     if (input.inputHash !== entry.inputHash || output.inputHash !== entry.inputHash || inputHashFor(entry.category, entry.change, input.item) !== entry.inputHash) throw new Error('inputHash 不符；說明可能已過期，請依新輸入重寫');
     checked(checkDataFile(entry.category, stringifyCanonical(dataFile(entry.category, run, [{ ...input.item, explanation: output.explanation, errata: output.errata }]))), logical(outputPath));
+    if (entry.outcome === 'kept-previous') state = reopenItem(state, id);
     state = advanceItem(state, id, 'described'); await writeState(stateFile, state);
     console.log(`已標記：${id}`); return;
   }

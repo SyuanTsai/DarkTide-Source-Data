@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { writeCanonicalFile } from '../canonical-json.mjs';
-import { advanceItem, haltRun, keepPrevious, setCategory, writeState } from '../state.mjs';
+import { advanceItem, haltRun, keepPrevious, reopenItem, setCategory, writeState } from '../state.mjs';
 import { compare, failure, itemIndex } from './common.mjs';
 import { InputError, categoryReason, inputHalt, loadInput } from './input.mjs';
 import { checkValues } from './values.mjs';
@@ -24,7 +24,8 @@ function updatedState(state, matches, report) {
     next = setCategory(next, category, { status: info.status, reason: info.reason });
   for (const [id, item] of Object.entries(state.run.items).sort(([a], [b]) => compare(a, b))) {
     const row = report.items.find((r) => r.id === id && r.category === item.category);
-    if (report.categories[item.category]?.status !== 'ok') continue;
+    if (report.categories[item.category]?.status !== 'ok' || item.stage === 'written') continue;
+    next = reopenItem(next, id);
     if (!row) {
       if (item.stage === 'extracted') next = keepPrevious(next, id, 'V_NOT_DESCRIBED：項目仍在取數階段，尚未完成說明');
       continue;

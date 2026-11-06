@@ -97,6 +97,15 @@ export function keepPrevious(s, id, reason) {
   return n;
 }
 
+export function reopenItem(s, id) {
+  const n = copy(s), item = active(n).items[id];
+  if (!item) throw new Error(`Unknown item ${id}`);
+  if (item.stage === 'written') throw new Error('Cannot reopen written item');
+  item.outcome = null;
+  item.reason = null;
+  return n;
+}
+
 export function pendingItems(s, stage) {
   const target = STAGES.indexOf(stage);
   if (target < 0) throw new Error('Unknown stage');
