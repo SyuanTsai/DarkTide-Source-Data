@@ -57,6 +57,12 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 extract-terms 的 keyword 包含兩種 glossary 前綴；碰到同名時分別加 `:term`／`:glossary`。skill-type 直接掃描 talent 字串，class 讀 archetype_name，weapon-type 讀 UI patterns，並連結同 family 的武器 id。class 的 official 使用 archetype_description，其餘使用該 loc key。所有來源出現位置均記錄 path/line；動態拼接前綴只記 `DYNAMIC_KEY`。skills/weapons extract 缺少或非 ok 時記 `DEPENDENCY_UNAVAILABLE`；武器 refs 為空，不把它當結構不符。
 
+### 技能取數
+
+`extract-skills.mjs` 動態發現職業與 broker stimm 樹，只輸出樹節點引用的天賦，未引用定義列入 `excluded`。技能專用 `skill-*` 模組靜態解析 require、table 路徑、enum/computed key、常值四則運算、merge/clone 與 stimm 資料 DSL，不執行 Lua。百分比保留顯示數值，tier 保留完整陣列；傷害計算、lerp、條件或不支援的函式保留 `DYNAMIC_VALUE` 與問題原因。名稱使用共用官方文字政策，多段說明以換行串接，來源記錄實際讀取檔案與行號。
+
+PowerShell 設定 `$env:PIPELINE_REAL_SMOKE='1'` 後執行 `node --test tests/pipeline/`，亦會驗證固定技能 commit／文字批次的項目範圍、官方英文名稱比例及重跑 byte 一致，並印出各職業與問題統計。
+
 ### 驗證
 
 只執行 `node --test tests/pipeline/`，假 repo 測試在自有暫存目錄建立 Git repo 與具正確 sha256/rows 的四份 JSONL，完成後清理該暫存目錄。
