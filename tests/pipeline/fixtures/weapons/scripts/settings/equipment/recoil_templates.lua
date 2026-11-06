@@ -1,0 +1,2 @@
+local recoil_templates = {test={still={pitch={lerp_basic=2,lerp_perfect=6}},moving={inherits={"test","still"}},pitch={lerp_basic=1,lerp_perfect=9},fixed={lerp_basic=8,lerp_perfect=10},constant=4,array={lerp_basic={1,10},lerp_perfect={5,18}},precise=0.123456789012345}}
+return recoil_templates
