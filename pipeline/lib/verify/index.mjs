@@ -39,12 +39,15 @@ function updatedState(state, matches, report) {
 export async function runVerify(inputOptions) {
   const root = resolve(inputOptions.root ?? fileURLToPath(new URL('../../../', import.meta.url)));
   const options = { issues: 'create', modsRepo: 'SyuanTsai/Warhammer-40-000-DARKTIDE-Mods', exec: spawnSync,
-    ...inputOptions, root, translation: inputOptions.translation ?? join(root, '../Warhammer-40-000-DARKTIDE-Mods/Referneces/Translation.md') };
+    ...inputOptions, root };
   const input = await loadInput(options), { version, loaded } = input;
   const report = makeReport(version);
+  report.previousGameVersion = Object.values(loaded).find((entry) => entry.previous)?.previous.gameVersion ?? null;
   const stateMatches = Boolean(input.state?.run && input.state.run.gameVersion === version.sourceGameVersion &&
     input.state.run.sourceCommit === version.sourceCommit && input.state.run.textBatch === version.textBatch);
-  if (input.state && !stateMatches) report.stateNote = '狀態檔的執行版本與本次版本資訊不同，未寫入狀態';
+  if (input.state?.run && !stateMatches) report.stateNote = '狀態檔的執行版本與本次版本資訊不同，未寫入狀態';
+  for (const [category, entry] of Object.entries(loaded))
+    report.categories[category] = { candidateSha256: entry.candidateSha256, anomalies: [] };
   let merged = {}, temp = null;
   const halt = (reason, gate) => {
     report.result = 'halted'; report.haltReason = reason;
@@ -81,9 +84,8 @@ export async function runVerify(inputOptions) {
         decide(row, entry.previous); report.items.push(row);
       }
     }
-    const output = verifyMerged(loaded, report.categories, report.items);
+    const output = verifyMerged(loaded, report.categories, report.items, undefined, version);
     merged = output.merged;
-    report.gates.output.knownExceptions = output.knownExceptions;
     report.gates.output.errors = [...output.errors, ...checkOldVersions(root, input.current)];
     for (const [category, data] of Object.entries(merged)) report.categories[category].counts.merged = data.items?.length ?? 0;
     if (report.gates.output.errors.length) halt('排除失敗項目後，最終資料或舊版本仍無法讀取', 'output');

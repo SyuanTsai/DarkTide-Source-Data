@@ -4,7 +4,7 @@ import { InputError } from './lib/verify/input.mjs';
 
 const names = { 'candidate-dir': 'candidateDir', 'extract-dir': 'extractDir', 'version-info': 'versionInfo',
   'previous-dir': 'previousDir', root: 'root', translation: 'translation', state: 'state', report: 'report',
-  'out-dir': 'outDir', issues: 'issues', 'mods-repo': 'modsRepo', 'mods-commit': 'modsCommit', 'build-cmd': 'buildCmd' };
+  'out-dir': 'outDir', 'cloud-dir': 'cloudDir', issues: 'issues', 'mods-repo': 'modsRepo', 'mods-commit': 'modsCommit', 'build-cmd': 'buildCmd' };
 function parse(args) {
   const options = { issues: 'create' };
   const seen = new Set();

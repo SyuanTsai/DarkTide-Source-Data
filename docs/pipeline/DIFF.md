@@ -31,3 +31,5 @@
 每筆 AI 勘誤必須包含 `anchor`：`field` 選擇定位欄位 `official` 或 `name`；`locale` 為 `en` 或 `zh`，必須與該筆勘誤的 `locale` 相同；`text` 是目標原文中的非空精確子字串，逐字比對並區分大小寫；`occurrence` 是從 1 起算的出現次序。計數允許重疊，例如 `aaa` 中的 `aa` 出現兩次。目標欄位的該語系必須是字串，且指定次序必須存在。請選擇能唯一定位到那一句的子字串，通常取官方原文中包含錯誤數字的整句或短語。
 
 寫入最終資料時，errata（含 anchor）原樣寫出；此步驟由 `pipeline/write.mjs`（SYP-395）負責。
+
+`node pipeline/verify.mjs` 預設讀取 `<cloud>/<ver>/extract/`、`diff/diff.json` 與 `ai/output/`，搭配 current.json 指向的上一版組裝 canonical 候選檔至 `<cloud>/<ver>/candidate/<category>.json`。沿用項目使用本輪 extract 加上上一版說明與勘誤；新增／變動項目只採用通過 AI schema、id 與 inputHash 檢查的輸出。缺少或過期的說明由 verify 降級處理。報告位於 `verify/report.json`，四類最終預覽位於 `verify/out/data/<ver>/`；write 核對報告的候選雜湊後寫入正式 data。

@@ -12,11 +12,76 @@ SPEC v1 固定腳本：
 - `verify.mjs`：檢查項目及降級。
 - `write.mjs`：寫入正式資料。
 
-WP1 提供 `lib/`、`schema/`、`validate.mjs` 與 `state.json`；WP2 本次補上 check-version、extract-text、extract-terms 與取數共用 lib，其餘腳本由後續規格實作。
+WP1 提供 `lib/`、`schema/`、`validate.mjs` 與 `state.json`；WP2 提供版本檢查與取數；WP3 記錄差異與說明進度；WP4 檢查並降級；WP4b 寫入正式資料。上述固定腳本皆已實作。
 
 狀態依序為 `extracted`、`described`、`verified`、`written`。相同版本與來源可接續執行並保留項目進度；輸入雜湊改變時重設該項目。完成或保留上一版的項目不再列為待處理。
 
 Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 compact JSON 並以一個換行結尾。
+
+## 差異（WP3）
+
+`node pipeline/diff.mjs` 讀取 state.run、extract 與目前正式資料，將新增／變動／移除登記至 state；沿用項目不需重寫說明。
+
+| 參數 | 預設值／作用 |
+| --- | --- |
+| `--state` | `<repo>/pipeline/state.json` |
+| `--work-dir` | `<repo>/.pipeline-work/<ver>`，讀取 `extract/<category>.json` |
+| `--data-dir` | `<repo>/data`，由 current.json 找上一版 |
+| `--cloud-dir` | `DARKTIDE_PIPELINE_CLOUD_DIR`，須為已存在的絕對目錄 |
+| `--glossary` | `DARKTIDE_GLOSSARY_FILE`，再用 `<repo>/../Warhammer-40-000-DARKTIDE-Mods/Referneces/Translation.md` |
+| `--pending` | 只列待寫說明及輸入／輸出路徑 |
+| `--json` | 搭配 `--pending` 輸出 JSON |
+| `--mark-described <id>` | 驗證 AI 輸出的 schema、id、inputHash 與資料結構後，推進至 described |
+
+輸出為 `<cloud>/<ver>/extract/`、`diff/diff.json`、`ai/input/<itemFileName(id)>`；AI 將說明寫入 `ai/output/<itemFileName(id)>`。exit 0 表示成功（可包含缺檔或類別結構降級），exit 1 表示參數、狀態、IO 或驗證失敗。
+
+## 檢查（WP4）
+
+`node pipeline/verify.mjs` 由 state.run 推出版本，組裝候選檔，再逐項檢查數值、文字、勘誤與最終資料。未通過的項目保留上一版；沒有上一版則排除。類別缺檔或結構不符時整類保留，首版則輸出空檔。四類皆會產生新版本檔頭。
+
+| 參數 | 預設值／作用 |
+| --- | --- |
+| `--root` | repo 根目錄 |
+| `--state` | `<root>/pipeline/state.json`；無 run 時提示先跑 check-version |
+| `--cloud-dir` | `DARKTIDE_PIPELINE_CLOUD_DIR`；需要雲端預設路徑時才解析 |
+| `--version-info` | 由 run 推出 sourceGameVersion、textGameVersion、sourceCommit、textBatch；指定時讀 JSON 檔 |
+| `--extract-dir` | `<cloud>/<ver>/extract` |
+| `--candidate-dir` | 未指定時由 extract、diff/diff.json、ai/output 與上一版組裝至 `<cloud>/<ver>/candidate` |
+| `--previous-dir` | `<root>/data/current.json` 的 path；`none` 表示沒有上一版 |
+| `--translation` | `DARKTIDE_GLOSSARY_FILE`，再用 `<root>/../Warhammer-40-000-DARKTIDE-Mods/Referneces/Translation.md` |
+| `--report` | `<cloud>/<ver>/verify/report.json` |
+| `--out-dir` | `<cloud>/<ver>/verify/out`，其內 `data/<ver>/<category>.json` 是與 write 相同的正式資料預覽 |
+| `--issues` | `create`；可用 `off` 或 `dry-run` |
+| `--mods-repo` | `SyuanTsai/Warhammer-40-000-DARKTIDE-Mods`，譯名衝突 Issue 目的地 |
+| `--mods-commit` | 未指定時從譯名表所在 repo 解析 commit；dry-run 不執行外部指令 |
+| `--build-cmd` | 預設不執行；指定時設定 `DARKTIDE_DATA_ROOT` 為 out-dir 後執行 |
+
+候選檔只包含沿用說明的 unchanged 項目，及通過 AI schema、id、最新 inputHash 的新增／變動輸出；缺少或過期輸出由 verify 記錄 `V_NOT_DESCRIBED`。errata 與 anchor 不做轉換。自動組裝只會清除本輪無效類別的四個固定候選檔，不刪其他檔。
+
+報告的 `categories.<category>.candidateSha256` 記錄實際候選檔原始 bytes 的 SHA-256，無檔為 null；`previousGameVersion` 記錄合併所用的上一版，供寫入中斷或完成後重跑。exit 0 表示通過或部分降級；exit 2 表示參數、狀態或 IO 錯誤；exit 3 表示整批停止，不應執行 write。
+
+相容舊介面：同時明確指定 candidate-dir、extract-dir、version-info，且未使用雲端設定時，可無 state／cloud 執行。此模式未指定 report 時不存報告，未指定 out-dir 時使用結束即清除的自有暫存目錄。一般無參數流程或有雲端設定時使用上表雲端預設值。
+
+在 `*-worktrees/` 的 worktree 中執行時，請用 `--translation <Translation.md>`（或 `DARKTIDE_GLOSSARY_FILE`）指定譯名表；相鄰 Mods repo 的預設位置通常不同。diff 對應的覆寫參數是 `--glossary`。
+
+## 寫入（WP4b）
+
+`node pipeline/write.mjs` 先核對 state.run 與報告版本、候選檔雜湊及 current 版本，再用與 verify 相同的 composeFinal 組出四類並全部驗證。任何最終資料驗證錯誤均在寫入前停止。
+
+| 參數 | 預設值／作用 |
+| --- | --- |
+| `--root` | repo 根目錄，正式資料位於 `<root>/data` |
+| `--state` | `<root>/pipeline/state.json` |
+| `--cloud-dir` | `DARKTIDE_PIPELINE_CLOUD_DIR`；report 與 candidate-dir 均指定時不需要 |
+| `--report` | `<cloud>/<ver>/verify/report.json` |
+| `--candidate-dir` | `<cloud>/<ver>/candidate` |
+| `--previous-dir` | current.json 的 path；current 已是本輪版本時使用報告的 previousGameVersion；`none` 表示沒有上一版 |
+
+依 skills、weapons、blessings、terms 順序原子寫入 `<root>/data/<ver>/<category>.json`，每類完成後更新 state checkpoint。removed 項目逐步推進至 written；整類降級的未完成項目記錄 kept-previous 與原因。最後原子寫入 current.json（versions 合集按版本排序），再 completeRun。相同 bytes 不重寫；中斷後可接續。已 completed 的相同輸入僅允許輸出完全相符的唯讀重跑，避免第二次改寫任何檔案。
+
+`retainedFrom: { gameVersion, sourceCommit, textBatch }` 記錄保留項目最早的來源，連續保留不更新此欄位。validate 對這些項目的 source.commit／source.text.batch 比對 retainedFrom，而其 gameVersion 必須早於檔頭；普通項目仍須符合檔頭的 commit／batch。排序、id、anchor、valueRef 等其餘檢查完全相同。此為選填欄位，既有 1.0.0 資料不需遷移。
+
+exit 0 表示完成；exit 1 表示候選檔變動、版本倒退、資料驗證或寫入錯誤；exit 2 表示參數、狀態、報告版本或輸入錯誤；halted 報告 exit 3 並印「檢查結果為整批停止，不寫入」。完成後執行 `node pipeline/validate.mjs`。輸出摘要不含時間戳，列出每類項目數、保留項目及原因、保留類別與空檔類別。
 
 ## 取數腳本（WP2）
 

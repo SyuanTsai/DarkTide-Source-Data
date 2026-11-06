@@ -9,6 +9,7 @@ import { loadSchemas } from './lib/json-schema.mjs';
 import { diffCategory, inputHashFor } from './lib/diff-core.mjs';
 import { resolveCloudRoot, cloudLayout, itemFileName, copyIfChanged } from './lib/cloud-dir.mjs';
 import { resolveGlossary, matchGlossary } from './lib/glossary.mjs';
+import { dataFile } from './lib/candidate.mjs';
 
 const repo = fileURLToPath(new URL('../', import.meta.url));
 const schemas = loadSchemas(join(repo, 'pipeline/schema'));
@@ -44,7 +45,6 @@ function parse(text, file) { try { return JSON.parse(text); } catch { throw new 
 function checked(result, file) {
   if (!result.valid) throw new Error(`${file} 驗證失敗：\n${result.errors.slice(0, 20).map((e) => `${e.path} ${e.message}`).join('\n')}`);
 }
-function dataFile(category, run, items) { return { schemaVersion: '1.0.0', category, ...Object.fromEntries(fields.map((k) => [k, run[k]])), items }; }
 async function writeChanged(file, value) {
   const text = stringifyCanonical(value);
   if (await optional(file) === text) return;
