@@ -1,4 +1,5 @@
 import { parseLuaStatic, tokenizeLua } from './lua-static-reader.mjs';
+import { conditionalWrites } from './lua-mutations.mjs';
 
 const unknown = (reason, detail, file, line=1) => ({type:'unknown',reason,detail,_file:file,startLine:line});
 const modulePath = p => p.replace(/\.lua$/, '') + '.lua';
@@ -133,8 +134,17 @@ export function staticBuffModules(reader) {
       if(/^(?:local\s+)?function\b/.test(raw)) continue;
       if(/^(?:if|for|while|repeat|do)\b/.test(raw)) {
         // A conditional/loop write must never leave an earlier static value visible.
-        for(const m of raw.matchAll(/\b(\w+(?:\.\w+)*)\s*=(?!=)/g)) {
-          if(env.has(m[1].split('.')[0])) assign(env,m[1],unknown('RUNTIME_CONTROL_FLOW','條件或迴圈中的覆寫',file,line));
+        for(const path of conditionalWrites(tokenizeLua(raw))) {
+          if(!env.has(path[0]))continue;
+          const value=unknown('CONDITIONAL_ASSIGNMENT','條件或迴圈中的覆寫',file,line);
+          let existing=force(env.get(path[0]));for(const key of path.slice(1))existing=get(existing,key);
+          if(existing?.type==='table') {
+            const seen=new Set();
+            const poison=table=>{if(seen.has(table))return;seen.add(table);table.dynamic=value;for(const entry of table.entries){const n=force(entry.value);if(n?.type==='table')poison(n);else entry.value=value;}};
+            poison(existing);
+          } else {
+            assign(env,path.join('.'),value);
+          }
         }
         continue;
       }

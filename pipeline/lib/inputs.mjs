@@ -1,10 +1,17 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { StructureError } from './errors.mjs';
 
 /** Absolute path to the repository containing this module. */
 export const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
+/** Worktrees live one directory deeper than the ordinary checkout. */
+export function siblingRepo(name, root=REPO_ROOT) {
+  const adjacent=path.resolve(root,'..',name);
+  const parent=path.resolve(root,'../..',name);
+  return existsSync(adjacent)?adjacent:existsSync(parent)?parent:adjacent;
+}
 
 /** Parse named options. spec maps option names to 'value' or 'flag'. */
 export function parseArgs(argv, spec) {
@@ -30,7 +37,7 @@ export function git(repo, args) {
 
 /** Resolve a Source-Code ref once and obtain its release version. */
 export function resolveSourceCode({ repo, ref } = {}) {
-  repo = path.resolve(repo || process.env.DARKTIDE_SOURCE_CODE_REPO || path.resolve(REPO_ROOT, '../Darktide-Source-Code'));
+  repo = path.resolve(repo || process.env.DARKTIDE_SOURCE_CODE_REPO || siblingRepo('Darktide-Source-Code'));
   const commit = git(repo, ['rev-parse', '--verify', `${ref || 'HEAD'}^{commit}`]).trim();
   const subject = git(repo, ['log', '-1', '--format=%s', commit]).trim();
   const match = /^Added Version (\d+(?:\.\d+){1,3})\b/.exec(subject);
@@ -40,7 +47,7 @@ export function resolveSourceCode({ repo, ref } = {}) {
 
 /** Resolve a Private ref and read a numeric localization batch manifest. */
 export function resolvePrivate({ repo, ref, batch } = {}) {
-  repo = path.resolve(repo || process.env.DARKTIDE_PRIVATE_REPO || path.resolve(REPO_ROOT, '../DARKTIDE User Setting'));
+  repo = path.resolve(repo || process.env.DARKTIDE_PRIVATE_REPO || siblingRepo('DARKTIDE User Setting'));
   ref = ref || process.env.DARKTIDE_PRIVATE_REF || 'origin/master';
   const refCommit = git(repo, ['rev-parse', '--verify', `${ref}^{commit}`]).trim();
   if (!batch) {

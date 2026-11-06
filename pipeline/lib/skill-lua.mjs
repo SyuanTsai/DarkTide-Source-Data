@@ -1,4 +1,5 @@
 import { tokenizeLua } from './lua-static-reader.mjs';
+import { conditionalWrites } from './lua-mutations.mjs';
 
 // A deliberately bounded Lua expression reader. It builds data, never runs Lua.
 // Unsupported operators/calls remain nodes and cannot become numeric values.
@@ -57,12 +58,26 @@ export class SkillLua {
     while((precedence[this.peek().value] ?? -1)>=min) {const op=this.take().value; n=this.node('binary',{op,left:n,right:this.expression(precedence[op]+1)},start);}
     return n;
   }
-  chunk(set) {
+  chunk(set, staticLoop) {
     let returned;
     while(this.peek().type!=='eof') {
       const before=this.i;
       if(this.match(';')) continue;
-      if(['function','if','for','while','repeat','do'].includes(this.peek().value)) {this.block();continue;}
+      if(['function','if','for','while','repeat','do'].includes(this.peek().value)) {
+        const start=this.i,kind=this.peek().value;this.block();
+        if(kind==='for' && staticLoop?.(this.source.slice(this.tokens[start].start,this.tokens[this.i-1].end)))continue;
+        if(kind!=='function') for(const path of conditionalWrites(this.tokens.slice(start,this.i))) {
+          let target={type:'reference',name:path[0],binding:this.env.get(path[0]),file:this.file,line:this.tokens[start].line};
+          if(!target.binding)continue;
+          for(const key of path.slice(1))target={type:'index',base:target,key:{type:'literal',value:key},file:this.file,line:target.line};
+          const value={type:'unknown',reason:'CONDITIONAL_ASSIGNMENT',file:this.file,line:target.line};
+          if(target.type==='reference') {
+            // Mutate table identity as well so aliases cannot expose stale fields.
+            const retained=set(target,value);this.env.set(target.name,retained??value);
+          } else set(target,value);
+        }
+        continue;
+      }
       if(this.match('return')) {returned=this.expression();break;}
       const local=this.match('local');
       if(local && this.peek().value==='function') {this.block();continue;}
@@ -89,6 +104,7 @@ export function callName(n) {
 
 export function createSkillResolver(reader) {
   const chunks=new Map(), active=new Set(), compositions=new Map();
+  let stimmDefinitions=new Map();
   const unknown=(n,reason) => ({...n,type:'unknown',reason});
   const literal=(value,n) => ({type:'literal',value,file:n.file,line:n.line});
   function load(file) {
@@ -97,8 +113,28 @@ export function createSkillResolver(reader) {
     const pending={}; chunks.set(file,pending);
     const parser=new SkillLua(reader.read(file),file);
     Object.assign(pending,parser.chunk((target,value) => {
+      if(value.reason==='CONDITIONAL_ASSIGNMENT') {
+        const existing=resolve(target);
+        if(existing?.type==='table') {
+          const seen=new Set();
+          function poison(table) {if(seen.has(table))return;seen.add(table);table.dynamic=value;for(const e of table.entries){const n=resolve(e.value);if(n?.type==='table')poison(n);else e.value=value;}}
+          poison(existing);return existing;
+        }
+      }
+      if(target.type==='reference') {const root=resolve(target);if(root?.type==='table'){root.dynamic=value;for(const e of root.entries)e.value=value;}return;}
       const base=resolve(target.base),key=scalar(target.key);
       if(base?.type==='table' && key!==undefined) base.entries.push({key:literal(key,target),value});
+    },raw=>{
+      // The existing bounded stimm DSL supplies this exact data-copy loop.
+      // Any change to its body/iterator falls back to conditional invalidation.
+      if(file!=='scripts/settings/ability/archetype_talents/talents/broker_talents.lua'||!stimmDefinitions.size||
+        !/^for\s+talent_name\s*,\s*data\s+in\s+pairs\(stimm_talent_settings\)\s+do\s+archetype_talents\.talents\[talent_name\]\s*=\s*table\.clone\(data\.talent_data\)\s+end$/.test(raw))return false;
+      const source=parser.env.get('stimm_talent_settings'),binding=source?.base?.binding;
+      if(callName(source)!=='TalentSettings.broker_stimm'||binding?.type!=='call'||callName(binding.callee)!=='require'||scalar(binding.args[0])!=='scripts/settings/talent/talent_settings')return false;
+      const target=get(parser.env.get('archetype_talents'),'talents');
+      if(target?.type!=='table')return false;
+      for(const [key,value] of stimmDefinitions)target.entries.push({key:literal(key,value),value});
+      return true;
     }));
     // Recognized data-only registry includes. No function bodies are evaluated.
     for(const c of pending.calls) {
@@ -156,6 +192,7 @@ export function createSkillResolver(reader) {
       if(n.type==='reference') return n.binding?resolve(n.binding,trace):unknown(n,`未解析參照 ${n.name}`);
       if(n.type==='index') {
         const base=resolve(n.base,trace),key=scalar(n.key,trace);
+        if(base?.type==='unknown')return base;
         return resolve(field(base,key),trace) ?? unknown(n,`未解析索引 ${String(key)}`);
       }
       if(n.type==='call') {
@@ -211,12 +248,14 @@ export function createSkillResolver(reader) {
   }
   function scalar(n,trace) {const v=resolve(n,trace);return v?.type==='literal'?v.value:undefined;}
   function field(table,key) {
+    if(table?.type==='unknown')return table;
     if(table?.type!=='table' || key===undefined) return undefined;
     for(let i=table.entries.length-1;i>=0;i--) if(scalar(table.entries[i].key)===key) return table.entries[i].value;
+    return table.dynamic;
   }
   function get(n,key,trace) {return resolve(field(resolve(n,trace),key),trace);}
   function entries(n) {const t=resolve(n);if(t?.type!=='table') return [];const map=new Map();for(const e of t.entries) {const k=scalar(e.key);if(k!==undefined) map.set(k,e.value);}return [...map];}
-  return {load,returned,resolve,scalar,field,get,entries,literal};
+  return {load,returned,resolve,scalar,field,get,entries,literal,setStimmDefinitions(value){stimmDefinitions=value;}};
 }
 function math(name,value) {return name==='round'?(value<0?-Math.floor(-value+0.5):Math.floor(value+0.5)):Math[name](value);}
 

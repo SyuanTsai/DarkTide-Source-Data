@@ -17,7 +17,7 @@ export function expression(fn, value) {
       if (x.value==='math' && t[i++]?.value==='.') {
         const name=t[i++]?.value; if (!['abs','floor','ceil','round'].includes(name) || t[i++]?.value!=='(') throw 0;
         const v=sum(); if(t[i++]?.value!==')') throw 0;
-        return name==='round' ? Math.floor(v+0.5) : Math[name](v);
+        return name==='round' ? (v>=0?Math.floor(v+0.5):Math.ceil(v-0.5)) : Math[name](v);
       }
       throw 0;
     }

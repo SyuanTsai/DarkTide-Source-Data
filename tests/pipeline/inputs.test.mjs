@@ -16,6 +16,18 @@ test('source reader rejects non-SHA commits before consulting Git', () => {
 import { resolveSourceCode,resolvePrivate,workDir } from '../../pipeline/lib/inputs.mjs';
 import { fixture,commit,put } from './helpers.mjs';
 import { StructureError } from '../../pipeline/lib/errors.mjs';
+import {siblingRepo} from '../../pipeline/lib/inputs.mjs';
+import {mkdirSync} from 'node:fs';
+import path from 'node:path';
+
+test('review worktree defaults search adjacent then one parent higher, preserving missing path',t=>{
+ const f=fixture(t),root=path.join(f.dir,'worktrees','task');mkdirSync(root,{recursive:true});
+ assert.equal(siblingRepo('missing',root),path.join(f.dir,'worktrees','missing'));
+ for(const name of ['Darktide-Source-Code','DARKTIDE User Setting']) {
+  mkdirSync(path.join(f.dir,name));assert.equal(siblingRepo(name,root),path.join(f.dir,name));
+  mkdirSync(path.join(f.dir,'worktrees',name));assert.equal(siblingRepo(name,root),path.join(f.dir,'worktrees',name));
+ }
+});
 
 test('resolves commit version, maximum numeric batch, pinned blobs and validates source paths', t => {
   const f=fixture(t),s=resolveSourceCode({repo:f.source,ref:'master'});

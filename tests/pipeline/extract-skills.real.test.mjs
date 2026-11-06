@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync,mkdtempSync,readFileSync } from 'node:fs';
+import { mkdtempSync,readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { root,cli } from './helpers.mjs';
 
 test('skills real pinned commit: coverage and identical bytes',{skip:process.env.PIPELINE_REAL_SMOKE!=='1'},t=>{
-  mkdirSync(path.join(root,'.pipeline-work'),{recursive:true});
-  const dir=mkdtempSync(path.join(root,'.pipeline-work/skills-real-'));
+  const dir=mkdtempSync(path.join(tmpdir(),'syp385-skills-real-'));
   const state=path.join(dir,'state.json');
   const run=(script,args)=>{const v=cli(script,args);assert.equal(v.status,0,v.stderr+v.stdout);return v;};
   run('extract-text.mjs',['--private-repo','F:/GitFile/Persion - Games/DARKTIDE User Setting','--private-ref','origin/master','--text-batch','25606770','--work-dir',dir,'--state',state]);

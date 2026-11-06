@@ -25,7 +25,7 @@ test('InterT10_weapon rows interpolate actual templates and preserve contracts',
  assert.deepEqual(w.values.params.keywords.value,['ranged']);assert.deepEqual(w.values.params.displayed_keywords.value,['loc_autogun_p1_m1']);
  const unregistered=data.items.find(x=>x.key==='autogun_p1_m2');assert.deepEqual(unregistered.values.actions,[]);assert.equal(unregistered.values.params.ammo_clip.unknown,'DYNAMIC_VALUE');assert.ok(data.problems.some(x=>x.code==='NO_DISPLAYED_ATTACKS'&&x.id===unregistered.id));
  const stats=new Map(w.values.bars[0].stats.map(x=>[x.key,x]));
- for(const [key,min,max] of [['recoil.base.moving.pitch',3,5],['recoil.base.pitch',3,7],['recoil.base.fixed',9,9],['recoil.base.constant',4,4],['recoil.base.array.1',2,4],['recoil.base.array.2',12,16],['damage.action_shoot.power_distribution.attack',20,40],['damage.action_shoot.armor.armor_types.armored',0.35,0.65],['damage.action_shoot.ranges.min',15,25]]) {
+ for(const [key,min,max] of [['recoil.base.moving.pitch',3,5],['recoil.base.pitch',3.8,7.8],['recoil.base.fixed',9,9],['recoil.base.constant',4,4],['recoil.base.array.1',2,4],['recoil.base.array.2',12,16],['damage.action_shoot.child.power_distribution.attack',20,40],['damage.action_shoot.child.armor.armor_types.armored',0.35,0.65],['damage.action_shoot.child.ranges.min',15,25]]) {
   assert.equal(stats.get(key)?.min,min,key);assert.equal(stats.get(key)?.max,max,key);
  }
  assert.equal(stats.get('recoil.base.precise').min,0.123456789012345);
@@ -34,7 +34,7 @@ test('InterT10_weapon rows interpolate actual templates and preserve contracts',
  assert.deepEqual(w.values.params.ammo_reserve.value,[100,200]);assert.deepEqual(w.values.params.ammo_clip.value,[20,40]);
  assert.deepEqual(w.values.blessings,['darktide:blessing:weapon_trait_bespoke_test']);assert.equal(w.name.origin,'official');
  const melee=data.items.find(x=>x.key==='sword_p1_m1');assert.deepEqual(melee.values.actions.map(x=>x.slot),['primary','primary.chain.1','primary.chain.2','secondary']);assert.ok(!melee.values.params.ammo_clip);assert.equal(melee.name.origin,'internal');
- assert.equal(data.problems.filter(x=>x.code==='ARCHETYPES_NOT_EXPOSED').length,1);assert.equal(data.problems.filter(x=>x.code==='UNREGISTERED_TEMPLATE').length,1);assert.equal(data.problems.filter(x=>x.code==='DUPLICATE_STAT').length,1);
+ assert.equal(data.problems.filter(x=>x.code==='ARCHETYPES_NOT_EXPOSED').length,1);assert.equal(data.problems.filter(x=>x.code==='UNREGISTERED_TEMPLATE').length,1);assert.equal(data.problems.filter(x=>x.code==='DUPLICATE_STAT').length,0);
  assert.ok(data.problems.some(x=>x.code==='UNRESOLVED_STAT'&&x.reason==='TRAIT_NOT_FOUND'));
  assert.ok(w.source.files.some(x=>x.path.endsWith('test_damage_profile_templates.lua')&&x.line>1));
  const file=path.join(f.work,'extract/weapons.json'),first=readFileSync(file);f.run();assert.deepEqual(readFileSync(file),first);
@@ -44,6 +44,17 @@ test('InterT10_weapon rows interpolate actual templates and preserve contracts',
 test('InterT20_weapon structural mismatch writes empty output with exit zero',t=>{
  const f=setup(t);for(const file of ['guns/autogun_p1_m1.lua','melee/sword_p1_m1.lua','guns/autogun_p1_m2.lua'])put(f.source,base+file,'local weapon_template = {}\nreturn weapon_template\n');
  const sha=commit(f.source),r=cli('extract-weapons.mjs',f.args.map(x=>/^[a-f0-9]{40}$/.test(x)?sha:x));assert.equal(r.status,0,r.stderr);const data=JSON.parse(readFileSync(path.join(f.work,'extract/weapons.json')));assert.equal(data.status,'structure-mismatch');assert.deepEqual(data.items,[]);
+});
+
+test('review F5 weapon base_stats conditional alias writes cannot expose earlier stats',t=>{
+ const f=setup(t),file=base+'guns/autogun_p1_m1.lua';
+ const original=readFileSync(path.join(f.source,file),'utf8');
+ put(f.source,file,original.replace('return weapon_template',`local alias=weapon_template.base_stats.test_stat.recoil\nif runtime_flag then table.merge(alias, runtime_changes) end\nreturn weapon_template`));
+ const sha=commit(f.source),r=cli('extract-weapons.mjs',f.args.map(x=>/^[a-f0-9]{40}$/.test(x)?sha:x));
+ assert.equal(r.status,0,r.stderr);
+ const data=JSON.parse(readFileSync(path.join(f.work,'extract/weapons.json'))),w=data.items.find(x=>x.key==='autogun_p1_m1');
+ assert.ok(!w.values.bars.flatMap(b=>b.stats).some(s=>s.key.startsWith('recoil.')));
+ assert.ok(data.problems.some(p=>p.code==='UNRESOLVED_STAT'&&p.id===w.id));
 });
 import './extract-weapons.real.test.mjs';
 
@@ -63,7 +74,7 @@ test('UnitT30_unknown reasons distinguish dynamic values and missing paths',asyn
  const group=parseLuaStatic('return {recoil_trait_templates.test}').returned;
  engine.extract({source:'weapon_template.recoil_template = "test"',file:'weapon.lua',kind:'recoil',target:'base',group,files:[],emit:x=>stats.push(x),unknown:(key,reason)=>unknown.push({key,reason})});
  assert.deepEqual(stats,[{key:'recoil.base.ok',min:0.123456,max:0.987654}]);
- assert.deepEqual(unknown.map(x=>x.reason),['FUNCTION_VALUE','FUNCTION_VALUE','CONDITIONAL_OR_EXPRESSION','PATH_NOT_FOUND']);
+ assert.deepEqual(unknown.map(x=>x.reason),['FUNCTION_VALUE','FUNCTION_VALUE','CONDITIONAL_OR_EXPRESSION']);
 });
 // Scenario: the weapon tree is absent or its registry contains no player templates.
 // Purpose: both empty inventories must be structural failures, never successful extracts.

@@ -1,3 +1,4 @@
+import { conditionalWrites, luaBlockEnd } from './lua-mutations.mjs';
 const KEYWORDS = new Set([
   'and', 'break', 'do', 'else', 'elseif', 'end', 'false', 'for', 'function',
   'if', 'in', 'local', 'nil', 'not', 'or', 'repeat', 'return', 'then',
@@ -185,8 +186,9 @@ function cloneNode(node) {
 }
 
 function tableEntry(node, key) {
-  if (node?.type !== 'table') return null;
-  return node.entries.find((entry) => entry.key?.type === 'string' && entry.key.value === key) ?? null;
+  if (node?.type !== 'table' || key === undefined) return null;
+  let index=0;
+  return node.entries.find(entry => (entry.key?entry.key.value:++index)===key) ?? null;
 }
 
 function tableKeyIdentity(key, implicitIndex) {
@@ -205,7 +207,7 @@ function tableKeyIdentities(table) {
 }
 
 export function getTableField(node, key) {
-  return tableEntry(node, key)?.value ?? null;
+  return tableEntry(node, key)?.value ?? node?.dynamic ?? null;
 }
 
 export function getTableArray(node) {
@@ -265,17 +267,30 @@ class Parser {
   }
 
   skipBlockStatement(description) {
+    const begin = this.index;
     const start = this.peek();
-    const first = this.take();
-    const stack = [first.value === 'repeat' ? 'repeat' : 'end'];
-    while (stack.length && this.peek().type !== 'eof') {
-      const token = this.take();
-      if (['function', 'if', 'for', 'while'].includes(token.value)) stack.push('end');
-      else if (token.value === 'repeat') stack.push('repeat');
-      else if (token.value === 'until' && stack.at(-1) === 'repeat') stack.pop();
-      else if (token.value === 'end' && stack.at(-1) === 'end') stack.pop();
+    const first = this.peek(),end=luaBlockEnd(this.tokens,begin);
+    if(this.tokens[end]?.value!==(first.value==='repeat'?'until':'end'))this.fail(`Unclosed ${description}`,start);
+    this.index=end+1;
+    if(first.value==='repeat')this.parseExpression();
+    if (first.value !== 'function') for (const path of conditionalWrites(this.tokens.slice(begin,this.index))) {
+      let node=this.resolveReference(this.environment.get(path[0]));
+      if(!node)continue;
+      const value={type:'unsupported',reason:'CONDITIONAL_ASSIGNMENT',raw:'',startLine:start.line};
+      const seen=new Set();
+      const poison=table=>{if(seen.has(table))return;seen.add(table);table.dynamic=value;for(const e of table.entries){if(e.value.type==='table')poison(e.value);else e.value=value;}};
+      if(path.length===1) {
+        if(node.type==='table')poison(node);
+        else this.environment.set(path[0],value);
+      } else {
+        for(const key of path.slice(1,-1))node=getTableField(this.resolveReference(node),key);
+        node=this.resolveReference(node);
+        if(node?.type==='table') {
+          const e=tableEntry(node,path.at(-1));if(e){if(e.value.type==='table')poison(e.value);else e.value=value;}
+          else node.entries.push({key:{type:'string',value:path.at(-1)},value});
+        }
+      }
     }
-    if (stack.length) this.fail(`Unclosed ${description}`, start);
     this.unsupported.push({ code: 'UNSUPPORTED_CONSTRUCT', description, line: start.line, start: start.start });
   }
 

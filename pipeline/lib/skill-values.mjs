@@ -46,7 +46,7 @@ export function skillParams(r,definition,id,problems,trace) {
     }
     if(reason || value===undefined) {
       params[name]={value:null,unknown:'DYNAMIC_VALUE'};
-      problems.push({code:'UNRESOLVED_VALUE',id,param:name,message:reason ?? '非靜態值'});
+      problems.push({code:'UNRESOLVED_VALUE',id,param:name,message:reason ?? '非靜態值',...(reason==='CONDITIONAL_ASSIGNMENT'?{reason}:{})});
     } else params[name]={value,...(format==='percentage'?{unit:'percent'}:{})};
   }
   for(const [key,v] of r.entries(r.get(definition,'format_values'))) param(key,v);

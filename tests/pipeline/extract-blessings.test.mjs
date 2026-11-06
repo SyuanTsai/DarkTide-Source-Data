@@ -87,8 +87,8 @@ return templates`],
   assert.equal(read('unknown_missing',['absent']).reason,'FUNCTION_GENERATED');
   assert.equal(read('generated',['max_stacks']).reason,'FUNCTION_GENERATED');
   assert.equal(read('conditional',['max_stacks']).reason,'CONDITIONAL_EXPRESSION');
-  assert.equal(read('conditional_constant',['max_stacks']).reason,'RUNTIME_CONTROL_FLOW');
-  assert.equal(read('runtime',['max_stacks']).reason,'RUNTIME_CONTROL_FLOW');
+  assert.equal(read('conditional_constant',['max_stacks']).reason,'CONDITIONAL_ASSIGNMENT');
+  assert.equal(read('runtime',['max_stacks']).reason,'CONDITIONAL_ASSIGNMENT');
   assert.equal(read('cyclic',['max_stacks']).reason,'RUNTIME_REFERENCE');
   assert.equal(read('base',['absent']).reason,'PATH_MISSING');
   assert.equal(read('base',['max_stacks','absent']).reason,'PATH_MISSING');
@@ -99,7 +99,7 @@ return templates`],
 test('UnitT20_安全運算只接受單一受限運算式',()=>{
   for(const [raw,input,expected] of [
     ['math.floor(value * 100)',0.126,12],['math.ceil(value)',1.1,2],
-    ['math.round(value)',-1.5,-1],['math.abs(-value) + (4 / 2) * 3 - 1',-2,7],
+    ['math.round(value)',-1.5,-2],['math.abs(-value) + (4 / 2) * 3 - 1',-2,7],
     ['os.execute(value)',1,null],['value; return 1',1,null],['1 / (value - value)',1,null],
     ['value ^ 2',2,null],['math.round_with_precision(value, 1)',1.2,null],
   ]) assert.equal(expression({raw:`function (value) return ${raw} end`},input),expected,raw);

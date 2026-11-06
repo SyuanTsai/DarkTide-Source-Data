@@ -4,6 +4,17 @@ import {parseLuaStatic, getTableField as field, getTableArray as array} from './
 const ROOT='scripts/settings/equipment/weapon_templates/';
 const PATHS={explosion:'scripts/settings/damage/explosion_templates.lua',projectile:'scripts/settings/projectile/projectile_templates.lua',burninating:'scripts/settings/equipment/weapon_handling_templates/weapon_burninating_templates.lua',size_of_flame:'scripts/settings/equipment/weapon_handling_templates/weapon_size_of_flame_templates.lua',recoil:'scripts/settings/equipment/recoil_templates.lua',spread:'scripts/settings/equipment/spread_templates.lua',sway:'scripts/settings/equipment/sway_templates.lua',damage:'scripts/settings/damage/damage_profile_templates.lua',hit_scan:'scripts/settings/projectile/hit_scan_templates.lua',ammo:'scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua',dodge:'scripts/settings/dodge/weapon_dodge_templates.lua',sprint:'scripts/settings/sprint/weapon_sprint_templates.lua',stamina:'scripts/settings/stamina/weapon_stamina_templates.lua',movement_curve_modifier:'scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua',charge:'scripts/settings/equipment/weapon_handling_templates/weapon_charge_templates.lua',warp_charge:'scripts/settings/warp_charge/weapon_warp_charge_templates.lua',weapon_handling:'scripts/settings/equipment/weapon_handling_templates/weapon_handling_templates.lua',weapon_chain_lightning:'scripts/settings/equipment/weapon_handling_templates/weapon_chain_lightning_templates.lua',weapon_shout:'scripts/settings/equipment/weapon_handling_templates/weapon_shout_templates.lua'};
 const component=n=>n?.type==='reference'?n.ref:n?.value;
+const sentinel=(key,name)=>typeof key==='string'&&key.split('.').at(-1)===name;
+const DEFAULT_LERP='DEFAULT_LERP_VALUE';
+
+// DamageProfile.lerp_value_from_path: only the current target/root scope's
+// default is inherited. A default_target field never fills an existing target.
+export function damageLerpValue(lerpValues,keys,fallback) {
+ const defaultValue=lerpValues instanceof Map?lerpValues.get(DEFAULT_LERP):undefined;
+ let node=lerpValues;
+ for(const key of keys.slice(0,-1))node=node instanceof Map?node.get(key):undefined;
+ return (node instanceof Map?node.get(keys.at(-1)):undefined)??defaultValue??fallback;
+}
 function child(node,key) {
  let index=0;
  return node?.type==='table'?node.entries.find(e=>{if(e.key==null)index++;return (e.key==null?index:component(e.key))===key;})?.value:null;
@@ -136,7 +147,7 @@ export function createWeaponStats(reader) {
   }
   visit(action,file);return [...found];
  }
- function reason(node) {if(node?.type==='blocked')return reason(node.cause);if(node?.type==='table'){for(const e of node.entries){if(['function','call','unsupported','reference'].includes(e.value?.type))return reason(e.value);}}return node?.type==='function'||node?.type==='call'?'FUNCTION_VALUE':node?.type==='unsupported'?'CONDITIONAL_OR_EXPRESSION':node?.type==='reference'?'REFERENCE_NOT_FOUND':!node?'PATH_NOT_FOUND':'NON_NUMERIC_VALUE';}
+ function reason(node) {if(node?.reason==='CONDITIONAL_ASSIGNMENT')return node.reason;if(node?.type==='blocked')return reason(node.cause);if(node?.type==='table'){for(const e of node.entries){if(['function','call','unsupported','reference'].includes(e.value?.type))return reason(e.value);}}return node?.type==='function'||node?.type==='call'?'FUNCTION_VALUE':node?.type==='unsupported'?'CONDITIONAL_OR_EXPRESSION':node?.type==='reference'?'REFERENCE_NOT_FOUND':!node?'PATH_NOT_FOUND':'NON_NUMERIC_VALUE';}
  function values(node,tmin,tmax) {
   node=deref(node);
   if(node?.type==='number')return [{suffix:'',min:node.value,max:node.value}];
@@ -154,41 +165,115 @@ export function createWeaponStats(reader) {
   node=node?{...node,_file:node._file??file}:null;node=deref(node);
   return node?.type==='call'&&node.ref.endsWith('create_template')?node.args[1]?.value:null;
  }
- return {label,extract({source,file,kind,target,group,actions,alternate,emit,unknown,files}) {
+ function movementStates() {
+  const file='scripts/settings/equipment/weapon_movement_state_settings.lua';
+  const n=field(chunk(file)?.locals.weapon_movement_state_settings,'weapon_movement_states');
+  return n?.type==='call'&&n.ref==='table.enum'?n.args.map(component):[];
+ }
+ function damageNode(base,keys) {
+  if(keys[0]!=='targets')return traverse(base,keys,'damage');
+  const targets=deref(child(base,'targets'));
+  // A missing target falls back as a whole; an existing target's missing fields do not.
+  const target=deref(child(targets,keys[1]))??deref(child(targets,'default_target'));
+  return traverse(target,keys.slice(2),'damage');
+ }
+ function endpointPaths(node,keys,kind,out=[],seen=new Set()) {
+  node=inheritedState(deref(node),kind);
+  if(!node||seen.has(node))return out;
+  if(values(node,0,1)){out.push(keys);return out;}
+  if(node.type==='table') {
+   const next=new Set([...seen,node]);let index=0;
+   for(const e of node.entries){const key=e.key?component(e.key):++index;if(key!=='inherits')endpointPaths(e.value,[...keys,key],kind,out,next);}
+  }
+  return out;
+ }
+ function finish(contributions) {
+  const groups=new Map(),trees=new Map();
+  for(const c of contributions) {
+   const identity=JSON.stringify([c.kind,c.target,c.profile]);
+   if(!c.override&&contributions.overrideProfiles?.has(identity)){c.notApplicable();continue;}
+   if(c.error){c.unknown(c.key,c.error);continue;}
+   if(!trees.has(identity))trees.set(identity,new Map());
+   c.tree=trees.get(identity);let tree=c.tree;
+   const path=c.rawKeys.map(k=>sentinel(k,DEFAULT_LERP)?DEFAULT_LERP:k);
+   for(const key of path.slice(0,-1)){if(!tree.has(key))tree.set(key,new Map());tree=tree.get(key);}
+   const last=path.at(-1);if(!tree.has(last))tree.set(last,[]);
+   const leaf=tree.get(last);
+   // A default row can expand to several endpoints; it contributes once.
+   if(!leaf.some(r=>r.row===c.row&&r.emit===c.emit))leaf.push(c);
+   const k=JSON.stringify([c.kind,c.target,c.profile,c.keys]);
+   if(!groups.has(k))groups.set(k,[]);groups.get(k).push(c);
+  }
+  for(const allRows of groups.values()) {
+   const example=allRows[0];let scope=example.tree,keys=example.keys;
+   if(example.kind==='damage'&&keys[0]==='targets') {
+    const targets=scope.get('targets');scope=targets?.get(keys[1])??targets?.get('default_target');keys=keys.slice(2);
+   }
+   const settings=chunk(ROOT+'weapon_tweak_template_settings.lua')?.locals.WeaponTweakTemplateSettings;
+   const fallback=field(settings,'DEFAULT_FALLBACK_LERP_VALUE')?.value;
+   const rows=damageLerpValue(scope,keys,fallback);
+   // A fallback-only endpoint has no contributing bar and is not a stat.
+   if(!Array.isArray(rows)||!rows.length)continue;
+   const lo=rows.reduce((n,r)=>n+r.lo,0),hi=rows.reduce((n,r)=>n+r.hi,0);
+   const dynamic=rows.find(r=>r.dynamic),result=dynamic?null:values(example.node,lo,hi),sent=new Set();
+   for(const row of rows) {
+    if(sent.has(row.emit))continue;sent.add(row.emit);
+    if(dynamic){row.unknown(example.key,dynamic.dynamic);continue;}
+    for(const v of result??[])row.emit({key:example.key+v.suffix,min:v.min,max:v.max});
+   }
+  }
+ }
+ return {label,finish,extract({source,file,kind,target,group,actions,alternate,emit,unknown,files,notApplicable=()=>{},contributions=null}) {
+  const collected=contributions??[],pending=[];
+  collected.overrideProfiles??=new Set();
   function groupRows(group,explicitProfile=null) {
+   const names=kind==='damage'?(explicitProfile?
+    (catalog('damage').has(explicitProfile)?[explicitProfile]:['hit_scan','explosion','projectile'].flatMap(type=>profiles(effective(type,explicitProfile),file))):profiles(field(actions,target),file)):[identifier(source,kind,target,actions,alternate)].filter(Boolean);
+   if(kind==='damage'&&explicitProfile!==null)for(const name of names)collected.overrideProfiles.add(JSON.stringify([kind,target,name]));
    for(const ref of array(group)) {
+    if(ref.type!=='reference'){unknown(kind+'.'+target,reason(ref));continue;}
     const match=/^([a-z0-9_]+_trait_templates)\.([a-z0-9_]+)$/.exec(ref.ref??'');
-    const traitFile=match?`${ROOT}weapon_trait_templates/${match[1]}.lua`:null;
+    const traitFile=match?ROOT+'weapon_trait_templates/'+match[1]+'.lua':null;
     const p=traitFile&&chunk(traitFile),trait=p&&field(p.locals[match[1]]??p.returned,match[2]);
-    const prefix=`${kind}.${target}`;
+    const prefix=kind+'.'+target;
     if(!trait){unknown(prefix,parseFailures.has(traitFile)?'TRAIT_PARSE_FAILED':'TRAIT_NOT_FOUND');continue;}
     const rows=array(trait);if(!rows.length){unknown(prefix,'TRAIT_ROWS_NOT_FOUND');continue;}
-    const names=kind==='damage'?(explicitProfile?
-     (catalog('damage').has(explicitProfile)?[explicitProfile]:['hit_scan','explosion','projectile'].flatMap(type=>profiles(effective(type,explicitProfile),file))):profiles(field(actions,target),file)):[identifier(source,kind,target,actions,alternate)].filter(Boolean);
     for(const row of rows) {
-     const parts=array(row),keys=parts.slice(0,-1).map(component),param=deref(parts.at(-1)),key=`${prefix}.${keys.join('.')}`;
-     if(parts.length<2||keys.some(x=>x==null)){unknown(key,'INVALID_TRAIT_ROW');continue;}
+     const parts=array(row),rawKeys=parts.slice(0,-1).map(component),param=deref(parts.at(-1));
+     const key=prefix+'.'+rawKeys.join('.');
+     if(parts.length<2||rawKeys.some(x=>x==null)){unknown(key,'INVALID_TRAIT_ROW');continue;}
      const lo=param?.type==='number'?param:field(param,'min'),hi=param?.type==='number'?param:field(param,'max');
-     if(lo?.type!=='number'||hi?.type!=='number'){unknown(key,reason(param));continue;}
      if(!names.length){const action=field(actions,target);unknown(key,action?.type==='call'||action?.type==='function'?'ACTION_FUNCTION_VALUE':kind==='damage'?'DAMAGE_PROFILE_BINDING_NOT_FOUND':'TEMPLATE_BINDING_NOT_FOUND');continue;}
-     let failure=null;const selected=[];
-     for(const name of names) {
-      const base=effective(kind,name);
-      if(!base){failure??=catalogFailures.has(kind)?'BASE_TEMPLATE_PARSE_FAILED':kind==='damage'?'DAMAGE_PROFILE_NOT_FOUND':'BASE_TEMPLATE_NOT_FOUND';continue;}
-      const node=traverse(base,keys,kind),result=values(node,lo.value,hi.value);
-      if(!result){failure??=keys.includes('ALL_WEAPON_MOVEMENT_STATES')?'MOVEMENT_STATE_SENTINEL':reason(node);continue;}
-      selected.push({node,base,result});
+     let paths=[rawKeys];
+     if(rawKeys.some(k=>sentinel(k,'ALL_WEAPON_MOVEMENT_STATES'))) {
+      const states=movementStates();
+      if(!states.length){unknown(key,'MOVEMENT_STATES_NOT_FOUND');continue;}
+      paths=states.map(state=>rawKeys.map(k=>sentinel(k,'ALL_WEAPON_MOVEMENT_STATES')?state:k));
      }
-     if(!selected.length){unknown(key,failure);continue;}
-     for(const {node,base,result} of selected){
-     files.push({path:traitFile,line:param.startLine??row.startLine??1});
-     files.push({path:node._file??base._file,line:node.startLine??1});
-     for(const v of result)emit({key:key+v.suffix,min:v.min,max:v.max});
-     }
+     for(const name of new Set(names))for(const keys of paths)pending.push({name,keys,override:explicitProfile!==null,lo:lo?.value,hi:hi?.value,traitFile,param,row,...(lo?.type!=='number'||hi?.type!=='number'?{dynamic:reason(param)}:{})});
     }
    }
    for(const e of field(group,'overrides')?.entries??[])groupRows(e.value,component(e.key));
   }
   groupRows(group);
+  for(const entry of pending) {
+   const {name,keys,lo,hi,traitFile,param,row,dynamic,override}=entry,base=effective(kind,name);
+   const prefix=kind+'.'+target+(kind==='damage'?'.'+name:'');
+   const report=(key,error)=>collected.push({kind,target,profile:name,key,error,unknown,override,notApplicable});
+   if(!base){report(prefix+'.'+keys.join('.'),catalogFailures.has(kind)?'BASE_TEMPLATE_PARSE_FAILED':kind==='damage'?'DAMAGE_PROFILE_NOT_FOUND':'BASE_TEMPLATE_NOT_FOUND');continue;}
+   const isDefault=sentinel(keys.at(-1),'DEFAULT_LERP_VALUE'),scope=keys.slice(0,-1);
+   const read=k=>kind==='damage'?damageNode(base,k):traverse(base,k,kind);
+   const paths=isDefault?endpointPaths(read(scope),scope,kind):[keys];
+   if(isDefault&&!paths.length){const n=read(scope);if(n&&['blocked','reference','call','unsupported'].includes(n.type))report(prefix+'.'+keys.join('.'),reason(n));else notApplicable();}
+   for(const actual of paths) {
+    // Explicit paths take precedence over the scope's default lerp value.
+    const key=prefix+'.'+actual.join('.'),node=read(actual),result=values(node,0,1);
+    if(!result){if(!node){notApplicable();continue;}report(key,reason(node));continue;}
+    files.push({path:traitFile,line:param.startLine??row.startLine??1});
+    files.push({path:node._file??base._file,line:node.startLine??1});
+    collected.push({kind,target,profile:name,keys:actual,rawKeys:keys,row,key,node,lo,hi,emit,unknown,dynamic,override,notApplicable});
+   }
+  }
+  if(!contributions)finish(collected);
  }};
 }

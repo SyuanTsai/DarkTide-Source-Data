@@ -57,6 +57,8 @@ export function skillStructure(reader) {
   const r=createSkillResolver(reader),parserChunk=r.load(LAYOUT_PARSER);
   if(!r.field(r.resolve(parserChunk.env.get('FIND_VALUE_FUNCTIONS')),'buff_template')) throw new StructureError('skills','FINDER_MISSING','FIND_VALUE_FUNCTIONS 缺少 buff_template');
   const problems=[], definitions=new Map();
+  const generated=stimmDefinitions(r,reader);
+  r.setStimmDefinitions(generated);
   for(const file of reader.list(TALENTS).filter(p=>p.endsWith('_talents.lua'))) {
     const definition=r.returned(file),archetype=file===TALENTS+'base_talents.lua'?'base':r.scalar(r.get(definition,'archetype')) ?? file.slice(TALENTS.length).replace(/_talents\.lua$/,'');
     const talents=r.get(definition,'talents');const map=new Map();
@@ -68,7 +70,6 @@ export function skillStructure(reader) {
     }
     definitions.set(archetype,map);
   }
-  const generated=stimmDefinitions(r,reader);
   if(generated.size) {
     const broker=definitions.get('broker') ?? new Map();
     for(const [k,v] of generated) broker.set(k,v);

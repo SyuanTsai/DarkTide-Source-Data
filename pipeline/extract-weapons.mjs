@@ -1,7 +1,8 @@
 import path from 'node:path';
 import {createWeaponStats} from './lib/weapon-stats.mjs';
 import { fileURLToPath } from 'node:url';
-import { parseLuaStatic, findLuaTableAssignment, getLuaTableFields, getTableField, getTableArray } from './lib/lua-static-reader.mjs';
+import { parseLuaStatic, findLuaTableAssignment, getLuaTableFields, getTableField, getTableArray, tokenizeLua } from './lib/lua-static-reader.mjs';
+import {controlFlowWrites} from './lib/lua-mutations.mjs';
 import { playerWeaponTemplates, weaponPattern, bespokeTraitsForTemplate } from './lib/weapon-inventory.mjs';
 import { StructureError } from './lib/errors.mjs';
 import { runExtractCli, itemId, nameFromText } from './lib/extract-output.mjs';
@@ -13,7 +14,23 @@ const paths={ammo:'scripts/settings/equipment/weapon_handling_templates/weapon_a
 const field=(n,k)=>getTableField(n,k);
 const entries=n=>n?.type==='table' ? n.entries.map((e,i)=>({key:e.key?.value ?? String(i+1),node:e.value})) : [];
 function parse(raw) { try {return parseLuaStatic(`local x = ${raw}\nreturn x`,{allowUnsupported:true}).returned;} catch {return null;} }
-function table(source,ref) { try {return parse(findLuaTableAssignment(source,ref).raw);} catch {return null;} }
+const writesCache=new Map();
+function table(source,ref) {
+ try {
+  const node=parse(findLuaTableAssignment(source,ref).raw),prefix=ref.split('.');
+  if(!writesCache.has(source))writesCache.set(source,controlFlowWrites(tokenizeLua(source)));
+  for(const path of writesCache.get(source)) {
+   if(!path.slice(0,Math.min(path.length,prefix.length)).every((k,i)=>k===prefix[i]))continue;
+   let parent=node;
+   for(const key of path.slice(prefix.length,-1))parent=field(parent,key);
+   const value={type:'unsupported',reason:'CONDITIONAL_ASSIGNMENT'};
+   const poison=n=>{if(n?.type==='table')for(const e of n.entries)poison(e.value);else if(n)Object.assign(n,value);};
+   if(path.length<=prefix.length)poison(node);
+   else {const affected=field(parent,path.at(-1));if(affected)poison(affected);}
+  }
+  return node;
+ } catch {return null;}
+}
 function string(n) {return n?.type==='string'?n.value:null;}
 function endpoints(n) { if(n?.type!=='table') return null; const a=field(n,'lerp_basic'),b=field(n,'lerp_perfect'); if(a||b) return a?.type==='number'&&b?.type==='number'?[a.value,b.value]:null; const arr=getTableArray(n); return arr.length>=2&&arr.every(x=>x.type==='number')?[arr[0].value,arr.at(-1).value]:null; }
 function textValue(text,key) {const v=key&&text.lookup(key); return {en:v&&!v.conflict?v.en??null:null,zh:v&&!v.conflict?v.zh??null:null};}
@@ -32,6 +49,7 @@ export async function buildWeapons({reader,text,envelope}) {
   if(!t.registered) problems.push({code:'UNREGISTERED_TEMPLATE',message:`未註冊模板：${t.name}`,id});
   if(!patterns.includes(family)) problems.push({code:'PATTERN_NOT_IN_UI',message:`UI 缺少 pattern：${family}`,id});
   const attacks=table(source,'weapon_template.displayed_attacks'), stats=table(source,'weapon_template.base_stats');
+  const contributions=[];let notApplicable=0;
   if(!attacks||!stats) missing++;
   if(!attacks) problems.push({code:'NO_DISPLAYED_ATTACKS',message:'沒有 displayed_attacks',id});
   function visitAttack(node,slot,top=false) {if(node?.type!=='table') return; const type=string(field(node,'type')),name=string(field(node,'display_name')); if(top||type||name) actions.push({slot,id:slot,type:type??'unknown',name:textValue(text,name)}); for(const e of entries(node)) if(e.node?.type==='table') visitAttack(e.node,`${slot}.${e.key}`);}
@@ -43,11 +61,13 @@ export async function buildWeapons({reader,text,envelope}) {
    function unknown(key,reason) {if(duplicate(key))return;const param=`bar_${index+1}_${key.toLowerCase().replace(/[^a-z0-9_]/g,'_')}`;params[param]={value:null,unknown:'DYNAMIC_VALUE'};problems.push({code:'UNRESOLVED_STAT',message:`無法解析 ${bar.key}：${key}（${reason}）`,id,bar:bar.key,key,reason});}
    for(const kind of entries(bar.node)) {if(kind.node?.type!=='table')continue;for(const target of entries(kind.node)){if(target.node?.type!=='table')continue;
     const name=textValue(text,statReader.label(field(target.node,'display_data'),t.file));
-    statReader.extract({source,file:t.file,kind:kind.key,target:target.key,group:target.node,actions:table(source,'weapon_template.actions'),alternate:table(source,'weapon_template.alternate_fire_settings'),files,unknown,emit(stat){
+    statReader.extract({source,file:t.file,kind:kind.key,target:target.key,group:target.node,actions:table(source,'weapon_template.actions'),alternate:table(source,'weapon_template.alternate_fire_settings'),files,unknown,contributions,notApplicable(){notApplicable++;},emit(stat){
      if(!duplicate(stat.key))output.stats.push({...stat,name});
     }});
    }}
   }
+  statReader.finish(contributions);
+  if(notApplicable)problems.push({code:'NOT_APPLICABLE_STAT',id,message:`遊戲不讀取的 stat 路徑：${notApplicable} 筆`});
   for(const k of ['keywords','displayed_keywords']) {const n=table(source,`weapon_template.${k}`); if(n){const values=getTableArray(n).map(x=>k==='keywords'?string(x):string(field(x,'display_name'))).filter(x=>x!==null);params[k]={value:values};}}
   const ammo=assigned(source,'ammo_template'); if(ammo&&ammo!=='no_ammo'){const file=paths.ammo,node=field(catalog(file,'weapon_ammo_templates'),ammo); for(const [key,names] of [['ammo_reserve',['ammo_amount_capacity_lerp','ammunition_reserve']],['ammo_clip',['ammo_amount_clip_lerp','ammunition_clips']]]) {let v=null;for(const name of names){let x=field(node,name);v=endpoints(x);if(!v&&getTableArray(x).length===1)v=endpoints(getTableArray(x)[0]);if(v) break;} params[key]=v?{value:v}:{value:null,unknown:'DYNAMIC_VALUE'};}}
   const unique=[...new Map(files.map(x=>[`${x.path}:${x.line}`,x])).values()].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:a.line-b.line);
