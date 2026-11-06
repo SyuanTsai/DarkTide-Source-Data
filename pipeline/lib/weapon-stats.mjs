@@ -294,7 +294,7 @@ export function createWeaponStats(reader) {
     // separately; the runtime clamps accumulated tweak weights per contribution.
     const curveUnknown=rows.some(r=>r.lo<0||r.lo>1||r.hi<0||r.hi>1)?'LERP_T_OUT_OF_RANGE'
      :rows.length>1&&(lo<0||hi>1||lo>1||hi<0)?'NONLINEAR_COMBINATION'
-     :example.kind==='damage'?'NONLINEAR_LERP':null;
+     :null;
     const basic=deref(field(example.node,'lerp_basic'));
     const curveSource={path:basic?._file??example.node._file,line:basic?.startLine??example.node.startLine??1};
     for(const v of result??[])row.emit({key:example.key+v.suffix,min:v.min,max:v.max,curveUnknown,curveSource});

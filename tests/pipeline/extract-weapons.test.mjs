@@ -109,7 +109,9 @@ test('UnitT60_curve flags distinguish linear and unproven interpolation',async()
  assert.ok(run('{{"value",{min=-1,max=2}}}').every(s=>s.curveUnknown==='LERP_T_OUT_OF_RANGE'));
  assert.ok(run('{{"value",{min=0,max=0.8}},{"value",{min=0,max=0.8}}}').every(s=>s.curveUnknown==='NONLINEAR_COMBINATION'));
  assert.ok(run('{{"value",{min=0,max=0.4}},{"value",{min=0,max=0.4}}}').every(s=>s.curveUnknown===null));
- const damage=run('{{"value",{min=0,max=1}}}','damage');assert.equal(damage.length,2);assert.ok(damage.every(s=>s.curveUnknown==='NONLINEAR_LERP'));
+ const damage=run('{{"value",{min=0,max=1}}}','damage');assert.equal(damage.length,2);assert.deepEqual(damage.map(s=>[s.min,s.max,s.curveUnknown]),[[2,6,null],[10,18,null]]);
+ assert.ok(run('{{"value",{min=-1,max=2}}}','damage').every(s=>s.curveUnknown==='LERP_T_OUT_OF_RANGE'));
+ assert.ok(run('{{"value",{min=0,max=0.8}},{"value",{min=0,max=0.8}}}','damage').every(s=>s.curveUnknown==='NONLINEAR_COMBINATION'));
 });
 
 
