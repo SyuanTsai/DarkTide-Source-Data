@@ -1,0 +1,31 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { cli } from './helpers.mjs';
+import { createSourceReader } from '../../pipeline/lib/source-reader.mjs';
+import { playerWeaponTemplates, bespokeTraitDefinitions, bespokeTraitsForTemplate } from '../../pipeline/lib/weapon-inventory.mjs';
+
+test('real pinned source/private smoke', {skip:process.env.PIPELINE_REAL_SMOKE !== '1'}, t => {
+  const dir=mkdtempSync(path.join(tmpdir(),'syp385-real-'));
+  t.after(() => rmSync(dir,{recursive:true,force:true}));
+  const source='F:/GitFile/Persion - Games/Darktide-Source-Code',priv='F:/GitFile/Persion - Games/DARKTIDE User Setting',sha='ba6c148f3c2768ca3ce20d846a12e56e2f433f3e';
+  const reader=createSourceReader({repo:source,commit:sha}),templates=playerWeaponTemplates(reader),definitions=bespokeTraitDefinitions(reader);
+  assert.equal(templates.length,137); assert.equal(templates.filter(x => x.registered).length,135); assert.equal(definitions.length,693);
+  assert.ok(bespokeTraitsForTemplate(reader,templates.find(x => x.name==='autogun_p1_m1')).length>0);
+  t.diagnostic(`weapon inventory ${templates.length}/${templates.filter(x => x.registered).length}/${definitions.length}`);
+  const state=path.join(dir,'state.json'),textArgs=['--private-repo',priv,'--private-ref','origin/master','--text-batch','25606770','--work-dir',dir,'--state',state];
+  const run=(script,args) => { const r=cli(script,args); assert.equal(r.status,0,r.stderr+r.stdout); return r; };
+  const a=run('extract-text.mjs',textArgs),text=readFileSync(path.join(dir,'extract/text.json'));
+  t.diagnostic(a.stdout.trim());
+  run('extract-text.mjs',textArgs); assert.deepEqual(readFileSync(path.join(dir,'extract/text.json')),text);
+  const args=['--source-code-repo',source,'--commit',sha,'--text-batch','25606770','--work-dir',dir,'--state',state];
+  const first=run('extract-terms.mjs',args),terms=readFileSync(path.join(dir,'extract/terms.json'));
+  const data=JSON.parse(terms); assert.equal(data.status,'ok'); assert.ok(data.items.length);
+  t.diagnostic(first.stdout.trim());
+  t.diagnostic(JSON.stringify(Object.fromEntries(['keyword','skill-type','class','weapon-type'].map(c => [c,data.items.filter(x => x.values.category===c).length]))));
+  run('extract-terms.mjs',args); assert.deepEqual(readFileSync(path.join(dir,'extract/terms.json')),terms);
+  const check=cli('check-version.mjs',['--source-code-repo',source,'--commit',sha,...textArgs.filter((_,i) => i!==6 && i!==7),'--json']);
+  assert.equal(check.status,2,check.stderr); const result=JSON.parse(check.stdout); assert.equal(result.status,'halted'); assert.equal(result.sourceGameVersion,'1.13.2');assert.equal(result.textGameVersion,'1.13.1');
+});
