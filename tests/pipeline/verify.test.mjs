@@ -408,6 +408,31 @@ test('InterT74_勘誤數字引用與跨語系數字涵蓋', async (t) => {
   assert.equal(failures(await f.run(), 'T_ERRATA_UNKNOWN').length, 1);
 });
 
+// Scenario: errata references a weapon curve source line or a real output endpoint. Purpose: reject structural numbers while accepting game values.
+test('InterT75_勘誤只能引用合法遊戲數值', async (t) => {
+  const f = await fixture(t);
+  for (const c of CATEGORIES) f.data[c].schemaVersion = '1.1.0';
+  const example = JSON.parse(await readFile(new URL('../../pipeline/schema/examples/1.1.0-example/weapons.json', import.meta.url), 'utf8'));
+  for (const weapon of f.data.weapons.items) {
+    weapon.values.curves = structuredClone(example.items[0].values.curves);
+    weapon.values.attackCombos = structuredClone(example.items[0].values.attackCombos);
+    weapon.values.bars[0].stats[0].curveId = 'example.example';
+  }
+  f.extracts.weapons.items = f.data.weapons.items.map(strip);
+  const item = f.data.weapons.items[0];
+  item.values.curves = structuredClone(example.items[0].values.curves);
+  item.values.attackCombos = structuredClone(example.items[0].values.attackCombos);
+  item.values.bars[0].stats[0].curveId = 'example.example';
+  item.values.curves[0].source.line = 54;
+  item.values.curves[0].knots[0].output = 180;
+  item.official = { en: null, zh: '備用彈藥140發。' };
+  item.errata = [{ locale: 'zh', official: '140', corrected: '54', valueRef: '/curves/0/source/line' }];
+  f.extracts.weapons.items[0] = strip(structuredClone(item));
+  assert.equal(failures(await f.run(), 'T_ERRATA_INVALID').length, 1);
+  item.errata[0] = { locale: 'zh', official: '140', corrected: '180', valueRef: '/curves/0/knots/0/output' };
+  const result = await f.run(); assert.equal(result.report.result, 'pass', JSON.stringify(result.report));
+});
+
 // Scenario: malformed explanation fields or nested unknown regressions reach item checks. Purpose: avoid crashes and preserve JSON pointer evidence.
 test('InterT76_錯誤欄位型別與參數陣列降級', async (t) => {
   const f = await fixture(t);
@@ -524,3 +549,4 @@ test('InterT88_佔位詞全集與數值來源涵蓋', async (t) => {
   f.data.weapons.items[0].explanation.notes = '最小12.34567%';
   r = await f.run(); assert.equal(r.report.result, 'pass');
 });
+
