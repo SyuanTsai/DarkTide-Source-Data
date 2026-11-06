@@ -19,3 +19,5 @@ import './extract-weapons.test.mjs';
 import './review1.test.mjs';
 import './review2.test.mjs';
 import './review2.real.test.mjs';
+import './review3.test.mjs';
+import './review3.real.test.mjs';

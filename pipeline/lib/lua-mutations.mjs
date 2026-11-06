@@ -47,6 +47,7 @@ export function conditionalWrites(tokens, finiteKeys=new Map()) {
  for(let i=0;i<tokens.length;i++) {
   // Declaring a function does not execute its body.
   if(tokens[i].type==='keyword'&&tokens[i].value==='function') {
+   if(tokens[i-1]?.value!=='local'&&tokens[i+1]?.type==='identifier') {const binding=pathAt(i+1);if(binding?.path.length)writes.push(binding.path);}
    i=luaBlockEnd(tokens,i);
    continue;
   }

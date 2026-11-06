@@ -6,6 +6,13 @@ import { skillParams } from './lib/skill-values.mjs';
 export const SCRIPT_VERSION='pipeline/extract-skills.mjs@1.0.0';
 const NODE_TYPES=new Set(['ability','ability_modifier','aura','keystone','keystone_modifier','tactical','tactical_modifier','stat','start','default','broker_stimm']);
 
+export function validateSkillParents(items) {
+  const emitted=new Set(items.map(i=>i.id));
+  for(const item of items)for(const parent of item.values.parents) {
+    if(!emitted.has(parent))throw new Error('腳本 bug：技能 '+item.id+' 引用了未輸出的 parent '+parent);
+  }
+}
+
 export function buildSkills({reader,text,envelope}) {
   const {r,trees,definitions,problems}=skillStructure(reader),items=[],excluded=[],seen=new Set(),used=new Map();
   for(const {file,node:tree} of trees) {
@@ -44,6 +51,10 @@ export function buildSkills({reader,text,envelope}) {
     const referenced=archetype==='base'?[...used.values()].some(keys=>keys.has(key)):used.get(archetype)?.has(key);
     if(!referenced) excluded.push({key,archetype,reason:'not-in-tree'});
   }
+  const emitted=new Set(items.map(i=>i.id));
+  // Placeholder nodes have no emitted skill and contribute no parent edge.
+  for(const item of items)item.values.parents=item.values.parents.filter(id=>emitted.has(id));
+  validateSkillParents(items);
   return {items,problems,excluded};
 }
 

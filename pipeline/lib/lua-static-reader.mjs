@@ -252,7 +252,7 @@ class Parser {
       if (this.match(';')) continue;
       if (this.peek().value === 'local') this.parseLocal();
       else if (this.peek().value === 'return') this.parseReturn();
-      else if (this.peek().value === 'function') this.skipBlockStatement('function declaration');
+      else if (this.peek().value === 'function') this.parseNamedFunction();
       else if (['if', 'for', 'while', 'repeat', 'do'].includes(this.peek().value)) this.skipBlockStatement(`${this.peek().value} statement`);
       else this.parseAssignmentOrCall();
     }
@@ -265,6 +265,15 @@ class Parser {
       returned: this.resolveReference(this.returned),
       unsupported: this.unsupported
     };
+  }
+
+  parseNamedFunction() {
+    const begin=this.index,start=this.take(),parts=[this.expectIdentifier().value];
+    while(this.match('.')||this.match(':'))parts.push(this.expectIdentifier().value);
+    const bodyStart=this.peek().start,end=luaBlockEnd(this.tokens,begin);
+    this.index=end+1;
+    // A declaration assigns its binding; its body is never executed.
+    this.assignReference(parts.join('.'),{type:'function',raw:'function'+this.source.slice(bodyStart,this.tokens[end].end),startLine:start.line});
   }
 
   skipBlockStatement(description) {
@@ -339,7 +348,7 @@ class Parser {
     if (this.match('=')) {
       if (expression.type !== 'reference') this.fail('Assignment target must be a symbolic reference');
       const value = this.evaluateCall(this.parseExpression());
-      this.assignReference(expression.ref, value);
+      this.assignReference(expression.ref, value, expression.parts);
       this.assignments.push({ path: expression.ref, value, line: expression.startLine, start: expression.start });
       return;
     }
@@ -422,9 +431,14 @@ class Parser {
   parseReferenceOrCall() {
     const first = this.expectIdentifier();
     let ref = first.value;
-    while (this.match('.')) ref += `.${this.expectIdentifier().value}`;
+    const parts=[];
+    while(true) {
+      if(this.match('.')) {const token=this.expectIdentifier();ref+='.'+token.value;parts.push(this.literalNode('string',token.value,token));}
+      else if(this.match('[')) {const key=this.parseExpression();this.expect(']');parts.push(key);ref+='['+(key.raw??key.ref??key.value)+']';}
+      else break;
+    }
     let node = {
-      type: 'reference', ref, raw: this.source.slice(first.start, this.peek(-1)?.end ?? first.end),
+      type: 'reference', ref, root:first.value, parts, raw: this.source.slice(first.start, this.peek(-1)?.end ?? first.end),
       start: first.start, end: this.peek(-1)?.end ?? first.end,
       startLine: first.line, endLine: this.peek(-1)?.endLine ?? first.endLine
     };
@@ -511,9 +525,22 @@ class Parser {
     return this.environment.has(node.ref) ? this.environment.get(node.ref) : node;
   }
 
-  resolveReference(node) {
+  resolveReference(node, seen=new Set()) {
     if (node?.type !== 'reference') return node;
-    return node.ref.includes('.') ? this.resolvePath(node.ref) ?? node : this.resolveExact(node);
+    if(seen.has(node.ref))return node;
+    const next=new Set([...seen,node.ref]);
+    const parts=node.parts??node.ref.split('.').slice(1).map(value=>({type:'string',value}));
+    let value=this.environment.get(node.root??node.ref.split('.')[0]);
+    if(!value)return node;
+    value=this.resolveReference(value,next);
+    for(const part of parts) {
+      const key=this.resolveReference(part,next);
+      value=getTableField(value,key?.value);
+      if(!value)return node;
+      value=this.resolveReference(value,next);
+    }
+    if(this.staticArithmetic&&value?.type==='number')return {...value,_sources:[...(value._sources??[]),{path:this.filename,line:node.startLine??value.startLine??1}]};
+    return value;
   }
 
   resolvePath(ref) {
@@ -527,31 +554,57 @@ class Parser {
     return node;
   }
 
-  assignReference(ref, value) {
-    const [root, ...parts] = ref.split('.');
+  assignReference(ref, value, indexedParts) {
+    const root=ref.split(/[.\[]/)[0];
+    const parts=indexedParts??ref.split('.').slice(1).map(value=>({type:'string',value}));
     if (parts.length === 0) {
       this.environment.set(root, value);
       return;
     }
-    let table = this.environment.get(root);
-    if (table?.type !== 'table') this.fail(`Cannot assign through non-table ${root}`);
-    for (const part of parts.slice(0, -1)) {
-      const entry = tableEntry(table, part);
-      if (!entry?.value || entry.value.type !== 'table') this.fail(`Cannot assign through missing table ${ref}`);
-      table = entry.value;
+    let table = this.resolveReference(this.environment.get(root));
+    const invalid={type:'unsupported',reason:'INVALID_STATIC_ASSIGNMENT',startLine:value.startLine};
+    if (table?.type !== 'table') {
+      if(this.staticArithmetic&&this.allowUnsupported){this.environment.set(root,invalid);return;}
+      this.fail(`Cannot assign through non-table ${root}`);
     }
-    const key = parts.at(-1);
-    const existing = tableEntry(table, key);
+    for (const part of parts.slice(0, -1)) {
+      const key=this.resolveReference(part);
+      const entry = key?.type==='reference'?table.entries.find(e=>e.key?.ref===key.ref):tableEntry(table,key?.value);
+      const next=this.resolveReference(entry?.value);
+      if (next?.type !== 'table') {
+        if(this.staticArithmetic&&this.allowUnsupported) {
+          if(entry)entry.value=invalid;else table.entries.push({key,value:invalid});
+          return;
+        }
+        this.fail(`Cannot assign through missing table ${ref}`);
+      }
+      table = next;
+    }
+    const key = this.resolveReference(parts.at(-1));
+    if(!['reference','string','number','boolean'].includes(key?.type)) {table.dynamic={type:'unsupported',reason:'DYNAMIC_INDEX',startLine:value.startLine};return;}
+    const existing = key.type==='reference'?table.entries.find(e=>e.key?.ref===key.ref):tableEntry(table,key.value);
     if (existing) existing.value = value;
-    else table.entries.push({ key: { type: 'string', value: key }, value, start: value.start, end: value.end, startLine: value.startLine, endLine: value.endLine });
+    else table.entries.push({ key, value, start: value.start, end: value.end, startLine: value.startLine, endLine: value.endLine });
   }
 
   evaluateCall(node, { statement = false } = {}) {
     if (node?.type !== 'call') return node;
+    if(this.staticArithmetic&&node.ref==='table.enum') {
+      const args=node.args.flatMap(n=>{const v=this.resolveReference(n);return v?.type==='table'?getTableArray(v):[v];});
+      if(args.every(n=>n?.type==='string'))return {...node,type:'table',entries:args.map(n=>({key:cloneNode(n),value:cloneNode(n)}))};
+    }
     if (node.ref === 'table.clone' || node.ref === 'table.clone_instance') {
       const source = this.resolveReference(node.args[0]);
-      if (source?.type !== 'table') this.fail('table.clone requires a statically known table', node);
+      if (source?.type !== 'table') {
+        if(this.staticArithmetic&&this.allowUnsupported)return {...node,type:'unsupported',reason:'DYNAMIC_CLONE'};
+        this.fail('table.clone requires a statically known table', node);
+      }
       return cloneNode(source);
+    }
+    // foundation/utilities/math.lua binds this helper to math.rad.
+    if(this.staticArithmetic&&node.ref==='math.degrees_to_radians'&&node.args.length===1) {
+      const arg=this.resolveReference(node.args[0]);
+      if(arg?.type==='number'&&Number.isFinite(arg.value))return {...node,type:'number',value:arg.value*Math.PI/180,_sources:[...(arg._sources??[]),{path:this.filename,line:arg.startLine??node.startLine}]};
     }
     // Deliberately finite whitelist. Inspect the source body on every definition;
     // only numeric parameters and a single arithmetic table return are accepted.

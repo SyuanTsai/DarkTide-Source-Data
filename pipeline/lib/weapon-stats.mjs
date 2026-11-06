@@ -4,7 +4,6 @@ import {createTemplateInitializer} from './weapon-template-init.mjs';
 
 const ROOT='scripts/settings/equipment/weapon_templates/';
 const PATHS={explosion:'scripts/settings/damage/explosion_templates.lua',projectile:'scripts/settings/projectile/projectile_templates.lua',burninating:'scripts/settings/equipment/weapon_handling_templates/weapon_burninating_templates.lua',size_of_flame:'scripts/settings/equipment/weapon_handling_templates/weapon_size_of_flame_templates.lua',recoil:'scripts/settings/equipment/recoil_templates.lua',spread:'scripts/settings/equipment/spread_templates.lua',sway:'scripts/settings/equipment/sway_templates.lua',damage:'scripts/settings/damage/damage_profile_templates.lua',hit_scan:'scripts/settings/projectile/hit_scan_templates.lua',ammo:'scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua',dodge:'scripts/settings/dodge/weapon_dodge_templates.lua',sprint:'scripts/settings/sprint/weapon_sprint_templates.lua',stamina:'scripts/settings/stamina/weapon_stamina_templates.lua',movement_curve_modifier:'scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua',charge:'scripts/settings/equipment/weapon_handling_templates/weapon_charge_templates.lua',warp_charge:'scripts/settings/warp_charge/weapon_warp_charge_templates.lua',weapon_handling:'scripts/settings/equipment/weapon_handling_templates/weapon_handling_templates.lua',weapon_chain_lightning:'scripts/settings/equipment/weapon_handling_templates/weapon_chain_lightning_templates.lua',weapon_shout:'scripts/settings/equipment/weapon_handling_templates/weapon_shout_templates.lua'};
-const component=n=>n?.type==='reference'?n.ref:n?.value;
 const sentinel=(key,name)=>typeof key==='string'&&key.split('.').at(-1)===name;
 const DEFAULT_LERP='DEFAULT_LERP_VALUE';
 
@@ -16,17 +15,14 @@ export function damageLerpValue(lerpValues,keys,fallback) {
  for(const key of keys.slice(0,-1))node=node instanceof Map?node.get(key):undefined;
  return (node instanceof Map?node.get(keys.at(-1)):undefined)??defaultValue??fallback;
 }
-function child(node,key) {
- let index=0;
- return node?.type==='table'?node.entries.find(e=>{if(e.key==null)index++;return (e.key==null?index:component(e.key))===key;})?.value:null;
-}
 function annotate(node,file) {
  if(!node||typeof node!=='object')return;
  node._file=file;
- if(node.type==='table')for(const e of node.entries)annotate(e.value,file);
+ if(node.type==='table')for(const e of node.entries){annotate(e.key,file);annotate(e.value,file);}
  if(node.type==='call')for(const arg of node.args)annotate(arg,file);
+ if(node.type==='reference')for(const part of node.parts??[])annotate(part,file);
 }
-function setPath(root,keys,value) {
+function setPath(root,keys,value,child) {
  let node=root;
  for(const [i,key] of keys.entries()) {
   if(node?.type!=='table')return false;
@@ -51,7 +47,18 @@ function statementBoundaries(source) {
 /** Cached static catalogs; no Lua execution, including require and registry inheritance. */
 export function createWeaponStats(reader) {
  const chunks=new Map(),catalogs=new Map(),parseFailures=new Set(),catalogFailures=new Set(),effectiveCache=new Map(),stateCache=new WeakMap();
- const initialization=createTemplateInitializer(reader,PATHS,{setPath,annotate});
+ const component=n=>{
+  // These two table-valued constants are identity sentinels, not enum values.
+  if(n?.type==='reference'&&[DEFAULT_LERP,'ALL_WEAPON_MOVEMENT_STATES'].some(name=>sentinel(n.ref,name)))return n.ref;
+  const resolved=deref(n);return resolved?.type==='reference'?resolved.ref:resolved?.value;
+ };
+ function child(node,key) {
+  if(node?.type!=='table')return null;
+  let index=0;
+  return (node.entries.findLast(e=>e.key!=null&&component(e.key)===key)??node.entries.filter(e=>e.key==null).find(()=>++index===key))?.value??node.dynamic;
+ }
+ const set=(root,keys,value)=>setPath(root,keys,value,child);
+ const initialization=createTemplateInitializer(reader,PATHS,{setPath:set,annotate});
  function chunk(file) {
   if(!chunks.has(file)) {
    let p=null;
@@ -83,7 +90,7 @@ export function createWeaponStats(reader) {
   if(node?.type!=='reference')return node;
   const file=node._file,key=file+':'+node.ref;if(!file||seen.has(key))return node;
   const nextSeen=new Set([...seen,key]),p=chunk(file);if(!p)return node;
-  const [alias,...parts]=node.ref.split('.');let n=p.locals[alias];
+  const alias=node.root??node.ref.split('.')[0],parts=node.parts?.map(component)??node.ref.split('.').slice(1);let n=p.locals[alias];
   if(n?.type==='require') {
    const target=n.path.replace(/\.lua$/,'')+'.lua',q=chunk(target);
    n=q?.returned;
@@ -107,7 +114,7 @@ export function createWeaponStats(reader) {
   const out=structuredClone(base);
   for(const row of array(field(n,'overrides'))) {
    const values=array(row),keys=values.slice(0,-1).map(component);
-   if(values.length>=2&&keys.every(x=>x!=null))setPath(out,keys,values.at(-1));
+   if(values.length>=2&&keys.every(x=>x!=null))set(out,keys,values.at(-1));
   }
   const result=initialization.template(out,kind,name);effectiveCache.set(key,result);return result;
  }
@@ -120,7 +127,7 @@ export function createWeaponStats(reader) {
   if(parent?.type!=='table')return null;
   // The game clones the movement state and replaces each overridden property.
   const copy=structuredClone(parent);
-  for(const entry of node.entries)if(component(entry.key)!=='inherits')setPath(copy,[component(entry.key)],entry.value);
+  for(const entry of node.entries)if(component(entry.key)!=='inherits')set(copy,[component(entry.key)],entry.value);
   const result=initialization.state(copy,kind);stateCache.set(node,result);return result;
  }
  function traverse(node,keys,kind) {for(const key of keys){node=inheritedState(deref(node),kind);if(['function','call','unsupported','reference'].includes(node?.type))return {type:'blocked',cause:node};node=child(node,key);}return deref(node);}
@@ -140,7 +147,7 @@ export function createWeaponStats(reader) {
    }
    if(n.type!=='table')return;
    for(const e of n.entries){const key=component(e.key);
-    if(typeof key==='string'&&/^damage_profile(?:_|$)/.test(key)) {
+    if(typeof key==='string'&&/^(?:damage_profile(?:_|$)|.+_damage_profile$)/.test(key)) {
      const v=e.value;
      if(v.type==='reference') {
       const [alias,name]=v.ref.split('.'),p=chunk(v._file??context),required=p?.locals[alias];
@@ -173,7 +180,7 @@ export function createWeaponStats(reader) {
  function movementStates() {
   const file='scripts/settings/equipment/weapon_movement_state_settings.lua';
   const n=field(chunk(file)?.locals.weapon_movement_state_settings,'weapon_movement_states');
-  return n?.type==='call'&&n.ref==='table.enum'?n.args.map(component):[];
+  return n?.type==='table'?n.entries.map(e=>component(e.value)):n?.type==='call'&&n.ref==='table.enum'?n.args.map(component):[];
  }
  function damageNode(base,keys) {
   if(keys[0]!=='targets')return traverse(base,keys,'damage');
