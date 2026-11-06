@@ -1,0 +1,104 @@
+[
+  {
+    "file": "scripts/settings/buff/buff_templates.lua",
+    "name": "_create_entry",
+    "hash": "539f5156a3e5a4fc50fcf1feac6a30aa10e712a5d69483f51fcbda5688f79f0b",
+    "raw": "function(path, optional_default_buff_category)\n\tlocal entry_templates = require(path)\n\n\tfor name, template in upairs(entry_templates) do\n\t\ttemplates[name] = template\n\t\ttemplate.name = template.name or name\n\t\ttemplate.buff_category = template.buff_category or optional_default_buff_category or buff_categories.generic\n\tend\nend"
+  },
+  {
+    "file": "scripts/settings/ability/archetype_talents/archetype_talents.lua",
+    "name": "_include_talents_definition",
+    "hash": "098e40150209e9f7bdc047dc06549154d8a3aecf0c1feaa6d432e1450d766b27",
+    "raw": "function(file_name, base_talents)\n\tlocal definition = require(file_name)\n\tlocal player_archetype = definition.archetype\n\n\tif not talents[player_archetype] then\n\t\ttalents[player_archetype] = {}\n\tend\n\n\tlocal archetype_talents = talents[player_archetype]\n\n\tif base_talents then\n\t\tfor talent_name, talent in pairs(base_talents) do\n\t\t\tarchetype_talents[talent_name] = talent\n\t\tend\n\tend\n\n\tfor talent_name, entry_data in pairs(definition.talents) do\n\t\tlocal entry = entry_data\n\n\t\tarchetype_talents[talent_name] = entry\n\tend\n\n\treturn archetype_talents\nend"
+  },
+  {
+    "file": "scripts/utilities/weapon_tweaks.lua",
+    "name": "extract_weapon_tweaks",
+    "hash": "531531badb88f57d09d066ba8815709f8495d2939d5122a7cf77503d8200a392",
+    "raw": "function(path, templates, loaded_files)\n\tloaded_files[path] = true\n\n\tlocal data = require(path)\n\tlocal parent_base_templates = data.base_templates\n\tlocal overrides = data.overrides\n\n\tfor name, damage_profile_data in upairs(parent_base_templates) do\n\t\ttemplates[name] = damage_profile_data\n\tend\n\n\tif overrides then\n\t\tfor name, override in upairs(overrides) do\n\t\t\tlocal parent_template_name = override.parent_template_name\n\t\t\tlocal template_overrides = override.overrides\n\n\t\t\ttemplates[name] = create_new(parent_base_templates, parent_template_name, template_overrides)\n\t\tend\n\tend\nend"
+  },
+  {
+    "file": "scripts/settings/equipment/spread_templates.lua",
+    "name": "_inherit",
+    "hash": "902780967d747899f23c82cc5ed27009546bc4292e053c23e15e3f6fbc598e67",
+    "raw": "function(move_state_settings, inheritance_settings)\n\tlocal new_move_state_settings = table.clone(spread_templates[inheritance_settings[1]][inheritance_settings[2]])\n\n\tif new_move_state_settings.inherits then\n\t\tnew_move_state_settings = _inherit(new_move_state_settings, new_move_state_settings.inherits)\n\tend\n\n\tfor key, override_data in pairs(move_state_settings) do\n\t\tnew_move_state_settings[key] = override_data\n\tend\n\n\tnew_move_state_settings.inherits = nil\n\n\treturn new_move_state_settings\nend"
+  },
+  {
+    "file": "scripts/settings/equipment/sway_templates.lua",
+    "name": "_inherit",
+    "hash": "342f57a6311a48227489284616bf60edc3813d3dea28e998a4f0cccb93fbf949",
+    "raw": "function(move_state_settings, inheritance_settings)\n\tlocal new_move_state_settings = table.clone(sway_templates[inheritance_settings[1]][inheritance_settings[2]])\n\n\tif new_move_state_settings.inherits then\n\t\tnew_move_state_settings = _inherit(new_move_state_settings, new_move_state_settings.inherits)\n\tend\n\n\tfor key, override_data in pairs(move_state_settings) do\n\t\tnew_move_state_settings[key] = override_data\n\tend\n\n\tnew_move_state_settings.inherits = nil\n\n\treturn new_move_state_settings\nend"
+  },
+  {
+    "file": "scripts/settings/damage/explosion_templates.lua",
+    "name": "_add_template_entries",
+    "hash": "66d54909c1e67bc096565f868481abdda5dac7e4ae276d3750737c2a1768c019",
+    "raw": "function(path)\n\tlocal templates = require(path)\n\n\tfor name, template in pairs(templates) do\n\t\texplosion_templates[name] = template\n\tend\nend"
+  },
+  {
+    "file": "scripts/settings/projectile/projectile_templates.lua",
+    "name": "_require_templates",
+    "hash": "bfe6f941dd6093be04e8be7fd2dcb1f7ded3e695804fc300ae3b42b71a9529a6",
+    "raw": "function(path)\n\tlocal templates = require(path)\n\n\tfor name, template in pairs(templates) do\n\t\tprojectile_templates[name] = template\n\tend\nend"
+  },
+  {
+    "file": "scripts/settings/buff/broker_buff_utils.lua",
+    "name": "populate_stimm_field_syringe_buff_variants",
+    "hash": "a5da512fbace8bdc505a187ae304af03ffb22901623545350b09465ef026fd86",
+    "raw": "function(buff_templates)\n\tlocal buffs_to_add = {}\n\n\tfor name, template in pairs(buff_templates) do\n\t\tif template.keywords and table.contains(template.keywords, \"syringe\") then\n\t\t\tlocal buff = table.clone(template)\n\t\t\tlocal variant_name = name .. \"_stimm_field\"\n\n\t\t\tbuff.name = variant_name\n\t\t\tbuff.duration = nil\n\t\t\tbuff.unique_buff_id = nil\n\t\t\tbuff.predicted = false\n\t\t\tbuff.keywords = {\n\t\t\t\t\"syringe\",\n\t\t\t\t\"syringe_broker\",\n\t\t\t}\n\t\t\tbuffs_to_add[variant_name] = buff\n\t\tend\n\tend\n\n\ttable.merge(buff_templates, buffs_to_add)\n\n\tbuff_templates.syringe_heal_corruption_buff_stimm_field.single_application = true\n\n\tlocal start_func_super = buff_templates.syringe_broker_buff_stimm_field.start_func\n\n\tbuff_templates.syringe_broker_buff_stimm_field.start_func = function (template_data, template_context)\n\t\tstart_func_super(template_data, template_context)\n\n\t\tlocal owner_player = Managers.state.player_unit_spawn:owner(template_data.stimm_provider)\n\n\t\tif owner_player then\n\t\t\ttemplate_data.stat_peer_id = owner_player:peer_id()\n\t\t\ttemplate_data.stat_local_player_id = owner_player:local_player_id()\n\t\tend\n\n\t\ttemplate_data.enter_time = FixedFrame.get_latest_fixed_time()\n\tend\n\n\tlocal stop_func_super = buff_templates.syringe_broker_buff_stimm_field.stop_func\n\n\tbuff_templates.syringe_broker_buff_stimm_field.stop_func = function (template_data, template_context, extension_destroyed)\n\t\tstop_func_super(template_data, template_context, extension_destroyed)\n\n\t\tlocal peer_id, local_player_id = template_data.stat_peer_id, template_data.stat_local_player_id\n\n\t\tif peer_id and local_player_id then\n\t\t\tlocal owner_player = Managers.player:player(peer_id, local_player_id)\n\n\t\t\tif owner_player then\n\t\t\t\ttemplate_data.start_t = FixedFrame.get_latest_fixed_time()\n\n\t\t\t\tlocal buffing_start_time = template_data.enter_time\n\n\t\t\t\tif not buffing_start_time then\n\t\t\t\t\treturn\n\t\t\t\tend\n\n\t\t\t\tlocal current_time = FixedFrame.get_latest_fixed_time()\n\t\t\t\tlocal time_buffed = math.round(current_time - buffing_start_time)\n\n\t\t\t\tManagers.stats:record_private(\"hook_broker_time_ally_buffed_by_stimm_field\", owner_player, time_buffed)\n\t\t\tend\n\t\tend\n\tend\n\n\tbuff_templates.syringe_broker_buff_stimm_field.class_name = \"interval_buff\"\n\tbuff_templates.syringe_broker_buff_stimm_field.hud_icon = talent_settings.combat_ability.stimm_field.hud_icon\n\tbuff_templates.syringe_broker_buff_stimm_field.hud_icon_gradient_map = talent_settings.combat_ability.stimm_field.hud_icon_gradient_map\n\tbuff_templates.syringe_broker_buff_stimm_field.hud_priority = talent_settings.combat_ability.stimm_field.hud_priority\n\tbuff_templates.syringe_broker_buff_stimm_field.skip_tactical_overlay = talent_settings.combat_ability.stimm_field.skip_tactical_overlay\n\tbuff_templates.syringe_broker_buff_stimm_field.stat_buffs.corruption_taken_multiplier = 0\n\tbuff_templates.syringe_broker_buff_stimm_field.interval = talent_settings.combat_ability.stimm_field.interval\n\n\tbuff_templates.syringe_broker_buff_stimm_field.interval_func = function (template_data, template_context, template)\n\t\tif not template_context.is_server then\n\t\t\treturn\n\t\tend\n\n\t\tlocal corruption_heal_amount = talent_settings.combat_ability.stimm_field.corruption_heal_amount\n\n\t\ttemplate_data.health_extension:reduce_permanent_damage(corruption_heal_amount)\n\tend\nend"
+  },
+  {
+    "file": "scripts/utilities/action/action_input_hierarchy.lua",
+    "name": "add_missing",
+    "hash": "972db52eaa4fc0fe7691cfc36952d79dca35952809b665feb19d27f33005fb10",
+    "raw": "function(dest, source)\n\tlocal existing_keys = {}\n\n\tfor _, entry in ipairs(dest) do\n\t\texisting_keys[entry.input] = true\n\tend\n\n\tfor _, entry in ipairs(source) do\n\t\tif not existing_keys[entry.input] then\n\t\t\ttable.insert(dest, entry)\n\t\tend\n\tend\n\n\treturn dest\nend"
+  },
+  {
+    "file": "scripts/utilities/action/action_input_hierarchy.lua",
+    "name": "update_hierarchy_entry",
+    "hash": "945a1136cae51d0f3c754a95c5987af0574486f64c1e73b3a85f8c21316fdc3c",
+    "raw": "function(hierarchy, target_input, new_transition)\n\tlocal target_index\n\n\tfor ii, entry in ipairs(hierarchy) do\n\t\tif entry.input == target_input then\n\t\t\ttarget_index = ii\n\n\t\t\tbreak\n\t\tend\n\tend\n\n\tlocal new_entry = {\n\t\tinput = target_input,\n\t\ttransition = new_transition,\n\t}\n\n\tif target_index then\n\t\thierarchy[target_index] = new_entry\n\telse\n\t\ttable.insert(hierarchy, #hierarchy + 1, new_entry)\n\tend\nend"
+  },
+  {
+    "file": "scripts/settings/talent/talent_settings_broker.lua",
+    "name": "_generate_stimm_talent",
+    "hash": "824db31001e1ff1065b5320dc7e82e9ab7604b86ab6aae5945fb64adcac3b19a",
+    "raw": "function(talent_name, display_name, tier, description, icon_group)\n\tlocal data = {\n\t\ttalent_data = {\n\t\t\tname = \"\",\n\t\t\tdisplay_name = display_name,\n\t\t\tdescription = description,\n\t\t\ticon = STIMM_ICON_BY_GROUP[icon_group],\n\t\t\tpassive = {\n\t\t\t\tidentifier = talent_name,\n\t\t\t\tbuff_template_name = talent_name,\n\t\t\t},\n\t\t\tformat_values = {},\n\t\t},\n\t\tbuff_data = {},\n\t}\n\n\tdata.talent_data.format_values.tier = tier and Text.convert_to_roman_numerals(tier) or \"\"\n\ttalent_settings.broker_stimm[talent_name] = data\n\n\tlocal modifier = {}\n\n\tmodifier.stat = function (...)\n\t\tdata.buff_data.stat_buffs = data.buff_data.stat_buffs or {}\n\t\tdata.talent_data.format_values = data.talent_data.format_values or {}\n\n\t\tif type(data.talent_data.description) ~= \"table\" then\n\t\t\tdata.talent_data.description = {\n\t\t\t\tdata.talent_data.description,\n\t\t\t}\n\t\tend\n\n\t\tfor i = 1, select(\"#\", ...), 2 do\n\t\t\tlocal stat_name = select(i, ...)\n\t\t\tlocal format_values = select(i + 1, ...)\n\t\t\tlocal stat_value = format_values.value\n\t\t\tlocal description_alias = STAT_NAME_ALIAS[stat_name] or stat_name\n\n\t\t\ttable.insert(data.talent_data.description, \"loc_talent_stat_\" .. description_alias)\n\n\t\t\tdata.buff_data.stat_buffs[stat_name] = stat_value\n\t\t\tdata.talent_data.format_values[description_alias] = format_values\n\t\tend\n\n\t\treturn modifier\n\tend\n\n\tmodifier.buff = function (buff_name, buff_params, buff_target_description, ...)\n\t\tdata.buff_data.buff_target = buff_name\n\t\tdata.buff_data.buff_params = buff_params\n\n\t\tif buff_target_description then\n\t\t\tif type(data.talent_data.description) ~= \"table\" then\n\t\t\t\tdata.talent_data.description = {\n\t\t\t\t\tdata.talent_data.description,\n\t\t\t\t}\n\t\t\tend\n\n\t\t\tdata.talent_data.description[#data.talent_data.description + 1] = buff_target_description\n\n\t\t\tlocal keyword_span_n = select(\"#\", ...)\n\n\t\t\tif keyword_span_n > 0 then\n\t\t\t\tlocal format_values = {}\n\n\t\t\t\tfor i = 1, keyword_span_n, 2 do\n\t\t\t\t\tlocal keyword_key = select(i, ...)\n\t\t\t\t\tlocal keyword_data = select(i + 1, ...)\n\n\t\t\t\t\tformat_values[keyword_key] = keyword_data\n\t\t\t\tend\n\n\t\t\t\tlocal format_values_per_index = data.talent_data.format_values_per_index or {}\n\n\t\t\t\tdata.talent_data.format_values_per_index = format_values_per_index\n\t\t\t\tformat_values_per_index[#data.talent_data.description] = format_values\n\t\t\tend\n\t\tend\n\n\t\treturn modifier\n\tend\n\n\tmodifier.keyword = function (...)\n\t\tfor i = 1, select(\"#\", ...), 5 do\n\t\t\tlocal keyword_format_type = select(i, ...)\n\t\t\tlocal keyword_prefix = select(i + 1, ...)\n\t\t\tlocal keyword_key = select(i + 2, ...)\n\t\t\tlocal keyword_value = select(i + 3, ...)\n\t\t\tlocal keyword_value_manipulation = select(i + 4, ...)\n\n\t\t\ttable.insert(data.talent_data.description, \"loc_talent_keyword_\" .. keyword_key)\n\n\t\t\tdata.talent_data.format_values[keyword_key] = {\n\t\t\t\tformat_type = keyword_format_type,\n\t\t\t\tprefix = keyword_prefix,\n\t\t\t\tvalue = keyword_value,\n\t\t\t\tvalue_manipulation = keyword_value_manipulation,\n\t\t\t}\n\t\tend\n\n\t\treturn modifier\n\tend\n\n\treturn modifier\nend"
+  },
+  {
+    "file": "scripts/settings/ability/player_abilities/player_abilities.lua",
+    "name": "_include_ability_definition",
+    "hash": "1d517341759d090216dcf5ea7f2eead60e2ce1ad1337478879d455a7adc0386b",
+    "raw": "function(file_name)\n\tlocal definition = require(file_name)\n\n\tfor ability_name, entry_data in pairs(definition) do\n\t\tentry_data.name = ability_name\n\n\t\tlocal ability_usage_cost_type = entry_data.usage_cost_type\n\n\t\tif ability_usage_cost_type == \"charges\" and (entry_data.only_uses_charges or true) then\n\t\t\t-- Nothing\n\t\telseif ability_usage_cost_type == \"resource\" then\n\t\t\t-- Nothing\n\t\tend\n\n\t\tlocal entry = entry_data\n\n\t\tplayer_abilities[ability_name] = entry\n\tend\nend"
+  },
+  {
+    "file": "scripts/settings/lunge/lunge_templates.lua",
+    "name": "_add_lunge_templates",
+    "hash": "9ed67d457002432b09643d2479744a6290b0de93d42cf86e298534e7968d0d4e",
+    "raw": "function(path)\n\tlocal templates = require(path)\n\n\tfor name, template in pairs(templates) do\n\t\ttemplate.name = name\n\n\t\tlocal entry = template\n\n\t\tlunge_templates[name] = entry\n\tend\nend"
+  },
+  {
+    "file": "scripts/settings/equipment/reload_templates/reload_templates.lua",
+    "name": "_create_reload_template_entry",
+    "hash": "d97b56deb0c73cf89588a6c69e2c226b41a1e41f3cc3384002b1eca178e291f3",
+    "raw": "function(path)\n\tlocal reload_template_data = require(path)\n\tlocal reload_template_name = reload_template_data.name\n\n\treload_templates[reload_template_name] = reload_template_data\nend"
+  },
+  {
+    "file": "scripts/settings/fx/effect_templates.lua",
+    "name": "_create_effect_template_entry",
+    "hash": "3d802c01a5b40a0d03df2d680975cdd537d1b98e2ef88015b506669c2ba5a8b3",
+    "raw": "function(path)\n\tlocal effect_template = require(path)\n\tlocal effect_template_name = effect_template.name\n\n\teffect_templates[effect_template_name] = effect_template\nend"
+  },
+  {
+    "file": "scripts/settings/projectile_locomotion/projectile_locomotion_templates.lua",
+    "name": "_extract_projectile_locomotion_templates",
+    "hash": "a161505bc52e994f2e36cdaf5b57a3c262a835421ad3528cf754279b833f9920",
+    "raw": "function(path)\n\tlocal locomotion_templates = require(path)\n\n\tfor name, locomotion_data in pairs(locomotion_templates) do\n\t\tprojectile_locomotion_templates[name] = locomotion_data\n\tend\nend"
+  },
+  {
+    "file": "scripts/settings/ability/ability_templates/ability_templates.lua",
+    "name": "_require_ability_templates",
+    "hash": "fc4135ded455a712b9c1755c6f0a94fa7fbf7d1fc4e282ad8fb0c5b3ebc4240f",
+    "raw": "function(path_prefix, template_names)\n\tfor i = 1, #template_names do\n\t\tlocal template_name = template_names[i]\n\t\tlocal full_path = string.format(path_prefix, template_name)\n\t\tlocal template_data = require(full_path)\n\n\t\ttemplate_data.name = template_name\n\t\tability_templates[template_name] = template_data\n\tend\n\n\tsetmetatable(ability_templates, {\n\t\t__index = function (table, template_name)\n\t\t\tferror(\"Archetype ability %q does not exist. Has it been added to ability_templates.lua?\", template_name)\n\t\tend,\n\t})\nend"
+  }
+]
