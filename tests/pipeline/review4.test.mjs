@@ -45,7 +45,8 @@ test('UnitT20_F2 replaced math helpers stay unknown',()=>{
 test('UnitT30_F3 shotshell registry resolves damage',()=>{
  const s={...trait('damage','{"armor_damage_modifier_ranged","near","attack","unarmored",{min=0.25,max=0.75}}'),[damage]:'local damage_templates={default_rippergun_assault={armor_damage_modifier_ranged={near={attack={unarmored={lerp_basic=0.67,lerp_perfect=1.33}}}}}} return damage_templates',
  'weapon.lua':'local ShotshellTemplates=require("scripts/settings/projectile/shotshell_templates")',
- 'scripts/settings/projectile/shotshell_templates.lua':'local shotshell_templates={} extract_weapon_tweaks("shells",shotshell_templates) return shotshell_templates',
+ 'scripts/utilities/weapon_tweaks.lua':fixture('..'+'/review6/weapon_tweaks.lua'),
+ 'scripts/settings/projectile/shotshell_templates.lua':'local WeaponTweaks=require("scripts/utilities/weapon_tweaks") local extract_weapon_tweaks=WeaponTweaks.extract_weapon_tweaks local shotshell_templates={} extract_weapon_tweaks("shells",shotshell_templates,{}) return shotshell_templates',
  'shells.lua':'local DamageProfileTemplates=require("scripts/settings/damage/damage_profile_templates") local shotshell_templates={default_rippergun_assault={damage={damage_profile=DamageProfileTemplates.default_rippergun_assault}}} return shotshell_templates'};
  const r=extract(s,'damage',{target:'action_shoot_hip',actions:'{action_shoot_hip={fire_configuration=ShotshellTemplates.default_rippergun_assault}}'});assert.deepEqual(ranges(r),[[0.835,1.165]]);assert.ok(r.files.some(f=>f.path==='shells.lua'));
 });

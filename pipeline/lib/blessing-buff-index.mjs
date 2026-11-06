@@ -1,5 +1,6 @@
+import {createSharedBindingGuard,invalidateReachable,applyCallMutations,verifiedBinding} from './lua-effects.mjs';
 import { parseLuaStatic, tokenizeLua } from './lua-static-reader.mjs';
-import { conditionalWrites } from './lua-mutations.mjs';
+import { conditionalWrites } from './lua-effects.mjs';
 
 const unknown = (reason, detail, file, line=1) => ({type:'unknown',reason,detail,_file:file,startLine:line});
 const modulePath = p => p.replace(/\.lua$/, '') + '.lua';
@@ -28,6 +29,7 @@ function statements(source) {
 
 /** Ordered, lazy, static Lua tables with per-value provenance and cycle guards. */
 export function staticBuffModules(reader) {
+  const effects=createSharedBindingGuard(reader);
   const cache=new Map(), environments=new Map(), active=new Set();
   function force(node) {
     if(node?.type!=='lazy') return node;
@@ -63,10 +65,13 @@ export function staticBuffModules(reader) {
     }
     if(n.type==='table') return {...n,_file:file,entries:n.entries.map(e=>({...e,key:e.key?lazy(e.key,env,file):null,value:lazy(e.value,env,file)}))};
     if(n.type==='call') {
+      const root=n.ref?.split('.')[0];
+      if(/^(?:math\.|table\.|require$|settings$|unpack$)/.test(n.ref)&&!verifiedBinding({name:root,bound:env.has(root)||effects.analysis(file)?.bindings.has(root),intact:roots=>effects.intact(roots)}))return unknown('DYNAMIC_VALUE','binding 未驗證',file,n.startLine);
+      applyCallMutations(n.ref,n.args,{analysis:effects.analysis(file),capture:(path,owner)=>{const [root,...parts]=path.split('.');let value=force((environments.get(owner)??env).get(root));for(const part of parts)value=get(value,part);return value;},handled:['_create_entry'],resolve:n=>n?._file?force(n):force(evaluate(n,env,file)),field:get,entries:n=>(n?.entries??[]).map((e,i)=>[force(e.key)?.value??i+1,e.value]),dynamic:unknown('DYNAMIC_VALUE','有限 table helper 的寫入',file,n.startLine)});
       if(n.ref==='require' && n.args[0]?.type==='string') return load(modulePath(n.args[0].value));
       if(file==='scripts/settings/buff/buff_templates.lua' && n.ref==='settings' && n.args[0]?.value==='BuffTemplates') return evaluate(n.args[1],env,file);
-      if(file==='scripts/settings/buff/buff_templates.lua' && n.ref==='_create_entry' && n.args[0]?.type==='string') {
-        const source=load(modulePath(n.args[0].value)), target=force(env.get('templates'));
+      if(effects.analysis(file)?.models.get(n.ref)?.kind==='_create_entry' && n.args[0]?.type==='string') {
+        const source=load(modulePath(n.args[0].value)),model=effects.analysis(file).models.get(n.ref),target=force((environments.get(model.file)??env).get('templates'));
         if(source?.type==='table') for(const entry of source.entries) {
           const key=force(entry.key)?.value;
           if(typeof key==='string') set(target,key,entry.value,false,entry.definition);
@@ -108,6 +113,7 @@ export function staticBuffModules(reader) {
       }
       return unknown('FUNCTION_GENERATED',`函式產生的值：${n.ref}`,file,n.startLine);
     }
+    if(n.type==='unsupported'&&n.reason==='DYNAMIC_VALUE')return unknown('DYNAMIC_VALUE','不純或未知函式呼叫',file,n.startLine);
     if(n.type==='unsupported') return unknown(/\b(?:and|or)\b/.test(n.raw)?'CONDITIONAL_EXPRESSION':'RUNTIME_EXPRESSION',n.raw.trim(),file,n.startLine);
     if(n.type==='function') return unknown('FUNCTION_GENERATED','函式值需要執行期求值',file,n.startLine);
     return {...n,_file:file};
@@ -139,9 +145,7 @@ export function staticBuffModules(reader) {
           const value=unknown('CONDITIONAL_ASSIGNMENT','條件或迴圈中的覆寫',file,line);
           let existing=force(env.get(path[0]));for(const key of path.slice(1))existing=get(existing,key);
           if(existing?.type==='table') {
-            const seen=new Set();
-            const poison=table=>{if(seen.has(table))return;seen.add(table);table.dynamic=value;for(const entry of table.entries){const n=force(entry.value);if(n?.type==='table')poison(n);else entry.value=value;}};
-            poison(existing);
+            invalidateReachable(existing,{resolve:force,dynamic:value});
           } else {
             assign(env,path.join('.'),value);
           }
@@ -151,7 +155,7 @@ export function staticBuffModules(reader) {
       const assignment=/^(?:local\s+)?([A-Za-z_]\w*(?:\.\w+)*)\s*=\s*([\s\S]*)$/.exec(raw);
       const expr=assignment?assignment[2]:raw.replace(/^return\s+/, '');
       let node;
-      try { node=parseLuaStatic('\n'.repeat(line-1)+'return '+expr,{allowUnsupported:true,filename:file}).returned; }
+      try { node=parseLuaStatic('\n'.repeat(line-1)+'return '+expr,{allowUnsupported:true,filename:file,effects:{dirtyFrom:Infinity}}).returned; }
       catch(e) {
         if(e.name!=='LuaStaticError') throw e;
         node=unknown('RUNTIME_EXPRESSION',`不支援的靜態語法：${expr.slice(0,120)}`,file,line);
@@ -159,6 +163,11 @@ export function staticBuffModules(reader) {
       const result=evaluate(node,env,file);
       if(assignment) assign(env,assignment[1],result,{path:file,line});
       else if(/^return\b/.test(raw)) returned=result;
+    }
+    if(Number.isFinite(effects.analysis(file)?.dirtyFrom)||effects.moduleTainted(file)) {
+      const dynamic=unknown('DYNAMIC_VALUE','不純或未知函式呼叫',file);
+      for(const n of [...env.values(),returned])invalidateReachable(n,{resolve:force,dynamic});
+      if(force(returned)?.type!=='table')returned=dynamic;
     }
     returned ??= unknown('FUNCTION_GENERATED','模組沒有靜態回傳 table',file);
     cache.set(file,returned); return returned;

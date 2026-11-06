@@ -1,4 +1,4 @@
-import {conditionalWrites,luaBlockEnd} from './lua-mutations.mjs';
+import {conditionalWrites,luaBlockEnd} from './lua-effects.mjs';
 import {parseRequires} from './lua-closure.mjs';
 import {evaluateFiniteHelper,finiteHelperName} from './lua-finite-helpers.mjs';
 import {parseLuaStatic, getTableField as field, getTableArray as array, tokenizeLua} from './lua-static-reader.mjs';
@@ -82,7 +82,7 @@ export function createWeaponStats(reader) {
  }
  function finite(call,fn,resolve) {
   const p=fn?._file&&chunk(fn._file);if(!p||p.partial)return null;
-  if(!effects.intact(['math','table','MathUtils','rawget','select','type'],{moduleFile:fn._file}))return {...call,type:'unsupported',reason:'DYNAMIC_VALUE'};
+  if(!effects.intact(['math','table','MathUtils','rawget','select','type'],{moduleFile:fn._file,member:finiteHelperName(fn)}))return {...call,type:'unsupported',reason:'DYNAMIC_VALUE'};
   const dependencies=fn._file==='scripts/utilities/recoil_template.lua'?['_math','math','MathUtils','rawget']:['table','select','type','NIL_VALUE_OVERRIDE'];
   if((p.bindingChanges??[]).some(path=>dependencies.some(d=>path===d||path.startsWith(d+'.'))))return null;
   if(fn._file==='scripts/utilities/recoil_template.lua') {
@@ -100,7 +100,7 @@ export function createWeaponStats(reader) {
   if(!chunks.has(file)) {
    let p=null;
    chunks.set(file,null); // Require cycles cannot acquire speculative bindings.
-   if(reader.exists(file))try{p=parseLuaStatic(statementBoundaries(reader.read(file)),{filename:file,allowUnsupported:true,staticArithmetic:true,resolveImport:imported,resolveNode:deref,evaluateFinite:finite,builtinIntact:ref=>effects.intact([ref.split('.')[0]]),mathRadiansVerified:mathVerified('degrees_to_radians')});for(const n of Object.values(p.locals))annotate(n,file);annotate(p.returned,file);}catch{
+   if(reader.exists(file))try{p=parseLuaStatic(statementBoundaries(reader.read(file)),{filename:file,allowUnsupported:true,staticArithmetic:true,effects:{...effects.analysis(file),dirtyFrom:effects.moduleTainted(file)?0:effects.analysis(file)?.dirtyFrom},resolveImport:imported,resolveNode:deref,evaluateFinite:finite,builtinIntact:ref=>effects.intact([ref.split('.')[0]]),mathRadiansVerified:mathVerified('degrees_to_radians')});for(const n of Object.values(p.locals))annotate(n,file);annotate(p.returned,file);}catch{
     parseFailures.add(file);
     // Require declarations remain statically readable even if an unrelated
     // statement (for example appending runtime trait keys) cannot be parsed.
@@ -119,6 +119,7 @@ export function createWeaponStats(reader) {
    const roots=['hit_scan_templates',kind==='damage'?'damage_templates':kind==='hit_scan'?'hitscan_templates':`${kind}_templates`,`weapon_${kind}_templates`,'templates'];
    for(const root of roots)for(const e of p.locals[root]?.entries??[])if(e.key?.type==='string')definitions.set(e.key.value,{node:e.value,file});
    for(const e of p.locals.overrides?.entries??[])if(e.key?.type==='string')definitions.set(e.key.value,{node:e.value,file,override:true});
+   if(p.moduleDynamic)return;
    for(const m of reader.read(file).matchAll(/(?:extract_weapon_tweaks|_add_template_entries|_require_templates)\("([^"]+)"/g))load(m[1]+'.lua');
   }
   if(PATHS[kind])load(PATHS[kind]);

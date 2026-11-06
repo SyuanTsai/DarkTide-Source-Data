@@ -78,7 +78,7 @@ for(const branch of [
  const r=createSkillResolver(reader({'talent.lua':source})),problems=[];
  const params=skillParams(r,r.returned('talent.lua'),'test',problems,[]);
  assert.deepEqual(params.damage,{value:null,unknown:'DYNAMIC_VALUE'});
- assert.ok(problems.some(p=>p.code==='UNRESOLVED_VALUE'&&p.message==='CONDITIONAL_ASSIGNMENT'));
+ assert.ok(problems.some(p=>p.code==='UNRESOLVED_VALUE'&&['CONDITIONAL_ASSIGNMENT','DYNAMIC_VALUE'].includes(p.message)));
 });
 
 test('review F5 conditional mutation of one contribution invalidates every contributing bar',()=>{

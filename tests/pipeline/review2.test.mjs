@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createWeaponStats} from '../../pipeline/lib/weapon-stats.mjs';
@@ -97,7 +98,7 @@ test('review2 F4 ogryn powermaul explosion overrides yield [4,8] and retain temp
 test('review2 F5 independent force_staff_ball survives clone_instance nested assignments: [90,150]',()=>{
  const sources={...trait('damage','{"power_distribution","attack",{min=0.25,max=0.75}}'),
  'scripts/settings/damage/damage_profile_templates.lua':`local templates={force_staff_ball={power_distribution={attack={lerp_basic=60,lerp_perfect=180}}}}\nreturn settings("DamageProfileTemplates",templates)`,
- 'scripts/settings/projectile/projectile_templates.lua':`_require_templates("scripts/settings/projectile/player_projectile_templates")`,
+ 'scripts/settings/projectile/projectile_templates.lua':`local projectile_templates={} local _require_templates=${JSON.parse(readFileSync(new URL('./fixtures/review6/finite-data-helpers.json',import.meta.url))).find(d=>d.name==='_require_templates').raw} _require_templates("scripts/settings/projectile/player_projectile_templates") return projectile_templates`,
  'scripts/settings/projectile/player_projectile_templates.lua':`local DamageProfileTemplates=require("scripts/settings/damage/damage_profile_templates")
 local projectile_templates={psyker_throwing_knives={damage={impact={damage_profile="knife"},fuse={kill_at_lifetime=1}}}}
 projectile_templates.psyker_throwing_knives_aimed=table.clone_instance(projectile_templates.psyker_throwing_knives)

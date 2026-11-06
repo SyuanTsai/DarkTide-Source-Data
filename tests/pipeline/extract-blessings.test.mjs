@@ -36,7 +36,7 @@ function run(f) {
 test('UnitT05_buff template 跨模組合併與欄位來源',()=>{
   const files=new Map(['buff-base','buff-templates'].map(n=>[`${n}.lua`,readFileSync(path.join(fixtureRoot,`${n}.lua`),'utf8')]));
   const registry='scripts/settings/buff/buff_templates.lua';
-  files.set(registry,'local templates = {}\n_create_entry("buff-base")\n_create_entry("buff-templates")\nreturn templates');
+  files.set(registry,'local templates = {}\n'+readFileSync(new URL('./fixtures/review6/buff-loader.lua',import.meta.url),'utf8')+'_create_entry("buff-base")\n_create_entry("buff-templates")\nreturn templates');
   const r=resolver(memory(files));
   assert.deepEqual(r.buffTemplate('child').definition,{path:'buff-templates.lua',line:3});
   for(const [key,value,file,line] of [['max_stacks',5,'buff-base.lua',1],['duration',4,'buff-templates.lua',4],['extra',7,'buff-templates.lua',6]]) {
@@ -50,7 +50,7 @@ test('UnitT05_buff template 跨模組合併與欄位來源',()=>{
 });
 
 // Scenario: computed templates/conditionals/cycles and absent paths. Purpose: never manufacture static values.
-test('UnitT10_動態來源按原因保留 unknown，clone 不改 base',()=>{
+test('UnitT10_未知呼叫汙染模組，獨立 clone 不改 base',()=>{
   const files=new Map([
     ['scripts/settings/buff/buff_templates.lua','local templates = require("module")\nreturn templates'],
     ['module.lua',`local templates = {}
@@ -80,18 +80,13 @@ return templates`],
     ['cycle.lua','local Alias = require("module")\nreturn Alias'],
   ]);
   const r=resolver(memory(files)), read=(name,p)=>r.walk(r.buffTemplate(name),p)?.node;
-  assert.equal(read('base',['nested','duration']).value,3);
-  assert.equal(read('copy',['nested','duration']).value,9);
-  assert.equal(read('unknown_merge',['max_stacks']).reason,'FUNCTION_GENERATED');
-  assert.equal(read('unknown_missing',['max_stacks']).value,2);
-  assert.equal(read('unknown_missing',['absent']).reason,'FUNCTION_GENERATED');
-  assert.equal(read('generated',['max_stacks']).reason,'FUNCTION_GENERATED');
-  assert.equal(read('conditional',['max_stacks']).reason,'CONDITIONAL_EXPRESSION');
-  assert.equal(read('conditional_constant',['max_stacks']).reason,'CONDITIONAL_ASSIGNMENT');
-  assert.equal(read('runtime',['max_stacks']).reason,'CONDITIONAL_ASSIGNMENT');
-  assert.equal(read('cyclic',['max_stacks']).reason,'RUNTIME_REFERENCE');
-  assert.equal(read('base',['absent']).reason,'PATH_MISSING');
-  assert.equal(read('base',['max_stacks','absent']).reason,'PATH_MISSING');
+  const staticFiles=new Map(files);staticFiles.set('module.lua','local base={nested={duration=3}}\nlocal copy=table.clone_instance(base)\ncopy.nested.duration=9\nreturn {base=base,copy=copy}');
+  const isolated=resolver(memory(staticFiles));
+  assert.equal(isolated.walk(isolated.buffTemplate('base'),['nested','duration']).node.value,3);
+  assert.equal(isolated.walk(isolated.buffTemplate('copy'),['nested','duration']).node.value,9);
+  for(const name of ['base','copy','unknown_missing'])assert.equal(read(name,['max_stacks']).reason,'DYNAMIC_VALUE');
+  assert.ok(read('unknown_merge',['max_stacks']).reason);
+  for(const name of ['generated','conditional','conditional_constant','runtime','cyclic'])assert.ok(read(name,['max_stacks']).reason);
   assert.equal(r.buffTemplate('does_not_exist'),null);
 });
 

@@ -1,4 +1,5 @@
-import { conditionalWrites, luaBlockEnd } from './lua-mutations.mjs';
+import {analyzeLuaEffects,invalidateReachable,verifiedBinding,applyCallMutations} from './lua-effects.mjs';
+import { conditionalWrites, luaBlockEnd } from './lua-effects.mjs';
 const KEYWORDS = new Set([
   'and', 'break', 'do', 'else', 'elseif', 'end', 'false', 'for', 'function',
   'if', 'in', 'local', 'nil', 'not', 'or', 'repeat', 'return', 'then',
@@ -228,6 +229,7 @@ class Parser {
     this.allowUnsupported = options.allowUnsupported ?? false;
     this.staticArithmetic = options.staticArithmetic ?? false;
     this.tokens = tokenizeLua(source, options);
+    this.effects = options.effects ?? analyzeLuaEffects(source,{file:this.filename});
     this.index = 0;
     this.environment = new Map();
     this.requires = {};
@@ -258,9 +260,19 @@ class Parser {
       else if (['if', 'for', 'while', 'repeat', 'do'].includes(this.peek().value)) this.skipBlockStatement(`${this.peek().value} statement`);
       else this.parseAssignmentOrCall();
     }
+    if(Number.isFinite(this.effects.dirtyFrom)) {
+      const dynamic={type:'unsupported',reason:'DYNAMIC_VALUE',startLine:1};
+      for(const [name,n] of this.environment) {
+        invalidateReachable(n,{resolve:n=>this.resolveBinding(n),dynamic});
+        if(n?.type!=='table'&&n?.start>=this.effects.dirtyFrom)this.environment.set(name,dynamic);
+      }
+      invalidateReachable(this.returned,{resolve:n=>this.resolveBinding(n),dynamic});
+      if(this.resolveBinding(this.returned)?.type!=='table')this.returned=dynamic;
+    }
     return {
       type: 'chunk', filename: this.filename,
       bindingChanges:[...this.invalidBindings],
+      moduleDynamic:Number.isFinite(this.effects.dirtyFrom),
       assignments: this.assignments,
       calls: this.calls,
       locals: Object.fromEntries(this.environment),
@@ -291,8 +303,7 @@ class Parser {
       let node=this.resolveReference(this.environment.get(path[0]));
       if(!node)continue;
       const value={type:'unsupported',reason:'CONDITIONAL_ASSIGNMENT',raw:'',startLine:start.line};
-      const seen=new Set();
-      const poison=table=>{if(seen.has(table))return;seen.add(table);table.dynamic=value;for(const e of table.entries){if(e.value.type==='table')poison(e.value);else e.value=value;}};
+      const poison=table=>invalidateReachable(table,{resolve:n=>this.resolveBinding(n),dynamic:value});
       if(path.length===1) {
         if(node.type==='table')poison(node);
         else this.environment.set(path[0],value);
@@ -330,7 +341,7 @@ class Parser {
     }
     names.forEach((name, index) => {
       const value = values[index] ?? this.literalNode('nil', null, this.peek());
-      const requirePath = value.type === 'call' && value.ref === 'require' && value.args[0]?.type === 'string'
+      const requirePath = verifiedBinding({name:'require',bound:this.environment.has('require')||!this.bindingIntact('require'),intact:()=>this.options.builtinIntact?.('require')??true}) && value.type === 'call' && value.ref === 'require' && value.args[0]?.type === 'string'
         ? value.args[0].value : null;
       if (requirePath) {
         this.requires[name] = requirePath;
@@ -375,8 +386,8 @@ class Parser {
       const arg=this.parseExpression(8),v=this.resolveReference(arg);
       node=v?.type==='number'?{...v,value:-v.value,_sources:[...(v._sources??[]),{path:this.filename,line:v.startLine??start.line}],startLine:start.line}:{type:'unsupported',raw:this.source.slice(start.start,this.peek().start)};
     } else if(start.type==='symbol'&&this.match('(')) {node=this.parseExpression();this.expect(')');}
-    else if(start.value==='{')node=this.parseTable();
-    else if(start.value==='function')node=this.parseFunction();
+    else if(start.type==='symbol'&&start.value==='{')node=this.parseTable();
+    else if(start.type==='keyword'&&start.value==='function')node=this.parseFunction();
     else if(['number','string'].includes(start.type))node=this.literalNode(start.type,this.take().value,start);
     else if(['true','false','nil'].includes(start.value)){this.take();node=this.literalNode(start.value==='nil'?'nil':'boolean',start.value==='nil'?null:start.value==='true',start);}
     else if(start.type==='identifier')node=this.evaluateCall(this.parseReferenceOrCall());
@@ -399,8 +410,8 @@ class Parser {
       const value = this.parseExpression();
       if (value.type !== 'number') this.fail('Unary minus is supported only for numeric literals', start);
       node = { ...value, value: -value.value, raw: this.source.slice(start.start, value.end), start: start.start, startLine: start.line };
-    } else if (start.value === '{') node = this.parseTable();
-    else if (start.value === 'function') node = this.parseFunction();
+    } else if (start.type === 'symbol' && start.value === '{') node = this.parseTable();
+    else if (start.type === 'keyword' && start.value === 'function') node = this.parseFunction();
     else if (start.type === 'string') node = this.literalNode('string', this.take().value, start);
     else if (start.type === 'number') node = this.literalNode('number', this.take().value, start);
     else if (['true', 'false', 'nil'].includes(start.value)) {
@@ -507,18 +518,13 @@ class Parser {
 
   parseFunction() {
     const start = this.expect('function');
-    const stack = ['end'];
-    while (stack.length && this.peek().type !== 'eof') {
-      const token = this.take();
-      if (['function', 'if', 'for', 'while'].includes(token.value)) stack.push('end');
-      else if (token.value === 'repeat') stack.push('repeat');
-      else if (token.value === 'until' && stack.at(-1) === 'repeat') stack.pop();
-      else if (token.value === 'end' && stack.at(-1) === 'end') stack.pop();
-    }
-    if (stack.length) this.fail('Unclosed function expression', start);
+    const begin=this.index-1,finish=luaBlockEnd(this.tokens,begin);
+    if(this.tokens[finish]?.value!=='end')this.fail('Unclosed function expression',start);
+    this.index=finish+1;
     const end = this.peek(-1);
     return {
       type: 'function', function: true,
+      _mathVerified:verifiedBinding({name:'math',bound:this.environment.has('math')||/^function\s*\([^)]*\bmath\b/.test(this.source.slice(start.start,end.end)),intact:()=>this.options.builtinIntact?.('math')??true}),
       start: start.start, end: end.end,
       startLine: start.line, endLine: end.endLine,
       raw: this.source.slice(start.start, end.end)
@@ -596,9 +602,7 @@ class Parser {
 
   invalidateTable(table,value) {
     const dynamic={type:'unsupported',reason:'DYNAMIC_VALUE',startLine:value.startLine};
-    const seen=new Set();
-    const poison=n=>{n=this.resolveBinding(n);if(n?.type!=='table'||seen.has(n))return;seen.add(n);n.dynamic=dynamic;for(const e of n.entries){const v=this.resolveBinding(e.value);if(v?.type==='table'){poison(v);e.value=v;}else e.value=dynamic;}};
-    poison(table);
+    invalidateReachable(table,{resolve:n=>this.resolveBinding(n),dynamic});
   }
 
   bindingIntact(ref) {
@@ -620,6 +624,7 @@ class Parser {
   }
 
   evaluateCall(node, { statement = false } = {}) {
+    if(node?.type==='call')applyCallMutations(node.ref,node.args,{analysis:this.effects,capture:(path,owner)=>owner===this.filename?this.resolveBinding({type:'reference',ref:path}):this.options.resolveImport?.(owner.replace(/\.lua$/,'')),resolve:n=>this.resolveBinding(n),field:getTableField,entries:n=>(n?.entries??[]).map((e,i)=>[e.key?.value??i+1,e.value]),dynamic:{type:'unsupported',reason:'DYNAMIC_VALUE',startLine:node.startLine}});
     const result=this.foldCall(node,{statement});
     if(node?.type==='call'&&(result===node||result?.type==='unsupported')) {
       const seen=new Set();
@@ -638,8 +643,7 @@ class Parser {
 
   foldCall(node, { statement = false } = {}) {
     if (node?.type !== 'call') return node;
-    if(!this.bindingIntact(node.ref))return node;
-    if(!this.options.builtinIntact?.(node.ref)&&this.options.builtinIntact&&/^(?:math|table)\./.test(node.ref))return node;
+    if(!verifiedBinding({name:node.ref,bound:!this.bindingIntact(node.ref),intact:()=>this.options.builtinIntact?.(node.ref)??true}))return node;
     const root=node.ref.split('.')[0];
     if(node.ref.startsWith('table.')&&this.environment.has(root))return node;
     const fn=/(?:generate_offset_range|create_scale|generate_action_overrides)$/.test(node.ref)?this.resolveBinding({type:'reference',ref:node.ref}):null;

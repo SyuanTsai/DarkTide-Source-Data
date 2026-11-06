@@ -1,3 +1,4 @@
+import {createSharedBindingGuard,verifiedBinding} from './lua-effects.mjs';
 import { parseLuaStatic, getTableField as field, getTableArray as array, getTableEntries as entries, tokenizeLua } from './lua-static-reader.mjs';
 import { staticBuffModules } from './blessing-buff-index.mjs';
 
@@ -14,7 +15,7 @@ export function expression(fn, value) {
       if (x.value==='(') { const v=sum(); if(t[i++].value!==')') throw 0; return v; }
       if (x.type==='number') return x.value;
       if (x.value===m[1]) return value;
-      if (x.value==='math' && t[i++]?.value==='.') {
+      if (x.value==='math' && verifiedBinding({name:'math',bound:fn._mathVerified===false}) && t[i++]?.value==='.') {
         const name=t[i++]?.value; if (!['abs','floor','ceil','round'].includes(name) || t[i++]?.value!=='(') throw 0;
         const v=sum(); if(t[i++]?.value!==')') throw 0;
         return name==='round' ? (v>=0?Math.floor(v+0.5):Math.ceil(v-0.5)) : Math[name](v);
@@ -27,8 +28,9 @@ export function expression(fn, value) {
   } catch { return null; }
 }
 export function resolver(reader) {
+  const effects=createSharedBindingGuard(reader);
   const cache=new Map(), modules=staticBuffModules(reader); let buff, statBuffs;
-  function parsed(file) { if(!cache.has(file)) cache.set(file,parseLuaStatic(reader.read(file),{filename:file,allowUnsupported:true})); return cache.get(file); }
+  function parsed(file) { if(!cache.has(file)) cache.set(file,parseLuaStatic(reader.read(file),{filename:file,allowUnsupported:true,effects:effects.analysis(file),builtinIntact:ref=>effects.intact([ref.split('.')[0]])})); return cache.get(file); }
   function deref(node,file) {
     if(node?.type==='lazy') { const value=modules.force(node); return {node:value,file:value._file??file}; }
     if(node?._file) return {node,file:node._file};

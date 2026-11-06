@@ -1,6 +1,6 @@
 import { tokenizeLua } from './lua-static-reader.mjs';
-import { conditionalWrites } from './lua-mutations.mjs';
-import {createSharedBindingGuard} from './lua-effects.mjs';
+import { conditionalWrites } from './lua-effects.mjs';
+import {createSharedBindingGuard,invalidateReachable,verifiedBinding,applyCallMutations} from './lua-effects.mjs';
 
 // A deliberately bounded Lua expression reader. It builds data, never runs Lua.
 // Unsupported operators/calls remain nodes and cannot become numeric values.
@@ -14,7 +14,7 @@ export class SkillLua {
   take() { return this.tokens[this.i++]; }
   match(v) { if(!['string','number'].includes(this.peek().type) && this.peek().value===v) {this.take();return true;} return false; }
   expect(v) { if(!this.match(v)) throw new Error(`${this.file}:${this.peek().line}: expected ${v}`); }
-  node(type, data, start) { return {type,...data,file:this.file,line:start.line,raw:this.source.slice(start.start,this.tokens[this.i-1]?.end)}; }
+  node(type, data, start) { return {type,...data,file:this.file,line:start.line,start:start.start,raw:this.source.slice(start.start,this.tokens[this.i-1]?.end)}; }
   block() {
     const start=this.take(), stack=[{close:start.value==='repeat'?'until':'end',awaitDo:['for','while'].includes(start.value)}];
     while(stack.length && this.peek().type!=='eof') {
@@ -28,7 +28,7 @@ export class SkillLua {
       }
       else if(t.value===stack.at(-1)?.close) stack.pop();
     }
-    return this.node('function',{},start);
+    return this.node('function',{capture:new Map(this.env)},start);
   }
   expression(min=0) {
     const start=this.peek(); let n;
@@ -55,6 +55,7 @@ export class SkillLua {
       else if(this.match('(')) {const args=[];if(this.peek().value!==')') {do {args.push(this.expression());} while(this.match(','));}this.expect(')');n=this.node('call',{callee:n,args},start);}
       else if(this.peek().type==='string' || this.peek().value==='{') {n=this.node('call',{callee:n,args:[this.expression(8)]},start);}
       else break;
+      if(n.type==='call')this.onCall?.(n);
     }
     while((precedence[this.peek().value] ?? -1)>=min) {const op=this.take().value; n=this.node('binary',{op,left:n,right:this.expression(precedence[op]+1)},start);}
     return n;
@@ -115,16 +116,17 @@ export function createSkillResolver(reader) {
     if(!reader.exists(file)) return {};
     const pending={}; chunks.set(file,pending);
     const parser=new SkillLua(reader.read(file),file);
+    parser.onCall=n=>{
+      applyCallMutations(callName(n.callee),n.args,{analysis:effects.analysis(file),resolve,field,entries,capture:(path,owner)=>{const [root,...parts]=path.split('.');let value=(owner===file?parser.env:load(owner).env)?.get(root);for(const part of parts)value=get(value,part);return value;},handled:['_create_entry','_add_template_entries','_require_templates','extract_weapon_tweaks'],dynamic:{type:'unknown',reason:'DYNAMIC_VALUE',file,line:n.line}});
+    };
     Object.assign(pending,parser.chunk((target,value) => {
       if(value.reason==='CONDITIONAL_ASSIGNMENT') {
         const existing=resolve(target);
         if(existing?.type==='table') {
-          const seen=new Set();
-          function poison(table) {if(seen.has(table))return;seen.add(table);table.dynamic=value;for(const e of table.entries){const n=resolve(e.value);if(n?.type==='table')poison(n);else e.value=value;}}
-          poison(existing);return existing;
+          invalidateReachable(existing,{resolve,dynamic:value});return existing;
         }
       }
-      if(target.type==='reference') {const root=resolve(target);if(root?.type==='table'){root.dynamic=value;for(const e of root.entries)e.value=value;}return;}
+      if(target.type==='reference') {const root=resolve(target);if(root?.type==='table')invalidateReachable(root,{resolve,dynamic:value});return;}
       const base=resolve(target.base),key=scalar(target.key);
       if(base?.type==='table' && key!==undefined) base.entries.push({key:literal(key,target),value});
     },raw=>{
@@ -150,16 +152,17 @@ export function createSkillResolver(reader) {
     for(const c of pending.calls) {
       const name=callName(c.callee);
       const binding=c.callee?.base?.binding;
-      if(file==='scripts/settings/damage/damage_profile_templates.lua'&&name==='WeaponTweaks.extract_weapon_tweaks'&&binding?.type==='call'&&callName(binding.callee)==='require'&&scalar(binding.args[0])==='scripts/utilities/weapon_tweaks') {
+      if(effects.analysis(file)?.models.get(name)?.kind==='extract_weapon_tweaks') {
         const path=scalar(c.args[0]);
         if(typeof path==='string')merge(resolve(c.args[1]),damageProfiles(path+'.lua'));
       }
       if(['table.merge','table.add_missing','table.append'].includes(name)) mergeCall(c);
-      const includeTarget=name==='_create_entry'?'templates':
-        file==='scripts/settings/damage/explosion_templates.lua' && name==='_add_template_entries'?'explosion_templates':
-        file==='scripts/settings/projectile/projectile_templates.lua' && name==='_require_templates'?'projectile_templates':null;
+      const model=effects.analysis(file)?.models.get(name),kind=model?.kind;
+      const includeTarget=kind==='_create_entry'?'templates':
+        kind==='_add_template_entries'?'explosion_templates':
+        kind==='_require_templates'?'projectile_templates':null;
       if(includeTarget && c.args[0]?.type==='literal' && typeof c.args[0].value==='string') {
-        const target=resolve(pending.env.get(includeTarget)),source=returned(c.args[0].value+'.lua');
+        const target=resolve((model.file===file?pending.env:load(model.file).env)?.get(includeTarget)),source=returned(c.args[0].value+'.lua');
         merge(target,source);
       }
     }
@@ -178,6 +181,15 @@ export function createSkillResolver(reader) {
         if(target?.type==='table' && template) target.entries.push({key:literal(name,template),value:template});
       }
       pending.returned=target;
+    }
+    if(Number.isFinite(effects.analysis(file)?.dirtyFrom)||effects.moduleTainted(file)) {
+      const dynamic={type:'unknown',reason:'DYNAMIC_VALUE',file,line:1};
+      for(const [name,n] of pending.env) {
+        invalidateReachable(n,{resolve,dynamic});
+        if(n?.type!=='table'&&n?.start>=effects.analysis(file).dirtyFrom)pending.env.set(name,dynamic);
+      }
+      invalidateReachable(pending.returned,{resolve,dynamic});
+      if(resolve(pending.returned)?.type!=='table')pending.returned=dynamic;
     }
     return pending;
   }
@@ -218,8 +230,14 @@ export function createSkillResolver(reader) {
       target.entries.push(append?{...e,key:literal(target.entries.length+1,e.key)}:e);
     }
   }
+  function builtinCallIntact(n) {
+    const name=callName(n.callee),root=name.split('.')[0];let binding=n.callee;
+    while(binding?.type==='index')binding=binding.base;
+    return verifiedBinding({name:root,bound:Boolean(binding?.binding),intact:roots=>effects.intact(roots)});
+  }
   function mergeCall(n) {
     if(compositions.has(n)) return compositions.get(n);
+    if(!builtinCallIntact(n))return unknown(n,'binding 未驗證');
     const name=callName(n.callee), target=resolve(n.args[0]);
     for(const arg of n.args.slice(1)) merge(target,resolve(arg),name==='table.add_missing',name==='table.append');
     compositions.set(n,target);
@@ -240,6 +258,7 @@ export function createSkillResolver(reader) {
       }
       if(n.type==='call') {
         const name=callName(n.callee);
+        if(/^(?:math\.|table\.|require$|settings$|unpack$)/.test(name)&&!builtinCallIntact(n))return unknown(n,'binding 未驗證');
         if(name==='require' && typeof scalar(n.args[0])==='string') return resolve(returned(scalar(n.args[0]).replace(/\.lua$/,'')+'.lua'),trace);
         if(name==='settings') return resolve(n.args[1],trace);
         if(['table.enum','table.keys','unpack','table.unpack'].includes(name)) {
@@ -274,15 +293,12 @@ export function createSkillResolver(reader) {
           const clone=name==='table.clone_instance'?copy(value):{...value,entries:[...value.entries]};compositions.set(n,clone);return clone;
         }
         if(['table.merge','table.add_missing','table.append'].includes(name)) return mergeCall(n);
-        if(/^math\.(max|min)$/.test(name)) {
+        if(/^math\.(max|min|abs|floor|ceil|round)$/.test(name)) {
           const base=n.callee.base;
-          if(base?.type!=='reference'||base.name!=='math'||base.binding||!effects.intact(['math']))return unknown(n,'math binding 未驗證');
+          if(!verifiedBinding({name,bound:base?.type!=='reference'||base.name!=='math'||Boolean(base.binding),intact:roots=>effects.intact(roots)}))return unknown(n,'math binding 未驗證');
           const values=n.args.map(arg=>scalar(arg,trace));
-          if(values.length&&values.every(v=>typeof v==='number'&&Number.isFinite(v)))return literal(Math[name.slice(5)](...values),n);
+          if(values.length&&values.every(v=>typeof v==='number'&&Number.isFinite(v)))return literal(['max','min'].includes(name.slice(5))?Math[name.slice(5)](...values):math(name.slice(5),values[0]),n);
           return unknown(n,'math 參數非靜態常數');
-        }
-        if(/^math\.(abs|floor|ceil|round)$/.test(name)) {
-          const v=scalar(n.args[0],trace); if(typeof v==='number') return literal(math(name.slice(5),v),n);
         }
         return unknown(n,`函式 ${name}`);
       }
@@ -295,6 +311,7 @@ export function createSkillResolver(reader) {
         }
         return unknown(n,`不支援運算 ${n.op}`);
       }
+      if(n.type==='function')n.mathVerified=verifiedBinding({name:'math',bound:Boolean(n.capture?.has('math'))||/^function\s*\([^)]*\bmath\b/.test(n.raw),intact:roots=>effects.intact(roots)});
       return n;
     } finally {active.delete(n);}
   }
@@ -325,7 +342,7 @@ export function manipulate(node,value) {
     if(n.type==='unary' && n.op==='-') return -calc(n.arg);
     if(n.type==='binary' && ['+','-','*','/'].includes(n.op)) {const a=calc(n.left),b=calc(n.right);return n.op==='+'?a+b:n.op==='-'?a-b:n.op==='*'?a*b:a/b;}
     const name=callName(n.callee);
-    if(n.type==='call' && /^math\.(abs|floor|ceil|round)$/.test(name) && n.args.length===1) return math(name.slice(5),calc(n.args[0]));
+    if(n.type==='call' && /^math\.(abs|floor|ceil|round)$/.test(name) && n.args.length===1 && verifiedBinding({name,bound:node.mathVerified===false})) return math(name.slice(5),calc(n.args[0]));
     return undefined;
   }
   const result=calc(ast);return Number.isFinite(result)?result:undefined;

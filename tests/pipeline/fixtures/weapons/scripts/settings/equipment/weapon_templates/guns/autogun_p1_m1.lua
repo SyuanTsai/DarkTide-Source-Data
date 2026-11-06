@@ -1,3 +1,4 @@
+local WeaponBarUIDescriptionTemplates=require("scripts/settings/equipment/weapon_bar_ui_description_templates")
 local Bespoke = require("scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_test")
 local HitScanTemplates = require("scripts/settings/projectile/hit_scan_templates")
 local weapon_template = {}

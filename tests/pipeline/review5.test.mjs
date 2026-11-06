@@ -30,13 +30,13 @@ test('UnitT10_F1 shared writes revoke helpers across modules',()=>{
   const helper=sources();helper[utility]='require("dependency") '+helper[utility];helper['dependency.lua']=`local R=require("${utility.slice(0,-4)}") ${write}`;assert.equal(extract(helper).stats.length,0,'helper dependency: '+write);
  }
  const rebound=sources('local round=math.round round=fallback');assert.equal(extract(rebound).stats.length,1);
- assert.equal(extract(sources('consume(type)')).stats.length,1,'a function argument cannot rebind its global name');
+ assert.equal(extract(sources('consume(type)')).stats.length,0,'unknown calls taint the caller module even without table arguments');
 });
 // Scenario: the audited base module repeats the same inspect factory declaration.
 // Purpose: harmless initialization must not revoke action-copy numeric coverage.
-test('UnitT15_F1 identical audited initialization preserves helper proof',()=>{
+test('UnitT15_F1 duplicate initialization only revokes the assigned member',()=>{
  const file=root+'base_template_settings.lua',definition='base_template_settings.generate_inspect_action=function() return {value=7} end ';
- for(const [second,expected] of [[definition,true],[definition.replace('7','8'),false],['if flag then '+definition+' end ',false]]) {
+ for(const [second,expected] of [[definition,false],[definition.replace('7','8'),false],['if flag then '+definition+' end ',false]]) {
   const s={[file]:'local base_template_settings={} '+definition+second+'return base_template_settings'},guard=createSharedBindingGuard(reader(s));guard.load(file);assert.equal(guard.intact([],{moduleFile:file}),expected);
  }
 });
@@ -77,7 +77,7 @@ test('UnitT30_F3 fire configuration projectile resolves explosion',()=>{
 // Purpose: F4 resolves seven stacks without extending value_manipulation.
 test('UnitT40_F4 verified max min and bounded profile inheritance',()=>{
  const registry='scripts/settings/damage/damage_profile_templates.lua';
- const s={[registry]:'local WeaponTweaks=require("scripts/utilities/weapon_tweaks") local templates={} WeaponTweaks.extract_weapon_tweaks("profiles",templates,{}) return templates',
+ const s={'scripts/utilities/weapon_tweaks.lua':readFileSync(new URL('./fixtures/review6/weapon_tweaks.lua',import.meta.url),'utf8'),[registry]:'local WeaponTweaks=require("scripts/utilities/weapon_tweaks") local templates={} WeaponTweaks.extract_weapon_tweaks("profiles",templates,{}) return templates',
  'profiles.lua':'local damage_templates={} local overrides={} damage_templates.base={buffs={on_damage_dealt={neurotoxin_interval_buff3=7}}} overrides.close={parent_template_name="base",overrides={{"power",300}}} overrides.third={parent_template_name="close",overrides={{"buffs","on_damage_dealt","neurotoxin_interval_buff3",4}}} return {base_templates=damage_templates,overrides=overrides}',
  'test.lua':`local D=require("${registry.slice(0,-4)}") return {stacks=math.max(D.base.buffs.on_damage_dealt.neurotoxin_interval_buff3,D.close.buffs.on_damage_dealt.neurotoxin_interval_buff3),low=math.min(D.base.buffs.on_damage_dealt.neurotoxin_interval_buff3,D.third.buffs.on_damage_dealt.neurotoxin_interval_buff3)}`};
  const r=createSkillResolver(reader(s)),n=r.returned('test.lua');assert.equal(r.scalar(r.get(n,'stacks')),7);assert.equal(r.scalar(r.get(n,'low')),4);
