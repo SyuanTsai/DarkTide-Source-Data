@@ -83,3 +83,7 @@ node --test tests/pipeline/real-smoke.test.mjs
 祝福專用 `blessing-buff-index.mjs` 依 BuffTemplates registry 的載入／合併順序建立靜態索引，支援跨 require 的 clone、merge、add_missing、local 常數、enum key 與後續欄位覆寫，保留實際數值來源；不執行 Lua。`UNRESOLVED_VALUE` 的 message 以 `[原因代碼]` 開頭，區分函式產生、條件／執行期運算、動態 manipulation、缺少模組／模板／路徑等情況。
 
 `blessing-text.mjs` 只採用 text index 確有 hash 的候選 key，涵蓋 family 前綴、parent／child／數字尾碼與跨武器同 stem 共用。固定來源 `ba6c148` 與文字批次 `25606770` 實測官方英文名稱為 511；合法候選無額外命中，因此 real smoke 的名稱門檻依 spec2b 改為 511。UI 從 master data 的 `trait_item.display_name` 取名稱，缺少 trait→loc key 對照時保留內部名稱，不由英文文字反猜。以 `PIPELINE_REAL_SMOKE=1 node --test tests/pipeline/extract-blessings.real.test.mjs` 驗證真實資料與兩次輸出 byte 一致。
+
+### 武器取數
+
+`extract-weapons.mjs` 讀取玩家武器模板、官方文字與靜態 trait 列，依列的 min/max（或固定數字）對實際基礎模板內插，保留固定值與陣列的各元素。`lib/weapon-stats.mjs` 處理 registry、require、movement state 繼承及 damage profile parent/overrides；同一 bar 的重複 key 保留第一筆並記 `DUPLICATE_STAT`。無法靜態解析的數值記為 unknown，`UNRESOLVED_STAT.reason` 區分缺參照、缺路徑、函式、條件算式與 movement state sentinel，未註冊模板仍會輸出。
