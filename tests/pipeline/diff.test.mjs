@@ -84,6 +84,11 @@ test('輸出驗證拒絕錯誤及不存在的檔案', async (t) => {
   for (const [output, error] of [[{ ...valid, id: 'darktide:skill:other' }, /id.*不符/], [{ ...valid, extra: 1 }, /驗證失敗/], [{ ...valid, explanation: { ...valid.explanation, effect: '' } }, /驗證失敗/], [{ ...valid, explanation: {} }, /驗證失敗/], [{ ...valid, errata: [{ locale: 'en', official: '1', corrected: '2', valueRef: '/missing' }] }, /驗證失敗/]]) { await writeFile(file, JSON.stringify(output)); a.fail(error, '--mark-described', id); }
   a.fail(/無法標記/, '--mark-described', Object.keys(state.run.items).find((x) => state.run.items[x].change === 'removed'));
   await writeFile(file, JSON.stringify(valid));
+  const beforeValueRef = await readFile(a.state);
+  const badValueRef = { ...valid, errata: [{ locale: 'en', official: '1', corrected: '2', valueRef: '/missing', anchor: { field: 'official', locale: 'en', text: input.item.official.en, occurrence: 1 } }] };
+  await writeFile(file, JSON.stringify(badValueRef));
+  const valueRefFailure = a.fail(/Referenced value does not exist/, '--mark-described', id);
+  assert.match(valueRefFailure.stderr, /\/items\/0\/errata\/0\/valueRef/); assert.deepEqual(await readFile(a.state), beforeValueRef);
   const inputPath = join(a.base, 'ai/input', itemFileName(id)), before = await readFile(a.state), altered = { ...input, item: { ...input.item, id: 'darktide:blessing:fixture_b' } };
   await writeFile(inputPath, JSON.stringify(altered)); a.fail(/id.*不符/, '--mark-described', id); assert.deepEqual(await readFile(a.state), before);
   for (const [field, value] of [['category', 'skills'], ['change', 'changed']]) { await writeFile(inputPath, JSON.stringify({ ...input, [field]: value })); a.fail(/不符/, '--mark-described', id); assert.deepEqual(await readFile(a.state), before); }
