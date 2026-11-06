@@ -96,7 +96,7 @@ test('UnitT50_F5 ogryn club inner and outer push ranges survive',()=>{
 // Scenario: arc rifle max_angle converts constant degrees; dynamic args stay calls.
 // Purpose: cover the finite math whitelist and its runtime boundary.
 test('UnitT60_F6 arc rifle max_angle converts [25,70] degrees',()=>{
- const s={...trait('weapon_chain_lightning','{"max_angle",{min=0,max=1}},{"dynamic",0.5}'),'scripts/settings/equipment/weapon_handling_templates/weapon_chain_lightning_templates.lua':`local weapon_chain_lightning_templates={test={max_angle={lerp_basic=math.degrees_to_radians(25),lerp_perfect=math.degrees_to_radians(70)},dynamic=math.degrees_to_radians(runtime_angle)}}\nreturn weapon_chain_lightning_templates`};
+ const s={'scripts/foundation/utilities/math.lua':'math.degrees_to_radians = math.rad\n',...trait('weapon_chain_lightning','{"max_angle",{min=0,max=1}},{"dynamic",0.5}'),'scripts/settings/equipment/weapon_handling_templates/weapon_chain_lightning_templates.lua':`local weapon_chain_lightning_templates={test={max_angle={lerp_basic=math.degrees_to_radians(25),lerp_perfect=math.degrees_to_radians(70)},dynamic=math.degrees_to_radians(runtime_angle)}}\nreturn weapon_chain_lightning_templates`};
  const r=extract(s,'weapon_chain_lightning');assert.deepEqual(ranges(r),[[0.436332312999,1.2217304764]]);assert.equal(r.unknown.length,1);assert.equal(r.unknown[0].reason,'FUNCTION_VALUE');
 });
 

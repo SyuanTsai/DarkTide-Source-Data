@@ -6,8 +6,8 @@ import path from 'node:path';
 import {cli} from './helpers.mjs';
 
 // Scenario: pinned source and text batch are extracted in sequence twice.
-// Purpose: protect review3 values, referential integrity and byte determinism.
-test('InterT80_review3 pinned extraction twice and concrete findings',{skip:process.env.PIPELINE_REAL_SMOKE!=='1'},t=>{
+// Purpose: protect review3/review4 values, referential integrity and byte determinism.
+test('InterT80_review3_review4 pinned extraction twice and concrete findings',{skip:process.env.PIPELINE_REAL_SMOKE!=='1'},t=>{
  const dir=mkdtempSync(path.join(tmpdir(),'syp385-review3-')),state=path.join(dir,'state.json');
  const common=['--text-batch','25606770','--work-dir',dir,'--state',state];
  const text=['--private-repo',process.env.DARKTIDE_PRIVATE_REPO,'--private-ref','origin/master',...common];
@@ -47,6 +47,14 @@ test('InterT80_review3 pinned extraction twice and concrete findings',{skip:proc
  }
  const angles=stats('arc_rifle_p1_m1').filter(s=>s.key.endsWith('.max_angle'));
  assert.equal(angles.length,2);for(const s of angles)assert.deepEqual([s.min,s.max],[0.436332312999,1.2217304764]);
+ assert.ok(!data.weapons.problems.some(p=>p.id?.endsWith(':ogryn_thumper_p1_m2')&&p.reason==='DYNAMIC_VALUE'));
+ // Review4 concrete registry, projectile, finite-generator and action-copy cases.
+ endpoint('ogryn_rippergun_p1_m1','damage.action_shoot_hip.default_rippergun_assault.armor_damage_modifier_ranged.near.attack.unarmored',[0.835,1.165]);
+ endpoint('forcestaff_p4_m1','explosion.action_shoot_charged.radius',[2,4]);
+ endpoint('forcestaff_p4_m1','explosion.action_shoot_charged.close_radius',[1.125,1.375]);
+ endpoint('autogun_p1_m1','recoil.base.still.offset.1.pitch',[0.0139125,0.0010875]);
+ endpoint('ogryn_heavystubber_p1_m2','spread.base.crouch_moving.immediate_spread.shooting.1.pitch',[0.51185,0.06815]);
+ endpoint('crowbar_p1_m1','damage.action_light_1.light_crowbar_smiter.targets.1.power_distribution.attack',[112.5,157.5]);
  const ids=new Set(data.skills.items.map(i=>i.id));
  for(const skill of data.skills.items)assert.ok(skill.values.parents.every(id=>ids.has(id)),skill.id);
  for(const key of ['psyker_crits_regen_toughness_movement_speed','psyker_toughness_on_melee','psyker_toughness_on_vent','psyker_toughness_on_warp_kill']) {

@@ -1,9 +1,11 @@
+import {conditionalWrites,luaBlockEnd} from './lua-mutations.mjs';
 import {parseRequires} from './lua-closure.mjs';
-import {parseLuaStatic, getTableField as field, getTableArray as array} from './lua-static-reader.mjs';
+import {evaluateFiniteHelper} from './lua-finite-helpers.mjs';
+import {parseLuaStatic, getTableField as field, getTableArray as array, tokenizeLua} from './lua-static-reader.mjs';
 import {createTemplateInitializer} from './weapon-template-init.mjs';
 
 const ROOT='scripts/settings/equipment/weapon_templates/';
-const PATHS={explosion:'scripts/settings/damage/explosion_templates.lua',projectile:'scripts/settings/projectile/projectile_templates.lua',burninating:'scripts/settings/equipment/weapon_handling_templates/weapon_burninating_templates.lua',size_of_flame:'scripts/settings/equipment/weapon_handling_templates/weapon_size_of_flame_templates.lua',recoil:'scripts/settings/equipment/recoil_templates.lua',spread:'scripts/settings/equipment/spread_templates.lua',sway:'scripts/settings/equipment/sway_templates.lua',damage:'scripts/settings/damage/damage_profile_templates.lua',hit_scan:'scripts/settings/projectile/hit_scan_templates.lua',ammo:'scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua',dodge:'scripts/settings/dodge/weapon_dodge_templates.lua',sprint:'scripts/settings/sprint/weapon_sprint_templates.lua',stamina:'scripts/settings/stamina/weapon_stamina_templates.lua',movement_curve_modifier:'scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua',charge:'scripts/settings/equipment/weapon_handling_templates/weapon_charge_templates.lua',warp_charge:'scripts/settings/warp_charge/weapon_warp_charge_templates.lua',weapon_handling:'scripts/settings/equipment/weapon_handling_templates/weapon_handling_templates.lua',weapon_chain_lightning:'scripts/settings/equipment/weapon_handling_templates/weapon_chain_lightning_templates.lua',weapon_shout:'scripts/settings/equipment/weapon_handling_templates/weapon_shout_templates.lua'};
+const PATHS={shotshell:'scripts/settings/projectile/shotshell_templates.lua',explosion:'scripts/settings/damage/explosion_templates.lua',projectile:'scripts/settings/projectile/projectile_templates.lua',burninating:'scripts/settings/equipment/weapon_handling_templates/weapon_burninating_templates.lua',size_of_flame:'scripts/settings/equipment/weapon_handling_templates/weapon_size_of_flame_templates.lua',recoil:'scripts/settings/equipment/recoil_templates.lua',spread:'scripts/settings/equipment/spread_templates.lua',sway:'scripts/settings/equipment/sway_templates.lua',damage:'scripts/settings/damage/damage_profile_templates.lua',hit_scan:'scripts/settings/projectile/hit_scan_templates.lua',ammo:'scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua',dodge:'scripts/settings/dodge/weapon_dodge_templates.lua',sprint:'scripts/settings/sprint/weapon_sprint_templates.lua',stamina:'scripts/settings/stamina/weapon_stamina_templates.lua',movement_curve_modifier:'scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua',charge:'scripts/settings/equipment/weapon_handling_templates/weapon_charge_templates.lua',warp_charge:'scripts/settings/warp_charge/weapon_warp_charge_templates.lua',weapon_handling:'scripts/settings/equipment/weapon_handling_templates/weapon_handling_templates.lua',weapon_chain_lightning:'scripts/settings/equipment/weapon_handling_templates/weapon_chain_lightning_templates.lua',weapon_shout:'scripts/settings/equipment/weapon_handling_templates/weapon_shout_templates.lua'};
 const sentinel=(key,name)=>typeof key==='string'&&key.split('.').at(-1)===name;
 const DEFAULT_LERP='DEFAULT_LERP_VALUE';
 
@@ -17,7 +19,7 @@ export function damageLerpValue(lerpValues,keys,fallback) {
 }
 function annotate(node,file) {
  if(!node||typeof node!=='object')return;
- node._file=file;
+ node._file??=file;
  if(node.type==='table')for(const e of node.entries){annotate(e.key,file);annotate(e.value,file);}
  if(node.type==='call')for(const arg of node.args)annotate(arg,file);
  if(node.type==='reference')for(const part of node.parts??[])annotate(part,file);
@@ -59,10 +61,41 @@ export function createWeaponStats(reader) {
  }
  const set=(root,keys,value)=>setPath(root,keys,value,child);
  const initialization=createTemplateInitializer(reader,PATHS,{setPath:set,annotate});
+ const mathProofs=new Map();
+ function mathVerified(name) {
+  if(mathProofs.has(name))return mathProofs.get(name);
+  const file='scripts/foundation/utilities/math.lua';let valid=false;
+  if(reader.exists(file)) {
+   const source=reader.read(file),tokens=tokenizeLua(source),writes=conditionalWrites(tokens);
+   const relevant=writes.filter(p=>p[0]==='math'&&(p.length===1||p[1]===name||p[1]==='rad'&&name==='degrees_to_radians'));
+   const expected=name==='degrees_to_radians'?'math.degrees_to_radians=math.rad':'math.lerp=function(a,b,p)return a*(1-p)+b*p end';
+   const wanted=tokenizeLua(expected).slice(0,-1);let matched=false;
+   for(let i=0;i<tokens.length;i++) {
+    if(wanted.every((t,j)=>t.type===tokens[i+j]?.type&&t.value===tokens[i+j]?.value))matched=true;
+    if(tokens[i].type==='keyword'&&['function','if','for','while','repeat','do'].includes(tokens[i].value))i=luaBlockEnd(tokens,i);
+   }
+   valid=relevant.length===1&&relevant[0].join('.')==='math.'+name&&matched;
+  }
+  mathProofs.set(name,valid);return valid;
+ }
+ function finite(call,fn,resolve) {
+  const p=fn?._file&&chunk(fn._file);if(!p||p.partial)return null;
+  const dependencies=fn._file==='scripts/utilities/recoil_template.lua'?['_math','math','MathUtils','rawget']:['table','select','type','NIL_VALUE_OVERRIDE'];
+  if((p.bindingChanges??[]).some(path=>dependencies.some(d=>path===d||path.startsWith(d+'.'))))return null;
+  if(fn._file==='scripts/utilities/recoil_template.lua') {
+   if(p.locals.math||p.locals.MathUtils||p.locals.rawget||p.locals._math?.raw!=='rawget(_G, "EditorApi") and MathUtils or math'||!mathVerified('lerp'))return null;
+  } else if(p.locals.table||p.locals.select||p.locals.type||p.locals.NIL_VALUE_OVERRIDE?.value!=='__NIL_VALUE__')return null;
+  return evaluateFiniteHelper(call,fn,resolve);
+ }
+ function imported(path) {
+  const node=chunk(path.replace(/\.lua$/,'')+'.lua')?.returned;
+  return node?.type==='call'&&node.ref==='settings'?deref(node.args[1]):node;
+ }
  function chunk(file) {
   if(!chunks.has(file)) {
    let p=null;
-   if(reader.exists(file))try{p=parseLuaStatic(statementBoundaries(reader.read(file)),{filename:file,allowUnsupported:true,staticArithmetic:true});for(const n of Object.values(p.locals))annotate(n,file);annotate(p.returned,file);}catch{
+   chunks.set(file,null); // Require cycles cannot acquire speculative bindings.
+   if(reader.exists(file))try{p=parseLuaStatic(statementBoundaries(reader.read(file)),{filename:file,allowUnsupported:true,staticArithmetic:true,resolveImport:imported,resolveNode:deref,evaluateFinite:finite,mathRadiansVerified:mathVerified('degrees_to_radians')});for(const n of Object.values(p.locals))annotate(n,file);annotate(p.returned,file);}catch{
     parseFailures.add(file);
     // Require declarations remain statically readable even if an unrelated
     // statement (for example appending runtime trait keys) cannot be parsed.
@@ -131,13 +164,27 @@ export function createWeaponStats(reader) {
   const result=initialization.state(copy,kind);stateCache.set(node,result);return result;
  }
  function traverse(node,keys,kind) {for(const key of keys){node=inheritedState(deref(node),kind);if(['function','call','unsupported','reference'].includes(node?.type))return {type:'blocked',cause:node};node=child(node,key);}return deref(node);}
- function identifier(source,kind,target,actions,alternate) {
+ function identifier(source,kind,target,actions,alternate,files) {
   const special=target.endsWith('_special'),suffix=`${special?'special_':''}${kind}_template`,name=target.replace(/_special$/,'');
   if(name==='base')return new RegExp(`\\bweapon_template\\.${suffix}\\s*=\\s*["']([^"']+)["']`).exec(source)?.[1];
   const node=field(field(actions,target),`${kind}_template`)??field(name==='alternate_fire'?alternate:field(actions,name),suffix);
-  return node?.value??(node?.type==='reference'?node.ref.split('.').at(-1):null);
+  if(node)return node?.value??(node?.type==='reference'?node.ref.split('.').at(-1):null);
+  if(kind==='explosion') {
+   const action=field(actions,target),projectile=field(action,'projectile_template');
+   const templateName=(n,type)=>{
+    if(n?.type==='string')return n.value;
+    if(n?.type!=='reference')return null;
+    const [alias,name,...rest]=n.ref.split('.'),binding=chunk(n._file)?.locals[alias];
+    return !rest.length&&binding?.type==='require'&&binding.path.replace(/\.lua$/,'')+'.lua'===PATHS[type]?name:null;
+   };
+   const name=templateName(projectile,'projectile');
+   const found=new Set(),seen=new Set();
+   const visit=n=>{n=deref(n);if(n?.type!=='table'||seen.has(n))return;seen.add(n);if(n._file)files.push({path:n._file,line:n.startLine??1});for(const e of n.entries){if(component(e.key)==='explosion_template'){const v=e.value;const id=templateName(v,'explosion');if(id)found.add(id);}else visit(e.value);}};
+   visit(effective('projectile',name));return [...found];
+  }
+  return null;
  }
- function profiles(action,file) {
+ function profiles(action,file,files=[]) {
   const found=new Set(),seen=new Set();
   function visit(n,context) {
    if(!n)return;
@@ -149,6 +196,7 @@ export function createWeaponStats(reader) {
    for(const e of n.entries){const key=component(e.key);
     if(typeof key==='string'&&/^(?:damage_profile(?:_|$)|.+_damage_profile$)/.test(key)) {
      const v=e.value;
+     files.push({path:v._file??context,line:v.startLine??n.startLine??1});
      if(v.type==='reference') {
       const [alias,name]=v.ref.split('.'),p=chunk(v._file??context),required=p?.locals[alias];
       if(name&&required?.type==='require'&&required.path.replace(/\.lua$/,'')+'.lua'===PATHS.damage)found.add(name);
@@ -159,7 +207,7 @@ export function createWeaponStats(reader) {
   }
   visit(action,file);return [...found];
  }
- function reason(node) {if(node?.reason==='CONDITIONAL_ASSIGNMENT')return node.reason;if(node?.type==='blocked')return reason(node.cause);if(node?.type==='table'){for(const e of node.entries){if(['function','call','unsupported','reference'].includes(e.value?.type))return reason(e.value);}}return node?.type==='function'||node?.type==='call'?'FUNCTION_VALUE':node?.type==='unsupported'?'CONDITIONAL_OR_EXPRESSION':node?.type==='reference'?'REFERENCE_NOT_FOUND':!node?'PATH_NOT_FOUND':'NON_NUMERIC_VALUE';}
+ function reason(node) {if(['CONDITIONAL_ASSIGNMENT','DYNAMIC_VALUE'].includes(node?.reason))return node.reason;if(node?.type==='blocked')return reason(node.cause);if(node?.type==='table'){for(const e of node.entries){if(['function','call','unsupported','reference'].includes(e.value?.type))return reason(e.value);}}return node?.type==='function'||node?.type==='call'?'FUNCTION_VALUE':node?.type==='unsupported'?'CONDITIONAL_OR_EXPRESSION':node?.type==='reference'?'REFERENCE_NOT_FOUND':!node?'PATH_NOT_FOUND':'NON_NUMERIC_VALUE';}
  function values(node,tmin,tmax) {
   node=deref(node);
   if(node?.type==='number')return [{suffix:'',min:node.value,max:node.value}];
@@ -236,11 +284,13 @@ export function createWeaponStats(reader) {
   }
  }
  return {label,finish,extract({source,file,kind,target,group,actions,alternate,emit,unknown,files,notApplicable=()=>{},contributions=null}) {
+  actions=field(chunk(file)?.locals.weapon_template,'actions')??actions;
+  annotate(actions,file);annotate(alternate,file);
   const collected=contributions??[],pending=[];
   collected.overrideProfiles??=new Set();
   function groupRows(group,explicitProfile=null) {
    const names=kind==='damage'?(explicitProfile?
-    (catalog('damage').has(explicitProfile)?[explicitProfile]:['hit_scan','explosion','projectile'].flatMap(type=>profiles(effective(type,explicitProfile),file))):profiles(field(actions,target),file)):[explicitProfile??identifier(source,kind,target,actions,alternate)].filter(Boolean);
+    (catalog('damage').has(explicitProfile)?[explicitProfile]:['hit_scan','explosion','projectile'].flatMap(type=>profiles(effective(type,explicitProfile),file,files))):profiles(field(actions,target),file,files)):[explicitProfile??identifier(source,kind,target,actions,alternate,files)].flat().filter(Boolean);
    if(explicitProfile!==null)for(const name of names)collected.overrideProfiles.add(JSON.stringify([kind,target,name]));
    for(const ref of array(group)) {
     if(ref.type!=='reference'){unknown(kind+'.'+target,reason(ref));continue;}
@@ -262,15 +312,15 @@ export function createWeaponStats(reader) {
       if(!states.length){unknown(key,'MOVEMENT_STATES_NOT_FOUND');continue;}
       paths=states.map(state=>rawKeys.map(k=>sentinel(k,'ALL_WEAPON_MOVEMENT_STATES')?state:k));
      }
-     for(const name of new Set(names))for(const keys of paths)pending.push({name,keys,override:explicitProfile!==null,lo:lo?.value,hi:hi?.value,traitFile,param,row,...(lo?.type!=='number'||hi?.type!=='number'?{dynamic:reason(param)}:{})});
+     for(const name of new Set(names))for(const keys of paths)pending.push({name,keys,distinct:names.length>1,override:explicitProfile!==null,lo:lo?.value,hi:hi?.value,traitFile,param,row,...(lo?.type!=='number'||hi?.type!=='number'?{dynamic:reason(param)}:{})});
     }
    }
    for(const e of field(group,'overrides')?.entries??[])groupRows(e.value,component(e.key));
   }
   groupRows(group);
   for(const entry of pending) {
-   const {name,keys,lo,hi,traitFile,param,row,dynamic,override}=entry,base=effective(kind,name);
-   const prefix=kind+'.'+target+(kind==='damage'||override?'.'+name:'');
+   const {name,keys,lo,hi,traitFile,param,row,dynamic,override,distinct}=entry,base=effective(kind,name);
+   const prefix=kind+'.'+target+(kind==='damage'||override||distinct?'.'+name:'');
    const report=(key,error)=>collected.push({kind,target,profile:name,key,error,unknown,override,notApplicable});
    if(!base){report(prefix+'.'+keys.join('.'),catalogFailures.has(kind)?'BASE_TEMPLATE_PARSE_FAILED':kind==='damage'?'DAMAGE_PROFILE_NOT_FOUND':'BASE_TEMPLATE_NOT_FOUND');continue;}
    const isDefault=sentinel(keys.at(-1),'DEFAULT_LERP_VALUE'),scope=keys.slice(0,-1);

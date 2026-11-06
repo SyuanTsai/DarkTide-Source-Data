@@ -222,6 +222,8 @@ export function getTableEntries(node) {
 class Parser {
   constructor(source, options) {
     this.source = source;
+    this.options = options;
+    this.invalidBindings = new Set();
     this.filename = options.filename ?? '<lua>';
     this.allowUnsupported = options.allowUnsupported ?? false;
     this.staticArithmetic = options.staticArithmetic ?? false;
@@ -258,6 +260,7 @@ class Parser {
     }
     return {
       type: 'chunk', filename: this.filename,
+      bindingChanges:[...this.invalidBindings],
       assignments: this.assignments,
       calls: this.calls,
       locals: Object.fromEntries(this.environment),
@@ -284,6 +287,7 @@ class Parser {
     this.index=end+1;
     if(first.value==='repeat')this.parseExpression();
     if (first.value !== 'function') for (const path of conditionalWrites(this.tokens.slice(begin,this.index))) {
+      this.invalidBindings.add(path.join('.'));
       let node=this.resolveReference(this.environment.get(path[0]));
       if(!node)continue;
       const value={type:'unsupported',reason:'CONDITIONAL_ASSIGNMENT',raw:'',startLine:start.line};
@@ -344,7 +348,7 @@ class Parser {
   }
 
   parseAssignmentOrCall() {
-    const expression = this.parseExpression();
+    const expression = this.staticArithmetic&&this.peek().type==='identifier'?this.parseReferenceOrCall():this.parseExpression();
     if (this.match('=')) {
       if (expression.type !== 'reference') this.fail('Assignment target must be a symbolic reference');
       const value = this.evaluateCall(this.parseExpression());
@@ -556,6 +560,7 @@ class Parser {
 
   assignReference(ref, value, indexedParts) {
     const root=ref.split(/[.\[]/)[0];
+    this.invalidBindings.add(ref);
     const parts=indexedParts??ref.split('.').slice(1).map(value=>({type:'string',value}));
     if (parts.length === 0) {
       this.environment.set(root, value);
@@ -568,7 +573,8 @@ class Parser {
       this.fail(`Cannot assign through non-table ${root}`);
     }
     for (const part of parts.slice(0, -1)) {
-      const key=this.resolveReference(part);
+      const key=this.resolveBinding(part);
+      if(!['string','number','boolean'].includes(key?.type)){this.invalidateTable(table,value);return;}
       const entry = key?.type==='reference'?table.entries.find(e=>e.key?.ref===key.ref):tableEntry(table,key?.value);
       const next=this.resolveReference(entry?.value);
       if (next?.type !== 'table') {
@@ -580,21 +586,52 @@ class Parser {
       }
       table = next;
     }
-    const key = this.resolveReference(parts.at(-1));
-    if(!['reference','string','number','boolean'].includes(key?.type)) {table.dynamic={type:'unsupported',reason:'DYNAMIC_INDEX',startLine:value.startLine};return;}
+    const key = this.resolveBinding(parts.at(-1));
+    if(!['string','number','boolean'].includes(key?.type)) {this.invalidateTable(table,value);return;}
     const existing = key.type==='reference'?table.entries.find(e=>e.key?.ref===key.ref):tableEntry(table,key.value);
     if (existing) existing.value = value;
     else table.entries.push({ key, value, start: value.start, end: value.end, startLine: value.startLine, endLine: value.endLine });
   }
 
+  invalidateTable(table,value) {
+    const dynamic={type:'unsupported',reason:'DYNAMIC_VALUE',startLine:value.startLine};
+    const seen=new Set();
+    const poison=n=>{if(n?.type!=='table'||seen.has(n))return;seen.add(n);n.dynamic=dynamic;for(const e of n.entries){if(e.value.type==='table')poison(e.value);else e.value=dynamic;}};
+    poison(table);
+  }
+
+  bindingIntact(ref) {
+    return ![...this.invalidBindings].some(p=>p===ref||ref.startsWith(p+'.'));
+  }
+
+  resolveBinding(node,seen=new Set()) {
+    if(node?.type!=='reference')return node;
+    if(node._file&&node._file!==this.filename)return this.options.resolveNode?.(node)??node;
+    if(seen.has(node.ref))return node;
+    const next=new Set([...seen,node.ref]);
+    const parts=node.parts??node.ref.split('.').slice(1).map(value=>({type:'string',value}));
+    let value=this.environment.get(node.root??node.ref.split('.')[0]);
+    if(!value)return node;
+    value=this.resolveBinding(value,next);
+    if(value?.type==='require')value=this.options.resolveImport?.(value.path)??value;
+    for(const part of parts){value=getTableField(value,this.resolveBinding(part,next)?.value);value=this.resolveBinding(value,next);}
+    return value??node;
+  }
+
   evaluateCall(node, { statement = false } = {}) {
     if (node?.type !== 'call') return node;
+    if(!this.bindingIntact(node.ref))return node;
+    const root=node.ref.split('.')[0];
+    if(node.ref.startsWith('table.')&&this.environment.has(root))return node;
+    const fn=/(?:generate_offset_range|create_scale|generate_action_overrides)$/.test(node.ref)?this.resolveBinding({type:'reference',ref:node.ref}):null;
+    const finite=fn&&this.options.evaluateFinite?.({...node,_file:this.filename},fn,n=>this.resolveBinding(n));
+    if(finite)return finite;
     if(this.staticArithmetic&&node.ref==='table.enum') {
       const args=node.args.flatMap(n=>{const v=this.resolveReference(n);return v?.type==='table'?getTableArray(v):[v];});
       if(args.every(n=>n?.type==='string'))return {...node,type:'table',entries:args.map(n=>({key:cloneNode(n),value:cloneNode(n)}))};
     }
     if (node.ref === 'table.clone' || node.ref === 'table.clone_instance') {
-      const source = this.resolveReference(node.args[0]);
+      const source = this.resolveBinding(node.args[0]);
       if (source?.type !== 'table') {
         if(this.staticArithmetic&&this.allowUnsupported)return {...node,type:'unsupported',reason:'DYNAMIC_CLONE'};
         this.fail('table.clone requires a statically known table', node);
@@ -602,14 +639,14 @@ class Parser {
       return cloneNode(source);
     }
     // foundation/utilities/math.lua binds this helper to math.rad.
-    if(this.staticArithmetic&&node.ref==='math.degrees_to_radians'&&node.args.length===1) {
+    if(this.staticArithmetic&&node.ref==='math.degrees_to_radians'&&node.args.length===1&&!this.environment.has('math')&&this.options.mathRadiansVerified) {
       const arg=this.resolveReference(node.args[0]);
       if(arg?.type==='number'&&Number.isFinite(arg.value))return {...node,type:'number',value:arg.value*Math.PI/180,_sources:[...(arg._sources??[]),{path:this.filename,line:arg.startLine??node.startLine}]};
     }
     // Deliberately finite whitelist. Inspect the source body on every definition;
     // only numeric parameters and a single arithmetic table return are accepted.
     if(this.staticArithmetic && node.ref==='lerpable_timescale') {
-      const fn=this.environment.get(node.ref),args=node.args.map(n=>this.resolveReference(n));
+      const fn=this.resolveBinding({type:'reference',ref:node.ref}),args=node.args.map(n=>this.resolveReference(n));
       const match=/^function\s*\(([^)]*)\)\s*return\s*({[\s\S]*})\s*end$/.exec(fn?.raw??'');
       const params=match?.[1].split(',').map(s=>s.trim());
       if(match&&params.length===args.length&&params.every(p=>/^[A-Za-z_]\w*$/.test(p))&&args.every(a=>a?.type==='number')) {
@@ -634,8 +671,9 @@ class Parser {
     }
     if (node.ref === 'table.add_missing' || node.ref === 'table.append' || node.ref === 'table.merge') {
       const targetRef = node.args[0]?.ref;
-      const target = targetRef ? this.resolvePath(targetRef) : null;
-      const source = this.resolveReference(node.args[1]);
+      const target = targetRef ? this.resolveBinding(node.args[0]) : null;
+      const source = this.resolveBinding(node.args[1]);
+      if(this.staticArithmetic&&this.allowUnsupported&&(target?.type!=='table'||source?.type!=='table')){if(target?.type==='table')this.invalidateTable(target,node);return node;}
       if (target?.type !== 'table' || source?.type !== 'table') this.fail(`${node.ref} requires statically known tables`, node);
       if (node.ref === 'table.add_missing') {
         const existing = new Set(tableKeyIdentities(target));
