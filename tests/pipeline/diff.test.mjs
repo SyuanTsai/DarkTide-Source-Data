@@ -101,3 +101,15 @@ test('雲端目錄未設定或不存在時不寫狀態或暫存目錄', async (t
   for (const extra of [[], ['--cloud-dir', join(a.dir, 'absent')]]) { const result = spawnSync(process.execPath, [...args, ...extra], { cwd: repo, env, encoding: 'utf8' }); assert.equal(result.status, 1); assert.match(result.stderr, /雲端中間檔目錄/); assert.deepEqual(await readFile(a.state), before); assert.deepEqual(await snapshot(a.work), workBefore); }
   await assert.rejects(readdir(join(a.dir, 'absent')), { code: 'ENOENT' });
 });
+
+test('--mark-described 空白或缺少 ID 時拒絕且不改動 state/cloud', async (t) => {
+  const a = await setup(t); a.run();
+  const stateBefore = await readFile(a.state), cloudBefore = await snapshot(a.cloud);
+  for (const extra of [['--mark-described', ''], ['--mark-described']]) {
+    const result = spawnSync(process.execPath, ['pipeline/diff.mjs', ...a.args, ...extra], { cwd: repo, encoding: 'utf8' });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /錯誤/);
+    assert.deepEqual(await readFile(a.state), stateBefore);
+    assert.deepEqual(await snapshot(a.cloud), cloudBefore);
+  }
+});

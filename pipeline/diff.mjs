@@ -30,12 +30,13 @@ function parseArgs() {
     const arg = args.shift();
     if (Object.hasOwn(options, arg)) throw new Error(`參數重複：${arg}`);
     if (names.has(arg)) {
-      if (!args.length || args[0].startsWith('--')) throw new Error(`參數缺少值：${arg}`);
+      if (!args.length || args[0].startsWith('--')) { if (arg === '--mark-described') throw new Error('--mark-described 缺少項目 ID'); throw new Error(`參數缺少值：${arg}`); }
       options[arg] = args.shift();
+      if (arg === '--mark-described' && options[arg] === '') throw new Error('--mark-described 項目 ID 不可為空');
     } else if (arg === '--pending' || arg === '--json') options[arg] = true;
     else throw new Error(`未知參數：${arg}`);
   }
-  if (options['--pending'] && options['--mark-described']) throw new Error('不能同時指定 --pending 與 --mark-described');
+  if (options['--pending'] && Object.hasOwn(options, '--mark-described')) throw new Error('不能同時指定 --pending 與 --mark-described');
   if (options['--json'] && !options['--pending']) throw new Error('--json 僅適用於 --pending');
 }
 async function optional(file) { try { return await readFile(file, 'utf8'); } catch (e) { if (e.code === 'ENOENT') return null; throw e; } }
@@ -67,7 +68,7 @@ async function main() {
     console.log(options['--json'] ? JSON.stringify(pending) : pending.length ? pending.map(({ id, input, output }) => `${id}\t${input}\t${output}`).join('\n') : '沒有待寫說明的項目');
     return;
   }
-  if (options['--mark-described']) {
+  if (Object.hasOwn(options, '--mark-described')) {
     const id = options['--mark-described'], entry = run.items[id];
     if (!entry || entry.change === 'removed' || entry.outcome !== null) throw new Error(`無法標記項目：${id}`);
     if (STAGES.indexOf(entry.stage) >= STAGES.indexOf('described')) { console.log(`已標記：${id}`); return; }
