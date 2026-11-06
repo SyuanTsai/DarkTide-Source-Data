@@ -72,4 +72,4 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 ### 武器取數
 
-`extract-weapons.mjs` 讀取玩家武器模板、官方文字與靜態 trait 資料；無法靜態解析的數值記為 unknown，未註冊模板仍會輸出。
+`extract-weapons.mjs` 讀取玩家武器模板、官方文字與靜態 trait 列，依列的 min/max（或固定數字）對實際基礎模板內插，保留固定值與陣列的各元素。`lib/weapon-stats.mjs` 處理 registry、require、movement state 繼承及 damage profile parent/overrides；同一 bar 的重複 key 保留第一筆並記 `DUPLICATE_STAT`。無法靜態解析的數值記為 unknown，`UNRESOLVED_STAT.reason` 區分缺參照、缺路徑、函式、條件算式與 movement state sentinel，未註冊模板仍會輸出。

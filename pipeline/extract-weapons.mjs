@@ -1,4 +1,5 @@
 import path from 'node:path';
+import {createWeaponStats} from './lib/weapon-stats.mjs';
 import { fileURLToPath } from 'node:url';
 import { parseLuaStatic, findLuaTableAssignment, getLuaTableFields, getTableField, getTableArray } from './lib/lua-static-reader.mjs';
 import { playerWeaponTemplates, weaponPattern, bespokeTraitsForTemplate } from './lib/weapon-inventory.mjs';
@@ -21,6 +22,7 @@ export async function buildWeapons({reader,text,envelope}) {
  const templates=playerWeaponTemplates(reader), problems=[{code:'ARCHETYPES_NOT_EXPOSED',message:'可用職業不在 Source-Code，留空'}],items=[];
  if(!reader.list(ROOT).length||!templates.length) throw new StructureError('weapons','MISSING_TEMPLATES','找不到玩家武器模板');
  let patterns=[]; if(reader.exists(UI)) {try {patterns=getLuaTableFields(findLuaTableAssignment(reader.read(UI),'ui_weapon_patterns_settings')).map(x=>x.key);} catch {}}
+ const statReader=createWeaponStats(reader);
  const cache=new Map();
  function catalog(file,local) {if(!reader.exists(file)) return null; if(!cache.has(file)) {try {cache.set(file,parseLuaStatic(reader.read(file),{filename:file,allowUnsupported:true}));} catch {cache.set(file,null);}} const p=cache.get(file);return p?.locals[local]??p?.returned??null;}
  let missing=0;
@@ -36,24 +38,18 @@ export async function buildWeapons({reader,text,envelope}) {
   for(const e of entries(attacks)) visitAttack(e.node,e.key,true);
   for(const [index,bar] of entries(stats).entries()) {
    const output={id:bar.key,name:textValue(text,string(field(bar.node,'display_name'))),stats:[]}; bars.push(output);
-   function unknown(key) {const param=`bar_${index+1}_${key.toLowerCase().replace(/[^a-z0-9_]/g,'_')}`;params[param]={value:null,unknown:'DYNAMIC_VALUE'};problems.push({code:'UNRESOLVED_STAT',message:`無法解析 ${bar.key}：${key}`,id,bar:bar.key,key});}
-   for(const kind of entries(bar.node)) {if(kind.node?.type!=='table') continue; for(const target of entries(kind.node)) {if(target.node?.type!=='table') continue;
-    const label=field(target.node,'display_data')?.args?.[1]; const labelText=textValue(text,string(label));
-    for(const ref of getTableArray(target.node)) {if(ref.type!=='reference') {unknown(`${kind.key}.${target.key}`);continue;} const match=/^([a-z0-9_]+_trait_templates)\.([a-z0-9_]+)$/.exec(ref.ref); if(!match){unknown(`${kind.key}.${target.key}`);continue;}
-     const file=`${ROOT}weapon_trait_templates/${match[1]}.lua`, root=catalog(file,match[1]), trait=field(root,match[2]); if(!trait){unknown(`${kind.key}.${target.key}`);continue;}
-     const rows=getTableArray(trait); let found=false;
-     for(const row of rows) {const parts=getTableArray(row); if(parts.length<2) continue; const keys=parts.slice(0,-1).map(n=>n.value??n.ref); if(keys.some(x=>x==null)) continue; const key=`${kind.key}.${target.key}.${keys.join('.')}`;
-      let value=null, valueFile=file, valueLine=parts.at(-1).startLine??1;
-      const direct=endpoints(parts.at(-1)); if(direct) value=direct;
-      else {const targetName=target.key.replace(/_special$/,''); const suffix=target.key.endsWith('_special')?`special_${kind.key}_template`:`${kind.key}_template`; let identifier=targetName==='base'?assigned(source,suffix):null; if(targetName==='alternate_fire') identifier=string(field(table(source,'weapon_template.alternate_fire_settings'),suffix)); else if(targetName!=='base') identifier=string(field(field(table(source,'weapon_template.actions'),targetName),suffix)); const cp=paths[kind.key]; let node=cp&&identifier?field(catalog(cp,`weapon_${kind.key}_templates`),identifier):null; for(const k of keys) node=typeof k==='number'?getTableArray(node)[k-1]:field(node,k); value=endpoints(node); if(value) {valueFile=cp;valueLine=node.startLine??1;}}
-      if(value){output.stats.push({key,name:labelText,min:value[0],max:value[1]});files.push({path:valueFile,line:valueLine});found=true;} else unknown(key);
-     }
-     if(!rows.length) unknown(`${kind.key}.${target.key}`);
-    }
+   const seen=new Set();
+   function duplicate(key) {if(!seen.has(key)){seen.add(key);return false;}problems.push({code:'DUPLICATE_STAT',message:`重複 stat：${key}`,id,bar:bar.key,key});return true;}
+   function unknown(key,reason) {if(duplicate(key))return;const param=`bar_${index+1}_${key.toLowerCase().replace(/[^a-z0-9_]/g,'_')}`;params[param]={value:null,unknown:'DYNAMIC_VALUE'};problems.push({code:'UNRESOLVED_STAT',message:`無法解析 ${bar.key}：${key}（${reason}）`,id,bar:bar.key,key,reason});}
+   for(const kind of entries(bar.node)) {if(kind.node?.type!=='table')continue;for(const target of entries(kind.node)){if(target.node?.type!=='table')continue;
+    const name=textValue(text,statReader.label(field(target.node,'display_data'),t.file));
+    statReader.extract({source,file:t.file,kind:kind.key,target:target.key,group:target.node,actions:table(source,'weapon_template.actions'),alternate:table(source,'weapon_template.alternate_fire_settings'),files,unknown,emit(stat){
+     if(!duplicate(stat.key))output.stats.push({...stat,name});
+    }});
    }}
   }
   for(const k of ['keywords','displayed_keywords']) {const n=table(source,`weapon_template.${k}`); if(n){const values=getTableArray(n).map(x=>k==='keywords'?string(x):string(field(x,'display_name'))).filter(x=>x!==null);params[k]={value:values};}}
-  const ammo=assigned(source,'ammo_template'); if(ammo){const file=paths.ammo,node=field(catalog(file,'weapon_ammo_templates'),ammo); for(const [key,names] of [['ammo_reserve',['ammo_amount_capacity_lerp','ammunition_reserve']],['ammo_clip',['ammo_amount_clip_lerp','ammunition_clips']]]) {let v=null;for(const name of names){let x=field(node,name);v=endpoints(x);if(!v&&getTableArray(x).length===1)v=endpoints(getTableArray(x)[0]);if(v) break;} params[key]=v?{value:v}:{value:null,unknown:'DYNAMIC_VALUE'};}}
+  const ammo=assigned(source,'ammo_template'); if(ammo&&ammo!=='no_ammo'){const file=paths.ammo,node=field(catalog(file,'weapon_ammo_templates'),ammo); for(const [key,names] of [['ammo_reserve',['ammo_amount_capacity_lerp','ammunition_reserve']],['ammo_clip',['ammo_amount_clip_lerp','ammunition_clips']]]) {let v=null;for(const name of names){let x=field(node,name);v=endpoints(x);if(!v&&getTableArray(x).length===1)v=endpoints(getTableArray(x)[0]);if(v) break;} params[key]=v?{value:v}:{value:null,unknown:'DYNAMIC_VALUE'};}}
   const unique=[...new Map(files.map(x=>[`${x.path}:${x.line}`,x])).values()].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:a.line-b.line);
   items.push({id,key:t.name,name:resolved.name,official:{en:null,zh:null},values:{family,mark,weaponType:itemId('terms','weapon-type',family),archetypes:[],actions,bars,blessings:[...new Set(bespokeTraitsForTemplate(reader,t).map(x=>itemId('blessings',x.traitKey)))].sort(),params},source:{commit:envelope.sourceCommit,files:unique,scriptVersion:VERSION,text:{batch:envelope.textBatch,keys:{name:loc}}}});
  }
