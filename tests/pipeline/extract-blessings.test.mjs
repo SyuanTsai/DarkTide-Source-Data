@@ -43,10 +43,11 @@ test('UnitT05_buff template 跨模組合併與欄位來源',()=>{
     const result=r.walk(r.buffTemplate('child'),[key]);
     assert.equal(result?.node?.value,value); assert.equal(result.file,file); assert.equal(result.node.startLine,line);
   }
-  // Explicit require/merge registry and later duplicate definitions use the same ordered index.
+  // Scenario: merging into an imported destination writes an external table.
+  // Purpose: revoke the imported values under the review7 shared-table rule.
   files.set(registry,'local templates = require("buff-templates")\ntable.merge(templates, require("buff-base"))\nreturn templates');
   const reversed=resolver(memory(files));
-  assert.equal(reversed.walk(reversed.buffTemplate('child'),['duration']).node.value,2);
+  assert.equal(reversed.walk(reversed.buffTemplate('child'),['duration']).node.reason,'DYNAMIC_VALUE');
 });
 
 // Scenario: computed templates/conditionals/cycles and absent paths. Purpose: never manufacture static values.

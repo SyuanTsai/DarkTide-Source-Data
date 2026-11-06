@@ -1,4 +1,4 @@
-import {conditionalWrites,luaBlockEnd} from './lua-effects.mjs';
+import {conditionalWrites,luaBlockEnd,invalidateReachable} from './lua-effects.mjs';
 import {parseRequires} from './lua-closure.mjs';
 import {evaluateFiniteHelper,finiteHelperName} from './lua-finite-helpers.mjs';
 import {parseLuaStatic, getTableField as field, getTableArray as array, tokenizeLua} from './lua-static-reader.mjs';
@@ -50,7 +50,7 @@ function statementBoundaries(source) {
 /** Cached static catalogs; no Lua execution, including require and registry inheritance. */
 export function createWeaponStats(reader) {
  const effects=createSharedBindingGuard(reader);
- const chunks=new Map(),catalogs=new Map(),parseFailures=new Set(),catalogFailures=new Set(),effectiveCache=new Map(),stateCache=new WeakMap();
+ const chunks=new Map(),catalogs=new Map(),parseFailures=new Set(),catalogFailures=new Set(),effectiveCache=new Map(),stateCache=new WeakMap(),revoked=new WeakSet();
  const component=n=>{
   // These two table-valued constants are identity sentinels, not enum values.
   if(n?.type==='reference'&&[DEFAULT_LERP,'ALL_WEAPON_MOVEMENT_STATES'].some(name=>sentinel(n.ref,name)))return n.ref;
@@ -126,6 +126,9 @@ export function createWeaponStats(reader) {
   return definitions;
  }
  function deref(node,seen=new Set()) {
+  if(node?.type==='table'&&!revoked.has(node)&&effects.moduleTainted(node._file)) {
+   revoked.add(node);invalidateReachable(node,{resolve:deref,dynamic:{type:'unsupported',reason:'DYNAMIC_VALUE',_file:node._file,startLine:node.startLine}});
+  }
   if(node?.type!=='reference')return node;
   const file=node._file,key=file+':'+node.ref;if(!file||seen.has(key))return node;
   const nextSeen=new Set([...seen,key]),p=chunk(file);if(!p)return node;

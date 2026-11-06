@@ -30,8 +30,11 @@ function statements(source) {
 /** Ordered, lazy, static Lua tables with per-value provenance and cycle guards. */
 export function staticBuffModules(reader) {
   const effects=createSharedBindingGuard(reader);
-  const cache=new Map(), environments=new Map(), active=new Set();
+  const cache=new Map(), environments=new Map(), active=new Set(), revoked=new WeakSet();
   function force(node) {
+    if(node?.type==='table'&&!revoked.has(node)&&effects.moduleTainted(node._file)) {
+      revoked.add(node);invalidateReachable(node,{resolve:force,dynamic:unknown('DYNAMIC_VALUE','共享目的表已改寫',node._file)});
+    }
     if(node?.type!=='lazy') return node;
     if(node.resolved) return node.resolved;
     if(active.has(node)) return unknown('RUNTIME_REFERENCE','循環參照',node._file,node.startLine);

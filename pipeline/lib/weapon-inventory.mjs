@@ -63,7 +63,10 @@ function traitDefinitions(reader, file) {
 }
 function registryBespokePaths(reader) {
   const t = tokenizeLua(reader.read(TRAITS)), files = [];
-  for (let i=0;i<t.length-3;i++) if (t[i].value === '_create_entry' && t[i+1].value === '(' && t[i+2].type === 'string' && t[i+2].value.startsWith(BESPOKE)) files.push(t[i+2].value + '.lua');
+  for (let i=0;i<t.length-1;i++) if (t[i].type === 'identifier' && t[i].value === '_create_entry') {
+    const arg=t[i+1]?.value==='('?t[i+2]:t[i+1];
+    if(arg?.type==='string' && arg.value.startsWith(BESPOKE)) files.push(arg.value + '.lua');
+  }
   requireStructure(files.length && new Set(files).size === files.length, 'bespoke registry 沒有唯一靜態模組清單');
   return files;
 }

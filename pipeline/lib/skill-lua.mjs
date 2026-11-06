@@ -105,7 +105,7 @@ export function callName(n) {
 }
 
 export function createSkillResolver(reader) {
-  const chunks=new Map(), active=new Set(), compositions=new Map();
+  const chunks=new Map(), active=new Set(), compositions=new Map(), revoked=new WeakSet();
   const effects=createSharedBindingGuard(reader);
   let stimmDefinitions=new Map();
   const unknown=(n,reason) => ({...n,type:'unknown',reason});
@@ -246,6 +246,9 @@ export function createSkillResolver(reader) {
   function returned(file) {const c=load(file);return resolve(c.returned);}
   function resolve(n,trace) {
     if(!n) return undefined;
+    if(n.type==='table'&&!revoked.has(n)&&effects.moduleTainted(n.file)) {
+      revoked.add(n);invalidateReachable(n,{resolve,dynamic:unknown(n,'DYNAMIC_VALUE')});
+    }
     if(active.has(n)) return unknown(n,'循環參照');
     active.add(n);
     try {
