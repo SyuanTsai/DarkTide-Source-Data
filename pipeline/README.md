@@ -69,3 +69,7 @@ node --test tests/pipeline/real-smoke.test.mjs
 ```
 
 固定 commit `ba6c148f3c2768ca3ce20d846a12e56e2f433f3e` 的 inventory 應為 137 個玩家模板、135 個 registered、693 個 bespoke 定義。Private 固定 `origin/master` 的 batch `25606770`；測試驗證 extract-text 與 extract-terms 各執行兩次的 byte 一致。該 Source-Code 是 1.13.2、文字批次是 1.13.1，因此 check-version 應 exit 2。extract 測試明確傳入 commit/batch，輸出只存在測試自有暫存目錄，略過時不需要真實 repo。
+
+### 祝福取數
+
+`extract-blessings.mjs` 從固定 Source-Code commit 擷取玩家武器的 bespoke 祝福；無玩家武器的定義列入 excluded，無法靜態解析的參數標示為 unknown。先執行 extract-text，再使用共用取數參數執行。

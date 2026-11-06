@@ -6,6 +6,7 @@ import './inputs.test.mjs';
 import './official-text.test.mjs';
 import './weapon-inventory.test.mjs';
 import './lua-closure.test.mjs';
+import './extract-blessings.real.test.mjs'; import './extract-blessings.test.mjs';
 import './real-smoke.test.mjs';
 import './check-version.test.mjs';
 import './extract-output.test.mjs';
