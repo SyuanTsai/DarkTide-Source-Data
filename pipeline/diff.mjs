@@ -1,5 +1,5 @@
 import { readFile, mkdir, writeFile, rename } from 'node:fs/promises';
-import { join, resolve, dirname } from 'node:path';
+import { join, resolve, dirname, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { stringifyCanonical } from './lib/canonical-json.mjs';
@@ -15,6 +15,15 @@ const schemas = loadSchemas(join(repo, 'pipeline/schema'));
 const emptyExplanation = { effect: '-', conditions: '', calculation: '', notes: '', extra: '' };
 const fields = ['gameVersion', 'sourceCommit', 'textBatch'];
 const args = process.argv.slice(2), options = {};
+let logicalRoots = [];
+function logical(file) {
+  if (!file) return '檔案';
+  for (const [root, label] of logicalRoots) {
+    const part = relative(root, resolve(file));
+    if (!part || (!part.startsWith('..') && !isAbsolute(part))) return [label, part.replaceAll('\\', '/')].filter(Boolean).join('/');
+  }
+  return '檔案';
+}
 function parseArgs() {
   const names = new Set(['--state', '--work-dir', '--data-dir', '--cloud-dir', '--glossary', '--mark-described']);
   while (args.length) {
@@ -45,10 +54,13 @@ async function writeChanged(file, value) {
 async function main() {
   parseArgs();
   const stateFile = resolve(options['--state'] || join(repo, 'pipeline/state.json'));
+  logicalRoots.push([stateFile, 'state.json']);
   let state = await readState(stateFile);
   if (!state.run || state.run.status !== 'running') throw new Error('尚無執行中的工作，請先跑 node pipeline/check-version.mjs');
   const run = state.run;
   const layout = cloudLayout(resolveCloudRoot({ override: options['--cloud-dir'] }), run.gameVersion);
+  logicalRoots.push([layout.aiInput, 'ai/input'], [layout.aiOutput, 'ai/output'], [layout.extract, 'extract'], [layout.diff, 'diff']);
+  if (options['--glossary'] || process.env.DARKTIDE_GLOSSARY_FILE) logicalRoots.push([resolve(options['--glossary'] || process.env.DARKTIDE_GLOSSARY_FILE), 'glossary']);
   const paths = (id) => ({ input: join(layout.aiInput, itemFileName(id)), output: join(layout.aiOutput, itemFileName(id)) });
   if (options['--pending']) {
     const pending = pendingItems(state, 'described').filter((id) => run.items[id].change !== 'removed').map((id) => ({ id, ...paths(id) }));
@@ -61,37 +73,39 @@ async function main() {
     if (STAGES.indexOf(entry.stage) >= STAGES.indexOf('described')) { console.log(`已標記：${id}`); return; }
     const { input: inputPath, output: outputPath } = paths(id);
     const inputText = await optional(inputPath), outputText = await optional(outputPath);
-    if (inputText === null || outputText === null) throw new Error(`缺少 AI 輸入或輸出檔：${id}`);
-    const input = parse(inputText, inputPath), output = parse(outputText, outputPath);
-    checked(schemas.validate('ai-input.schema.json', input), inputPath);
-    checked(schemas.validate('ai-output.schema.json', output), outputPath);
-    if (input.id !== id || output.id !== id || input.inputHash !== entry.inputHash || output.inputHash !== entry.inputHash || inputHashFor(entry.category, entry.change, input.item) !== entry.inputHash) throw new Error('項目 id 或輸入雜湊不符；說明可能已過期，請依新輸入重寫');
-    checked(checkDataFile(entry.category, stringifyCanonical(dataFile(entry.category, run, [{ ...input.item, explanation: output.explanation, errata: output.errata }]))), outputPath);
+    if (inputText === null || outputText === null) throw new Error(`${logical(inputText === null ? inputPath : outputPath)}：找不到檔案`);
+    const input = parse(inputText, logical(inputPath)), output = parse(outputText, logical(outputPath));
+    checked(schemas.validate('ai-input.schema.json', input), logical(inputPath));
+    checked(schemas.validate('ai-output.schema.json', output), logical(outputPath));
+    if (input.id !== id || input.item.id !== id || output.id !== id || input.category !== entry.category || input.change !== entry.change) throw new Error('項目 id、category 或 change 不符');
+    if (input.inputHash !== entry.inputHash || output.inputHash !== entry.inputHash || inputHashFor(entry.category, entry.change, input.item) !== entry.inputHash) throw new Error('inputHash 不符；說明可能已過期，請依新輸入重寫');
+    checked(checkDataFile(entry.category, stringifyCanonical(dataFile(entry.category, run, [{ ...input.item, explanation: output.explanation, errata: output.errata }]))), logical(outputPath));
     state = advanceItem(state, id, 'described'); await writeState(stateFile, state);
     console.log(`已標記：${id}`); return;
   }
   const work = resolve(options['--work-dir'] || join(repo, '.pipeline-work', run.gameVersion));
   const dataDir = resolve(options['--data-dir'] || join(repo, 'data'));
+  logicalRoots.push([join(work, 'extract'), 'extract'], [dataDir, 'data']);
   const glossary = resolveGlossary({ override: options['--glossary'] });
   if (!glossary) console.log('找不到 Translation.md，AI 輸入不含譯名對照');
   const currentPath = join(dataDir, 'current.json'), currentText = await optional(currentPath);
   let previousVersion = null;
-  if (currentText !== null) { checked(checkCurrent(currentText), currentPath); previousVersion = parse(currentText, currentPath).gameVersion; }
+  if (currentText !== null) { checked(checkCurrent(currentText), logical(currentPath)); previousVersion = parse(currentText, logical(currentPath)).gameVersion; }
   const report = { schemaVersion: '1.0.0', ...Object.fromEntries(fields.map((k) => [k, run[k]])), previousGameVersion: previousVersion, categories: {} };
   const registrations = [], inputs = [];
   for (const category of CATEGORIES) {
     const file = join(work, 'extract', `${category}.json`), text = await optional(file);
     const blank = { added: [], changed: [], removed: [], unchanged: [] };
     if (text === null) { report.categories[category] = { status: 'missing', reason: null, ...blank }; console.log(`缺少 extract：${category}（該類別保留上一版）`); continue; }
-    const extract = parse(text, file);
-    if (!extract || typeof extract !== 'object' || extract.category !== category || extract.schemaVersion !== '1.0.0' || !['ok', 'structure-mismatch'].includes(extract.status) || !Array.isArray(extract.items) || !Array.isArray(extract.problems) || !Array.isArray(extract.excluded) || !(extract.reason === null || typeof extract.reason === 'string') || typeof extract.scriptVersion !== 'string') throw new Error(`extract 格式錯誤：${file}`);
-    for (const key of fields) if (extract[key] !== run[key]) throw new Error(`${file} 的 ${key} 與 state 不符`);
+    const extract = parse(text, logical(file));
+    if (!extract || typeof extract !== 'object' || extract.category !== category || extract.schemaVersion !== '1.0.0' || !['ok', 'structure-mismatch'].includes(extract.status) || !Array.isArray(extract.items) || !Array.isArray(extract.problems) || !Array.isArray(extract.excluded) || !(extract.reason === null || typeof extract.reason === 'string') || typeof extract.scriptVersion !== 'string') throw new Error(`extract 格式錯誤：${logical(file)}`);
+    for (const key of fields) if (extract[key] !== run[key]) throw new Error(`${logical(file)} 的 ${key} 與 state 不符`);
     if (extract.status === 'structure-mismatch') { report.categories[category] = { status: extract.status, reason: extract.reason, ...blank }; continue; }
-    checked(checkDataFile(category, stringifyCanonical(dataFile(category, run, extract.items.map((item) => ({ ...item, explanation: emptyExplanation, errata: [] }))))), file);
+    checked(checkDataFile(category, stringifyCanonical(dataFile(category, run, extract.items.map((item) => ({ ...item, explanation: emptyExplanation, errata: [] }))))), logical(file));
     let previous = [];
     if (previousVersion !== null) {
       const prevFile = join(dataDir, previousVersion, `${category}.json`), prevText = await optional(prevFile);
-      if (prevText !== null) { checked(checkDataFile(category, prevText), prevFile); const prev = parse(prevText, prevFile); if (prev.gameVersion !== previousVersion) throw new Error(`${prevFile} 的 gameVersion 不符`); previous = prev.items; }
+      if (prevText !== null) { checked(checkDataFile(category, prevText), logical(prevFile)); const prev = parse(prevText, logical(prevFile)); if (prev.gameVersion !== previousVersion) throw new Error(`${logical(prevFile)} 的 gameVersion 不符`); previous = prev.items; }
     }
     const diff = diffCategory(category, previous, extract.items);
     report.categories[category] = { status: 'ok', reason: null, ...diff };
@@ -120,4 +134,4 @@ async function main() {
   for (const category of CATEGORIES) { const c = report.categories[category]; console.log(c.status === 'ok' ? `${category}：新增 ${c.added.length}、變動 ${c.changed.length}、移除 ${c.removed.length}、沿用 ${c.unchanged.length}` : `${category}：${c.status}${c.reason ? `（${c.reason}）` : ''}`); }
   console.log(`待寫說明：${pendingItems(state, 'described').filter((id) => state.run.items[id].change !== 'removed').length} 項`);
 }
-main().catch((e) => { console.error(`錯誤：${e.message}`); process.exitCode = 1; });
+main().catch((e) => { console.error(`錯誤：${e.code ? `${logical(e.path)}：${e.code === 'ENOENT' ? '找不到檔案' : `讀取失敗（${e.code}）`}` : e.message}`); process.exitCode = 1; });
