@@ -13,7 +13,19 @@ export function luaBlockEnd(tokens,start) {
  return i-1;
 }
 
-export function conditionalWrites(tokens) {
+export function conditionalWrites(tokens, finiteKeys=new Map()) {
+ // Substitute only index tokens, never names in declarations or expressions.
+ // Unknown domains retain the conservative parent-table invalidation below.
+ if(finiteKeys.size) {
+  const [name,keys]=finiteKeys.entries().next().value,rest=new Map(finiteKeys);rest.delete(name);
+  // Reassignment/shadowing destroys the iterator's bounded domain. Never
+  // substitute a guessed key after the loop variable can acquire another value.
+  const changed=tokens.some((t,i)=>t.type==='identifier'&&t.value===name&&
+   (tokens[i-1]?.value==='local'||(tokens[i-1]?.value==='for'&&i!==1)||tokens[i+1]?.value==='='));
+  if(changed)return conditionalWrites(tokens,rest);
+  return [...keys].flatMap(value=>conditionalWrites(tokens.map((t,i)=>
+   t.type==='identifier'&&t.value===name&&tokens[i-1]?.value==='['&&tokens[i+1]?.value===']'?{...t,type:typeof value==='number'?'number':'string',value}:t),rest));
+ }
  const writes=[],aliases=new Map();
  const expand=p=>aliases.has(p[0])?(aliases.get(p[0]).length?[...aliases.get(p[0]),...p.slice(1)]:[]):p;
  function pathAt(i) {

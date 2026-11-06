@@ -73,7 +73,7 @@ export function staticBuffModules(reader) {
         }
         return target;
       }
-      if(n.ref==='table.clone') return clone(evaluate(n.args[0],env,file));
+      if(n.ref==='table.clone' || n.ref==='table.clone_instance') return clone(evaluate(n.args[0],env,file));
       if(['table.merge','table.add_missing'].includes(n.ref)) {
         const target=evaluate(n.args[0],env,file), source=evaluate(n.args[1],env,file);
         if(target?.type!=='table') return target;

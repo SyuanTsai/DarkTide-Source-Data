@@ -58,7 +58,7 @@ export class SkillLua {
     while((precedence[this.peek().value] ?? -1)>=min) {const op=this.take().value; n=this.node('binary',{op,left:n,right:this.expression(precedence[op]+1)},start);}
     return n;
   }
-  chunk(set, staticLoop) {
+  chunk(set, staticLoop, finiteKeys) {
     let returned;
     while(this.peek().type!=='eof') {
       const before=this.i;
@@ -66,7 +66,7 @@ export class SkillLua {
       if(['function','if','for','while','repeat','do'].includes(this.peek().value)) {
         const start=this.i,kind=this.peek().value;this.block();
         if(kind==='for' && staticLoop?.(this.source.slice(this.tokens[start].start,this.tokens[this.i-1].end)))continue;
-        if(kind!=='function') for(const path of conditionalWrites(this.tokens.slice(start,this.i))) {
+        if(kind!=='function') for(const path of conditionalWrites(this.tokens.slice(start,this.i),finiteKeys?.(this.tokens.slice(start,this.i))??new Map())) {
           let target={type:'reference',name:path[0],binding:this.env.get(path[0]),file:this.file,line:this.tokens[start].line};
           if(!target.binding)continue;
           for(const key of path.slice(1))target={type:'index',base:target,key:{type:'literal',value:key},file:this.file,line:target.line};
@@ -135,6 +135,13 @@ export function createSkillResolver(reader) {
       if(target?.type!=='table')return false;
       for(const [key,value] of stimmDefinitions)target.entries.push({key:literal(key,value),value});
       return true;
+    },tokens=>{
+      // The domain comes from the already validated stimm DSL, and applies only
+      // to this exact pairs iterator and its verified settings binding.
+      if(!stimmDefinitions.size||tokens.slice(0,10).map(t=>t.value).join(' ')!=='for talent_name , data in pairs ( stimm_talent_settings ) do')return new Map();
+      const source=parser.env.get('stimm_talent_settings'),binding=source?.base?.binding;
+      if(callName(source)!=='TalentSettings.broker_stimm'||binding?.type!=='call'||callName(binding.callee)!=='require'||scalar(binding.args[0])!=='scripts/settings/talent/talent_settings')return new Map();
+      return new Map([['talent_name',[...stimmDefinitions.keys()]]]);
     }));
     // Recognized data-only registry includes. No function bodies are evaluated.
     for(const c of pending.calls) {
@@ -222,11 +229,13 @@ export function createSkillResolver(reader) {
             {...n,type:'table',entries:values.map((v,i)=>({key:name==='table.enum'?v:literal(i+1,n),value:v}))};
           compositions.set(n,result);return result;
         }
-        if(name==='table.clone') {
+        if(name==='table.clone' || name==='table.clone_instance') {
           if(compositions.has(n)) return compositions.get(n);
           const value=resolve(n.args[0],trace);
           if(value?.type!=='table') return unknown(n,'clone 非靜態 table');
-          const clone={...value,entries:[...value.entries]};compositions.set(n,clone);return clone;
+          const copies=new Map();
+          const copy=table=>{if(copies.has(table))return copies.get(table);const out={...table,entries:[]};copies.set(table,out);out.entries=table.entries.map(e=>({...e,value:resolve(e.value)?.type==='table'?copy(resolve(e.value)):e.value}));return out;};
+          const clone=name==='table.clone_instance'?copy(value):{...value,entries:[...value.entries]};compositions.set(n,clone);return clone;
         }
         if(['table.merge','table.add_missing','table.append'].includes(name)) return mergeCall(n);
         if(/^math\.(abs|floor|ceil|round)$/.test(name)) {

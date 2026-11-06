@@ -224,6 +224,7 @@ class Parser {
     this.source = source;
     this.filename = options.filename ?? '<lua>';
     this.allowUnsupported = options.allowUnsupported ?? false;
+    this.staticArithmetic = options.staticArithmetic ?? false;
     this.tokens = tokenizeLua(source, options);
     this.index = 0;
     this.environment = new Map();
@@ -297,6 +298,13 @@ class Parser {
   parseLocal() {
     this.expect('local');
     if (this.peek().value === 'function') {
+      if(this.staticArithmetic) {
+        const begin=this.index, end=luaBlockEnd(this.tokens,begin), name=this.tokens[begin+1];
+        if(name?.type==='identifier') {
+          this.environment.set(name.value,{type:'function',raw:'function'+this.source.slice(this.tokens[begin+2].start,this.tokens[end].end),startLine:this.tokens[begin].line});
+          this.index=end+1;return;
+        }
+      }
       this.skipBlockStatement('local function declaration');
       return;
     }
@@ -346,7 +354,31 @@ class Parser {
     return this.take();
   }
 
-  parseExpression() {
+  parseExpression(min=0) {
+    if(!this.staticArithmetic)return this.parseLegacyExpression();
+    const start=this.peek();let node;
+    if(start.type==='symbol'&&this.match('-')) {
+      const arg=this.parseExpression(8),v=this.resolveReference(arg);
+      node=v?.type==='number'?{...v,value:-v.value,_sources:[...(v._sources??[]),{path:this.filename,line:v.startLine??start.line}],startLine:start.line}:{type:'unsupported',raw:this.source.slice(start.start,this.peek().start)};
+    } else if(start.type==='symbol'&&this.match('(')) {node=this.parseExpression();this.expect(')');}
+    else if(start.value==='{')node=this.parseTable();
+    else if(start.value==='function')node=this.parseFunction();
+    else if(['number','string'].includes(start.type))node=this.literalNode(start.type,this.take().value,start);
+    else if(['true','false','nil'].includes(start.value)){this.take();node=this.literalNode(start.value==='nil'?'nil':'boolean',start.value==='nil'?null:start.value==='true',start);}
+    else if(start.type==='identifier')node=this.evaluateCall(this.parseReferenceOrCall());
+    else this.fail('Unsupported expression',start);
+    const precedence={or:1,and:2,'==':3,'~=':3,'<':3,'>':3,'<=':3,'>=':3,'..':4,'+':5,'-':5,'*':6,'/':6,'%':6,'^':7};
+    while((precedence[this.peek().value]??-1)>=min) {
+      const op=this.take().value,right=this.parseExpression(precedence[op]+1),a=this.resolveReference(node),b=this.resolveReference(right);
+      let value;
+      if(a?.type==='number'&&b?.type==='number')value=op==='+'?a.value+b.value:op==='-'?a.value-b.value:op==='*'?a.value*b.value:op==='/'?a.value/b.value:undefined;
+      node=Number.isFinite(value)?{type:'number',value,_sources:[a,b].flatMap(n=>[...(n._sources??[]),{path:this.filename,line:n.startLine??start.line}])}:{type:'unsupported'};
+      Object.assign(node,{start:start.start,startLine:start.line,end:this.peek(-1).end,endLine:this.peek(-1).endLine,raw:this.source.slice(start.start,this.peek(-1).end)});
+    }
+    return node;
+  }
+
+  parseLegacyExpression() {
     const start = this.peek();
     let node;
     if (start.type === 'symbol' && this.match('-')) {
@@ -516,10 +548,36 @@ class Parser {
 
   evaluateCall(node, { statement = false } = {}) {
     if (node?.type !== 'call') return node;
-    if (node.ref === 'table.clone') {
+    if (node.ref === 'table.clone' || node.ref === 'table.clone_instance') {
       const source = this.resolveReference(node.args[0]);
       if (source?.type !== 'table') this.fail('table.clone requires a statically known table', node);
       return cloneNode(source);
+    }
+    // Deliberately finite whitelist. Inspect the source body on every definition;
+    // only numeric parameters and a single arithmetic table return are accepted.
+    if(this.staticArithmetic && node.ref==='lerpable_timescale') {
+      const fn=this.environment.get(node.ref),args=node.args.map(n=>this.resolveReference(n));
+      const match=/^function\s*\(([^)]*)\)\s*return\s*({[\s\S]*})\s*end$/.exec(fn?.raw??'');
+      const params=match?.[1].split(',').map(s=>s.trim());
+      if(match&&params.length===args.length&&params.every(p=>/^[A-Za-z_]\w*$/.test(p))&&args.every(a=>a?.type==='number')) {
+        try {
+          const parser=new Parser('return '+match[2],{filename:this.filename,staticArithmetic:true,allowUnsupported:true});
+          params.forEach((p,i)=>parser.environment.set(p,args[i]));
+          const result=parser.parse().returned;
+          const numeric=n=>n?.type==='number'||(n?.type==='table'&&n.entries.every(e=>e.key?.type==='string'&&numeric(e.value)));
+          if(numeric(result)) {
+            const offset=fn.startLine+fn.raw.slice(0,fn.raw.indexOf(match[2])).split('\n').length-2;
+            const locate=n=>{
+              n.startLine=(n.startLine??1)+offset;n.endLine=n.startLine;
+              // Parameter dependencies belong to the caller; helper arithmetic
+              // belongs to the validated function definition in this same file.
+              n._sources=[{path:this.filename,line:n.startLine},...args.flatMap(a=>[...(a._sources??[]),{path:this.filename,line:a.startLine??node.startLine}])];
+              if(n.type==='table')n.entries.forEach(e=>locate(e.value));
+            };locate(result);
+            return result;
+          }
+        }catch { /* Leave dynamic/unrecognized helpers as calls. */ }
+      }
     }
     if (node.ref === 'table.add_missing' || node.ref === 'table.append' || node.ref === 'table.merge') {
       const targetRef = node.args[0]?.ref;
