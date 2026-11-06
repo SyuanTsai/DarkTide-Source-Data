@@ -5,7 +5,9 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {cli} from './helpers.mjs';
 
-test('review2 pinned text → skills → weapons → blessings → terms twice and concrete findings',{skip:process.env.PIPELINE_REAL_SMOKE!=='1'},t=>{
+// Scenario: pinned source and text are extracted through all five stages twice.
+// Purpose: preserve review2 endpoints and the review5 recovery of one skill value.
+test('InterT90_review2 pinned text → skills → weapons → blessings → terms twice and concrete findings',{skip:process.env.PIPELINE_REAL_SMOKE!=='1'},t=>{
  const dir=mkdtempSync(path.join(tmpdir(),'syp385-review2-')),state=path.join(dir,'state.json');
  const common=['--text-batch','25606770','--work-dir',dir,'--state',state];
  const text=['--private-repo',process.env.DARKTIDE_PRIVATE_REPO,'--private-ref','origin/master',...common];
@@ -33,7 +35,7 @@ test('review2 pinned text → skills → weapons → blessings → terms twice a
  endpoint('ogryn_powermaul_p1_m1','ogryn_powermaul_activated_impact.radius',[4,8]);
  endpoint('forcestaff_p1_m1','force_staff_ball.power_distribution.attack',[90,150]);
  endpoint('autogun_p1_m1','spread.base.still.immediate_spread.shooting.1.pitch',[0.55,0.325]);
- assert.equal(unknown(data.skills.items),53);
+ assert.equal(unknown(data.skills.items),52);
  const focus=data.skills.items.find(i=>i.key==='broker_ability_focus_sub_2');
  assert.equal(focus.values.params.damage.value,3);
  const summary={};

@@ -1,8 +1,9 @@
 import {conditionalWrites,luaBlockEnd} from './lua-mutations.mjs';
 import {parseRequires} from './lua-closure.mjs';
-import {evaluateFiniteHelper} from './lua-finite-helpers.mjs';
+import {evaluateFiniteHelper,finiteHelperName} from './lua-finite-helpers.mjs';
 import {parseLuaStatic, getTableField as field, getTableArray as array, tokenizeLua} from './lua-static-reader.mjs';
 import {createTemplateInitializer} from './weapon-template-init.mjs';
+import {createSharedBindingGuard} from './lua-effects.mjs';
 
 const ROOT='scripts/settings/equipment/weapon_templates/';
 const PATHS={shotshell:'scripts/settings/projectile/shotshell_templates.lua',explosion:'scripts/settings/damage/explosion_templates.lua',projectile:'scripts/settings/projectile/projectile_templates.lua',burninating:'scripts/settings/equipment/weapon_handling_templates/weapon_burninating_templates.lua',size_of_flame:'scripts/settings/equipment/weapon_handling_templates/weapon_size_of_flame_templates.lua',recoil:'scripts/settings/equipment/recoil_templates.lua',spread:'scripts/settings/equipment/spread_templates.lua',sway:'scripts/settings/equipment/sway_templates.lua',damage:'scripts/settings/damage/damage_profile_templates.lua',hit_scan:'scripts/settings/projectile/hit_scan_templates.lua',ammo:'scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua',dodge:'scripts/settings/dodge/weapon_dodge_templates.lua',sprint:'scripts/settings/sprint/weapon_sprint_templates.lua',stamina:'scripts/settings/stamina/weapon_stamina_templates.lua',movement_curve_modifier:'scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua',charge:'scripts/settings/equipment/weapon_handling_templates/weapon_charge_templates.lua',warp_charge:'scripts/settings/warp_charge/weapon_warp_charge_templates.lua',weapon_handling:'scripts/settings/equipment/weapon_handling_templates/weapon_handling_templates.lua',weapon_chain_lightning:'scripts/settings/equipment/weapon_handling_templates/weapon_chain_lightning_templates.lua',weapon_shout:'scripts/settings/equipment/weapon_handling_templates/weapon_shout_templates.lua'};
@@ -48,6 +49,7 @@ function statementBoundaries(source) {
 
 /** Cached static catalogs; no Lua execution, including require and registry inheritance. */
 export function createWeaponStats(reader) {
+ const effects=createSharedBindingGuard(reader);
  const chunks=new Map(),catalogs=new Map(),parseFailures=new Set(),catalogFailures=new Set(),effectiveCache=new Map(),stateCache=new WeakMap();
  const component=n=>{
   // These two table-valued constants are identity sentinels, not enum values.
@@ -80,11 +82,13 @@ export function createWeaponStats(reader) {
  }
  function finite(call,fn,resolve) {
   const p=fn?._file&&chunk(fn._file);if(!p||p.partial)return null;
+  if(!effects.intact(['math','table','MathUtils','rawget','select','type'],{moduleFile:fn._file}))return {...call,type:'unsupported',reason:'DYNAMIC_VALUE'};
   const dependencies=fn._file==='scripts/utilities/recoil_template.lua'?['_math','math','MathUtils','rawget']:['table','select','type','NIL_VALUE_OVERRIDE'];
   if((p.bindingChanges??[]).some(path=>dependencies.some(d=>path===d||path.startsWith(d+'.'))))return null;
   if(fn._file==='scripts/utilities/recoil_template.lua') {
    if(p.locals.math||p.locals.MathUtils||p.locals.rawget||p.locals._math?.raw!=='rawget(_G, "EditorApi") and MathUtils or math'||!mathVerified('lerp'))return null;
-  } else if(p.locals.table||p.locals.select||p.locals.type||p.locals.NIL_VALUE_OVERRIDE?.value!=='__NIL_VALUE__')return null;
+   } else if(p.locals.table||p.locals.select||p.locals.type||p.locals.NIL_VALUE_OVERRIDE?.value!=='__NIL_VALUE__')return null;
+  call.provenPure=Boolean(finiteHelperName(fn));
   return evaluateFiniteHelper(call,fn,resolve);
  }
  function imported(path) {
@@ -92,10 +96,11 @@ export function createWeaponStats(reader) {
   return node?.type==='call'&&node.ref==='settings'?deref(node.args[1]):node;
  }
  function chunk(file) {
+  effects.load(file);
   if(!chunks.has(file)) {
    let p=null;
    chunks.set(file,null); // Require cycles cannot acquire speculative bindings.
-   if(reader.exists(file))try{p=parseLuaStatic(statementBoundaries(reader.read(file)),{filename:file,allowUnsupported:true,staticArithmetic:true,resolveImport:imported,resolveNode:deref,evaluateFinite:finite,mathRadiansVerified:mathVerified('degrees_to_radians')});for(const n of Object.values(p.locals))annotate(n,file);annotate(p.returned,file);}catch{
+   if(reader.exists(file))try{p=parseLuaStatic(statementBoundaries(reader.read(file)),{filename:file,allowUnsupported:true,staticArithmetic:true,resolveImport:imported,resolveNode:deref,evaluateFinite:finite,builtinIntact:ref=>effects.intact([ref.split('.')[0]]),mathRadiansVerified:mathVerified('degrees_to_radians')});for(const n of Object.values(p.locals))annotate(n,file);annotate(p.returned,file);}catch{
     parseFailures.add(file);
     // Require declarations remain statically readable even if an unrelated
     // statement (for example appending runtime trait keys) cannot be parsed.
@@ -170,7 +175,7 @@ export function createWeaponStats(reader) {
   const node=field(field(actions,target),`${kind}_template`)??field(name==='alternate_fire'?alternate:field(actions,name),suffix);
   if(node)return node?.value??(node?.type==='reference'?node.ref.split('.').at(-1):null);
   if(kind==='explosion') {
-   const action=field(actions,target),projectile=field(action,'projectile_template');
+   const action=field(actions,target),projectile=field(action,'projectile_template')??field(field(action,'fire_configuration'),'projectile');
    const templateName=(n,type)=>{
     if(n?.type==='string')return n.value;
     if(n?.type!=='reference')return null;

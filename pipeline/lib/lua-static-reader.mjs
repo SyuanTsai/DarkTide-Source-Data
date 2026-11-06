@@ -336,7 +336,8 @@ class Parser {
         this.requires[name] = requirePath;
         this.environment.set(name, { ...value, type: 'require', alias: name, path: requirePath });
       } else {
-        this.environment.set(name, this.evaluateCall(value));
+        const evaluated=this.evaluateCall(value);
+        this.environment.set(name, this.staticArithmetic?this.resolveReference(evaluated):evaluated);
       }
     });
   }
@@ -596,7 +597,7 @@ class Parser {
   invalidateTable(table,value) {
     const dynamic={type:'unsupported',reason:'DYNAMIC_VALUE',startLine:value.startLine};
     const seen=new Set();
-    const poison=n=>{if(n?.type!=='table'||seen.has(n))return;seen.add(n);n.dynamic=dynamic;for(const e of n.entries){if(e.value.type==='table')poison(e.value);else e.value=dynamic;}};
+    const poison=n=>{n=this.resolveBinding(n);if(n?.type!=='table'||seen.has(n))return;seen.add(n);n.dynamic=dynamic;for(const e of n.entries){const v=this.resolveBinding(e.value);if(v?.type==='table'){poison(v);e.value=v;}else e.value=dynamic;}};
     poison(table);
   }
 
@@ -619,12 +620,32 @@ class Parser {
   }
 
   evaluateCall(node, { statement = false } = {}) {
+    const result=this.foldCall(node,{statement});
+    if(node?.type==='call'&&(result===node||result?.type==='unsupported')) {
+      const seen=new Set();
+      const dynamic=n=>{n=this.resolveBinding(n);if(!n||seen.has(n))return false;seen.add(n);return n.reason==='DYNAMIC_VALUE'||Boolean(n.dynamic)||n.type==='table'&&n.entries.some(e=>dynamic(e.value));};
+      if(node.args.some(dynamic))node.reason='DYNAMIC_VALUE';
+      // Read-only constructors: require, settings (identity wrapper), Vector2/3/4,
+      // Quaternion, Color. Read-only queries: pairs, ipairs, type, select, rawget,
+      // unpack, table.keys/ukeys/unpack. All require intact unshadowed bindings.
+      // Proven whitelist calls return from foldCall; modeled table mutations
+      // also return their target there. Everything else may mutate arguments.
+      const readonly=node.provenPure||/^(?:require|settings|Vector[234]|Quaternion|Color|pairs|ipairs|type|select|rawget|unpack|table\.(?:keys|ukeys|unpack))$/.test(node.ref)&&this.bindingIntact(node.ref)&&!this.environment.has(node.ref.split('.')[0])&&(this.options.builtinIntact?.(node.ref)??true);
+      if(!readonly)for(const arg of node.args)this.invalidateTable(this.resolveBinding(arg),node);
+    }
+    return result;
+  }
+
+  foldCall(node, { statement = false } = {}) {
     if (node?.type !== 'call') return node;
     if(!this.bindingIntact(node.ref))return node;
+    if(!this.options.builtinIntact?.(node.ref)&&this.options.builtinIntact&&/^(?:math|table)\./.test(node.ref))return node;
     const root=node.ref.split('.')[0];
     if(node.ref.startsWith('table.')&&this.environment.has(root))return node;
     const fn=/(?:generate_offset_range|create_scale|generate_action_overrides)$/.test(node.ref)?this.resolveBinding({type:'reference',ref:node.ref}):null;
-    const finite=fn&&this.options.evaluateFinite?.({...node,_file:this.filename},fn,n=>this.resolveBinding(n));
+    const call={...node,_file:this.filename};
+    const finite=fn&&this.options.evaluateFinite?.(call,fn,n=>this.resolveBinding(n));
+    if(call.provenPure)node.provenPure=true;
     if(finite)return finite;
     if(this.staticArithmetic&&node.ref==='table.enum') {
       const args=node.args.flatMap(n=>{const v=this.resolveReference(n);return v?.type==='table'?getTableArray(v):[v];});

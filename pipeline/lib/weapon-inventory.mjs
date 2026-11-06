@@ -13,7 +13,12 @@ function parse(source, file) {
   catch (e) { if (e.name !== 'LuaStaticError') throw e; throw new StructureError('weapons','INVALID_TABLE',`${file}: ${e.message}`); }
 }
 function registry(reader) {
-  const p = parse(reader.read(REGISTRY), REGISTRY), files = new Set();
+  // Inventory describes the literal lists consumed by the loader, before its
+  // call. Do not inspect mutable list values after an unproven loader returns.
+  const source=reader.read(REGISTRY),tokens=tokenizeLua(source);
+  const loader=tokens.findIndex((t,i)=>t.value==='_require_weapon_templates'&&tokens[i-1]?.value!=='function'&&
+    tokens.slice(i,i+8).map(t=>t.value).join(' ')==='_require_weapon_templates ( path_prefix , template_groups , template_names )');
+  const p = parse(loader<0?source:source.slice(0,tokens[loader].start),REGISTRY), files = new Set();
   requireStructure(p.locals.template_groups?.type === 'table' && p.locals.template_names?.type === 'table', '找不到武器 registry tables');
   for (const group of getTableArray(p.locals.template_groups)) {
     const nodes = getTableArray(group);

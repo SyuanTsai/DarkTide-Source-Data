@@ -15,10 +15,13 @@ const named=obj=>table(Object.entries(obj).map(([key,value])=>({key:{type:'strin
 const list=values=>table(values.map(value=>({key:null,value})));
 const bounded=n=>Number.isInteger(n)&&n>=0&&n<=10000;
 
-export function evaluateFiniteHelper(call,fn,resolve) {
+export function finiteHelperName(fn) {
  if(fn?.type!=='function')return null;
  const signature=createHash('sha256').update(JSON.stringify(tokenizeLua(fn.raw).map(t=>[t.type,t.value]))).digest('hex');
- const name=Object.keys(BODIES).find(k=>BODIES[k][0]===fn._file&&BODIES[k][1]===signature);
+ return Object.keys(BODIES).find(k=>BODIES[k][0]===fn._file&&BODIES[k][1]===signature)??null;
+}
+export function evaluateFiniteHelper(call,fn,resolve) {
+ const name=finiteHelperName(fn);
  if(!name)return null;
  const args=call.args.map(resolve);
  const scalar=n=>{n=resolve(n);return n?.type==='number'&&Number.isFinite(n.value)?n.value:null;};

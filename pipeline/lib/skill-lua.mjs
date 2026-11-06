@@ -1,5 +1,6 @@
 import { tokenizeLua } from './lua-static-reader.mjs';
 import { conditionalWrites } from './lua-mutations.mjs';
+import {createSharedBindingGuard} from './lua-effects.mjs';
 
 // A deliberately bounded Lua expression reader. It builds data, never runs Lua.
 // Unsupported operators/calls remain nodes and cannot become numeric values.
@@ -104,10 +105,12 @@ export function callName(n) {
 
 export function createSkillResolver(reader) {
   const chunks=new Map(), active=new Set(), compositions=new Map();
+  const effects=createSharedBindingGuard(reader);
   let stimmDefinitions=new Map();
   const unknown=(n,reason) => ({...n,type:'unknown',reason});
   const literal=(value,n) => ({type:'literal',value,file:n.file,line:n.line});
   function load(file) {
+    effects.load(file);
     if(chunks.has(file)) return chunks.get(file);
     if(!reader.exists(file)) return {};
     const pending={}; chunks.set(file,pending);
@@ -146,6 +149,11 @@ export function createSkillResolver(reader) {
     // Recognized data-only registry includes. No function bodies are evaluated.
     for(const c of pending.calls) {
       const name=callName(c.callee);
+      const binding=c.callee?.base?.binding;
+      if(file==='scripts/settings/damage/damage_profile_templates.lua'&&name==='WeaponTweaks.extract_weapon_tweaks'&&binding?.type==='call'&&callName(binding.callee)==='require'&&scalar(binding.args[0])==='scripts/utilities/weapon_tweaks') {
+        const path=scalar(c.args[0]);
+        if(typeof path==='string')merge(resolve(c.args[1]),damageProfiles(path+'.lua'));
+      }
       if(['table.merge','table.add_missing','table.append'].includes(name)) mergeCall(c);
       const includeTarget=name==='_create_entry'?'templates':
         file==='scripts/settings/damage/explosion_templates.lua' && name==='_add_template_entries'?'explosion_templates':
@@ -172,6 +180,34 @@ export function createSkillResolver(reader) {
       pending.returned=target;
     }
     return pending;
+  }
+  function damageProfiles(file) {
+    const c=load(file),data=resolve(c.returned),base=get(data,'base_templates'),overrides=get(data,'overrides');
+    if(base?.type!=='table')return data;
+    const result={...base,entries:[...base.entries]},cache=new Map();
+    function effective(name,seen=new Set()) {
+      if(cache.has(name))return cache.get(name);
+      if(seen.has(name)||seen.size>=64)return unknown(data,'damage profile parent 循環或過深');
+      const override=resolve(field(overrides,name));if(!override)return resolve(field(base,name));
+      const parent=effective(scalar(get(override,'parent_template_name')),new Set([...seen,name]));
+      if(parent?.type!=='table')return unknown(override,'未解析 damage profile parent');
+      // Copy only the overridden path, preserving untouched AST bindings and
+      // their source locations. Never mutate the parent's shared sub-tables.
+      let out={...parent,entries:[...parent.entries]};
+      for(const [,row] of entries(get(override,'overrides'))) {
+        const parts=entries(row).map(([,v])=>v),keys=parts.slice(0,-1).map(v=>scalar(v));
+        if(parts.length<2||keys.some(k=>!['string','number'].includes(typeof k)))return unknown(override,'非靜態 damage profile override');
+        let target=out;
+        for(const key of keys.slice(0,-1)) {
+          const child=resolve(field(target,key));if(child?.type!=='table')return unknown(override,'未解析 override 路徑');
+          const copy={...child,entries:[...child.entries]};target.entries.push({key:literal(key,row),value:copy});target=copy;
+        }
+        target.entries.push({key:literal(keys.at(-1),row),value:parts.at(-1)});
+      }
+      cache.set(name,out);return out;
+    }
+    for(const [name] of entries(overrides))result.entries.push({key:literal(name,data),value:effective(name)});
+    return result;
   }
   function merge(target,source,missing=false,append=false) {
     if(target?.type!=='table' || source?.type!=='table') return;
@@ -238,6 +274,13 @@ export function createSkillResolver(reader) {
           const clone=name==='table.clone_instance'?copy(value):{...value,entries:[...value.entries]};compositions.set(n,clone);return clone;
         }
         if(['table.merge','table.add_missing','table.append'].includes(name)) return mergeCall(n);
+        if(/^math\.(max|min)$/.test(name)) {
+          const base=n.callee.base;
+          if(base?.type!=='reference'||base.name!=='math'||base.binding||!effects.intact(['math']))return unknown(n,'math binding 未驗證');
+          const values=n.args.map(arg=>scalar(arg,trace));
+          if(values.length&&values.every(v=>typeof v==='number'&&Number.isFinite(v)))return literal(Math[name.slice(5)](...values),n);
+          return unknown(n,'math 參數非靜態常數');
+        }
         if(/^math\.(abs|floor|ceil|round)$/.test(name)) {
           const v=scalar(n.args[0],trace); if(typeof v==='number') return literal(math(name.slice(5),v),n);
         }

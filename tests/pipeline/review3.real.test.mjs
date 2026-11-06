@@ -6,8 +6,8 @@ import path from 'node:path';
 import {cli} from './helpers.mjs';
 
 // Scenario: pinned source and text batch are extracted in sequence twice.
-// Purpose: protect review3/review4 values, referential integrity and byte determinism.
-test('InterT80_review3_review4 pinned extraction twice and concrete findings',{skip:process.env.PIPELINE_REAL_SMOKE!=='1'},t=>{
+// Purpose: protect review3/review4/review5 values, referential integrity and byte determinism.
+test('InterT80_review3_review4_review5 pinned extraction twice and concrete findings',{skip:process.env.PIPELINE_REAL_SMOKE!=='1'},t=>{
  const dir=mkdtempSync(path.join(tmpdir(),'syp385-review3-')),state=path.join(dir,'state.json');
  const common=['--text-batch','25606770','--work-dir',dir,'--state',state];
  const text=['--private-repo',process.env.DARKTIDE_PRIVATE_REPO,'--private-ref','origin/master',...common];
@@ -22,6 +22,20 @@ test('InterT80_review3_review4 pinned extraction twice and concrete findings',{s
  const unknown=n=>!n||typeof n!=='object'?0:Number(n.value===null&&Boolean(n.unknown))+Object.values(n).reduce((sum,v)=>sum+unknown(v),0);
  const data=Object.fromEntries([...first].map(([k,v])=>[k,JSON.parse(v)]));
  const weapons=data.weapons.items;
+ // Scenario: the caller supplies the pinned pre-fix weapon extract.
+ // Purpose: require every previously known endpoint to survive unchanged.
+ if(process.env.PIPELINE_WEAPON_BASELINE) {
+  const baseline=JSON.parse(readFileSync(process.env.PIPELINE_WEAPON_BASELINE)),regressions=[];
+  for(const old of baseline.items) {
+   const current=weapons.find(w=>w.key===old.key);
+   old.values.bars.forEach((bar,i)=>{for(const stat of bar.stats) {
+    const actual=current?.values.bars[i]?.stats.find(s=>s.key===stat.key);
+    if(!actual||actual.min!==stat.min||actual.max!==stat.max)regressions.push({weapon:old.key,bar:i,key:stat.key,before:stat,after:actual??null});
+   }});
+  }
+  assert.deepEqual(regressions,[],'baseline weapon endpoint regressions');
+  t.diagnostic('baseline weapon endpoint regressions: 0');
+ }
  function stats(key){return weapons.find(w=>w.key===key).values.bars.flatMap(b=>b.stats);}
  function endpoint(weapon,suffix,expected) {
   const found=stats(weapon).filter(s=>s.key.endsWith(suffix));assert.ok(found.length,weapon+suffix);
@@ -55,6 +69,13 @@ test('InterT80_review3_review4 pinned extraction twice and concrete findings',{s
  endpoint('autogun_p1_m1','recoil.base.still.offset.1.pitch',[0.0139125,0.0010875]);
  endpoint('ogryn_heavystubber_p1_m2','spread.base.crouch_moving.immediate_spread.shooting.1.pitch',[0.51185,0.06815]);
  endpoint('crowbar_p1_m1','damage.action_light_1.light_crowbar_smiter.targets.1.power_distribution.attack',[112.5,157.5]);
+ // Review5: all thirteen fire_configuration projectile explosion endpoints.
+ for(const [key,actions,rows] of [
+  ['ogryn_gauntlet_p1_m1',['action_shoot_zoomed'],[['static_power_level',[500,500]],['radius',[3,6]],['close_radius',[0.5,1.75]],['explosion_area_suppression.distance',[15,15]],['explosion_area_suppression.suppression_value',[20,20]]]],
+  ['ogryn_thumper_p1_m2',['action_shoot_hip','action_shoot_zoomed'],[['radius',[5,10]],['close_radius',[2,3]],['explosion_area_suppression.distance',[10,20]],['explosion_area_suppression.suppression_value',[10,20]]]]
+ ])for(const action of actions)for(const [field,value] of rows)endpoint(key,`explosion.${action}.${field}`,value);
+ const stimm=data.skills.items.find(i=>i.key==='broker_ability_stimm_field_sub_2');
+ assert.equal(stimm?.values.params.stacks.value,7);assert.ok(!stimm.values.params.stacks.unknown);
  const ids=new Set(data.skills.items.map(i=>i.id));
  for(const skill of data.skills.items)assert.ok(skill.values.parents.every(id=>ids.has(id)),skill.id);
  for(const key of ['psyker_crits_regen_toughness_movement_speed','psyker_toughness_on_melee','psyker_toughness_on_vent','psyker_toughness_on_warp_kill']) {

@@ -13,7 +13,7 @@ export function luaBlockEnd(tokens,start) {
  return i-1;
 }
 
-export function conditionalWrites(tokens, finiteKeys=new Map()) {
+export function conditionalWrites(tokens, finiteKeys=new Map(), {assignmentsOnly=false,callsOnly=false,rootAliases=new Map()}={}) {
  // Substitute only index tokens, never names in declarations or expressions.
  // Unknown domains retain the conservative parent-table invalidation below.
  if(finiteKeys.size) {
@@ -26,7 +26,7 @@ export function conditionalWrites(tokens, finiteKeys=new Map()) {
   return [...keys].flatMap(value=>conditionalWrites(tokens.map((t,i)=>
    t.type==='identifier'&&t.value===name&&tokens[i-1]?.value==='['&&tokens[i+1]?.value===']'?{...t,type:typeof value==='number'?'number':'string',value}:t),rest));
  }
- const writes=[],aliases=new Map();
+ const writes=[],aliases=new Map(rootAliases);let braces=0;
  const expand=p=>aliases.has(p[0])?(aliases.get(p[0]).length?[...aliases.get(p[0]),...p.slice(1)]:[]):p;
  function pathAt(i) {
   if(tokens[i]?.type!=='identifier')return null;
@@ -45,9 +45,12 @@ export function conditionalWrites(tokens, finiteKeys=new Map()) {
   return {path:expand(path),end:i,dynamic};
  }
  for(let i=0;i<tokens.length;i++) {
+  if(callsOnly&&tokens[i].value==='{')braces++;
+  if(callsOnly&&tokens[i].value==='}')braces--;
+  if(assignmentsOnly&&tokens[i].value==='{') {let depth=1;while(++i<tokens.length&&depth){if(tokens[i].value==='{')depth++;if(tokens[i].value==='}')depth--;}i--;continue;}
   // Declaring a function does not execute its body.
   if(tokens[i].type==='keyword'&&tokens[i].value==='function') {
-   if(tokens[i-1]?.value!=='local'&&tokens[i+1]?.type==='identifier') {const binding=pathAt(i+1);if(binding?.path.length)writes.push(binding.path);}
+   if(!callsOnly&&tokens[i-1]?.value!=='local'&&tokens[i+1]?.type==='identifier') {const binding=pathAt(i+1);if(binding?.path.length)writes.push(binding.path);}
    i=luaBlockEnd(tokens,i);
    continue;
   }
@@ -56,16 +59,21 @@ export function conditionalWrites(tokens, finiteKeys=new Map()) {
   if(tokens[p.end]?.value===',') {
    const targets=[p.path];let j=p.end;
    while(tokens[j]?.value===',') {const next=pathAt(j+1);if(!next)break;targets.push(next.path);j=next.end;}
-   if(tokens[j]?.value==='=')writes.push(...targets.filter(p=>p.length));
+   if(!callsOnly&&tokens[j]?.value==='=')writes.push(...targets.filter(p=>p.length));
   }
-  if(tokens[p.end]?.value==='=') {
-   const local=tokens[i-1]?.value==='local',rhs=pathAt(p.end+1);
-   if(local&&p.path.length===1) {if(rhs)aliases.set(tokens[i].value,rhs.path);else aliases.set(tokens[i].value,[]);}
+  if(tokens[p.end]?.value==='='&&(!callsOnly||braces===0)) {
+   const local=tokens[i-1]?.value==='local';let rhs=pathAt(p.end+1);
+   if(rhs&&tokens[rhs.end]?.value==='(')rhs=null;
+   // Rebinding a local alias (e.g. math_round = fallback) does not assign
+   // through its old table. Member writes below still follow that alias.
+   if((assignmentsOnly||callsOnly)&&!local&&p.end===i+1&&aliases.has(tokens[i].value)&&!rootAliases.has(tokens[i].value)) {aliases.set(tokens[i].value,rhs?.path??[]);continue;}
+   if(local&&p.path.length===1) {if(rootAliases.has(tokens[i].value))continue;if(rhs)aliases.set(tokens[i].value,rhs.path);else aliases.set(tokens[i].value,[]);}
    else if(p.path.length) {
-    writes.push(p.path);
+    if(!callsOnly)writes.push(p.path);
     if(p.end===i+1&&rhs)aliases.set(tokens[i].value,rhs.path);
    }
   }
+  if(assignmentsOnly)continue;
   if(tokens[p.end]?.value===':') {
    if(p.path.length)writes.push(p.path);
    p.end+=2;
@@ -77,7 +85,7 @@ export function conditionalWrites(tokens, finiteKeys=new Map()) {
    for(let j=p.end+1;j<tokens.length;j++) {
     if(tokens[j].value===')'&&depth===0)break;
     if(j===p.end+1||(tokens[j-1].value===','&&depth===0)) {
-     const arg=pathAt(j);if(arg?.path.length)writes.push(arg.path);
+     const arg=pathAt(j);if(arg?.path.length&&(!callsOnly||tokens[arg.end]?.value!=='('))writes.push(arg.path);
      if(/^table\.(?:merge|add_missing|append|insert|remove|clear)$/.test(name))break;
     }
     if(['(','{','['].includes(tokens[j].value))depth++;
