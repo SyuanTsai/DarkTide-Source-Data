@@ -23,8 +23,16 @@ export function matches(token, numbers) {
     (!token.signed && numbers.some((n) => near(token, Math.abs(n))));
 }
 export function derivable(values) {
-  const numbers = [];
-  walk(values, (v) => { if (typeof v === 'number' && Number.isFinite(v)) numbers.push(...derived(v)); });
+  const numbers = [], sources = [];
+  walk(values, (v, path) => {
+    if (/(?:^|\/)source$/.test(path) && v && typeof v === 'object' && !Array.isArray(v) &&
+        Object.hasOwn(v, 'path') && Object.hasOwn(v, 'line')) sources.push(`${path}/`);
+  });
+  walk(values, (v, path) => {
+    if (sources.some((source) => path.startsWith(source)) || /^\/curves\/\d+\/input(?:\/|$)/.test(path) ||
+        /^\/curves\/\d+\/knots\/\d+\/input$/.test(path) || /^\/attackCombos\/\d+\/loopsTo$/.test(path)) return;
+    if (typeof v === 'number' && Number.isFinite(v)) numbers.push(...derived(v));
+  });
   return numbers;
 }
 export function checkNumbers(values, text) {

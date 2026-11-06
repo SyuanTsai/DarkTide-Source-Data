@@ -72,6 +72,41 @@ const args = (f) => [cli, '--root', f.root, '--candidate-dir', f.dirs.candidate,
   '--previous-dir', f.dirs.previous, '--version-info', f.options.versionInfo, '--translation', f.options.translation,
   '--issues', 'dry-run', '--mods-commit', 'c'.repeat(40), '--out-dir', f.dirs.out];
 
+// Scenario: candidate or retained category has a different schema version. Purpose: halt before writing mixed output.
+test('InterT09_合併後 schema 版本不一致停止寫入', async (t) => {
+  for (const mode of ['candidate', 'retained', 'consistent']) {
+    const f = await fixture(t);
+    for (const c of CATEGORIES) f.data[c].schemaVersion = '1.1.0';
+    const weapon = JSON.parse(await readFile(new URL('../../pipeline/schema/examples/1.1.0-example/weapons.json', import.meta.url), 'utf8'));
+    for (const item of f.data.weapons.items) {
+      item.values.curves = structuredClone(weapon.items[0].values.curves);
+      item.values.attackCombos = structuredClone(weapon.items[0].values.attackCombos);
+      item.values.bars[0].stats[0].curveId = 'example.example';
+    }
+    f.extracts.weapons.items = f.data.weapons.items.map(strip);
+    if (mode === 'retained') f.extracts.skills.status = 'structure-mismatch';
+    if (mode === 'candidate') f.data.skills.schemaVersion = '1.0.0';
+    const r = await f.run();
+    if (mode === 'consistent') {
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.report.result, 'pass');
+      assert.ok(await readFile(join(f.dirs.out, 'data', meta.gameVersion, 'weapons.json')));
+      continue;
+    }
+    assert.equal(r.exitCode, 3);
+    assert.equal(r.report.gates.output.status, 'halted');
+    assert.ok(r.report.gates.output.errors.some((e) => e.code === 'SCHEMA_VERSION_MISMATCH'));
+    await assert.rejects(readFile(join(f.dirs.out, 'data', meta.gameVersion, 'weapons.json')), { code: 'ENOENT' });
+  }
+});
+
+// Scenario: weapon curves and combos contain source lines and structural indexes. Purpose: accept only game values while retaining WP4 integers.
+test('UnitT15_來源行號與結構數字不得推導說明', () => {
+  const values = { maxPoints: 7, tiers: [{ tier: 3 }], curves: [{ input: { min: 0, max: 1 }, source: { path: 'weapon.lua', line: 54 }, knots: [{ input: 0, output: [0.42, 0.65] }] }], attackCombos: [{ source: { path: 'combo.lua', line: 73 }, loopsTo: 2, steps: [] }] };
+  for (const text of ['54', '5400%', '73', '2']) assert.equal(checkNumbers(values, text).failures[0]?.code, 'T_NUMBER', text);
+  for (const text of ['42%', '65%', '7', '3']) assert.deepEqual(checkNumbers(values, text).failures, [], text);
+});
+
 // Scenario: an extracted item is missing from the candidate, with and without previous data or state. Purpose: keep reports, output and state consistent.
 test('InterT11_未說明項目依上一版保留或排除', async (t) => {
   for (const mode of ['previous', 'new', 'state']) {

@@ -1,4 +1,4 @@
-import { checkDataFile, checkCurrent, checkVersionDir } from '../data-files.mjs';
+import { checkDataFile, checkCurrent, checkVersionDir, checkFileConsistency } from '../data-files.mjs';
 import { stringifyCanonical, writeCanonicalFile } from '../canonical-json.mjs';
 import { join } from 'node:path';
 import { rm } from 'node:fs/promises';
@@ -39,8 +39,10 @@ export function verifyMerged(loaded, categories, rows, checker = checkDataFile) 
       }
     }
     if (changed) continue;
+    errors.push(...checkFileConsistency(Object.entries(merged).map(([category, value]) => ({ category, value })), ['schemaVersion'])
+      .map((e) => ({ code: 'SCHEMA_VERSION_MISMATCH', path: e.path, message: '合併後類別的 schemaVersion 不一致，包含保留上一版時須人工處理' })));
     knownExceptions.sort((a, b) => compare(a.category, b.category) || compare(a.id, b.id) || compare(a.message, b.message));
-    errors.sort((a, b) => compare(a.category, b.category) || compare(a.path, b.path) || compare(a.message, b.message));
+    errors.sort((a, b) => compare(a.category ?? '', b.category ?? '') || compare(a.path, b.path) || compare(a.message, b.message));
     return { merged, errors, knownExceptions };
   }
   throw new Error('合併資料重試超過項目數');

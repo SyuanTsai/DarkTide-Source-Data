@@ -153,6 +153,15 @@ export function checkCurrent(text) {
   return result(errors);
 }
 
+export function checkFileConsistency(values, keys = ['schemaVersion', 'gameVersion', 'sourceCommit', 'textBatch']) {
+  const errors = [];
+  for (const { category, value } of values)
+    for (const key of keys)
+      if (values[0]?.value?.[key] !== value?.[key])
+        errors.push({ path: `/${category}.json/${key}`, message: 'Files disagree' });
+  return errors;
+}
+
 export function checkVersionDir(dir) {
   const errors = [],
     values = [];
@@ -179,9 +188,7 @@ export function checkVersionDir(dir) {
         path: `/${category}.json/gameVersion`,
         message: 'Version does not match directory',
       });
-    for (const key of ['schemaVersion', 'gameVersion', 'sourceCommit', 'textBatch'])
-      if (values[0]?.value?.[key] !== value?.[key])
-        errors.push({ path: `/${category}.json/${key}`, message: 'Files disagree' });
   }
+  errors.push(...checkFileConsistency(values));
   return result(errors);
 }
