@@ -41,7 +41,7 @@ const state = join(root, 'pipeline', 'state.json');
 try {
   await readState(state);
 } catch (e) {
-  report(state, [{ path: '', message: e.message }]);
+  report(state, e.message.split(/\r?\n/).map((message) => ({ path: '', message })));
 }
 if (failed) process.exitCode = 1;
 else console.log('OK');

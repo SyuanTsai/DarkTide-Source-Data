@@ -1,10 +1,14 @@
-import { test } from 'node:test';
+import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { loadSchemas } from '../../pipeline/lib/json-schema.mjs';
 const dir = mkdtempSync(join(tmpdir(), 'schema-'));
+after(() => rmSync(dir, { recursive: true, force: true }));
+function writeOtherSchema() {
+  writeFileSync(join(dir, 'other.schema.json'), JSON.stringify({ $defs: { x: { type: 'integer' } } }));
+}
 
 function validate(schema, value) {
   writeFileSync(join(dir, 'case.schema.json'), JSON.stringify(schema));
@@ -49,11 +53,9 @@ test('supported assertions accept and reject', () => {
     assert.equal(validate(schema, no).valid, false, JSON.stringify(schema));
   }
 });
-test('references and error pointers', () => {
-  writeFileSync(
-    join(dir, 'other.schema.json'),
-    JSON.stringify({ $defs: { x: { type: 'integer' } } }),
-  );
+// Scenario: resolve a cross-file reference. Purpose: preserve escaped error pointers.
+test('UnitT10_references and error pointers', () => {
+  writeOtherSchema();
   const result = validate(
     { properties: { 'a/b': { $ref: 'other.schema.json#/$defs/x' } } },
     { 'a/b': 'x' },
@@ -65,7 +67,9 @@ test('unsupported keyword is rejected at load', () => {
   assert.throws(() => validate({ format: 'date' }, 'x'), /format/);
 });
 
-test('isolated schema cases and JSON equality', () => {
+// Scenario: validate independent schema cases. Purpose: preserve reference resolution and JSON equality.
+test('UnitT20_isolated schema cases and JSON equality', () => {
+  writeOtherSchema();
   for (const [schema, yes, no] of [
     [{ required: ['a'] }, { a: 1 }, {}],
     [

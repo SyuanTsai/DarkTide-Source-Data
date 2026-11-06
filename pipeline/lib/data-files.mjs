@@ -40,7 +40,9 @@ export function checkDataFile(category, text) {
         let current = x.values;
         for (const part of entry.valueRef.slice(1).split('/')) {
           const key = part.replaceAll('~1', '/').replaceAll('~0', '~');
-          if (current === null || typeof current !== 'object' || !Object.hasOwn(current, key)) {
+          if (Array.isArray(current)
+            ? !/^(0|[1-9][0-9]*)$/.test(key) || Number(key) >= current.length
+            : current === null || typeof current !== 'object' || !Object.hasOwn(current, key)) {
             add(`${p}/errata/${j}/valueRef`, 'Referenced value does not exist');
             return;
           }

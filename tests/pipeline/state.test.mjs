@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as state from '../../pipeline/lib/state.mjs';
@@ -8,8 +8,11 @@ import { isCanonicalText } from '../../pipeline/lib/canonical-json.mjs';
 const meta = { gameVersion: '1.2', sourceCommit: '0'.repeat(40), textBatch: 'example' };
 const id = 'darktide:skill:example';
 const info = { category: 'skills', change: 'changed', inputHash: '0'.repeat(64) };
-test('state persistence and resumption', async () => {
-  const path = join(await mkdtemp(join(tmpdir(), 'state-')), 'state.json');
+// Scenario: exercise state persistence or validation. Purpose: protect state behavior.
+test('UnitT10_state persistence and resumption', async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), 'state-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const path = join(dir, 'state.json');
   assert.deepEqual(await state.readState(path), state.emptyState());
   let s = state.startRun(state.emptyState(), meta);
   s = state.registerItem(s, id, info);
@@ -42,15 +45,20 @@ test('transitions, halt and completion are immutable', () => {
   s = state.completeRun(s);
   assert.deepEqual(s.lastProcessed, meta);
 });
-test('invalid state cannot be written', async () => {
-  const path = join(await mkdtemp(join(tmpdir(), 'state-')), 'state.json');
+// Scenario: exercise state persistence or validation. Purpose: protect state behavior.
+test('UnitT20_invalid state cannot be written', async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), 'state-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const path = join(dir, 'state.json');
   const s = state.startRun(state.emptyState(), meta);
   s.run.status = 'halted';
   await assert.rejects(state.writeState(path, s));
 });
-test('invalid states fail read and write', async () => {
+// Scenario: exercise state persistence or validation. Purpose: protect state behavior.
+test('UnitT30_invalid states fail read and write', async (t) => {
   const { writeFile } = await import('node:fs/promises');
   const dir = await mkdtemp(join(tmpdir(), 'badstate-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
   const path = join(dir, 'state.json');
   let base = state.registerItem(state.startRun(state.emptyState(), meta), id, info);
   for (const mutate of [
@@ -96,7 +104,8 @@ test('pending, removed, kept and category summaries', () => {
   assert.equal(state.completeRun(s).run.status, 'completed');
 });
 
-test('resume, resets, summaries and immutable inputs', async () => {
+// Scenario: exercise state persistence or validation. Purpose: protect state behavior.
+test('UnitT40_resume, resets, summaries and immutable inputs', async (t) => {
   const call = (fn, input, ...args) => {
     const before = structuredClone(input);
     const result = fn(input, ...args);
@@ -107,7 +116,9 @@ test('resume, resets, summaries and immutable inputs', async () => {
   let s = call(state.startRun, state.emptyState(), meta);
   for (const item of ids) s = call(state.registerItem, s, item, info);
   for (const item of ids.slice(0, 2)) s = call(state.advanceItem, s, item, 'described');
-  const path = join(await mkdtemp(join(tmpdir(), 'resume-')), 'state.json');
+  const dir = await mkdtemp(join(tmpdir(), 'resume-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const path = join(dir, 'state.json');
   await state.writeState(path, s);
   s = call(state.startRun, await state.readState(path), meta);
   assert.deepEqual(Object.keys(s.run.items).sort(), ids);
@@ -137,9 +148,12 @@ test('resume, resets, summaries and immutable inputs', async () => {
   assert.deepEqual(next.lastProcessed, meta);
 });
 
-test('null item produces schema error', async () => {
+// Scenario: exercise state persistence or validation. Purpose: protect state behavior.
+test('UnitT50_null item produces schema error', async (t) => {
   const { writeFile } = await import('node:fs/promises');
-  const path = join(await mkdtemp(join(tmpdir(), 'null-item-')), 'state.json');
+  const dir = await mkdtemp(join(tmpdir(), 'null-item-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const path = join(dir, 'state.json');
   const s = state.registerItem(state.startRun(state.emptyState(), meta), id, info);
   s.run.items[id] = null;
   await writeFile(path, JSON.stringify(s));

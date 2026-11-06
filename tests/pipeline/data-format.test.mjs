@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, writeFileSync, cpSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync, cpSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
@@ -21,8 +21,10 @@ test('canonical JSON', () => {
   assert.throws(() => stringifyCanonical({ a: NaN }), TypeError);
   assert.throws(() => stringifyCanonical({ a: undefined }), TypeError);
 });
-test('examples and CLI', async () => {
+// Scenario: exercise the CLI fixture. Purpose: protect data validation.
+test('UnitT10_examples and CLI', async (t) => {
   const root = mkdtempSync(join(tmpdir(), 'data-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
   mkdirSync(join(root, 'data'));
   cpSync(`${base}/0.0.0-example`, join(root, 'data', '0.0.0'), { recursive: true });
   cpSync(`${base}/current.json`, join(root, 'data', 'current.json'));
@@ -65,8 +67,10 @@ test('invalid data are rejected', () => {
   assert.equal(checkCurrent(stringifyCanonical(c)).valid, false);
   assert.equal(compareVersions('1.9', '1.10'), -1);
 });
-test('current and directory consistency failures', () => {
+// Scenario: exercise the CLI fixture. Purpose: protect data validation.
+test('UnitT20_current and directory consistency failures', (t) => {
   const root = mkdtempSync(join(tmpdir(), 'data-invalid-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
   mkdirSync(join(root, 'data'));
   cpSync(`${base}/0.0.0-example`, join(root, 'data', '0.0.0'), { recursive: true });
   mkdirSync(join(root, 'pipeline'));
@@ -88,8 +92,10 @@ test('current and directory consistency failures', () => {
   writeFileSync(weapon, stringifyCanonical(w));
   assert.equal(checkVersionDir(join(root, 'data', '0.0.0')).valid, false);
 });
-test('missing current is allowed', () => {
+// Scenario: exercise the CLI fixture. Purpose: protect data validation.
+test('UnitT30_missing current is allowed', (t) => {
   const root = mkdtempSync(join(tmpdir(), 'data-empty-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
   const r = spawnSync(process.execPath, ['pipeline/validate.mjs', '--root', root], {
     encoding: 'utf8',
   });
@@ -156,4 +162,28 @@ test('attributes and files use LF and no BOM', async () => {
     };
     scan(root);
   }
+});
+
+// Scenario: errata references use invalid array tokens. Purpose: reject invalid indexes.
+test('UnitT40_errata references reject invalid array indexes', () => {
+  for (const pointer of ['/tiers/length', '/tiers/01', '/tiers/99']) {
+    const blessing = file('blessings');
+    blessing.items[0].errata[0].valueRef = pointer;
+    assert.ok(checkDataFile('blessings', stringifyCanonical(blessing)).errors.some(
+      (e) => e.path === '/items/0/errata/0/valueRef',
+    ), pointer);
+  }
+});
+
+// Scenario: state has multiple schema violations. Purpose: prefix every CLI error with its file.
+test('InterT10_multiple state errors each include the file', (t) => {
+  const root = mkdtempSync(join(tmpdir(), 'state-cli-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  mkdirSync(join(root, 'pipeline'));
+  writeFileSync(join(root, 'pipeline', 'state.json'), stringifyCanonical({ schemaVersion: 'bad', extra: true, lastProcessed: null, run: null }));
+  const result = spawnSync(process.execPath, ['pipeline/validate.mjs', '--root', root], { encoding: 'utf8' });
+  assert.equal(result.status, 1);
+  const lines = result.stderr.trim().split(/\r?\n/);
+  assert.ok(lines.length >= 2);
+  assert.ok(lines.every((line) => line.startsWith(`${join(root, 'pipeline', 'state.json')}: `)));
 });
