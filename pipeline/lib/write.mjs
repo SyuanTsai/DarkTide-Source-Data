@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CATEGORIES, checkDataFile, checkCurrent, compareVersions } from './data-files.mjs';
@@ -32,7 +32,23 @@ async function writeChanged(file, value, writer = writeCanonicalFile) {
 function checked(check, label) {
   if (!check.valid) throw new WriteError(`${label}驗證失敗：${check.errors.map((e) => `${e.path} ${e.message}`).join('；')}`);
 }
-function updateCategory(state, category, info) {
+const inconsistent = () => new WriteError('檢查報告與狀態檔不一致，請重跑 node pipeline/verify.mjs');
+function checkReportState(run, report) {
+  for (const [id, item] of Object.entries(run.items)) {
+    if (report.categories[item.category]?.status !== 'ok' || item.stage === 'written' || item.change === 'removed') continue;
+    const rows = report.items.filter((row) => row.category === item.category && row.id === id);
+    if (rows.length !== 1 || !((rows[0].decision === 'pass' && item.outcome === null && item.stage === 'verified') ||
+      (['kept-previous', 'excluded'].includes(rows[0].decision) && item.outcome === 'kept-previous'))) throw inconsistent();
+  }
+}
+async function safeJson(path, label, optional = false) {
+  try { return await readJson(path, optional); }
+  catch (error) {
+    const code = error.message.match(/（([^（）]+)）$/)?.[1];
+    throw new InputError(`${label}無法讀取或解析${code ? `（${code}）` : ''}`);
+  }
+}
+function updateCategory(state, category, info, rows) {
   let next = state;
   for (const [id, item] of Object.entries(state.run.items).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) {
     if (item.category !== category || item.stage === 'written' || item.outcome !== null) continue;
@@ -40,7 +56,10 @@ function updateCategory(state, category, info) {
     else if (item.change === 'removed' && ['described', 'verified'].includes(item.stage)) {
       if (item.stage === 'described') next = advanceItem(next, id, 'verified');
       next = advanceItem(next, id, 'written');
-    } else if (item.stage === 'verified') next = advanceItem(next, id, 'written');
+    } else if (item.stage === 'verified') {
+      if (!rows.some((row) => row.category === category && row.id === id && row.decision === 'pass')) throw inconsistent();
+      next = advanceItem(next, id, 'written');
+    }
     else throw new WriteError(`項目尚未通過檢查，請重跑 verify：${id}`);
   }
   return next;
@@ -69,34 +88,45 @@ export async function runWrite(inputOptions = {}) {
   const stateFile = inputOptions.state ?? join(root, 'pipeline/state.json');
   let state;
   try { state = await readState(stateFile); }
-  catch { throw new InputError('無法讀取狀態檔，JSON 或狀態結構不符'); }
+  catch (error) { throw new InputError(`無法讀取狀態檔，JSON 或狀態結構不符${error.code ? `（${error.code}）` : ''}`); }
   const run = state.run;
   // A completed run is accepted only as an exact, read-only replay below.
-  if (!run || !['running', 'completed'].includes(run.status)) throw new InputError('尚無執行中的工作，請先跑 node pipeline/check-version.mjs');
+  if (!run || !['running', 'completed', 'halted'].includes(run.status)) throw new InputError('尚無執行中的工作，請先跑 node pipeline/check-version.mjs');
   let base;
   if (!inputOptions.report || !inputOptions.candidateDir) {
     try { base = join(resolveCloudRoot({ override: inputOptions.cloudDir }), run.gameVersion); }
     catch (error) { throw new InputError(error.message); }
   }
-  const report = (await readJson(inputOptions.report ?? join(base, 'verify/report.json'))).value;
+  const report = (await safeJson(inputOptions.report ?? join(base, 'verify/report.json'), '檢查報告')).value;
   if (!report || !['gameVersion', 'sourceCommit', 'textBatch'].every((key) => report[key] === run[key]))
     throw new InputError('檢查報告版本與 state.run 不符，請重跑 node pipeline/verify.mjs');
   if (report.result === 'halted') return { exitCode: 3, stdout: '檢查結果為整批停止，不寫入\n' };
+  if (run.status === 'halted') throw new InputError('尚無執行中的工作，請先跑 node pipeline/check-version.mjs');
   if (!['pass', 'degraded'].includes(report.result) || !Array.isArray(report.items) ||
     CATEGORIES.some((c) => !['ok', 'kept-previous'].includes(report.categories?.[c]?.status)))
     throw new InputError('檢查報告結構不符，請重跑 node pipeline/verify.mjs');
+  checkReportState(run, report);
   const candidateDir = inputOptions.candidateDir ?? join(base, 'candidate'), candidates = {};
   for (const category of CATEGORIES) {
-    const bytes = await readCandidateBytes(join(candidateDir, `${category}.json`));
+    let bytes;
+    try { bytes = await readCandidateBytes(join(candidateDir, `${category}.json`)); }
+    catch (error) { const code = error.message.match(/（([^（）]+)）$/)?.[1]; throw new InputError(`無法讀取 candidate/${category}.json${code ? `（${code}）` : ''}`); }
     if (sha256(bytes) !== report.categories[category].candidateSha256)
       throw new WriteError('候選資料在檢查後已變動，請重跑 node pipeline/verify.mjs');
     try { candidates[category] = bytes === null ? null : JSON.parse(bytes.toString('utf8')); }
     catch { throw new WriteError(`候選資料 JSON 無法解析：${category}`); }
   }
-  const current = await readJson(join(root, 'data/current.json'), true);
+  const current = await safeJson(join(root, 'data/current.json'), 'data/current.json', true);
   if (current) {
     checked(checkCurrent(current.text), '目前版本索引');
     if (compareVersions(run.gameVersion, current.value.gameVersion) < 0) throw new WriteError('新版本小於目前版本，不寫入');
+  }
+  let dirs;
+  try { dirs = await readdir(join(root, 'data'), { withFileTypes: true }); }
+  catch (error) { if (error.code !== 'ENOENT') throw new InputError(`無法讀取 data 目錄（${error.code ?? '讀取失敗'}）`); dirs = []; }
+  for (const entry of dirs) {
+    if (entry.isDirectory() && /^[0-9]+(\.[0-9]+){1,3}$/.test(entry.name) && entry.name !== run.gameVersion && !current?.value.versions.includes(entry.name))
+      throw new WriteError(`data 下有未登記的版本目錄 ${entry.name}：可能是先前寫入中斷，請先完成該版本的寫入或手動移除後再執行`);
   }
   let previousDir = inputOptions.previousDir;
   if (!previousDir && current) {
@@ -107,7 +137,7 @@ export async function runWrite(inputOptions = {}) {
   }
   const final = {};
   for (const category of CATEGORIES) {
-    const previous = previousDir && previousDir !== 'none' ? (await readJson(join(previousDir, `${category}.json`), true))?.value : null;
+    const previous = previousDir && previousDir !== 'none' ? (await safeJson(join(previousDir, `${category}.json`), `上一版/${category}.json`, true))?.value : null;
     try { final[category] = composeFinal({ category, status: report.categories[category].status,
       candidate: candidates[category], previous, rows: report.items, version: run }); }
     catch (error) { throw new WriteError(error.message); }
@@ -126,7 +156,7 @@ export async function runWrite(inputOptions = {}) {
   }
   for (const category of CATEGORIES) {
     await writeChanged(join(root, 'data', run.gameVersion, `${category}.json`), final[category]);
-    state = updateCategory(state, category, report.categories[category]);
+    state = updateCategory(state, category, report.categories[category], report.items);
     await writeChanged(stateFile, state, writeState);
     await inputOptions.afterCategory?.(category);
   }

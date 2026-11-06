@@ -207,8 +207,51 @@ test('InterT60_invalid final output is rejected and earlier item stages require 
   const stateBefore = await readFile(f.state); assert.equal(f.write().status, 1); assert.deepEqual(await snapshot(join(f.root, 'data')), {}); assert.deepEqual(await readFile(f.state), stateBefore);
   f.verify(); const state = await read(f.state), id = Object.keys(state.run.items).find((id) => state.run.items[id].category === 'weapons');
   state.run.items[id].stage = 'described'; await writeState(f.state, state);
-  const result = f.write(); assert.equal(result.status, 1); assert.match(result.stderr, /項目尚未通過檢查/);
-  assert.ok(await readFile(join(f.root, 'data', meta.gameVersion, 'skills.json')));
+  const result = f.write(); assert.equal(result.status, 1); assert.match(result.stderr, /檢查報告與狀態檔不一致/);
+  assert.deepEqual(await snapshot(join(f.root, 'data')), {});
+});
+
+// Scenario: a prior publication was interrupted before its version was registered. Purpose: prevent a new version from hiding orphaned data while allowing same-version resumption.
+test('InterT61_unregistered version blocks writes but current run resumes', async (t) => {
+  const f = await fixture(t); f.verify();
+  await writeCanonicalFile(join(f.root, 'data', old.gameVersion, 'skills.json'), f.previousData.skills);
+  const before = await snapshot(join(f.root, 'data')), state = await readFile(f.state);
+  const result = f.write(); assert.equal(result.status, 1); assert.match(result.stderr, /未登記的版本目錄 1\.1\.0/);
+  assert.deepEqual(await snapshot(join(f.root, 'data')), before); assert.deepEqual(await readFile(f.state), state);
+});
+
+// Scenario: a later verify degrades an item while an earlier verified state is restored. Purpose: reject stale state before writing any output.
+test('InterT62_report and restored state mismatch blocks writes', async (t) => {
+  const f = await fixture(t, { previous: true }); f.verify();
+  const saved = await readFile(f.state), id = f.previousData.skills.items[1].id;
+  f.ai[id].explanation.effect = '提升987654%';
+  await writeCanonicalFile(join(f.base, 'ai/output', itemFileName(id)), f.ai[id]); f.verify();
+  await writeFile(f.state, saved);
+  const before = await snapshot(join(f.root, 'data')), result = f.write();
+  assert.equal(result.status, 1); assert.match(result.stderr, /檢查報告與狀態檔不一致/);
+  assert.deepEqual(await snapshot(join(f.root, 'data')), before); assert.deepEqual(await readFile(f.state), saved);
+});
+
+// Scenario: an extract version disagrees with the running state. Purpose: propagate the genuine halted result without writing.
+test('InterT63_genuine halted verify propagates exit 3', async (t) => {
+  const f = await fixture(t), path = join(f.base, 'extract/skills.json'), extract = await read(path);
+  extract.gameVersion = '9.9'; await writeCanonicalFile(path, extract);
+  assert.equal(f.cli('verify', f.verifyArgs).status, 3);
+  const before = await snapshot(join(f.root, 'data')), state = await readFile(f.state), result = f.write();
+  assert.equal(result.status, 3); assert.match(result.stdout, /檢查結果為整批停止，不寫入/);
+  assert.deepEqual(await snapshot(join(f.root, 'data')), before); assert.deepEqual(await readFile(f.state), state);
+});
+
+// Scenario: report, candidate directory or state cannot be read. Purpose: preserve useful errors without disclosing local absolute paths.
+test('InterT64_input errors do not disclose absolute paths', async (t) => {
+  const f = await fixture(t); f.verify();
+  const missingReport = f.cli('write', [...f.writeArgs, '--report', join(f.root, 'absent.json')]);
+  const missingCandidate = f.cli('write', [...f.writeArgs, '--candidate-dir', join(f.root, 'absent')]);
+  await writeFile(f.state, '{broken'); const corruptState = f.write();
+  for (const result of [missingReport, missingCandidate, corruptState]) {
+    assert.notEqual(result.status, 0); assert.ok(!result.stderr.includes(f.root)); assert.ok(!result.stderr.includes(tmpdir()));
+  }
+  assert.match(missingReport.stderr, /ENOENT/);
 });
 
 // Scenario: all default extracts are absent and no state run exists in another root. Purpose: distinguish empty-category degradation from missing workflow setup.
