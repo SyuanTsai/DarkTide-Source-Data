@@ -655,13 +655,25 @@ class Parser {
       const args=node.args.flatMap(n=>{const v=this.resolveReference(n);return v?.type==='table'?getTableArray(v):[v];});
       if(args.every(n=>n?.type==='string'))return {...node,type:'table',entries:args.map(n=>({key:cloneNode(n),value:cloneNode(n)}))};
     }
-    if (node.ref === 'table.clone' || node.ref === 'table.clone_instance') {
+    if (['table.clone','table.clone_instance','table.shallow_copy'].includes(node.ref)) {
       const source = this.resolveBinding(node.args[0]);
       if (source?.type !== 'table') {
         if(this.staticArithmetic&&this.allowUnsupported)return {...node,type:'unsupported',reason:'DYNAMIC_CLONE'};
         this.fail('table.clone requires a statically known table', node);
       }
-      return cloneNode(source);
+      // Track ancestors for cycles; sibling references are copied independently.
+      const copies=new Map();
+      const copy=n=>{
+        const reference=n?.type==='reference'?{...n,_file:n._file??this.filename}:null;
+        n=this.resolveBinding(n);
+        if(n?.type!=='table')return reference&&n?{...n,_cloneReference:reference}:n;
+        if(copies.has(n))return copies.get(n);
+        const out={...n,entries:[]};copies.set(n,out);
+        // Keep symbolic provenance for consumers that identify named templates.
+        if(reference)out._cloneReference=reference;
+        out.entries=n.entries.map(e=>({...e,value:copy(e.value)}));copies.delete(n);return out;
+      };
+      return node.ref==='table.shallow_copy'?{...source,entries:source.entries.map(e=>({...e}))}:copy(source);
     }
     // foundation/utilities/math.lua binds this helper to math.rad.
     if(this.staticArithmetic&&node.ref==='math.degrees_to_radians'&&node.args.length===1&&!this.environment.has('math')&&this.options.mathRadiansVerified) {

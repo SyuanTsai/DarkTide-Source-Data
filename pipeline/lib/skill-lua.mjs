@@ -118,6 +118,8 @@ export function createSkillResolver(reader) {
     const parser=new SkillLua(reader.read(file),file);
     parser.onCall=n=>{
       applyCallMutations(callName(n.callee),n.args,{analysis:effects.analysis(file),resolve,field,entries,capture:(path,owner)=>{const [root,...parts]=path.split('.');let value=(owner===file?parser.env:load(owner).env)?.get(root);for(const part of parts)value=get(value,part);return value;},handled:['_create_entry','_add_template_entries','_require_templates','extract_weapon_tweaks'],dynamic:{type:'unknown',reason:'DYNAMIC_VALUE',file,line:n.line}});
+      // Snapshot copied children before subsequent source writes.
+      if(['table.clone','table.clone_instance','table.shallow_copy'].includes(callName(n.callee)))resolve(n);
     };
     Object.assign(pending,parser.chunk((target,value) => {
       if(value.reason==='CONDITIONAL_ASSIGNMENT') {
@@ -287,13 +289,14 @@ export function createSkillResolver(reader) {
             {...n,type:'table',entries:values.map((v,i)=>({key:name==='table.enum'?v:literal(i+1,n),value:v}))};
           compositions.set(n,result);return result;
         }
-        if(name==='table.clone' || name==='table.clone_instance') {
+        if(['table.clone','table.clone_instance','table.shallow_copy'].includes(name)) {
           if(compositions.has(n)) return compositions.get(n);
           const value=resolve(n.args[0],trace);
           if(value?.type!=='table') return unknown(n,'clone 非靜態 table');
+          // Track ancestors for cycles; sibling references are copied independently.
           const copies=new Map();
-          const copy=table=>{if(copies.has(table))return copies.get(table);const out={...table,entries:[]};copies.set(table,out);out.entries=table.entries.map(e=>({...e,value:resolve(e.value)?.type==='table'?copy(resolve(e.value)):e.value}));return out;};
-          const clone=name==='table.clone_instance'?copy(value):{...value,entries:[...value.entries]};compositions.set(n,clone);return clone;
+          const copy=table=>{if(copies.has(table))return copies.get(table);const out={...table,entries:[]};copies.set(table,out);out.entries=table.entries.map(e=>{const child=resolve(e.value);return {...e,value:child?.type==='table'?copy(child):child};});copies.delete(table);return out;};
+          const clone=name==='table.shallow_copy'?{...value,entries:value.entries.map(e=>({...e,value:resolve(e.value)}))}:copy(value);compositions.set(n,clone);return clone;
         }
         if(['table.merge','table.add_missing','table.append'].includes(name)) return mergeCall(n);
         if(/^math\.(max|min|abs|floor|ceil|round)$/.test(name)) {

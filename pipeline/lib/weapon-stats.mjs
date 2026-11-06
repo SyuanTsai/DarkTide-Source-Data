@@ -204,7 +204,7 @@ export function createWeaponStats(reader) {
    if(n.type!=='table')return;
    for(const e of n.entries){const key=component(e.key);
     if(typeof key==='string'&&/^(?:damage_profile(?:_|$)|.+_damage_profile$)/.test(key)) {
-     const v=e.value;
+     const v=e.value._cloneReference??e.value;
      files.push({path:v._file??context,line:v.startLine??n.startLine??1});
      if(v.type==='reference') {
       const [alias,name]=v.ref.split('.'),p=chunk(v._file??context),required=p?.locals[alias];

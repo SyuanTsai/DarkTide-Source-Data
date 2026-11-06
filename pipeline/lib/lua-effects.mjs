@@ -101,6 +101,8 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
  let dirtyFrom=Infinity;
  const pathAt=i=>{if(t[i]?.type!=='identifier')return null;const parts=[t[i++].value];let method=false;while(true){if(['.',':'].includes(t[i]?.value)&&t[i+1]?.type==='identifier'){method||=t[i].value===':';parts.push(t[i+1].value);i+=2;}else if(t[i]?.value==='['){const end=close(i,'[',']');parts.push(end===i+2&&['string','number'].includes(t[i+1]?.type)?String(t[i+1].value):'*');i=end+1;}else break;}return {parts,end:i,method};};
  function close(i,open='(',end=')'){let depth=1;while(++i<t.length){if(['string','number'].includes(t[i].type))continue;if(t[i].value===open)depth++;if(t[i].value===end&&!--depth)return i;}return t.length-1;}
+ // Snapshot descendant edges before adding copied identities to the graph.
+ const indexSlots=()=>{const index=new Map();for(const entry of slots){const key=entry[0];for(let at=key.indexOf('.');at>=0;at=key.indexOf('.',at+1)){const prefix=key.slice(0,at);if(!index.has(prefix))index.set(prefix,[]);index.get(prefix).push(entry);}}return index;};
  const expand=(parts,env)=>{let out=env.get(parts[0])??new Set([parts[0]]);for(const key of parts.slice(1)){const next=new Set();for(const p of out)for(const q of slots.get(p+'.'+key)??[p+'.'+key])next.add(q);out=next;}return out;};
  function fnAt(i,env) {
   const end=luaBlockEnd(t,i);let p=i+1;while(t[p]?.value!=='('&&p<end)p++;
@@ -139,7 +141,14 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
    if(arg?.type==='string')return new Set([identity(arg.value)]);
   }
   if(isCall(p.end)) {
-   if(['table.clone','table.clone_instance','table.shallow_copy'].includes(p.parts.join('.')))return new Set(['!table:'+file+':'+i]);
+   if(['table.clone','table.clone_instance','table.shallow_copy'].includes(p.parts.join('.'))&&expand(p.parts,env).size===1&&expand(p.parts,env).has(p.parts.join('.'))&&bindingsIntact(['table'])) {
+    // Deep copies own all descendant tables; shallow copies retain child aliases.
+    const id='!table:'+file+':'+i,deep=p.parts.at(-1)!=='shallow_copy',copied=new Map(),descendants=indexSlots();let nextCopy=0;
+    const copy=old=>{if(old.startsWith('?')||old.startsWith('!fn:'))return old;if(copied.has(old))return copied.get(old);const fresh=id+':'+(++nextCopy);copied.set(old,fresh);for(const [key,values] of descendants.get(old)??[])slots.set(fresh+key.slice(old.length),new Set([...values].map(v=>deep?copy(v):v)));copied.delete(old);return fresh;};
+    const source=valueAt(p.end+1,env);
+    for(const old of source){copied.set(old,id);for(const [key,values] of descendants.get(old)??[])slots.set(id+key.slice(old.length),new Set([...values].map(v=>deep?copy(v):v)));}
+    return new Set([id]);
+   }
    const targets=expand(p.parts,env),out=new Set(),args=p.method?[expand(p.parts.slice(0,-1),env)]:[];let j=p.end+1;
    if(t[p.end]?.value!=='(')args.push(valueAt(p.end,env));
    else while(j<close(p.end)){args.push(valueAt(j,env));j=valueEnd(j);if(t[j]?.value!==',')break;j++;}
