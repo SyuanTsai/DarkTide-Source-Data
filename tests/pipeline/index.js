@@ -10,3 +10,4 @@ import './real-smoke.test.mjs';
 import './check-version.test.mjs';
 import './extract-output.test.mjs';
 import './extract-terms.test.mjs';
+import './extract-weapons.test.mjs';
