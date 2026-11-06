@@ -20,15 +20,15 @@ const handling='scripts/settings/equipment/weapon_handling_templates/weapon_hand
 const utility='scripts/utilities/recoil_template.lua';
 const base=root+'base_template_settings.lua';
 const fixture=n=>readFileSync(new URL('./fixtures/review4/'+n,import.meta.url),'utf8');
-// Scenario: runtime and enum expressions are both nonliteral destination indices.
+// Scenario: runtime indices may overwrite the existing 10; a proven enum may not.
 // Purpose: F1 must invalidate stale constants.
 test('UnitT10_F1 dynamic keys invalidate existing time scale',()=>{
  for(const key of ['runtime_key','get_runtime_key()']) {
  const s={...trait('weapon_handling','{"time_scale",0.5}'),[handling]:`local weapon_handling_templates={test={time_scale=10}}\nweapon_handling_templates.test[${key}]=20\nreturn weapon_handling_templates`};
  const r=extract(s,'weapon_handling');assert.deepEqual(r.stats,[]);assert.equal(r.unknown[0]?.reason,'DYNAMIC_VALUE');
  }
- const enums={'scripts/settings/damage/armor_settings.lua':'local types=table.enum("other") local armor_settings={types=types} return settings("ArmorSettings",armor_settings)',...trait('weapon_handling','{"time_scale",0.5}'),[handling]:'local ArmorSettings=require("scripts/settings/damage/armor_settings") local keys=ArmorSettings.types local weapon_handling_templates={test={time_scale=10}} weapon_handling_templates.test[keys.other]=20 return weapon_handling_templates'};assert.deepEqual(ranges(extract(enums,'weapon_handling')),[]);assert.equal(extract(enums,'weapon_handling').unknown[0]?.reason,'DYNAMIC_VALUE');
- const p=parseLuaStatic('local keys=table.enum("other") local t={time_scale=10} t[keys.other]=20 return t',{staticArithmetic:true});assert.equal(field(p.returned,'time_scale').reason,'DYNAMIC_VALUE');
+ const enums={'scripts/settings/damage/armor_settings.lua':'local types=table.enum("other") local armor_settings={types=types} return settings("ArmorSettings",armor_settings)',...trait('weapon_handling','{"time_scale",0.5}'),[handling]:'local ArmorSettings=require("scripts/settings/damage/armor_settings") local keys=ArmorSettings.types local weapon_handling_templates={test={time_scale=10}} weapon_handling_templates.test[keys.other]=20 return weapon_handling_templates'};assert.deepEqual(ranges(extract(enums,'weapon_handling')),[[10,10]]);
+ const p=parseLuaStatic('local keys=table.enum("other") local t={time_scale=10} t[keys.other]=20 return t',{staticArithmetic:true});assert.equal(field(p.returned,'time_scale').value,10);
 });
 // Scenario: local, direct and conditional math replacements precede a numeric call.
 // Purpose: F2 validates binding instead of spelling.

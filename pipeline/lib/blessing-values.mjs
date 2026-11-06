@@ -34,6 +34,7 @@ export function resolver(reader) {
   function deref(node,file) {
     if(node?.type==='lazy') { const value=modules.force(node); return {node:value,file:value._file??file}; }
     if(node?._file) return {node,file:node._file};
+    if(node?.type==='call' && node.ref==='table.clone' && node.args?.length===1) return deref(node.args[0],file);
     if(node?.type!=='reference') return node ? {node,file} : null;
     const value=modules.reference(file,node.ref); return {node:value,file:value._file??file};
   }

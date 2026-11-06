@@ -4,7 +4,6 @@ import {mkdtempSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {cli} from './helpers.mjs';
-import {assertRevokedEndpoint} from './pinned-numeric-expectations.mjs';
 
 // Scenario: pinned source and text are extracted through all five stages twice.
 // Purpose: preserve review2 endpoints/review5 recovery and review7 external-table revocation.
@@ -24,26 +23,28 @@ test('InterT90_review2 pinned text → skills → weapons → blessings → term
  const data=Object.fromEntries([...first].map(([k,v])=>[k,JSON.parse(v)]));
  const weapons=data.weapons.items;
  function stats(key){return weapons.find(w=>w.key===key).values.bars.flatMap(b=>b.stats);}
- // Scenario: computed writes can alias shared helpers across the pinned closure.
- // Purpose: each former known endpoint has a DYNAMIC_VALUE marker and problem.
- for(const [key,kinds] of [
-  ['bolter_p1_m1',['recoil.base','recoil.alternate_fire']],
-  ['bolter_p1_m2',['recoil.base','recoil.alternate_fire']],
-  ['flamer_p1_m1',['damage.action_shoot']],
-  ['ogryn_powermaul_p1_m1',['explosion.action_left_light']],
-  ['forcestaff_p1_m1',['damage.action_trigger_explosion']],
-  ['autogun_p1_m1',['spread.base']],
- ])for(const kind of kinds)assertRevokedEndpoint(data.weapons,key,kind);
+ function endpoint(weapon,suffix,expected) {
+  const found=stats(weapon).filter(s=>s.key.endsWith(suffix));assert.ok(found.length,weapon+suffix);
+  assert.ok(found.some(s=>JSON.stringify([s.min,s.max])===JSON.stringify(expected)),JSON.stringify(found));
+ }
+ for(const [key,n] of [['bolter_p1_m1',4],['bolter_p1_m2',8]]) {
+  const zeros=stats(key).filter(s=>/\.offset_random_range\.4\.(pitch|yaw)$/.test(s.key)&&s.min===0&&s.max===0);
+  assert.equal(zeros.length,n,key);
+ }
+ endpoint('flamer_p1_m1','.targets.1.power_distribution.attack',[18.75,26.25]);
+ endpoint('ogryn_powermaul_p1_m1','ogryn_powermaul_activated_impact.radius',[4,8]);
+ endpoint('forcestaff_p1_m1','force_staff_ball.power_distribution.attack',[90,150]);
+ endpoint('autogun_p1_m1','spread.base.still.immediate_spread.shooting.1.pitch',[0.55,0.325]);
  // Scenario: a write to the imported damage_settings table revokes all member dependencies.
- // Purpose: retain review7 downgrades and require the complete spec12 conservative count.
- assert.equal(unknown(data.skills.items),1361);
+ // Purpose: require exactly the four review7 conservative downgrades, retaining other known values.
+ assert.equal(unknown(data.skills.items),56);
  for(const [key,params]of [
   ['veteran_increased_damage_based_on_range',['ranged_close','ranged_far']],
   ['veteran_ranged_power_out_of_melee',['radius']],
   ['veteran_replenish_toughness_outside_melee',['range']],
  ])for(const param of params)assert.deepEqual(data.skills.items.find(i=>i.key===key).values.params[param],{value:null,unknown:'DYNAMIC_VALUE'},key+'.'+param);
  const focus=data.skills.items.find(i=>i.key==='broker_ability_focus_sub_2');
- assert.deepEqual(focus.values.params.damage,{value:null,unknown:'DYNAMIC_VALUE'});
+ assert.equal(focus.values.params.damage.value,3);
  const summary={};
  for(const category of categories) {
   const d=data[category];summary[category]={items:d.items?.length??Object.values(d.resources).reduce((n,r)=>n+Object.keys(r).length,0),unknown:unknown(d.items),problems:count(d.problems.map(p=>p.code))};

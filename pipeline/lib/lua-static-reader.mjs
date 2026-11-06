@@ -263,11 +263,11 @@ class Parser {
     if(Number.isFinite(this.effects.dirtyFrom)) {
       const dynamic={type:'unsupported',reason:'DYNAMIC_VALUE',startLine:1};
       for(const [name,n] of this.environment) {
-        invalidateReachable(n,{resolve:n=>this.resolveBinding(n),dynamic,numericOnly:true});
-        if(n?.type!=='table'&&n?.start>=this.effects.dirtyFrom&&!['string','boolean','nil'].includes(n?.type))this.environment.set(name,dynamic);
+        invalidateReachable(n,{resolve:n=>this.resolveBinding(n),dynamic});
+        if(n?.type!=='table'&&n?.start>=this.effects.dirtyFrom)this.environment.set(name,dynamic);
       }
-      invalidateReachable(this.returned,{resolve:n=>this.resolveBinding(n),dynamic,numericOnly:true});
-      if(!['table','string','boolean','nil'].includes(this.resolveBinding(this.returned)?.type))this.returned=dynamic;
+      invalidateReachable(this.returned,{resolve:n=>this.resolveBinding(n),dynamic});
+      if(this.resolveBinding(this.returned)?.type!=='table')this.returned=dynamic;
     }
     return {
       type: 'chunk', filename: this.filename,
@@ -655,21 +655,13 @@ class Parser {
       const args=node.args.flatMap(n=>{const v=this.resolveReference(n);return v?.type==='table'?getTableArray(v):[v];});
       if(args.every(n=>n?.type==='string'))return {...node,type:'table',entries:args.map(n=>({key:cloneNode(n),value:cloneNode(n)}))};
     }
-    if (['table.clone','table.clone_instance','table.shallow_copy'].includes(node.ref)) {
+    if (node.ref === 'table.clone' || node.ref === 'table.clone_instance') {
       const source = this.resolveBinding(node.args[0]);
       if (source?.type !== 'table') {
         if(this.staticArithmetic&&this.allowUnsupported)return {...node,type:'unsupported',reason:'DYNAMIC_CLONE'};
         this.fail('table.clone requires a statically known table', node);
       }
-      const copies=new Map();
-      const copy=n=>{
-        n=this.resolveBinding(n);
-        if(n?.type!=='table')return n;
-        if(copies.has(n))return copies.get(n);
-        const out={...n,entries:[]};copies.set(n,out);
-        out.entries=n.entries.map(e=>({...e,value:copy(e.value)}));return out;
-      };
-      return node.ref==='table.shallow_copy'?{...source,entries:source.entries.map(e=>({...e}))}:copy(source);
+      return cloneNode(source);
     }
     // foundation/utilities/math.lua binds this helper to math.rad.
     if(this.staticArithmetic&&node.ref==='math.degrees_to_radians'&&node.args.length===1&&!this.environment.has('math')&&this.options.mathRadiansVerified) {
@@ -703,7 +695,8 @@ class Parser {
       }
     }
     if (node.ref === 'table.add_missing' || node.ref === 'table.append' || node.ref === 'table.merge') {
-      const target = this.resolveBinding(node.args[0]);
+      const targetRef = node.args[0]?.ref;
+      const target = targetRef ? this.resolveBinding(node.args[0]) : null;
       const source = this.resolveBinding(node.args[1]);
       if(this.staticArithmetic&&this.allowUnsupported&&(target?.type!=='table'||source?.type!=='table')){if(target?.type==='table')this.invalidateTable(target,node);return node;}
       if (target?.type !== 'table' || source?.type !== 'table') this.fail(`${node.ref} requires statically known tables`, node);
@@ -714,12 +707,12 @@ class Parser {
           if (entry.key == null) implicitIndex += 1;
           const identity = tableKeyIdentity(entry.key, implicitIndex);
           if (!existing.has(identity)) {
-            target.entries.push({...entry});
+            target.entries.push(cloneNode(entry));
             existing.add(identity);
           }
         }
       } else if (node.ref === 'table.append') {
-        for (const entry of source.entries.filter((item) => item.key == null)) target.entries.push({...entry});
+        for (const entry of source.entries.filter((item) => item.key == null)) target.entries.push(cloneNode(entry));
       } else {
         const identities = tableKeyIdentities(target);
         let implicitIndex = 0;
@@ -727,9 +720,9 @@ class Parser {
           if (entry.key == null) implicitIndex += 1;
           const identity = tableKeyIdentity(entry.key, implicitIndex);
           const index = identities.indexOf(identity);
-          if (index >= 0) target.entries[index] = {...entry};
+          if (index >= 0) target.entries[index] = cloneNode(entry);
           else {
-            target.entries.push({...entry});
+            target.entries.push(cloneNode(entry));
             identities.push(identity);
           }
         }

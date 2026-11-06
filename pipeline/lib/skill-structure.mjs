@@ -43,7 +43,7 @@ function stimmDefinitions(r,reader) {
         if(p.entries.length) add(perIndex,count,p);
       }
     }
-    result.set(r.scalar(key),r.numericEvidence(talent));
+    result.set(r.scalar(key),talent);
   }
   return result;
 }

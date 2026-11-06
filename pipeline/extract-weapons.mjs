@@ -29,7 +29,7 @@ function table(source,ref,analysis) {
    if(path.length<=prefix.length)poison(node);
    else {const affected=field(parent,path.at(-1));if(affected)poison(affected);}
   }
-  if(Number.isFinite(analysis?.dirtyFrom))invalidateReachable(node,{numericOnly:true,dynamic:{type:'unsupported',reason:'DYNAMIC_VALUE'}});
+  if(Number.isFinite(analysis?.dirtyFrom))invalidateReachable(node,{dynamic:{type:'unsupported',reason:'DYNAMIC_VALUE'}});
   return node;
  } catch {return null;}
 }

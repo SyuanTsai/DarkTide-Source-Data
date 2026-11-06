@@ -59,8 +59,8 @@ test('UnitT20_F2 heavy stubber yaw resolves aliases to 0.078',()=>{
 });
 
 // Scenario: the thumper module contains indexed writes and an unrelated bad clone.
-// Purpose: spec12 revokes the module when a nonliteral destination cannot be bounded.
-test('UnitT30_F3 computed indexed assignment revokes thumper near attack',()=>{
+// Purpose: retain the independent near attack endpoints despite a bad definition.
+test('UnitT30_F3 indexed assignment keeps thumper near attack [100,200]',()=>{
  const s={...trait('damage','{"power_distribution_ranged","attack","near",{min=0,max=1}}'),[armor]:enumSource,
  [damage]:`local ArmorSettings=require("scripts/settings/damage/armor_settings")\nlocal armor_types=ArmorSettings.types
 local damage_templates={other={armor_damage_modifier={}}}
@@ -70,10 +70,10 @@ damage_templates.bad.field=runtime_value
 damage_templates.test={power_distribution_ranged={attack={near={lerp_basic=100,lerp_perfect=200}}}}
 return damage_templates`};
  const r=extract(s,'damage',{target:'shoot',actions:'{shoot={damage_profile="test"}}'});
- assert.equal(r.unknown[0]?.reason,'DYNAMIC_VALUE');assert.deepEqual(ranges(r),[]);
+ assert.deepEqual(r.unknown,[]);assert.deepEqual(ranges(r),[[100,200]]);
  Object.assign(s,trait('damage','{"armor_damage_modifier","armored",{min=0,max=1}}'));
  const indexed=extract(s,'damage',{target:'shoot',actions:'{shoot={damage_profile="other"}}'});
- assert.equal(indexed.unknown[0]?.reason,'DYNAMIC_VALUE');assert.deepEqual(ranges(indexed),[]);
+ assert.deepEqual(indexed.unknown,[]);assert.deepEqual(ranges(indexed),[[1,2]]);
 });
 
 // Scenario: a validated helper is redefined directly or within a runtime branch.

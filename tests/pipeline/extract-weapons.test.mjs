@@ -14,19 +14,6 @@ function setup(t) {
  const run=()=>{const r=cli('extract-weapons.mjs',args);assert.equal(r.status,0,r.stderr);return JSON.parse(readFileSync(path.join(f.work,'extract/weapons.json')));};
  return {...f,args,run};
 }
-// Scenario: an unrelated untrusted alias write revokes weapon numeric evidence.
-// Purpose: action names, types, bar names and keyword references retain structure.
-test('InterT05_numeric revocation preserves weapon display structure',t=>{
- const f=setup(t),before=f.run().items.find(i=>i.key==='autogun_p1_m1');
- const file=base+'guns/autogun_p1_m1.lua',source=readFileSync(path.join(f.source,file),'utf8');
- put(f.source,file,source.replace('return weapon_template','local alias=box[k]\nalias.abs=function(v) return 99 end\nreturn weapon_template'));
- f.args[3]=commit(f.source);
- const after=f.run().items.find(i=>i.key===before.key);
- assert.deepEqual(after.values.actions,before.values.actions);
- assert.deepEqual(after.values.bars.map(b=>b.name),before.values.bars.map(b=>b.name));
- assert.deepEqual(after.values.params.keywords,before.values.params.keywords);
- assert.ok(Object.values(after.values.params).some(v=>v.unknown==='DYNAMIC_VALUE'));
-});
 // Scenario: pinned ranged/melee, trait rows and inherited profiles are extracted twice.
 // Purpose: protect interpolation, links, ordering, precision and deterministic CLI output.
 test('InterT10_weapon rows interpolate actual templates and preserve contracts',t=>{

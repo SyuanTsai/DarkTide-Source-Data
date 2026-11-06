@@ -33,13 +33,13 @@ export function staticBuffModules(reader) {
   const cache=new Map(), environments=new Map(), active=new Set(), revoked=new WeakSet();
   function force(node) {
     if(node?.type==='table'&&!revoked.has(node)&&effects.moduleTainted(node._file)) {
-      revoked.add(node);invalidateReachable(node,{resolve:force,numericOnly:true,dynamic:unknown('DYNAMIC_VALUE','共享目的表已改寫',node._file)});
+      revoked.add(node);invalidateReachable(node,{resolve:force,dynamic:unknown('DYNAMIC_VALUE','共享目的表已改寫',node._file)});
     }
     if(node?.type!=='lazy') return node;
     if(node.resolved) return node.resolved;
     if(active.has(node)) return unknown('RUNTIME_REFERENCE','循環參照',node._file,node.startLine);
     active.add(node);
-    try { return node.resolved=evaluate(node.expression,node.env,node._file); } finally { active.delete(node); }
+    try { return node.resolved=node.cloneSource?clone(force(node.cloneSource)):evaluate(node.expression,node.env,node._file); } finally { active.delete(node); }
   }
   function get(node,key) {
     node=force(node);
@@ -82,7 +82,6 @@ export function staticBuffModules(reader) {
         return target;
       }
       if(n.ref==='table.clone' || n.ref==='table.clone_instance') return clone(evaluate(n.args[0],env,file));
-      if(n.ref==='table.shallow_copy') {const value=force(evaluate(n.args[0],env,file));return value?.type==='table'?{...value,entries:value.entries.map(e=>({...e}))}:value;}
       if(['table.merge','table.add_missing'].includes(n.ref)) {
         const target=evaluate(n.args[0],env,file), source=evaluate(n.args[1],env,file);
         if(target?.type!=='table') return target;
@@ -122,10 +121,9 @@ export function staticBuffModules(reader) {
     if(n.type==='function') return unknown('FUNCTION_GENERATED','函式值需要執行期求值',file,n.startLine);
     return {...n,_file:file};
   }
-  function clone(n,copies=new Map()) {
-    n=force(n);
-    if(copies.has(n))return copies.get(n);
-    if(n?.type==='table') {const out={...n,entries:[]};copies.set(n,out);out.entries=n.entries.map(e=>({...e,value:clone(e.value,copies)}));return out;}
+  function clone(n) {
+    if(n?.type==='table') return {...n,entries:n.entries.map(e=>({...e,value:clone(e.value)}))};
+    if(n?.type==='lazy') return {type:'lazy',cloneSource:n,_file:n._file,startLine:n.startLine};
     return n;
   }
   function assign(env,path,value,definition) {
@@ -171,8 +169,8 @@ export function staticBuffModules(reader) {
     }
     if(Number.isFinite(effects.analysis(file)?.dirtyFrom)||effects.moduleTainted(file)) {
       const dynamic=unknown('DYNAMIC_VALUE','不純或未知函式呼叫',file);
-      for(const n of [...env.values(),returned])invalidateReachable(n,{resolve:force,dynamic,numericOnly:true});
-      if(!['table','string','boolean','nil'].includes(force(returned)?.type))returned=dynamic;
+      for(const n of [...env.values(),returned])invalidateReachable(n,{resolve:force,dynamic});
+      if(force(returned)?.type!=='table')returned=dynamic;
     }
     returned ??= unknown('FUNCTION_GENERATED','模組沒有靜態回傳 table',file);
     cache.set(file,returned); return returned;

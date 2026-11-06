@@ -15,14 +15,13 @@ test('InterT90_real blessings pinned smoke', {skip:process.env.PIPELINE_REAL_SMO
   run('extract-blessings.mjs',args); const first=readFileSync(path.join(dir,'extract/blessings.json')), data=JSON.parse(first);
   assert.equal(data.status,'ok'); assert.equal(data.items.length+data.excluded.length,693);
   const unknown=x=>!x||typeof x!=='object'?0:(x.value===null&&x.unknown?1:0)+Object.values(x).reduce((n,v)=>n+unknown(v),0);
-  // Spec12：共享 binding 撤銷，保留名稱及 tier 結構；逐筆差異由 review8-validation 留存。
-  assert.equal(unknown(data.items),3941);
+  // 固定來源僅剩 8 個函式產生值與 12 個不在白名單內的 manipulation。
+  assert.equal(unknown(data.items),20);
   const count=xs=>xs.reduce((a,k)=>(a[k]=(a[k]||0)+1,a),{});
   t.diagnostic(JSON.stringify({items:data.items.length,excluded:data.excluded.length,unknown:unknown(data.items),official:data.items.filter(x=>x.name.origin==='official').length,problems:count(data.problems.map(p=>p.code)),unresolvedReasons:count(data.problems.filter(p=>p.code==='UNRESOLVED_VALUE').map(p=>/^\[([^\]]+)\]/.exec(p.message)?.[1]??'UNCLASSIFIED'))}));
   const dumdum=data.items.find(x=>x.key==='weapon_trait_bespoke_autogun_p1_consecutive_hits_increases_close_damage');
-  assert.equal(dumdum.name.en,'Dumdum'); assert.deepEqual(dumdum.values.params.stacks,{value:null,unknown:'DYNAMIC_VALUE'});
-  assert.ok(dumdum.source.files.some(f=>f.path.endsWith('/weapon_traits_bespoke_autogun_p1.lua')));
-  assert.ok(data.problems.some(p=>p.id===dumdum.id&&p.message.startsWith('[TEMPLATE_MISSING] 參數 stacks')));
+  assert.equal(dumdum.name.en,'Dumdum'); assert.equal(dumdum.values.params.stacks.value,5);
+  assert.ok(dumdum.source.files.some(f=>f.path.endsWith('/base_weapon_trait_buff_templates.lua')));
   run('extract-blessings.mjs',args); assert.deepEqual(readFileSync(path.join(dir,'extract/blessings.json')),first);
   // 實測 511：合法 stem 變形與同 stem 共用仍無額外 hash 命中。
   // 5 個缺名樣本：arc_rifle/ammo_from_reserve_on_crit、autogun/hipfire_while_sprinting、

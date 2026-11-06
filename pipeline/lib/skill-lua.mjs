@@ -118,8 +118,6 @@ export function createSkillResolver(reader) {
     const parser=new SkillLua(reader.read(file),file);
     parser.onCall=n=>{
       applyCallMutations(callName(n.callee),n.args,{analysis:effects.analysis(file),resolve,field,entries,capture:(path,owner)=>{const [root,...parts]=path.split('.');let value=(owner===file?parser.env:load(owner).env)?.get(root);for(const part of parts)value=get(value,part);return value;},handled:['_create_entry','_add_template_entries','_require_templates','extract_weapon_tweaks'],dynamic:{type:'unknown',reason:'DYNAMIC_VALUE',file,line:n.line}});
-      // A copy snapshots its children now, before subsequent source writes.
-      if(['table.clone','table.clone_instance','table.shallow_copy'].includes(callName(n.callee)))resolve(n);
     };
     Object.assign(pending,parser.chunk((target,value) => {
       if(value.reason==='CONDITIONAL_ASSIGNMENT') {
@@ -187,12 +185,11 @@ export function createSkillResolver(reader) {
     if(Number.isFinite(effects.analysis(file)?.dirtyFrom)||effects.moduleTainted(file)) {
       const dynamic={type:'unknown',reason:'DYNAMIC_VALUE',file,line:1};
       for(const [name,n] of pending.env) {
-        invalidateReachable(n,{resolve,dynamic,numericOnly:true});
-        if(n?.type!=='table'&&n?.start>=effects.analysis(file).dirtyFrom&&!(n?.type==='literal'&&typeof n.value!=='number'))pending.env.set(name,dynamic);
+        invalidateReachable(n,{resolve,dynamic});
+        if(n?.type!=='table'&&n?.start>=effects.analysis(file).dirtyFrom)pending.env.set(name,dynamic);
       }
-      invalidateReachable(pending.returned,{resolve,dynamic,numericOnly:true});
-      const exported=resolve(pending.returned);
-      if(exported?.type!=='table'&&!(exported?.type==='literal'&&typeof exported.value!=='number'))pending.returned=dynamic;
+      invalidateReachable(pending.returned,{resolve,dynamic});
+      if(resolve(pending.returned)?.type!=='table')pending.returned=dynamic;
     }
     return pending;
   }
@@ -250,7 +247,7 @@ export function createSkillResolver(reader) {
   function resolve(n,trace) {
     if(!n) return undefined;
     if(n.type==='table'&&!revoked.has(n)&&effects.moduleTainted(n.file)) {
-      revoked.add(n);invalidateReachable(n,{resolve,numericOnly:true,dynamic:unknown(n,'DYNAMIC_VALUE')});
+      revoked.add(n);invalidateReachable(n,{resolve,dynamic:unknown(n,'DYNAMIC_VALUE')});
     }
     if(active.has(n)) return unknown(n,'循環參照');
     active.add(n);
@@ -290,13 +287,13 @@ export function createSkillResolver(reader) {
             {...n,type:'table',entries:values.map((v,i)=>({key:name==='table.enum'?v:literal(i+1,n),value:v}))};
           compositions.set(n,result);return result;
         }
-        if(['table.clone','table.clone_instance','table.shallow_copy'].includes(name)) {
+        if(name==='table.clone' || name==='table.clone_instance') {
           if(compositions.has(n)) return compositions.get(n);
           const value=resolve(n.args[0],trace);
           if(value?.type!=='table') return unknown(n,'clone 非靜態 table');
           const copies=new Map();
-          const copy=table=>{if(copies.has(table))return copies.get(table);const out={...table,entries:[]};copies.set(table,out);out.entries=table.entries.map(e=>{const child=resolve(e.value);return {...e,value:child?.type==='table'?copy(child):child};});return out;};
-          const clone=name==='table.shallow_copy'?{...value,entries:value.entries.map(e=>({...e,value:resolve(e.value)}))}:copy(value);compositions.set(n,clone);return clone;
+          const copy=table=>{if(copies.has(table))return copies.get(table);const out={...table,entries:[]};copies.set(table,out);out.entries=table.entries.map(e=>({...e,value:resolve(e.value)?.type==='table'?copy(resolve(e.value)):e.value}));return out;};
+          const clone=name==='table.clone_instance'?copy(value):{...value,entries:[...value.entries]};compositions.set(n,clone);return clone;
         }
         if(['table.merge','table.add_missing','table.append'].includes(name)) return mergeCall(n);
         if(/^math\.(max|min|abs|floor|ceil|round)$/.test(name)) {
@@ -330,12 +327,7 @@ export function createSkillResolver(reader) {
   }
   function get(n,key,trace) {return resolve(field(resolve(n,trace),key),trace);}
   function entries(n) {const t=resolve(n);if(t?.type!=='table') return [];const map=new Map();for(const e of t.entries) {const k=scalar(e.key);if(k!==undefined) map.set(k,e.value);}return [...map];}
-  function numericEvidence(node) {
-    if(Number.isFinite(effects.analysis(node.file)?.dirtyFrom)||effects.moduleTainted(node.file))
-      invalidateReachable(node,{resolve,numericOnly:true,dynamic:unknown(node,'DYNAMIC_VALUE')});
-    return node;
-  }
-  return {load,returned,resolve,scalar,field,get,entries,literal,numericEvidence,setStimmDefinitions(value){stimmDefinitions=value;}};
+  return {load,returned,resolve,scalar,field,get,entries,literal,setStimmDefinitions(value){stimmDefinitions=value;}};
 }
 function math(name,value) {return name==='round'?(value<0?-Math.floor(-value+0.5):Math.floor(value+0.5)):Math[name](value);}
 
