@@ -7,6 +7,8 @@
     "node": ">=24"
   },
   "scripts": {
+    "pipeline:validate": "node pipeline/validate.mjs",
+    "test:pipeline": "node --test tests/pipeline/",
     "test": "node --test --test-concurrency=2",
     "content:preview": "node scripts/content/build.mjs --mode preview",
     "content:formal": "node scripts/content/build.mjs --mode formal",

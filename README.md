@@ -1,5 +1,7 @@
 # DarkTide Source Data
 
+新流程（SPEC v1，SYP-382）：最終資料在 `data/`，格式見 `pipeline/schema/`，啟動方式見 `docs/pipeline/START.md`。`content/` 與 `scripts/content/` 為舊系統，將由 WP7 移除。
+
 This public repository stores sanitized, source-backed technical data authoring, validation contracts, and generated technical analysis for Warhammer 40,000: Darktide.
 
 ## Ownership
