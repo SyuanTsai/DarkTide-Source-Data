@@ -1,0 +1,4 @@
+- Example - 範例
+- ability - 能力
+- ample - 不應命中
+- Other - 其他

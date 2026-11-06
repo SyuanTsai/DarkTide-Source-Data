@@ -35,6 +35,26 @@ export function checkDataFile(category, text) {
       add(`${p}/name/en`, 'Internal name must match key');
     if (Array.isArray(x.errata))
       x.errata.forEach((entry, j) => {
+        const anchor = entry?.anchor;
+        if (anchor && typeof anchor === 'object'
+          && ['official', 'name'].includes(anchor.field) && ['en', 'zh'].includes(anchor.locale)
+          && typeof anchor.text === 'string' && anchor.text.length > 0
+          && Number.isInteger(anchor.occurrence) && anchor.occurrence >= 1) {
+          const path = `${p}/errata/${j}/anchor`;
+          if (anchor.locale !== entry.locale) add(path, 'Anchor locale must match errata locale');
+          else {
+            const target = x[anchor.field]?.[anchor.locale];
+            if (typeof target !== 'string') add(path, 'Anchor target text does not exist');
+            else {
+              let from = 0, count = 0, position;
+              while ((position = target.indexOf(anchor.text, from)) !== -1) {
+                count++;
+                from = position + 1;
+              }
+              if (count < anchor.occurrence) add(path, 'Anchor text not found at occurrence');
+            }
+          }
+        }
         if (typeof entry?.valueRef !== 'string' || !/^(\/([^~\/]|~[01])*)+$/.test(entry.valueRef))
           return;
         let current = x.values;
