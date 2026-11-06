@@ -221,6 +221,7 @@ test('InterT43_written item conflict blocks resume until description is correcte
   const verification = f.verify(); assert.match(verification.stdout, new RegExp(`已寫入的項目與本次檢查結果不同：${id}`));
   const data = await snapshot(f.root), state = await readFile(f.state), result = f.write();
   assert.equal(result.status, 1); assert.ok(result.stderr.includes(`已寫入的項目 ${id} 與新的檢查報告衝突`));
+  assert.match(result.stderr, /把該項目的說明改回能通過檢查的內容後重跑 verify/); assert.doesNotMatch(result.stderr, /check-version/);
   assert.ok(!result.stderr.includes(f.root)); assert.deepEqual(await snapshot(f.root), data); assert.deepEqual(await readFile(f.state), state);
   await writeCanonicalFile(path, good); f.verify(); f.success(f.write()); f.validate();
   const resumed = await snapshot(join(f.root, 'data')), completed = await readFile(f.state);
@@ -372,4 +373,36 @@ test('InterT74_explicit inputs with cloud still use default report and output pa
   const result = f.cli('verify', [...f.verifyArgs, '--candidate-dir', join(f.base, 'candidate'), '--extract-dir', join(f.base, 'extract'), '--version-info', versionInfo]);
   f.success(result); assert.equal((await read(join(f.base, 'verify/report.json'))).gameVersion, meta.gameVersion);
   assert.equal((await read(preview)).gameVersion, meta.gameVersion);
+});
+
+// Scenario: a removed item returns unchanged in a later extract. Purpose: clear its stale registration and publish valid data.
+test('InterT80_returning removed item clears registration and publishes', async (t) => {
+  const f = await fixture(t, { previous: true }), item = f.previousData.skills.items[2], id = item.id;
+  const path = join(f.root, 'work/extract/skills.json'), extract = await read(path);
+  const { explanation, errata, ...returned } = structuredClone(item); returned.source.commit = meta.sourceCommit; returned.source.text.batch = meta.textBatch;
+  extract.items.push(returned); extract.items.sort((a,b) => a.id.localeCompare(b.id)); await writeCanonicalFile(path, extract);
+  const result = f.success(f.cli('diff', f.diffArgs)); assert.ok(result.stdout.includes(`已移除過期登記：${id}`));
+  assert.equal((await read(f.state)).run.items[id], undefined); f.verify(); f.success(f.write()); f.validate();
+  assert.ok((await read(join(f.root, 'data', meta.gameVersion, 'skills.json'))).items.some((x) => x.id === id));
+  assert.equal((await read(f.state)).run.items[id], undefined);
+});
+
+// Scenario: an uncorrected removed registration appears in final data. Purpose: reject all writes before publication.
+test('InterT81_stale removal blocks publication', async (t) => {
+  const f = await fixture(t, { previous: true }); f.verify();
+  const state = await read(f.state), id = f.previousData.skills.items[0].id;
+  state.run.items[id] = { category: 'skills', change: 'removed', inputHash: '0'.repeat(64), stage: 'described', outcome: null, reason: null }; await writeState(f.state, state);
+  const before = await snapshot(f.root), result = f.write(); assert.equal(result.status, 1); assert.ok(result.stderr.includes(`項目 ${id} 登記為移除但仍在本次資料中`)); assert.deepEqual(await snapshot(f.root), before);
+});
+
+// Scenario: a later verify report is persisted before its state checkpoint. Purpose: block stale category state and recover after verification.
+test('InterT82_category report state mismatch blocks and recovers', async (t) => {
+  const f = await fixture(t, { previous: true });
+  const initial = await read(f.state); for (const [id, item] of Object.entries(initial.run.items)) if (item.category === 'terms' && item.change === 'removed') delete initial.run.items[id];
+  await writeState(f.state, initial); f.verify(); const saved = await readFile(f.state);
+  const path = join(f.base, 'extract/terms.json'), extract = await read(path); extract.status = 'structure-mismatch'; extract.reason = '測試結構不符'; extract.items = []; await writeCanonicalFile(path, extract);
+  f.verify(); await writeFile(f.state, saved); const before = await snapshot(f.root), result = f.write();
+  assert.equal(result.status, 1); assert.match(result.stderr, /檢查報告與狀態檔不一致/); assert.deepEqual(await snapshot(f.root), before);
+  f.verify(); f.success(f.write()); f.validate(); const category = (await read(f.state)).run.categories.terms;
+  assert.equal(category.status, 'kept-previous'); assert.equal(category.reason, '測試結構不符');
 });

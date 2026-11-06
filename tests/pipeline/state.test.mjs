@@ -172,3 +172,12 @@ test('UnitT50_null item produces schema error', async (t) => {
     (error) => error.message.includes('/run') && !error.message.includes('Cannot read properties'),
   );
 });
+
+// Scenario: obsolete registrations are removed unless already written. Purpose: preserve immutable state and completed items.
+test('UnitT90_unregister removes pending items and rejects written items', () => {
+  const original = state.registerItem(state.startRun(state.emptyState(), meta), id, info);
+  const updated = state.unregisterItem(original, id);
+  assert.ok(original.run.items[id]); assert.equal(updated.run.items[id], undefined);
+  let written = original; for (const stage of ['described', 'verified', 'written']) written = state.advanceItem(written, id, stage);
+  assert.throws(() => state.unregisterItem(written, id)); assert.ok(written.run.items[id]);
+});

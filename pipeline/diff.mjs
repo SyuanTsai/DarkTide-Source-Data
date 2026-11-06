@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { stringifyCanonical } from './lib/canonical-json.mjs';
 import { checkCurrent, checkDataFile, CATEGORIES } from './lib/data-files.mjs';
-import { readState, writeState, registerItem, advanceItem, reopenItem, pendingItems, STAGES } from './lib/state.mjs';
+import { readState, writeState, registerItem, unregisterItem, advanceItem, reopenItem, pendingItems, STAGES } from './lib/state.mjs';
 import { loadSchemas } from './lib/json-schema.mjs';
 import { diffCategory, inputHashFor } from './lib/diff-core.mjs';
 import { resolveCloudRoot, cloudLayout, itemFileName, copyIfChanged } from './lib/cloud-dir.mjs';
@@ -124,7 +124,10 @@ async function main() {
   }
   checked(schemas.validate('diff-report.schema.json', report), 'diff 報告');
   const active = new Set(registrations.map((x) => x.id));
-  for (const id of Object.keys(run.items).sort()) if (!active.has(id)) console.log(`警告：已登記項目不在本次差異中：${id}`);
+  for (const id of Object.keys(run.items).sort()) if (!active.has(id)) {
+    if (run.items[id].stage === 'written') console.log(`警告：已登記項目不在本次差異中：${id}`);
+    else { state = unregisterItem(state, id); console.log(`已移除過期登記：${id}`); }
+  }
   for (const { id, ...info } of registrations.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0)) {
     state = registerItem(state, id, info);
     if (info.change === 'removed' && state.run.items[id].stage === 'extracted') state = advanceItem(state, id, 'described');

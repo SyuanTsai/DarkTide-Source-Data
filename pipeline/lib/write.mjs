@@ -33,8 +33,12 @@ function checked(check, label) {
   if (!check.valid) throw new WriteError(`${label}驗證失敗：${check.errors.map((e) => `${e.path} ${e.message}`).join('；')}`);
 }
 const inconsistent = () => new WriteError('檢查報告與狀態檔不一致，請重跑 node pipeline/verify.mjs');
-const writtenConflict = (id) => new WriteError(`已寫入的項目 ${id} 與新的檢查報告衝突：請把該項目的說明改回能通過檢查的內容後重跑 verify，或執行 node pipeline/check-version.mjs 重新開始此版本`);
+const writtenConflict = (id) => new WriteError(`已寫入的項目 ${id} 與新的檢查報告衝突：請把該項目的說明改回能通過檢查的內容後重跑 verify`);
 function checkReportState(run, report) {
+  for (const category of CATEGORIES) {
+    if (run.categories[category]?.status !== report.categories[category].status ||
+      run.categories[category]?.reason !== report.categories[category].reason) throw inconsistent();
+  }
   for (const [id, item] of Object.entries(run.items)) {
     if (item.stage === 'written' && ['updated', 'removed'].includes(item.outcome)) {
       const rows = report.items.filter((row) => row.category === item.category && row.id === id);
@@ -149,6 +153,8 @@ export async function runWrite(inputOptions = {}) {
       candidate: candidates[category], previous, rows: report.items, version: run }); }
     catch (error) { throw new WriteError(error.message); }
     for (const [id, item] of Object.entries(run.items)) {
+      if (item.category === category && item.change === 'removed' && item.stage !== 'written' &&
+        final[category].items.some((entry) => entry.id === id)) throw new WriteError(`項目 ${id} 登記為移除但仍在本次資料中，請重跑 node pipeline/diff.mjs 再執行 verify`);
       if (item.category === category && item.stage === 'written' && item.outcome === 'removed' &&
         final[category].items.some((entry) => entry.id === id)) throw writtenConflict(id);
     }
