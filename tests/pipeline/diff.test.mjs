@@ -103,7 +103,7 @@ test('缺少、結構不符、首次執行及版本錯誤', async (t) => {
 test('雲端目錄未設定或不存在時不寫狀態或暫存目錄', async (t) => {
   const a = await setup(t), before = await readFile(a.state), workBefore = await snapshot(a.work);
   const args = ['pipeline/diff.mjs', '--state', a.state, '--work-dir', a.work, '--data-dir', a.data]; const env = { ...process.env }; delete env.DARKTIDE_PIPELINE_CLOUD_DIR;
-  for (const extra of [[], ['--cloud-dir', join(a.dir, 'absent')]]) { const result = spawnSync(process.execPath, [...args, ...extra], { cwd: repo, env, encoding: 'utf8' }); assert.equal(result.status, 1); assert.match(result.stderr, /雲端中間檔目錄/); assert.deepEqual(await readFile(a.state), before); assert.deepEqual(await snapshot(a.work), workBefore); }
+  for (const [extra, missingSetting] of [[[], true], [['--cloud-dir', join(a.dir, 'absent')], false]]) { const result = spawnSync(process.execPath, [...args, ...extra], { cwd: repo, env, encoding: 'utf8' }); assert.equal(result.status, 1); assert.match(result.stderr, /中間檔目錄/); if (missingSetting) { assert.ok(result.stderr.includes('請設定 DARKTIDE_PIPELINE_CLOUD_DIR 或 --cloud-dir 為已存在、不在任何 Git repo 內的本機絕對目錄')); assert.ok(!result.stderr.includes('Google Drive')); } assert.deepEqual(await readFile(a.state), before); assert.deepEqual(await snapshot(a.work), workBefore); }
   await assert.rejects(readdir(join(a.dir, 'absent')), { code: 'ENOENT' });
 });
 
