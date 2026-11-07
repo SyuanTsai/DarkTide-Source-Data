@@ -34,20 +34,26 @@
    $privateRepo = if ($env:DARKTIDE_PRIVATE_REPO) { $env:DARKTIDE_PRIVATE_REPO } else { Join-Path (Get-Location) '../DARKTIDE User Setting' }
    ```
 
-   對 Source-Code 和 Private 各自依序執行下列檢查及 fetch；每個 Git 指令都必須成功，`status` 不得有輸出。取得的目前分支必須與 `origin/HEAD` 指向的遠端預設分支一致，無法判定也算失敗。
+   對 Source-Code 依序執行下列檢查及 fetch；每個 Git 指令都必須成功，`status` 不得有輸出。取得的目前分支必須與 `origin/HEAD` 指向的遠端預設分支一致，無法判定也算失敗。
 
    ```powershell
    git -C $sourceRepo status --short
    git -C $sourceRepo fetch origin
    git -C $sourceRepo branch --show-current
    git -C $sourceRepo symbolic-ref --short refs/remotes/origin/HEAD
-   git -C $privateRepo status --short
-   git -C $privateRepo fetch origin
-   git -C $privateRepo branch --show-current
-   git -C $privateRepo symbolic-ref --short refs/remotes/origin/HEAD
    ```
 
-   分支確認方式：例如預設分支輸出為 `origin/master` 時，目前分支必須是 `master`。兩個 repo 都通過後，執行 `git -C $sourceRepo pull --ff-only`；Source-Code 腳本讀取 `HEAD`，Private 腳本預設讀取 `origin/master`，因此 Private 只需 fetch，不執行 pull。任何一步失敗，包括工作目錄不乾淨、無法 fast-forward 或不在預設分支，立即整批停止，跳到第 8 步，並在「需要使用者處理的事」列出原因。不得 reset、stash、checkout 或切換分支。
+   分支確認方式：例如預設分支輸出為 `origin/master` 時，目前分支必須是 `master`。通過後，執行 `git -C $sourceRepo pull --ff-only`；Source-Code 腳本讀取 `HEAD`。
+
+   Private 只需 fetch 並確認指定的 ref 可解析：
+
+   ```powershell
+   git -C $privateRepo fetch origin
+   $privateRef = if ($env:DARKTIDE_PRIVATE_REF) { $env:DARKTIDE_PRIVATE_REF } else { 'origin/master' }
+   git -C $privateRepo rev-parse --verify $privateRef
+   ```
+
+   腳本只讀取 Private 的 `origin/master` 或 `DARKTIDE_PRIVATE_REF` 指定的 ref，不受目前分支與工作目錄影響，因此不檢查也不切換。任何一步失敗，包括工作目錄不乾淨、無法 fast-forward、不在預設分支、fetch 失敗或 Private ref 無法解析，立即整批停止，跳到第 8 步，並在「需要使用者處理的事」列出原因。不得 reset、stash、checkout 或切換分支。
 1. 版本與狀態：執行 `node pipeline/check-version.mjs`。
    - 輸出「沒有新版本」：直接跳到第 8 步回報後結束。
    - 輸出 Source-Code commit 與解包批次版本不一致：整批停止，跳到第 8 步。
