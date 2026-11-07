@@ -1,6 +1,6 @@
 # 差異與 AI 說明
 
-設定 `DARKTIDE_PIPELINE_CLOUD_DIR` 為 Google Drive for desktop 同步資料夾內已存在的絕對路徑，或在各指令加 `--cloud-dir <目錄>`。檔案位於該目錄的遊戲版本子目錄。
+設定 `DARKTIDE_PIPELINE_CLOUD_DIR` 為已存在、不在任何 Git repo 內的本機絕對目錄，或在各指令加 `--cloud-dir <目錄>`。檔案位於該目錄的遊戲版本子目錄；需要封存到 Google 雲端時，跑完後再上傳。
 
 執行 `node pipeline/diff.mjs --pending` 取得每個待處理項目的輸入與輸出路徑；加 `--json` 可取得 JSON 陣列。一次處理一項，完成後執行 `node pipeline/diff.mjs --mark-described <項目 id>`。
 

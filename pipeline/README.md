@@ -18,6 +18,8 @@ WP1 提供 `lib/`、`schema/`、`validate.mjs` 與 `state.json`；WP2 提供版�
 
 Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 compact JSON 並以一個換行結尾。
 
+中間檔目錄使用已存在、不在任何 Git repo 內的本機絕對目錄，檔案放在遊戲版本子目錄；需要封存到 Google 雲端時，跑完後再上傳。`F:\GitFile\Persion - Games\DarkTide-Pipeline-Work` 僅為範例。
+
 ## 差異（WP3）
 
 `node pipeline/diff.mjs` 讀取 state.run、extract 與目前正式資料，將新增／變動／移除登記至 state；沿用項目不需重寫說明。
@@ -43,7 +45,7 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 | --- | --- |
 | `--root` | repo 根目錄 |
 | `--state` | `<root>/pipeline/state.json`；無 run 時提示先跑 check-version |
-| `--cloud-dir` | `DARKTIDE_PIPELINE_CLOUD_DIR`；需要雲端預設路徑時才解析 |
+| `--cloud-dir` | `DARKTIDE_PIPELINE_CLOUD_DIR`；需要中間檔預設路徑時才解析 |
 | `--version-info` | 由 run 推出 sourceGameVersion、textGameVersion、sourceCommit、textBatch；指定時讀 JSON 檔 |
 | `--extract-dir` | `<cloud>/<ver>/extract` |
 | `--candidate-dir` | 未指定時由 extract、diff/diff.json、ai/output 與上一版組裝至 `<cloud>/<ver>/candidate` |
@@ -60,7 +62,7 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 報告的 `categories.<category>.candidateSha256` 記錄實際候選檔原始 bytes 的 SHA-256，無檔為 null；`previousGameVersion` 記錄合併所用的上一版，供寫入中斷或完成後重跑。exit 0 表示通過或部分降級；exit 2 表示參數、狀態或 IO 錯誤；exit 3 表示整批停止，不應執行 write。
 
-相容舊介面：同時明確指定 candidate-dir、extract-dir、version-info，且未使用雲端設定時，可無 state／cloud 執行。此模式未指定 report 時不存報告，未指定 out-dir 時使用結束即清除的自有暫存目錄。一般無參數流程或有雲端設定時使用上表雲端預設值。
+相容舊介面：同時明確指定 candidate-dir、extract-dir、version-info，且未使用中間檔目錄設定時，可無 state／cloud 執行。此模式未指定 report 時不存報告，未指定 out-dir 時使用結束即清除的自有暫存目錄。一般無參數流程或有中間檔目錄設定時使用上表預設值。
 
 在 `*-worktrees/` 的 worktree 中執行時，請用 `--translation <Translation.md>`（或 `DARKTIDE_GLOSSARY_FILE`）指定譯名表；相鄰 Mods repo 的預設位置通常不同。diff 對應的覆寫參數是 `--glossary`。
 
@@ -91,12 +93,13 @@ exit 0 表示完成；exit 1 表示候選檔變動、版本倒退、資料驗證
 
 輸入來源與優先序：
 
-- Source-Code：`--source-code-repo` > `DARKTIDE_SOURCE_CODE_REPO` > 相對本 repo 的 `../Darktide-Source-Code`；`--commit` 預設為 `HEAD`。commit subject 必須以 `Added Version <版本>` 開頭。
-- Private：`--private-repo` > `DARKTIDE_PRIVATE_REPO` > `../DARKTIDE User Setting`；ref 為 `--private-ref` > `DARKTIDE_PRIVATE_REF` > `origin/master`。批次為 `--text-batch`，未指定時選該 ref 的 `localization/` 最大數字目錄。程式不 fetch 或 checkout。
-- 預設路徑相對於本 worktree；使用位於 `*-worktrees/` 的 worktree 時，通常需明確傳入上述 repo 路徑或設定環境變數。
+- Source-Code：`--source-code-repo` > `DARKTIDE_SOURCE_CODE_REPO` > 預設解析的 `Darktide-Source-Code`；`--commit` 預設為 `HEAD`。commit subject 必須以 `Added Version <版本>` 開頭。
+- Private：`--private-repo` > `DARKTIDE_PRIVATE_REPO` > 預設解析的 `DARKTIDE User Setting`；ref 為 `--private-ref` > `DARKTIDE_PRIVATE_REF` > `origin/master`。批次為 `--text-batch`，未指定時選該 ref 的 `localization/` 最大數字目錄。程式不 fetch 或 checkout。
 - `--state` 預設 `pipeline/state.json`。extract-text 未指定的 batch 與 gameVersion 取 state.run；其他 extractor 未指定的 commit、batch 與 gameVersion 取 state.run。沒有 run 時須明確提供 `--commit`、`--text-batch`，否則提示先跑 check-version。
 
-依 `docs/pipeline/START.md` 執行 check-version → extract-text → 各類 extractor → extract-terms。check-version 先比對 Source-Code 與 manifest 遊戲版本；不一致 exit 2 且不寫 state。相同已完成輸入不重建 run；running/halted 的相同輸入保留進度並接續。`--json` 輸出機器可讀狀態，`--summary` 只讀 state 顯示結果。
+兩個預設 repo 路徑均先找 Source-Data 相鄰目錄，再找往上兩層的目錄；都不存在時使用相鄰路徑。`node pipeline/print-repos.mjs` 唯讀輸出實際解析路徑（JSON）。
+
+依 `docs/pipeline/START.md` 先設定環境並更新來源 repo，再執行 check-version → extract-text → 各類 extractor → extract-terms。check-version 先比對 Source-Code 與 manifest 遊戲版本；不一致 exit 2 且不寫 state。相同已完成輸入不重建 run；running/halted 的相同輸入保留進度並接續。`--json` 輸出機器可讀狀態，`--summary` 只讀 state 顯示結果。
 
 輸出位於 `.pipeline-work/<版本>/extract/`（已忽略），可用 `--work-dir` 覆寫：
 

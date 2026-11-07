@@ -1,10 +1,22 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-test('fixed start instructions contain expected steps and report', () => {
+// Scenario: The fixed start instructions describe how to prepare input repositories.
+// Purpose: Protect the startup steps and report contract from regressions.
+test('UnitT10_fixed start instructions contain expected steps and report', () => {
   const text = readFileSync('docs/pipeline/START.md', 'utf8');
   assert.match(text, /## 提示詞/);
-  assert.ok(text.includes('- 第 8 步的回報數字由 `node pipeline/check-version.mjs --summary` 重新檢查相同輸入的版本後產生（不寫入狀態檔）；停止或沒有新版本時項目數皆為 0，其餘引用狀態檔摘要。'));
+  assert.match(text, /### 第 0 步之前：環境設定/);
+  assert.ok(text.includes('不在任何 Git repo 內的本機絕對目錄'));
+  assert.ok(text.includes('需要封存到 Google 雲端時，跑完後再上傳'));
+  for (const name of ['DARKTIDE_PIPELINE_CLOUD_DIR', 'DARKTIDE_SOURCE_CODE_REPO', 'DARKTIDE_PRIVATE_REPO', 'DARKTIDE_GLOSSARY_FILE']) assert.ok(text.includes(name), name);
+  assert.ok(text.includes('Invoke-Git -C $sourceRepo pull --ff-only'));
+  assert.ok(text.includes('Invoke-Git -C $privateRepo fetch origin'));
+  assert.ok(text.includes('Invoke-Git -C $privateRepo rev-parse --verify $privateRef'));
+  assert.ok(!text.includes('git -C $privateRepo status --short'));
+  assert.ok(!text.includes('git -C $privateRepo branch --show-current'));
+  assert.ok(!text.includes('git -C $privateRepo symbolic-ref'));
+  assert.ok(text.includes('- 第 8 步的回報數字由 `node pipeline/check-version.mjs --summary` 重新檢查相同輸入（接續時同樣加上 `--commit $run.sourceCommit --text-batch $run.textBatch`）的版本後產生（不寫入狀態檔）；停止或沒有新版本時項目數皆為 0，其餘引用狀態檔摘要。'));
   for (let i = 0; i <= 8; i++) assert.match(text, new RegExp(`^${i}\\. `, 'm'));
   for (const word of [
     'pipeline/check-version.mjs',
