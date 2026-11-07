@@ -160,6 +160,8 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 四類 extractor 的資料檔一律寫 `schemaVersion: "1.1.0"`，同次發布四檔必須一致。驗證器仍接受 1.0.0：該版禁止 `values.curves`、`values.attackCombos` 與 `bars[].stats[].curveId`；1.1.0 三者必填。`schema/examples/1.1.0-example/` 提供新版範例，原 1.0.0 範例保留。current 索引 schema 同樣接受 1.0.0／1.1.0，保留舊索引相容；`state.json` 與 text 中間檔有獨立契約，維持 1.0.0。
 
+資料檔的 `explanation.effectOrigin` 為選填，僅 schema 1.1.0 以上的 blessings、skills 可使用；值限 `official` 或 `unofficial-translation`。此欄位由 pipeline 設定，AI output 不得包含；1.0.0、weapons 與 terms 均不得包含。缺少欄位仍為合法資料。
+
 `values.curves[]` 與實際輸出的 bar stat 一一對應，id 為 `<barId>.<statKey>`、依 id 排序。輸入是 `base_stat_value`、ratio 0～1，knots 僅含 0／1，直接重用 WP2 min／max，不再解析一次端點。線性曲線可在端點間內插；陣列沿用 WP2 拆成 `.1`、`.2` 等純量 stat。source 指向 lerp_basic 所在檔案／行（常數則指該數值）。未證實單位時 outputUnit 為 null。
 
 無法證實線性的曲線以 `interpolation: "unknown"`、兩個 output 都為 null 並記原因；原有 stat min／max 保留。`LERP_T_OUT_OF_RANGE` 表示單筆 tweak 權重超出 [0,1]；`NONLINEAR_COMBINATION` 表示多筆累積在區間內發生 clamp，無法以兩端點重建；未觸發 clamp 的逐筆線性相加保持 linear；damage profile 使用相同判定；`NONLINEAR_LERP` 保留供無法以 tweak 線性表示的 lerp 來源使用，目前沒有輸出此原因。曲線仍沿用 WP2「相關 bar 同時變動」語意，不足以重建各 bar 獨立變動的完整傷害公式，缺口見 [公式盤點](../docs/pipeline/weapon-damage-formula-gaps.md)。未解析而進 params 的 stat 不建立曲線。
