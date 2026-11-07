@@ -34,5 +34,7 @@ import './review6.test.mjs';
 import './review7.test.mjs';
 import './review8.test.mjs';
 import './start-repos.test.mjs';
+import './official-template-numbers.test.mjs';
+import './official-effect.test.mjs';
 import './migrate-legacy-copy.test.mjs';
 import './migration-repair.test.mjs';

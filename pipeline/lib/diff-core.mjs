@@ -17,6 +17,7 @@ export function diffCategory(category, previousItems, currentItems) {
   }
   return result;
 }
-export function inputHashFor(category, change, currentItem, previousItem) {
-  return contentHash(category, change === 'removed' ? previousItem : currentItem);
+export function inputHashFor(category, change, currentItem, previousItem, effectTask) {
+  const hash=contentHash(category, change === 'removed' ? previousItem : currentItem);
+  return effectTask?createHash('sha256').update(stringifyCanonical({contentHash:hash,effectPolicy:'official-effect-v1',...effectTask})).digest('hex'):hash;
 }

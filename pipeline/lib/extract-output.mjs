@@ -27,13 +27,13 @@ export function validateExtractItems(category, items, envelope = {gameVersion:'0
   return errors;
 }
 /** Write a deterministic extract after schema validation. */
-export async function writeExtract({workDir, category, envelope, items = [], problems = [], excluded = []}) {
+export async function writeExtract({workDir, category, envelope, items = [], problems = [], excluded = [], effectFormats}) {
   const sorted = [...items].sort((a,b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   if (sorted.some((x,i) => i > 0 && x.id === sorted[i-1].id)) throw new Error('重複項目 ID');
   const errors = validateExtractItems(category, sorted, envelope);
   if (errors.length) throw new Error(`extract 驗證失敗：${JSON.stringify(errors)}`);
   const compare = (a,b) => { const x = stringifyCanonical(a), y = stringifyCanonical(b); return x < y ? -1 : x > y ? 1 : 0; };
-  await writeCanonicalFile(path.join(workDir,'extract',`${category}.json`), {schemaVersion:'1.1.0', category, ...envelope, status:envelope.status || 'ok', reason:envelope.reason || null, problems:[...problems].sort(compare), excluded:[...excluded].sort(compare), items:sorted});
+  await writeCanonicalFile(path.join(workDir,'extract',`${category}.json`), {schemaVersion:'1.1.0', category, ...envelope, status:envelope.status || 'ok', reason:envelope.reason || null, problems:[...problems].sort(compare), excluded:[...excluded].sort(compare), items:sorted,...(effectFormats?{effectFormats}:{})});
 }
 /** Execute an extractor with pinned inputs, state updates, and structural fallback. */
 export async function runExtractCli({category, scriptVersion, build}) {
@@ -55,9 +55,9 @@ export async function runExtractCli({category, scriptVersion, build}) {
     const reader = createSourceReader({repo:source.repo,commit:source.commit});
     const matches = state.run && ['gameVersion','sourceCommit','textBatch'].every(k => state.run[k] === envelope[k]);
     try {
-      const {items = [], problems = [], excluded = []} = await build({reader,text,envelope,workDir:wd});
+      const {items = [], problems = [], excluded = [], effectFormats} = await build({reader,text,envelope,workDir:wd});
       if (!items.length) throw new StructureError(category,'EMPTY','解析後沒有項目');
-      await writeExtract({workDir:wd,category,envelope,items,problems,excluded});
+      await writeExtract({workDir:wd,category,envelope,items,problems,excluded,effectFormats});
       if (matches) { state = setCategory(state,category,{status:'ok',reason:null}); await writeState(stateFile,state); }
       const countUnknown = v => !v || typeof v !== 'object' ? 0 : (v.value === null && typeof v.unknown === 'string' ? 1 : 0) + Object.values(v).reduce((n,x) => n + countUnknown(x),0);
       console.log(`${category}：項目 ${items.length}、unknown ${countUnknown(items)}、problems ${problems.length}、excluded ${excluded.length}`);

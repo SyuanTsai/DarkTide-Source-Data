@@ -1,14 +1,23 @@
 import { manipulate } from './skill-lua.mjs';
+import { captureEffectFormat, gameDecimals } from './effect-format.mjs';
 
 /** Resolve display params exactly as the UI's static subset allows. */
-export function skillParams(r,definition,id,problems,trace) {
+export function skillParams(r,definition,id,problems,trace,formats={params:{}},literalTokens=new Set()) {
   const params={};
   function param(key,raw,suffix='') {
-    const config=r.resolve(raw,trace);if(config?.type!=='table') return;
+    const config=r.resolve(raw,trace);
     let name=String(key)+suffix;
     if(!/^[a-z][a-z0-9_]*$/.test(name)) name=name.toLowerCase();
     if(!/^[a-z][a-z0-9_]*$/.test(name)) {problems.push({code:'PARAM_NAME',id,param:name,message:`無效 param 名稱 ${name}`});return;}
+    if(config?.type!=='table') {
+      const value=r.scalar(config,trace);
+      if(literalTokens.has(String(key)) && ['string','number','boolean'].includes(typeof value)) {
+        params[name]={value};formats.params[name]=captureEffectFormat(()=>({present:false}),String(key));
+      }
+      return;
+    }
     const get=(n,k)=>r.get(n,k,trace),scalar=n=>r.scalar(n,trace);
+    formats.params[name]=captureEffectFormat(k=>{const n=get(config,k);return {present:Boolean(n),value:scalar(n),raw:n?.raw};},String(key));
     const format=scalar(get(config,'format_type')),finder=get(config,'find_value');
     let valueNode=get(config,'value'),tier=false,reason;
     if(finder) {
@@ -21,12 +30,14 @@ export function skillParams(r,definition,id,problems,trace) {
         if(path.includes('lerped_stat_buffs')) reason='lerped_stat_buffs 只有範圍，無最終值';
         const walk=base=>{for(const key of path) base=get(base,key);return base;};
         tier=scalar(get(finder,'tier'))===true;
+        if(tier)formats.params[name].pointTiers=true;
         if(!path.length) reason='buff_template path 無法解析';
         if(tier) valueNode=r.entries(get(template,'talent_overrides')).map(([,v])=>walk(v));
         else valueNode=walk(template);
       } else valueNode=get(finder,'value');
     }
     const manipulation=get(config,'value_manipulation');
+    const displayDecimals=[];
     function display(n) {
       let v=scalar(n);
       if(v===undefined || v===null) {reason ??=r.resolve(n)?.reason ?? '無法靜態解析參照或值';return undefined;}
@@ -35,6 +46,7 @@ export function skillParams(r,definition,id,problems,trace) {
         if(manipulation && scalar(manipulation)!==null) v=manipulate(manipulation,v);
         else if(format==='percentage') v*=100;
         if(!Number.isFinite(v)) {reason ??='value_manipulation 不符合單一 return 靜態運算規則';return undefined;}
+        displayDecimals.push(gameDecimals(v));
         return Number(v.toPrecision(12));
       }
       return ['string','number','boolean'].includes(typeof v)?v:undefined;
@@ -44,6 +56,7 @@ export function skillParams(r,definition,id,problems,trace) {
       if(tier) {if(!valueNode.length) reason='talent_overrides 無法解析';else {value=valueNode.map(display);if(value.some(v=>v===undefined)) reason ??='tier 無法解析';}}
       else value=display(valueNode);
     }
+    if(!reason && displayDecimals.length) formats.params[name].displayDecimals=tier?displayDecimals:displayDecimals[0];
     if(reason || value===undefined) {
       params[name]={value:null,unknown:'DYNAMIC_VALUE'};
       problems.push({code:'UNRESOLVED_VALUE',id,param:name,message:reason ?? '非靜態值',...(reason==='CONDITIONAL_ASSIGNMENT'?{reason}:{})});

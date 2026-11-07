@@ -5,6 +5,9 @@ import { CATEGORIES } from './data-files.mjs';
 import { canonicalize } from './canonical-json.mjs';
 import { itemFileName } from './cloud-dir.mjs';
 import { loadSchemas } from './json-schema.mjs';
+import { loadTextIndex } from './official-text.mjs';
+import { inputHashFor } from './diff-core.mjs';
+import { effectTaskFor } from './official-effect.mjs';
 
 const schemas = loadSchemas(fileURLToPath(new URL('../schema/', import.meta.url)));
 export const DATA_SCHEMA_VERSION = '1.0.0';
@@ -13,7 +16,11 @@ export function dataFile(category, run, items, schemaVersion = DATA_SCHEMA_VERSI
     sourceCommit: run.sourceCommit, textBatch: run.textBatch, items };
 }
 
-export function composeCandidate({ category, run, extract, previous, unchanged = [], outputs = {} }) {
+export function applyEffectTask(explanation, task) {
+  return {...explanation,...(Object.hasOwn(task,'lockedEffect')?{effect:task.lockedEffect,effectOrigin:'official'}:{effectOrigin:'unofficial-translation'})};
+}
+
+export function composeCandidate({ category, run, extract, previous, unchanged = [], outputs = {}, textIndex }) {
   if (extract?.status !== 'ok') return null;
   const old = new Map((previous?.items ?? []).map((item) => [item.id, item]));
   const unchangedIds = new Set(unchanged), items = [];
@@ -26,7 +33,15 @@ export function composeCandidate({ category, run, extract, previous, unchanged =
         schemas.validate('ai-output.schema.json', output).valid && output.id === item.id && output.inputHash === entry.inputHash)
         description = output;
     }
-    if (description) items.push({ ...item, explanation: description.explanation, errata: description.errata });
+    if (description && !unchangedIds.has(item.id) && extract.schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)) {
+      const entry=run.items[item.id], task=effectTaskFor(item,textIndex,extract.effectFormats?.[item.id]);
+      if (inputHashFor(category,entry.change,item,old.get(item.id),task)!==entry.inputHash) throw new Error(`效果任務 inputHash 不符，請重跑 diff：${item.id}`);
+    }
+    if (description) {
+      const explanation=!unchangedIds.has(item.id) && extract.schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)
+        ?applyEffectTask(description.explanation,effectTaskFor(item,textIndex,extract.effectFormats?.[item.id])):description.explanation;
+      items.push({ ...item, explanation, errata: description.errata });
+    }
   }
   items.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   return canonicalize(dataFile(category, run, items, extract.schemaVersion));
@@ -41,6 +56,9 @@ async function optionalJson(file, tolerateInvalid = false) {
 }
 export async function buildCandidates({ run, extractDir, aiOutputDir, previousDir, diffReport }) {
   const result = {};
+  const textFile=join(extractDir,'text.json');
+  const textCurrent=await optionalJson(join(extractDir,'..','diff','text-current.json'));
+  const textIndex=textCurrent?.available!==false && await optionalJson(textFile)?loadTextIndex(textFile):undefined;
   for (const category of CATEGORIES) {
     if (diffReport.categories?.[category]?.status !== 'ok') { result[category] = null; continue; }
     const extract = await optionalJson(join(extractDir, `${category}.json`));
@@ -52,7 +70,7 @@ export async function buildCandidates({ run, extractDir, aiOutputDir, previousDi
         outputs[item.id] = await optionalJson(join(aiOutputDir, itemFileName(item.id)), true);
     }
     result[category] = composeCandidate({ category, run, extract, previous,
-      unchanged: diffReport.categories?.[category]?.unchanged ?? [], outputs });
+      unchanged: diffReport.categories?.[category]?.unchanged ?? [], outputs, textIndex });
   }
   return result;
 }

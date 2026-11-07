@@ -3,7 +3,7 @@ import { itemId, nameFromText, runExtractCli } from './lib/extract-output.mjs';
 import { skillStructure } from './lib/skill-structure.mjs';
 import { skillParams } from './lib/skill-values.mjs';
 
-export const SCRIPT_VERSION='pipeline/extract-skills.mjs@1.0.0';
+export const SCRIPT_VERSION='pipeline/extract-skills.mjs@1.1.0';
 const NODE_TYPES=new Set(['ability','ability_modifier','aura','keystone','keystone_modifier','tactical','tactical_modifier','stat','start','default','broker_stimm']);
 
 export function validateSkillParents(items) {
@@ -14,7 +14,7 @@ export function validateSkillParents(items) {
 }
 
 export function buildSkills({reader,text,envelope}) {
-  const {r,trees,definitions,problems}=skillStructure(reader),items=[],excluded=[],seen=new Set(),used=new Map();
+  const {r,trees,definitions,problems}=skillStructure(reader),items=[],excluded=[],seen=new Set(),used=new Map(),effectFormats={};
   for(const {file,node:tree} of trees) {
     const str=(n,k)=>r.scalar(r.get(n,k)),archetype=str(tree,'archetype_name'),treeName=str(tree,'name');
     const nodes=r.entries(r.get(tree,'nodes')).map(([,n])=>r.resolve(n));
@@ -39,7 +39,10 @@ export function buildSkills({reader,text,envelope}) {
       }
       const official=Object.fromEntries(['en','zh'].map(lang=>[lang,descriptions.length && descriptions.every(d=>!d?.conflict && typeof d?.[lang]==='string')?descriptions.map(d=>d[lang]).join('\n'):null]));
       const parents=[...new Set(r.entries(r.get(node,'parents')).map(([,v])=>str(widgets.get(r.scalar(v)),'talent')).filter(k=>typeof k==='string').map(k=>itemId('skills',archetype,k)))].sort();
-      const params=skillParams(r,definition,id,problems,trace);
+      const formats={params:{},descriptions:descNode?.type==='table'?descKeys.map((key,n)=>({key:key??null,index:n+1})):[],perIndex:r.entries(r.get(definition,'format_values_per_index')).map(([key])=>key)};
+      const literalTokens=new Set(Object.values(official).flatMap(s=>[...(s??'').matchAll(/\{([A-Za-z_][A-Za-z0-9_]*)(?=[:}])/g)].map(m=>m[1])));
+      const params=skillParams(r,definition,id,problems,trace,formats,literalTokens);
+      effectFormats[id]=formats;
       const files=[...new Map(trace.filter(x=>x.path && x.line).map(x=>[`${x.path}:${x.line}`,x])).values()].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:a.line-b.line);
       items.push({id,key,name:named.name,official,
         values:{archetype,tree:treeName,nodeType,icon:str(node,'icon') ?? str(definition,'icon') ?? null,maxPoints:str(node,'max_points') ?? 1,parents,params},
@@ -55,7 +58,7 @@ export function buildSkills({reader,text,envelope}) {
   // Placeholder nodes have no emitted skill and contribute no parent edge.
   for(const item of items)item.values.parents=item.values.parents.filter(id=>emitted.has(id));
   validateSkillParents(items);
-  return {items,problems,excluded};
+  return {items,problems,excluded,effectFormats};
 }
 
 if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) await runExtractCli({category:'skills',scriptVersion:SCRIPT_VERSION,build:buildSkills});

@@ -102,6 +102,18 @@ test('UnitT20_安全運算只接受單一受限運算式',()=>{
   assert.equal(expression({raw:'function (value) local x = value return x end'},1),null);
 });
 
+// Scenario: committed math helpers bind angle conversions to Lua builtins. Purpose: collect literal angles while refusing replacement helpers or shadowed math.
+test('UnitT25_有來源的角度轉換補收靜態值',()=>{
+  const file='trait.lua',mathFile='scripts/foundation/utilities/math.lua';
+  const files=new Map([[mathFile,'math.degrees_to_radians = math.rad\nmath.radians_to_degrees = math.deg'],[file,'return {angle=math.degrees_to_radians(30)}']]);
+  const reader=memory(files),r=resolver(reader),n=r.deref(r.parsed(file).returned.entries[0].value,file);
+  assert.equal(n.node.type,'number');assert.equal(expression({raw:'function(value) return math.floor(math.radians_to_degrees(value)) end'},n.node.value,{angleConversions:r.mathConversions().valid}),29);
+  files.set(mathFile,'math.degrees_to_radians = custom\nmath.radians_to_degrees = math.deg');
+  assert.equal(resolver(reader).deref(r.parsed(file).returned.entries[0].value,file).node.type,'call');
+  files.set(mathFile,'math.degrees_to_radians = math.rad\nmath.radians_to_degrees = math.deg');files.set(file,'local math={} return {angle=math.degrees_to_radians(30)}');
+  const shadow=resolver(reader);assert.notEqual(shadow.deref(shadow.parsed(file).returned.entries[0].value,file).node.type,'number');
+});
+
 // Scenario: suffix variants, alternate family prefixes and common stems. Purpose: only index-proven localization keys may be used.
 test('UnitT30_名稱候選 hash 驗證與跨武器共用',()=>{
   const defs=[
@@ -161,6 +173,16 @@ test('InterT50_完整取數語意、來源、官方文字與固定輸入重複�
   assert.deepEqual(nameless.source.text.keys,{}); assert.deepEqual(nameless.official,{en:null,zh:null});
   assert.deepEqual(nameless.values.params,{}); assert.deepEqual(nameless.values.tiers,[{tier:1,params:{}}]);
   assert.deepEqual(run(f).bytes,bytes);
+});
+
+// Scenario: extract runs with percent, localized and manipulated parameters. Purpose: persist rules only in the work envelope, never inside final values.
+test('InterT55_祝福格式資訊只保留於 extract 工作資料',t=>{
+  const f=prepared(t),{data}=run(f),item=data.items.find(x=>x.key==='weapon_trait_bespoke_gun_p1_test');
+  const formats=data.effectFormats[item.id].params;
+  assert.equal(formats.damage.type,'percentage');assert.equal(formats.label.type,'loc_string');
+  assert.match(formats.manipulated.manipulation,/math.floor/);
+  assert.equal(item.effectFormats,undefined);assert.equal(item.values.format,undefined);
+  assert.deepEqual(Object.keys(item.values.tiers[0].params.damage).sort(),['unit','value']);
 });
 
 // Scenario: Chinese-only names and conflicting resources. Purpose: preserve nameFromText's shared fallback policy.
