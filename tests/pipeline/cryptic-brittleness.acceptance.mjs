@@ -16,7 +16,8 @@ import {checkValues} from '../../pipeline/lib/verify/values.mjs';
 import {checkDataFile} from '../../pipeline/lib/data-files.mjs';
 import {stringifyCanonical} from '../../pipeline/lib/canonical-json.mjs';
 import {contentHash} from '../../pipeline/lib/diff-core.mjs';
-import {createBrittlenessSupplement,BRITTLENESS_SOURCE_PINS} from '../../pipeline/lib/skill-brittleness.mjs';
+import {createBrittlenessSupplement,BRITTLENESS_SOURCE_PINS,BRITTLENESS_DIRECTORY_PINS} from '../../pipeline/lib/skill-brittleness.mjs';
+import {skillStructure} from '../../pipeline/lib/skill-structure.mjs';
 
 const repo=resolve('.'),root='F:/GitFile/Persion - Games/DarkTide-Pipeline-Work/cryptic-brittleness';
 const source='F:/GitFile/Persion - Games/Darktide-Source-Code',commit='e46b8926cfa3fa35503e4b80b15aab7a804314e4';
@@ -76,14 +77,16 @@ assert.deepEqual(validateExtractItems('skills',[...actual.items].sort((a,b)=>a.i
 // Confirm the manifest was generated from the proof's actual reads rather than
 // from a hand-maintained dependency guess. Preflight reads are excluded here.
 const audited=createBrittlenessSupplement(reader);
+const {r:definitionResolver,definitions}=skillStructure(reader);
 for(const item of actual.items.filter(i=>keys.includes(i.key))) {
   const params=structuredClone(item.values.params),problems=[];delete params.brittleness_per_stack;
-  audited(item.id,params,problems,[]);
+  audited(item.id,params,problems,[],definitionResolver.resolve(definitions.get('cryptic').get(item.key)));
   assert.deepEqual(problems,[]);assert.deepEqual(params,item.values.params);
 }
 const proofFilesRead=audited.filesRead();
 assert.deepEqual(proofFilesRead,Object.keys(BRITTLENESS_SOURCE_PINS).sort());
+assert.deepEqual(audited.directoriesRead(),BRITTLENESS_DIRECTORY_PINS);
 assert.equal(hash(readFileSync('pipeline/state.json')),stateBefore);
-const report={sourceCommit:commit,privateCommit:textMeta.privateRefCommit,batch:text.batch,baseline:'b133bd0',items:actual.items.length,changed,unchanged:unchanged.length,unchangedIds:unchanged,repeatBytesIdentical:true,extractSha256:hash(readFileSync(root+'/run1/extract/skills.json')),repositoryStateSha256:stateBefore,proofFilesRead,sourceFingerprints:BRITTLENESS_SOURCE_PINS,checks};
+const report={sourceCommit:commit,privateCommit:textMeta.privateRefCommit,batch:text.batch,baseline:'b133bd0',items:actual.items.length,changed,unchanged:unchanged.length,unchangedIds:unchanged,repeatBytesIdentical:true,extractSha256:hash(readFileSync(root+'/run1/extract/skills.json')),repositoryStateSha256:stateBefore,proofFilesRead,sourceFingerprints:BRITTLENESS_SOURCE_PINS,directoryFingerprints:BRITTLENESS_DIRECTORY_PINS,checks};
 mkdirSync(root,{recursive:true});writeFileSync(root+'/acceptance.json',JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify({...report,unchangedIds:undefined,proofFilesRead:proofFilesRead.length,sourceFingerprints:undefined,checks:checks.map(c=>({id:c.id,params:c.params,effect:c.effect,checkText:c.checkText,checkValues:c.checkValues,sourceFiles:c.sourceFiles.filter(s=>/weapon_buff_templates|arc_grenade_chain_lightning|cryptic_buff_templates|buff_templates\.lua$/.test(s.path))}))}));

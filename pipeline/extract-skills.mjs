@@ -44,7 +44,7 @@ export function buildSkills({reader,text,envelope}) {
       const formats={params:{},descriptions:descNode?.type==='table'?descKeys.map((key,n)=>({key:key??null,index:n+1})):[],perIndex:r.entries(r.get(definition,'format_values_per_index')).map(([key])=>key)};
       const literalTokens=new Set(Object.values(official).flatMap(s=>[...(s??'').matchAll(/\{([A-Za-z_][A-Za-z0-9_]*)(?=[:}])/g)].map(m=>m[1])));
       const params=skillParams(r,definition,id,problems,trace,formats,literalTokens);
-      supplementBrittleness(id,params,problems,trace);
+      supplementBrittleness(id,params,problems,trace,definition);
       effectFormats[id]=formats;
       const files=[...new Map(trace.filter(x=>x.path && x.line).map(x=>[`${x.path}:${x.line}`,x])).values()].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:a.line-b.line);
       items.push({id,key,name:named.name,official,

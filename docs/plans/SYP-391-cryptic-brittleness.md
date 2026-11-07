@@ -1,3 +1,22 @@
+# SYP-391 spec37：cryptic review21 修正
+
+## spec37 實作計畫
+
+- 目標／範圍：修正 R21-01 的實際定義選取落差，交付 R21-02 可重現的候選 pins 產生流程；只改本 worktree，不改正式 state、verify 或 schema。
+- 證據／修改點：`skill-structure.mjs` 依 talents 清單順序選取最後一份同職業定義；`extract-skills.mjs` 未將實際 definition 交給 helper。抽出共用的定義掃描，讓獨立 proof resolver 用相同選取規則，並比對傳入定義的檔案、位置與原文。
+- 變更：audit 同時釘選實際讀檔原始 SHA-256 與 `reader.list()` 的完整結果及順序。預檢全部 pins，證明後再拒絕清單外讀檔／掃描。新增獨立腳本，不套用舊 pins，執行共用的完整靜態證明後輸出候選 JSON、檔案／目錄增刪改與引用鏈證據；正式清單僅在核對差異後明確更新。
+- TDD／驗證：先加入完整 buildSkills 清單外同職業定義、清單順序改變、實際定義身分不符與目錄增刪反例，及 fixture 候選 pins 的手寫預期，確認 Red 再實作 Green。沿用 review18／20 全部反例，跑固定 e46b892 候選 pins 零差異、618 筆驗收（兩筆 0.025 且 checkText/checkValues 通過、616 筆 byte 相同、重跑一致），最後跑 `node --test tests/pipeline/`。
+- 風險／交付：共用選取掃描會新增實際依賴，完整保留收集到的 pins；目錄順序亦影響最後覆蓋，故不得排序後再比較。所有實跑／暫存輸出限指定 work root。依指定訊息新增 commit，不 amend、不 push、不略過 hooks。回退此 commit 即恢復原補收行為。
+
+## spec37 完成紀錄
+
+- R21-01：抽取器傳入實際 definition；獨立 proof resolver 使用共用掃描規則，核對檔案、start、line、raw。audit 新增目錄預檢與證明掃描快照，清單增刪、順序改變及定義身分不符皆回報 `BRITTLENESS_SOURCE_CHANGED`。先確認 5 個新增案例 Red，再完成實作；真實來源測試涵蓋清單外同職業檔先／後選取、純順序變動與實際位置不符。
+- R21-02：`scripts/cryptic-brittleness-pins.mjs` 不套用舊 pins，先完成實際選用定義的兩條靜態證明，再輸出候選清單、增刪改報告及引用鏈 trace。fixture 手寫的 9 檔指紋／1 目錄預期通過，另驗證差異報告與證明失敗拒絕產生候選；README 提供收集、人工或 astra 核對、明確更新及重跑測試步驟。
+- 固定 e46b892 的 proof 實讀聯集為 **438 檔、2 目錄**：原 423 檔無移除、無內容指紋變更；新增 7 個其他職業／base talents、7 個 abilities 及 `lunge_templates.lua`，皆已另以 Git blob 核對原始 SHA-256。核對兩筆實際定義位於 cryptic talents 的 985／1988 行，最終 ratio 仍解析自 `weapon_buff_templates.lua:374`，為 `0.025`。更新正式清單後重新執行腳本，候選與正式 JSON **byte 相同**，檔案／目錄的新增、移除、變更均為零。
+- 重新核對 Private dd430f5／batch 26101089 的 manifest checksum 與列數。最終版 acceptance 通過：618 筆只改兩筆，其餘 **616 筆完整 canonical bytes 與 contentHash 相同**，兩次輸出 byte 相同，SHA-256 仍為 `600c4ad4484df0a32069025edd4d91ae511c17c92ad39deae4e53ae4ad17707d`；兩筆 `checkText`／`checkValues`／schema 全通過，proof 實際讀檔及掃描清單與 pins 完全相等。
+- 最終 `node --test tests/pipeline/`：**375 項，369 通過、6 項既有 opt-in real-smoke 略過、0 失敗**。review18／20 的全部既有反例與 review21 新增反例均拒收，保留 `T_NUMBER`。本次新增 8 個測試，既有 index 匯入的兩個 cryptic 模組共 65 項在本機實際執行。
+- 證據均位於指定工作根：`spec37-red.log`、`spec37-pins-review/`、`spec37-pins-check/`、`spec37-extract-text.log`、`spec37-acceptance-final.log`、`acceptance.json`、`spec37-pipeline-tests.log`。`pipeline/state.json` SHA-256 維持 `ceb6b1a612492c32397ce7d8da1959dda7968d93d59bad093ee13c62910bd5e3`；verify、schema、official-effect 均無變更。
+
 # SYP-391 spec33：cryptic 引用鏈檔案指紋釘選
 
 ## spec33 實作計畫

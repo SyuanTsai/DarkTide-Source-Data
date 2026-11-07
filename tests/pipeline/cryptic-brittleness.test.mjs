@@ -56,7 +56,7 @@ return templates`);
   const reader={commit:envelope.sourceCommit,exists:p=>files.has(p),read:p=>files.get(p),list:(prefix='')=>[...files.keys()].filter(p=>p.startsWith(prefix)).sort()};
   const run=()=>buildSkills({reader,text,envelope});
   const change=(p,from,to)=>{assert.ok(files.get(p).includes(from),from);files.set(p,files.get(p).replace(from,to));};
-  return {files,text,run,change};
+  return {files,text,reader,run,change};
 }
 
 function checks(data,text,key) {
@@ -243,4 +243,56 @@ test('UnitT90_raw fingerprints reject BOM whitespace and missing files',async()=
     const audit=createBrittlenessSourceAudit(reader,{'z.lua':sha,'a.lua':sha});
     assert.deepEqual(audit.changedFiles(),['a.lua','z.lua']);
   }
+});
+
+// Scenario: a pinned directory gains/loses a member or returns the same members in reverse order.
+// Purpose: protect scan membership and the order used to choose the last definition.
+test('UnitT92_directory pins reject additions removals and order changes',async()=>{
+  const {createBrittlenessSourceAudit}=await import('../../pipeline/lib/skill-brittleness.mjs');
+  for(const actual of [['a.lua','b.lua','c.lua'],['a.lua'],['b.lua','a.lua']]) {
+    const audit=createBrittlenessSourceAudit({list:()=>actual},{},{talents:['a.lua','b.lua']});
+    assert.deepEqual(audit.changedDirectories(),['talents']);
+  }
+});
+
+// Scenario: a proof scans an unpinned directory after preflight, then the caller mutates its result.
+// Purpose: record unknown scans and preserve the audited order as an isolated snapshot.
+test('UnitT93_unpinned scans are rejected and directory snapshots are isolated',async()=>{
+  const {createBrittlenessSourceAudit}=await import('../../pipeline/lib/skill-brittleness.mjs');
+  const paths=['b.lua','a.lua'],audit=createBrittlenessSourceAudit({list:()=>paths},{},{});
+  assert.deepEqual(audit.changedDirectories(),[]);
+  const observed=audit.reader.list('new/');observed.reverse();paths.push('c.lua');
+  assert.deepEqual(audit.changedDirectories(),['new/']);
+  assert.deepEqual(audit.directoriesRead(),{'new/':['b.lua','a.lua']});
+});
+
+// Scenario: the complete small static-proof fixture has no relation to the production pins.
+// Purpose: independently regenerate its raw-byte hashes and scan lists against a handwritten manifest.
+test('UnitT94_candidate pins match the handwritten fixture manifest without applying old pins',async()=>{
+  const {collectBrittlenessPins}=await import('../../scripts/cryptic-brittleness-pins.mjs');
+  const f=fixture(),reader={...f.reader,readBytes:p=>Buffer.from(f.files.get(p))};
+  const result=collectBrittlenessPins(reader);
+  const expected=JSON.parse(readFileSync(new URL('./fixtures/cryptic-brittleness-pins.json',import.meta.url),'utf8'));
+  assert.deepEqual(result.pins,expected);
+  assert.equal(result.proofs.length,2);
+  for(const proof of result.proofs)assert.deepEqual(proof.params.brittleness_per_stack,{value:0.025,unit:'ratio'});
+});
+
+// Scenario: candidate sources add, remove and change files and reorder a scan.
+// Purpose: provide a deterministic review report that covers file contents and directory changes.
+test('UnitT96_candidate diff reports file and directory additions removals and changes',async()=>{
+  const {diffBrittlenessPins}=await import('../../scripts/cryptic-brittleness-pins.mjs');
+  const before={sourceCommit:'a',files:{'a.lua':'1','b.lua':'2'},directories:{talents:['a','b'],old:[]}};
+  const after={sourceCommit:'b',files:{'b.lua':'3','c.lua':'4'},directories:{talents:['b','a'],added:[]}};
+  assert.deepEqual(diffBrittlenessPins(before,after),{
+    sourceCommit:{before:'a',after:'b'},files:{added:['c.lua'],removed:['a.lua'],changed:['b.lua']},
+    directories:{added:['added'],removed:['old'],changed:['talents']}});
+});
+
+// Scenario: a changed callback breaks the static proof even though collection ignores old pins.
+// Purpose: never publish a partial candidate manifest merely because hashes could be computed.
+test('UnitT98_candidate collection refuses an unproven application chain',async()=>{
+  const {collectBrittlenessPins}=await import('../../scripts/cryptic-brittleness-pins.mjs');
+  const f=fixture();f.change(ARC,'on_chain_node_add_func = _on_chain_node_add_func','on_chain_node_add_func = changed');
+  assert.throws(()=>collectBrittlenessPins({...f.reader,readBytes:p=>Buffer.from(f.files.get(p))}),/靜態證明失敗，未產生候選 pins/);
 });

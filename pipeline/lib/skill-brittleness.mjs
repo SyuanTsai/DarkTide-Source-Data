@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { tokenizeLua } from './lua-static-reader.mjs';
 import { callName, createSkillResolver } from './skill-lua.mjs';
 import { analyzeLuaEffects } from './lua-effects.mjs';
+import { readTalentDefinitions } from './skill-structure.mjs';
 import sourcePins from './cryptic-brittleness-sources.json' with { type: 'json' };
 
 const ARC_KEY='cryptic_arc_grenades_brittleness';
@@ -13,15 +14,15 @@ const REGISTRY='scripts/settings/buff/buff_templates.lua';
 const WEAPON='scripts/settings/buff/weapon_buff_templates.lua';
 const SETTINGS='scripts/settings/talent/talent_settings';
 const BUFF_SETTINGS='scripts/settings/buff/buff_settings';
-const TALENTS='scripts/settings/ability/archetype_talents/talents/cryptic_talents.lua';
 export const BRITTLENESS_SOURCE_PINS=Object.freeze(sourcePins.files);
 export const BRITTLENESS_SOURCE_COMMIT=sourcePins.sourceCommit;
+export const BRITTLENESS_DIRECTORY_PINS=Object.freeze(sourcePins.directories??{});
 
 /** Snapshot every proof read, including recursive resolver/effects reads. The
  * injected pins parameter is only for unit-testing this low-level audit; the
  * production supplement always uses the fixed, reviewed manifest above. */
-export function createBrittlenessSourceAudit(reader,pins=BRITTLENESS_SOURCE_PINS) {
-  const snapshots=new Map(),readFiles=new Set(),changed=new Set();
+export function createBrittlenessSourceAudit(reader,pins=BRITTLENESS_SOURCE_PINS,directoryPins={}) {
+  const snapshots=new Map(),readFiles=new Set(),changed=new Set(),lists=new Map(),listReads=new Set(),changedDirectories=new Set();
   function snapshot(file) {
     if(snapshots.has(file))return snapshots.get(file);
     try {
@@ -34,37 +35,56 @@ export function createBrittlenessSourceAudit(reader,pins=BRITTLENESS_SOURCE_PINS
   }
   // Check ALL pins even if a changed file makes the static proof exit early.
   for(const file of Object.keys(pins))try {snapshot(file);} catch { /* reported below */ }
+  function listSnapshot(prefix) {
+    if(!lists.has(prefix))try {
+      const paths=[...reader.list(prefix)];lists.set(prefix,paths);
+      if(JSON.stringify(paths)!==JSON.stringify(directoryPins[prefix]))changedDirectories.add(prefix);
+    } catch(error) {changedDirectories.add(prefix);throw error;}
+    return [...lists.get(prefix)];
+  }
+  for(const prefix of Object.keys(directoryPins))try {listSnapshot(prefix);} catch { /* reported below */ }
   return {
     reader:{...reader,
+      list(prefix=''){listReads.add(prefix);return listSnapshot(prefix);},
       read(file){readFiles.add(file);return snapshot(file).text;},
       readBytes(file){readFiles.add(file);return Buffer.from(snapshot(file).bytes);}},
     filesRead:()=>[...readFiles].sort(),
     changedFiles:()=>[...changed].sort(),
+    changedDirectories:()=>[...changedDirectories].sort(),
+    directoriesRead:()=>Object.fromEntries([...listReads].sort().filter(p=>lists.has(p)).map(p=>[p,[...lists.get(p)]])),
   };
 }
 
 /** Each extraction gets a separate resolver so a warmed shared cache cannot
  * hide reads from the audit. Stage values and trace until both gates pass. */
 export function createBrittlenessSupplement(reader) {
-  let audit,r;
-  function supplement(id,params,problems,trace) {
+  let audit,r,definitions;
+  function supplement(id,params,problems,trace,actualDefinition) {
     if(![ARC_KEY,PASSIVE_KEY].some(key=>id===`darktide:skill:cryptic:${key}`))return;
-    audit??=createBrittlenessSourceAudit(reader);
+    audit??=createBrittlenessSourceAudit(reader,BRITTLENESS_SOURCE_PINS,BRITTLENESS_DIRECTORY_PINS);
     const pending={...params},proof=[],failures=[];
-    if(!audit.changedFiles().length)try {
+    const mismatched=new Set();
+    if(!audit.changedFiles().length && !audit.changedDirectories().length)try {
       r??=createSkillResolver(audit.reader);
-      const definition=r.get(r.get(r.returned(TALENTS),'talents'),id.slice('darktide:skill:cryptic:'.length));
-      proveBrittleness(r,audit.reader,definition,id,pending,failures,proof);
+      definitions??=readTalentDefinitions(r,audit.reader);
+      const key=id.slice('darktide:skill:cryptic:'.length);
+      const selected=new Map([...(definitions.get('base')??[]),...(definitions.get('cryptic')??[])]);
+      const definition=r.resolve(selected.get(key));
+      if(!definition || !actualDefinition || ['file','start','line','raw'].some(k=>definition[k]!==actualDefinition[k])) {
+        for(const node of [definition,actualDefinition])if(node?.file)mismatched.add(node.file);
+        if(!mismatched.size)mismatched.add('scripts/settings/ability/archetype_talents/talents/');
+      } else proveBrittleness(r,audit.reader,definition,id,pending,failures,proof);
     } catch {failures.push({code:'BRITTLENESS_SOURCE_UNPROVEN',id,message:'每層脆弱值的靜態引用鏈無法核實，未補收參數'});}
-    const files=audit.changedFiles();
-    if(files.length) {
-      problems.push({code:'BRITTLENESS_SOURCE_CHANGED',id,message:'引用鏈來源已變更，需重新核實；未補收每層脆弱值',files});return;
+    const files=[...new Set([...audit.changedFiles(),...mismatched])].sort(),directories=audit.changedDirectories();
+    if(files.length || directories.length) {
+      problems.push({code:'BRITTLENESS_SOURCE_CHANGED',id,message:'引用鏈來源已變更，需重新核實；未補收每層脆弱值',files,...(directories.length?{directories}:{})});return;
     }
     if(failures.length) {problems.push(...failures);return;}
     if(Object.hasOwn(pending,'brittleness_per_stack'))params.brittleness_per_stack=pending.brittleness_per_stack;
     trace.push(...proof);
   }
   supplement.filesRead=()=>audit?.filesRead()??[];
+  supplement.directoriesRead=()=>audit?.directoriesRead()??{};
   return supplement;
 }
 
@@ -79,7 +99,7 @@ const signature=raw=>createHash('sha256').update(JSON.stringify(tokenizeLua(raw)
 
 /** Only these two audited application chains may add an otherwise absent ratio.
  * No Lua body is executed and no localization number supplies a fallback. */
-function proveBrittleness(r,reader,definition,id,params,problems,trace) {
+export function proveBrittleness(r,reader,definition,id,params,problems,trace) {
   const key=id.slice('darktide:skill:cryptic:'.length);
   if(id!==`darktide:skill:cryptic:${key}` || ![ARC_KEY,PASSIVE_KEY].includes(key))return;
   const proof=[];
