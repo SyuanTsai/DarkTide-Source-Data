@@ -11,7 +11,8 @@ export function extractNumbers(text) {
     const raw = /^[+\-−]/.test(match[0]) && /[\d%]\s*$/.test(before) ? match[0].slice(1) : match[0];
     const value = Number(raw.replace('−', '-'));
     if (/^[1-4]$/.test(raw) && (/(?:LV|Lv|第)\s*$/.test(before) || /^\s*階/.test(after))) continue;
-    result.push({ value, raw, signed: /^[+\-−]/.test(raw), decimals: raw.split('.')[1]?.length ?? 0 });
+    const suffix = /^\s*(%|秒)/.exec(after)?.[1];
+    result.push({ value, raw, signed: /^[+\-−]/.test(raw), decimals: raw.split('.')[1]?.length ?? 0, suffix });
   }
   return result;
 }
@@ -40,18 +41,29 @@ export function derivable(values) {
   });
   return numbers;
 }
+function directionCandidates(token, value, unit) {
+  if (unit === undefined) return derived(value);
+  if (unit === 'percent' && token.suffix === '%') return [value];
+  if (unit === 'ratio' && token.suffix === '%') return derived(value);
+  if (unit === 'seconds' && token.suffix === '秒') return [value];
+  return [];
+}
 export function checkNumbers(values, text, lockedEffect, sections) {
   const tokens = sections ? sections.flatMap(extractNumbers) : extractNumbers(text), numbers = derivable(values), failures = [];
   const wrong = [], direction = [], warnings = [], positiveValues = [];
   walk(values, (v, path) => {
-    if (isGameValuePath(values, path) && typeof v === 'number' && Number.isFinite(v) && v > 0) positiveValues.push(v);
+    if (isGameValuePath(values, path) && typeof v === 'number' && Number.isFinite(v) && v > 0) {
+      const paramPath = path.replace(/\/value(?:\/\d+)?$/, '');
+      const param = paramPath !== path ? atPointer(values, paramPath) : undefined;
+      positiveValues.push({ value: v, path, unit: param?.unit });
+    }
   });
   const lockedCount = typeof lockedEffect === 'string' ? extractNumbers(lockedEffect).length : 0;
   for (const [index, token] of tokens.entries()) {
     if (matches(token, numbers)) continue;
     if (token.signed && numbers.some((n) => !sameSign(token, n) && near({ ...token, value: Math.abs(token.value) }, Math.abs(n)))) {
-      const matching = index < lockedCount && /^[\-−]/.test(token.raw) ? positiveValues.filter((v) => derived(v).some((n) => n > 0 && near({ ...token, value: Math.abs(token.value) }, n))) : [];
-      if (matching.length) warnings.push({ code: 'W_OFFICIAL_TEXT_DIRECTION', path: '/explanation/effect', message: `官方原文數字 ${token.raw}；values：${[...new Set(matching)].join('、')}` });
+      const matching = index < lockedCount && /^[\-−]/.test(token.raw) ? positiveValues.filter(({ value, unit }) => directionCandidates(token, value, unit).some((n) => n > 0 && near({ ...token, value: Math.abs(token.value) }, n))) : [];
+      if (matching.length) warnings.push({ code: 'W_OFFICIAL_TEXT_DIRECTION', path: '/explanation/effect', message: `官方原文數字 ${token.raw}；values：${[...new Set(matching.map(({ value }) => value))].join('、')}` });
       else direction.push(token.raw);
     }
     else wrong.push(token.raw);
