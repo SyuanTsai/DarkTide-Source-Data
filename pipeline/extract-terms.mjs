@@ -70,6 +70,27 @@ export async function buildTerms({reader,text,envelope,workDir}) {
     const suffix = type === 'keyword' && keys.has(other) ? `${value.suffix}:${value.prefix === 'loc_glossary_term_' ? 'term' : 'glossary'}` : value.suffix;
     add({type,suffix,key,locKey:key,files:value.files});
   }
+  // This parameter is a definition in a particular buff, not a glossary key.
+  const buffFile = 'scripts/settings/buff/archetype_buff_templates/psyker_buff_templates.lua';
+  if (!reader.exists(buffFile)) structure(`找不到 ${buffFile}`);
+  const buffFields = fields(reader.read(buffFile), 'templates.psyker_brain_burst_improved', buffFile);
+  const statBuffs = buffFields.find(f => f.key === 'stat_buffs');
+  if (!statBuffs) structure(`${buffFile} 缺少 psyker_brain_burst_improved.stat_buffs`);
+  const statTokens = tokenizeLua(statBuffs.rawValue, {filename:buffFile});
+  const matches = [];
+  let depth = 0;
+  for (const [i, token] of statTokens.entries()) {
+    if (token.value === '{') depth++;
+    if (token.value === '}') depth--;
+    if (depth === 1 && token.value === '[' && statTokens[i+1]?.value === 'stat_buffs' &&
+      statTokens[i+2]?.value === '.' && statTokens[i+3]?.value === 'smite_damage_multiplier' &&
+      statTokens[i+4]?.value === ']' && statTokens[i+5]?.value === '=') matches.push(token);
+  }
+  if (matches.length !== 1) structure(`${buffFile} 缺少唯一的 smite_damage_multiplier`);
+  items.push({id:'darktide:term:psyker:smite-damage-multiplier-parameter',key:'smite_damage_multiplier',
+    name:{en:'smite_damage_multiplier',zh:null,origin:'internal'},official:{en:null,zh:null},
+    values:{category:'keyword',context:'psyker_brain_burst_improved.stat_buffs',refs:['darktide:skill:psyker:psyker_brain_burst_improved'],params:{}},
+    source:{commit:envelope.sourceCommit,files:[{path:buffFile,line:statBuffs.startLine + matches[0].line - 1}],scriptVersion:SCRIPT_VERSION,text:{batch:envelope.textBatch,keys:{}}}});
   for (const file of archetypes) {
     const fs = fields(reader.read(file),'archetype_data',file), name = fs.find(f => f.key === 'archetype_name'), desc = fs.find(f => f.key === 'archetype_description');
     const locKey = literal(name?.rawValue), description = literal(desc?.rawValue);
