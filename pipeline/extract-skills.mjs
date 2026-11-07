@@ -2,6 +2,7 @@ import { pathToFileURL } from 'node:url';
 import { itemId, nameFromText, runExtractCli } from './lib/extract-output.mjs';
 import { skillStructure } from './lib/skill-structure.mjs';
 import { skillParams } from './lib/skill-values.mjs';
+import { supplementBrittleness } from './lib/skill-brittleness.mjs';
 
 export const SCRIPT_VERSION='pipeline/extract-skills.mjs@1.1.0';
 const NODE_TYPES=new Set(['ability','ability_modifier','aura','keystone','keystone_modifier','tactical','tactical_modifier','stat','start','default','broker_stimm']);
@@ -42,6 +43,7 @@ export function buildSkills({reader,text,envelope}) {
       const formats={params:{},descriptions:descNode?.type==='table'?descKeys.map((key,n)=>({key:key??null,index:n+1})):[],perIndex:r.entries(r.get(definition,'format_values_per_index')).map(([key])=>key)};
       const literalTokens=new Set(Object.values(official).flatMap(s=>[...(s??'').matchAll(/\{([A-Za-z_][A-Za-z0-9_]*)(?=[:}])/g)].map(m=>m[1])));
       const params=skillParams(r,definition,id,problems,trace,formats,literalTokens);
+      supplementBrittleness(r,reader,definition,id,params,problems,trace);
       effectFormats[id]=formats;
       const files=[...new Map(trace.filter(x=>x.path && x.line).map(x=>[`${x.path}:${x.line}`,x])).values()].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:a.line-b.line);
       items.push({id,key,name:named.name,official,
