@@ -79,6 +79,8 @@ test('InterT09_合併後 schema 版本不一致停止寫入', async (t) => {
   for (const mode of ['candidate', 'retained', 'consistent']) {
     const f = await fixture(t);
     for (const c of CATEGORIES) f.data[c].schemaVersion = '1.1.0';
+    f.data.skills.items[0].explanation.effectOrigin = 'unofficial-translation';
+    f.data.blessings.items[0].explanation.effectOrigin = 'official';
     const weapon = JSON.parse(await readFile(new URL('../../pipeline/schema/examples/1.1.0-example/weapons.json', import.meta.url), 'utf8'));
     for (const item of f.data.weapons.items) {
       item.values.curves = structuredClone(weapon.items[0].values.curves);
@@ -93,6 +95,10 @@ test('InterT09_合併後 schema 版本不一致停止寫入', async (t) => {
       assert.equal(r.exitCode, 0);
       assert.equal(r.report.result, 'pass');
       assert.ok(await readFile(join(f.dirs.out, 'data', meta.gameVersion, 'weapons.json')));
+      for (const [category, origin] of [['skills', 'unofficial-translation'], ['blessings', 'official']]) {
+        const written = JSON.parse(await readFile(join(f.dirs.out, 'data', meta.gameVersion, `${category}.json`), 'utf8'));
+        assert.equal(written.items[0].explanation.effectOrigin, origin);
+      }
       continue;
     }
     assert.equal(r.exitCode, 3);

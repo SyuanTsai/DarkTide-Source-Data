@@ -31,6 +31,13 @@ export function checkDataFile(category, text) {
   value.items.forEach((x, i) => {
     if (!x || typeof x !== 'object') return;
     const p = `/items/${i}`;
+    if (x.explanation && Object.hasOwn(x.explanation, 'effectOrigin')) {
+      let supportedVersion = false;
+      try { supportedVersion = compareVersions(value.schemaVersion, '1.1.0') >= 0; }
+      catch { /* Schema validation reports malformed versions. */ }
+      if (!supportedVersion || !['blessings', 'skills'].includes(category))
+        add(`${p}/explanation/effectOrigin`, 'effectOrigin requires schema 1.1.0 or later and blessings or skills');
+    }
     if (x.name?.origin === 'internal' && x.name.en !== x.key)
       add(`${p}/name/en`, 'Internal name must match key');
     if (Array.isArray(x.errata))
