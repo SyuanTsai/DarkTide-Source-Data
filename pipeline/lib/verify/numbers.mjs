@@ -11,10 +11,20 @@ export function extractNumbers(text) {
     const raw = /^[+\-−]/.test(match[0]) && /[\d%]\s*$/.test(before) ? match[0].slice(1) : match[0];
     const value = Number(raw.replace('−', '-'));
     if (/^[1-4]$/.test(raw) && (/(?:LV|Lv|第)\s*$/.test(before) || /^\s*階/.test(after))) continue;
-    const suffix = /^\s*((?:%|秒|公尺|米|m(?:eters?|etres?)?\b|s(?:ec(?:onds?)?)?\b)(?:\s*[/／]\s*[%\p{L}]+)*)/iu.exec(after)?.[1];
+    const suffix = extractSuffix(after);
     result.push({ value, raw, signed: /^[+\-−]/.test(raw), decimals: raw.split('.')[1]?.length ?? 0, suffix });
   }
   return result;
+}
+const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
+function extractSuffix(after) {
+  const rest = after.trimStart();
+  if (/^[/／](?!\s*\d)/u.test(rest)) return rest.match(/^[/／]\s*[%\p{L}\p{N}\p{M}\p{S}_]*/u)[0];
+  const first = [...segmenter.segment(rest)][0]?.segment ?? '';
+  const prefix = /^[\p{Script=Han}]/u.test(first) ? first : /^(?:%|[a-z]+|[\p{N}\p{M}\p{S}_]+)/iu.exec(rest)?.[0];
+  if (!prefix) return undefined;
+  const tail = rest.slice(prefix.length);
+  return prefix + (/^(?:(?:\s*[/／]\s*[%\p{L}]+)|[\p{N}\p{M}\p{S}a-z_])+/iu.exec(tail)?.[0] ?? '');
 }
 export const derived = (n) => [n, n * 100, (n - 1) * 100, (1 - n) * 100].filter(Number.isFinite);
 export const near = (token, n) => Math.abs(token.value - n) <= 0.5 * 10 ** -token.decimals + 1e-9;
@@ -41,54 +51,54 @@ export function derivable(values) {
   });
   return numbers;
 }
+const units = new Map(Object.entries({ '%':'percent', 秒:'seconds', s:'seconds', sec:'seconds', second:'seconds', seconds:'seconds', 公尺:'meters', 米:'meters', m:'meters', meter:'meters', meters:'meters', metre:'meters', metres:'meters', 次:'次', 層:'層' }));
+const unsupportedChineseUnits = ['公斤', '公克', '克', '公分', '釐米', '厘米', '毫米', '公里', '平方', '立方', '小時', '分鐘', '毫秒', '度', '倍'];
 const unitName = suffix => {
   if (!suffix) return undefined;
-  if (suffix === '%') return 'percent';
-  if (suffix === '秒' || /^s(?:ec(?:onds?)?)?$/i.test(suffix)) return 'seconds';
-  if (suffix === '公尺' || suffix === '米' || /^m(?:eters?|etres?)?$/i.test(suffix)) return 'meters';
+  const supported = units.get(suffix.toLowerCase());
+  if (supported !== undefined) return supported;
+  if (/[/／²³]/u.test(suffix) || /^[a-z]/i.test(suffix) || unsupportedChineseUnits.some(unit => suffix.startsWith(unit))) return null;
+  return /^[\p{Script=Han}]+$/u.test(suffix) ? undefined : null;
 };
-function stringValue(value) {
+function normalizedValue(value, parentUnit) {
+  if (typeof value === 'number') return Number.isFinite(value) ? {value, unit:parentUnit} : null;
   if (typeof value !== 'string') return null;
   const normalized = normalizeNumbers(value).trim();
-  const match = /^([+\-−]?\d+(?:\.\d+)?)\s*(%|秒|公尺|米|m(?:eters?|etres?)?|s(?:ec(?:onds?)?)?)?$/i.exec(normalized);
+  const match = /^([+\-−]?\d+(?:\.\d+)?)\s*(\S+)?$/u.exec(normalized);
   if (!match) return null;
   const number = Number(match[1].replace('−', '-'));
-  return Number.isFinite(number) ? {value:number, unit:unitName(match[2])} : null;
+  const unit = unitName(match[2]);
+  if (!Number.isFinite(number) || (match[2] && !units.has(match[2].toLowerCase())) || unit === null || (unit !== undefined && parentUnit !== undefined && unit !== parentUnit)) return null;
+  return {value:number, unit:parentUnit ?? unit};
 }
 function directionCandidates(token, value, unit) {
+  if (unitName(token.suffix) === null) return [];
   if (unit === undefined) return derived(value);
-  if (unit === 'percent' && token.suffix === '%') return [value];
   if (unit === 'ratio' && token.suffix === '%') return derived(value);
-  if (unit === 'seconds' && unitName(token.suffix) === 'seconds') return [value];
-  if (unit === 'meters' && unitName(token.suffix) === 'meters') return [value];
+  if (unit === unitName(token.suffix)) return [value];
   return [];
 }
 export function checkNumbers(values, text, lockedEffect, sections) {
-  const tokens = sections ? sections.flatMap(extractNumbers) : extractNumbers(text), numbers = derivable(values), failures = [];
-  const wrong = [], direction = [], warnings = [], positiveValues = [], stringValues = [];
+  const tokens = sections ? sections.flatMap(extractNumbers) : extractNumbers(text), failures = [];
+  const wrong = [], direction = [], warnings = [], normalizedValues = [], numericValues = [];
   walk(values, (v, path) => {
     if (!isGameValuePath(values, path)) return;
-    const parsed = stringValue(v);
+    const paramPath = path.replace(/\/value(?:\/\d+)?$/, '');
+    const param = paramPath !== path ? atPointer(values, paramPath) : undefined;
+    const parsed = normalizedValue(v, param?.unit);
     if (parsed) {
-      const paramPath = path.replace(/\/value(?:\/\d+)?$/, '');
-      const param = paramPath !== path ? atPointer(values, paramPath) : undefined;
-      const parentUnit = param?.unit;
-      if (parsed.unit !== undefined && parentUnit !== undefined && parsed.unit !== parentUnit) return;
-      stringValues.push(parsed);
-      if (parsed.value > 0) positiveValues.push({ ...parsed, unit: parentUnit ?? parsed.unit });
-    }
-    if (typeof v === 'number' && Number.isFinite(v) && v > 0) {
-      const paramPath = path.replace(/\/value(?:\/\d+)?$/, '');
-      const param = paramPath !== path ? atPointer(values, paramPath) : undefined;
-      positiveValues.push({ value: v, path, unit: param?.unit });
+      normalizedValues.push(parsed);
+      if (typeof v === 'number') numericValues.push(parsed);
     }
   });
+  const numbers = numericValues.flatMap(({value}) => derived(value));
+  const directionNumbers = normalizedValues.flatMap(({value}) => derived(value));
   const lockedCount = typeof lockedEffect === 'string' ? extractNumbers(lockedEffect).length : 0;
   for (const [index, token] of tokens.entries()) {
-    const stringNumbers = stringValues.flatMap(({value, unit}) => directionCandidates(token, value, unit));
-    if (matches(token, numbers) || matches(token, stringNumbers)) continue;
-    if (token.signed && [...numbers, ...stringNumbers].some((n) => !sameSign(token, n) && near({ ...token, value: Math.abs(token.value) }, Math.abs(n)))) {
-      const matching = index < lockedCount && /^[\-−]/.test(token.raw) ? positiveValues.filter(({ value, unit }) => directionCandidates(token, value, unit).some((n) => n > 0 && near({ ...token, value: Math.abs(token.value) }, n))) : [];
+    const candidates = normalizedValues.flatMap(({value, unit}) => directionCandidates(token, value, unit));
+    if (matches(token, candidates)) continue;
+    if (token.signed && unitName(token.suffix) !== null && directionNumbers.some((n) => !sameSign(token, n) && near({ ...token, value: Math.abs(token.value) }, Math.abs(n)))) {
+      const matching = index < lockedCount && /^[\-−]/.test(token.raw) ? normalizedValues.filter(({ value, unit }) => value > 0 && directionCandidates(token, value, unit).some((n) => n > 0 && near({ ...token, value: Math.abs(token.value) }, n))) : [];
       if (matching.length) warnings.push({ code: 'W_OFFICIAL_TEXT_DIRECTION', path: '/explanation/effect', message: `官方原文數字 ${token.raw}；values：${[...new Set(matching.map(({ value }) => value))].join('、')}` });
       else direction.push(token.raw);
     }
@@ -99,7 +109,7 @@ export function checkNumbers(values, text, lockedEffect, sections) {
   const uncovered = params(values).filter(({ path, param }) =>
     /^(\/params\/[^/]+|\/tiers\/\d+\/params\/[^/]+)$/.test(path) &&
     typeof param.value === 'number' && Number.isFinite(param.value) && param.value !== 0 &&
-    !tokens.some((token) => matches({ ...token, signed: false, value: Math.abs(token.value) }, derived(param.value))));
+    !tokens.some((token) => unitName(token.suffix) !== null && matches({ ...token, signed: false, value: Math.abs(token.value) }, derived(param.value))));
   if (uncovered.length) failures.push(failure('text', 'T_COVERAGE', '/values', `說明未涵蓋參數：${uncovered.map(({ path }) => `/values${path}`).sort().join('、')}`));
   return { failures, tokens, numbers, warnings };
 }
