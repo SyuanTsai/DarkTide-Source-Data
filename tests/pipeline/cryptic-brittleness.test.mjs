@@ -31,7 +31,7 @@ function fixture() {
   files.set(SETTINGS,'return {cryptic={arc_grenade={extra_arcs=2,rending_stacks_on_minions_hit_by_arc=8},cryptic_electrocution_applies_brittleness={stacks=3}}}');
   files.set('scripts/utilities/fixed_frame.lua','return {}');
   files.set('scripts/settings/ability/special_rules_settings.lua','return {special_rules=table.enum("cryptic_arc_grenade_gives_brittleness")}');
-  files.set('scripts/settings/buff/buff_settings.lua','return {proc_events=table.enum("on_buff_added","on_buff_stack_added","on_max_stack_refresh_buff","on_stackable_buff_refresh_duration"),group_keywords=table.enum("electrocuted"),group_to_keywords={electrocuted={electrocuted=true}},stat_buffs=table.enum("rending_multiplier")}');
+  files.set('scripts/settings/buff/buff_settings.lua','return {proc_events=table.enum("on_buff_added","on_buff_stack_added","on_max_stack_refresh_buff","on_stackable_buff_refresh_duration"),group_keywords=table.enum("electrocuted"),group_to_keywords={electrocuted={electrocuted_arc_ability=true,electrocuted_arc_grenade=true,electrocuted_arc=true,electrocuted_chain_lightning=true,electrocuted_shock_mine=true,electrocuted=true}},stat_buffs=table.enum("rending_multiplier")}');
   files.set(WEAPON,'local BuffSettings=require("scripts/settings/buff/buff_settings")\nlocal buff_stat_buffs=BuffSettings.stat_buffs\nreturn {rending_debuff={stat_buffs={\n[buff_stat_buffs.rending_multiplier]=0.025\n}}}');
   files.set(REGISTRY,`local templates={}
 local _create_entry=function(path, optional_default_buff_category)
@@ -159,5 +159,25 @@ test('UnitT50_missing source modules retain T_NUMBER without unknowns',()=>{
       assert.deepEqual(c.text.notes,[]);
       assert.ok(data.problems.some(p=>p.id===c.item.id&&p.code==='BRITTLENESS_SOURCE_UNPROVEN'));
     }
+  }
+});
+
+// Scenario: review18 mutations change a dependency outside the audited callback.
+// Purpose: reject each unproven chain and retain the numeric verification failure.
+for (const [name,file,from,to,keys] of [
+  ['registry dynamic override',REGISTRY,'return templates','templates.rending_debuff = runtime_buff\nreturn templates',KEYS],
+  ['registry changed ratio',REGISTRY,'return templates','templates.rending_debuff = {stat_buffs={rending_multiplier=0.02}}\nreturn templates',KEYS],
+  ['registry passive removed',REGISTRY,'return templates','templates.cryptic_electrocution_applies_brittleness = nil\nreturn templates',[KEYS[1]]],
+  ['local function shadow',PASSIVE,'templates.cryptic_electrocution_applies_brittleness = {','local function ipairs(x) return function() end end\ntemplates.cryptic_electrocution_applies_brittleness = {',[KEYS[1]]],
+  ['global member overwritten',PASSIVE,'return templates','ScriptUnit.has_extension = function() return nil end\nreturn templates',[KEYS[1]]],
+  ['keyword mapping missing','scripts/settings/buff/buff_settings.lua','group_to_keywords={electrocuted={electrocuted_arc_ability=true,electrocuted_arc_grenade=true,electrocuted_arc=true,electrocuted_chain_lightning=true,electrocuted_shock_mine=true,electrocuted=true}}','group_to_keywords={}',[KEYS[1]]],
+  ['keyword mapping dynamic','scripts/settings/buff/buff_settings.lua','group_to_keywords={electrocuted={electrocuted_arc_ability=true,electrocuted_arc_grenade=true,electrocuted_arc=true,electrocuted_chain_lightning=true,electrocuted_shock_mine=true,electrocuted=true}}','group_to_keywords={electrocuted=runtime_keywords}',[KEYS[1]]]
+]) test(`UnitT60_review18 ${name} retains T_NUMBER`,()=>{
+  const f=fixture(); f.change(file,from,to); const data=f.run();
+  for(const key of keys) {
+    const c=checks(data,f.text,key);
+    assert.ok(!Object.hasOwn(c.item.values.params,'brittleness_per_stack'));
+    assert.ok(c.text.failures.some(x=>x.code==='T_NUMBER'));
+    assert.deepEqual(c.text.notes,[]);
   }
 });

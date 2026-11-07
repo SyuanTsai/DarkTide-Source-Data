@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { tokenizeLua } from './lua-static-reader.mjs';
 import { callName } from './skill-lua.mjs';
+import { analyzeLuaEffects } from './lua-effects.mjs';
 
 const ARC_KEY='cryptic_arc_grenades_brittleness';
 const PASSIVE_KEY='cryptic_electrocution_applies_brittleness';
@@ -30,6 +31,12 @@ export function supplementBrittleness(r,reader,definition,id,params,problems,tra
   const get=(n,k)=>r.get(n,k,proof),scalar=n=>r.scalar(n,proof);
   const fail=()=>problems.push({code:'BRITTLENESS_SOURCE_UNPROVEN',id,message:'每層脆弱值的固定套用形狀或靜態引用鏈無法核實，未補收參數'});
   function include(registry,name,file) {
+    const effects=analyzeLuaEffects(reader.read(REGISTRY),{file:REGISTRY});
+    if(effects.exports.size!==1)return;
+    const root=[...effects.exports][0],target=root+'.'+name;
+    const metadata=new Set(['name','predicted','icon']);
+    if(effects.writes.some(p=>p===root || p===target || p.startsWith(target+'.') ||
+      p.startsWith(root+'.*') && !metadata.has(p.slice((root+'.*.').length))))return;
     const value=get(registry,name);
     if(!value || value.file!==file || value!==get(r.returned(file),name))return;
     const calls=r.load(REGISTRY).calls.filter(c=>callName(c.callee)==='_create_entry'&&r.scalar(c.args[0])===file.slice(0,-4));
@@ -74,6 +81,14 @@ export function supplementBrittleness(r,reader,definition,id,params,problems,tra
       if(!binding(proc,'talent_settings','TalentSettings.cryptic',SETTINGS) || !binding(proc,'FixedFrame','FixedFrame','scripts/utilities/fixed_frame') ||
         !binding(check,'group_to_keywords','BuffSettings.group_to_keywords',BUFF_SETTINGS) || !binding(check,'group_keywords','BuffSettings.group_keywords',BUFF_SETTINGS))return fail();
       for(const [fn,names] of [[check,['ipairs']],[proc,['ScriptUnit','HEALTH_ALIVE']]])if(names.some(n=>fn.capture.has(n)||r.load(PASSIVE).env.has(n)))return fail();
+      const effects=analyzeLuaEffects(reader.read(PASSIVE),{file:PASSIVE});
+      if(['ipairs','ScriptUnit','HEALTH_ALIVE'].some(n=>effects.bindings.has(n) || effects.writes.some(p=>p===n || p.startsWith(n+'.'))))return fail();
+      const groups=proc.capture.get('BuffSettings') ?? check.capture.get('BuffSettings');
+      const groupKey=scalar(get(get(groups,'group_keywords'),'electrocuted'));
+      const keywords=get(get(groups,'group_to_keywords'),groupKey);
+      const expected=['electrocuted_arc_ability','electrocuted_arc_grenade','electrocuted_arc','electrocuted_chain_lightning','electrocuted_shock_mine','electrocuted'];
+      const entries=r.entries(keywords);
+      if(groupKey!=='electrocuted' || keywords?.type!=='table' || keywords.dynamic || keywords.entries.length!==expected.length || entries.length!==expected.length || expected.some(k=>scalar(get(keywords,k))!==true))return fail();
       const settings=get(proc.capture.get('talent_settings'),PASSIVE_KEY),stacks=scalar(get(settings,'stacks'));
       if(!Number.isFinite(stacks) || stacks!==params.stacks?.value)return fail();
       // The table's exact shape proves these expressions belong to proc_func.
