@@ -37,7 +37,7 @@ test('InterT20_start block stops immediately after private fetch fails', t => {
   const section=doc.split('0. 更新輸入來源')[1].split('\n1. 版本與狀態')[0];
   const block=section.match(/```powershell\s*\n([\s\S]*?)```/)[1];
   const log=path.join(dir,'calls.txt');
-  const prelude=`function git {\n  Add-Content -LiteralPath $env:TEST_CALLS -Value ($args -join ' ')\n  if ($args[0] -eq '-C' -and $args[1] -eq $env:DARKTIDE_PRIVATE_REPO) { & git.exe @args; return }\n  $global:LASTEXITCODE = 0\n  if ($args -contains 'branch') { 'master' }\n  if ($args -contains 'symbolic-ref') { 'origin/master' }\n}\n`;
+  const prelude=`$script:RealGit = (Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source\nfunction git {\n  Add-Content -LiteralPath $env:TEST_CALLS -Value ($args -join ' ')\n  if ($args[0] -eq '-C' -and $args[1] -eq $env:DARKTIDE_PRIVATE_REPO) { & $script:RealGit @args; return }\n  $global:LASTEXITCODE = 0\n  if ($args -contains 'branch') { 'master' }\n  if ($args -contains 'symbolic-ref') { 'origin/master' }\n}\n`;
   const script=path.join(dir,'test.ps1'); writeFileSync(script,prelude+block+'\n');
   const r=spawnSync('pwsh',['-NoProfile','-NonInteractive','-File',script],{encoding:'utf8',env:{...process.env,TEST_CALLS:log,DARKTIDE_SOURCE_CODE_REPO:dir,DARKTIDE_PRIVATE_REPO:priv}});
   assert.notEqual(r.status,0,`expected failure: ${r.stdout} ${r.stderr}`);
@@ -75,7 +75,7 @@ for (const [number, scenario] of [['30', 'clean'], ['40', 'resume'], ['50', 'unr
     const doc = readFileSync('docs/pipeline/START.md', 'utf8');
     const block = doc.split('0. 更新輸入來源')[1].match(/```powershell\s*\n([\s\S]*?)```/)[1];
     const source = block.slice(block.indexOf('   $status = @(Invoke-Git status'), block.lastIndexOf('   if (-not $resume) {'));
-    const script = `function Invoke-Git {\n if ($args[0] -eq 'pull') { 'PULLED'; return }\n & git.exe @args\n if ($LASTEXITCODE -ne 0) { throw 'git failed' }\n}\n${source}`;
+    const script = `$script:RealGit = (Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source\nfunction Invoke-Git {\n if ($args[0] -eq 'pull') { 'PULLED'; return }\n & $script:RealGit @args\n if ($LASTEXITCODE -ne 0) { throw 'git failed' }\n}\n${source}`;
     const result = spawnSync('pwsh', ['-NoProfile', '-NonInteractive', '-Command', script], {cwd:dir, encoding:'utf8'});
     if (['unrelated', 'rename', 'readme', 'other-data'].includes(scenario)) { assert.notEqual(result.status, 0); assert.match(result.stderr, /Source-Data/); }
     else { assert.equal(result.status, 0, result.stderr); assert.equal(result.stdout.includes('PULLED'), scenario === 'clean'); }
@@ -95,8 +95,9 @@ test('InterT95_completed resume skips input updates and selects delivery', t => 
   writeFileSync(path.join(dir,'pipeline','state.json'),JSON.stringify({run:{gameVersion:'9.9.9',sourceCommit:'a'.repeat(40),textBatch:'123',status:'completed'}}));
   const doc=readFileSync('docs/pipeline/START.md','utf8');
   const block=doc.split('0. 更新輸入來源')[1].match(/```powershell\s*\n([\s\S]*?)```/)[1];
-  const prelude=`function node { '{"sourceRepo":"source","privateRepo":"private"}'; $global:LASTEXITCODE=0 }
-function git { if ($args[0] -eq '-C' -or $args[0] -eq 'pull') { throw 'unexpected update' }; & git.exe @args }
+  const prelude=`$script:RealGit = (Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+function node { '{"sourceRepo":"source","privateRepo":"private"}'; $global:LASTEXITCODE=0 }
+function git { if ($args[0] -eq '-C' -or $args[0] -eq 'pull') { throw 'unexpected update' }; & $script:RealGit @args }
 `;
   const result=spawnSync('pwsh',['-NoProfile','-NonInteractive','-Command',prelude+block],{cwd:dir,encoding:'utf8'});
   assert.equal(result.status,0,result.stderr);
