@@ -13,6 +13,17 @@ export function siblingRepo(name, root=REPO_ROOT) {
   return existsSync(adjacent)?adjacent:existsSync(parent)?parent:adjacent;
 }
 
+/** Resolve each input independently, preserving CLI and environment precedence. */
+export function resolveSourceRepo({ root = REPO_ROOT, env = process.env, repo } = {}) {
+  return path.resolve(repo || env.DARKTIDE_SOURCE_CODE_REPO || siblingRepo('Darktide-Source-Code', root));
+}
+export function resolvePrivateRepo({ root = REPO_ROOT, env = process.env, repo } = {}) {
+  return path.resolve(repo || env.DARKTIDE_PRIVATE_REPO || siblingRepo('DARKTIDE User Setting', root));
+}
+export function resolveRepoPaths(options = {}) {
+  return { sourceRepo: resolveSourceRepo(options), privateRepo: resolvePrivateRepo(options) };
+}
+
 /** Parse named options. spec maps option names to 'value' or 'flag'. */
 export function parseArgs(argv, spec) {
   const result = {};
@@ -37,7 +48,7 @@ export function git(repo, args) {
 
 /** Resolve a Source-Code ref once and obtain its release version. */
 export function resolveSourceCode({ repo, ref } = {}) {
-  repo = path.resolve(repo || process.env.DARKTIDE_SOURCE_CODE_REPO || siblingRepo('Darktide-Source-Code'));
+  repo = resolveSourceRepo({ repo });
   const commit = git(repo, ['rev-parse', '--verify', `${ref || 'HEAD'}^{commit}`]).trim();
   const subject = git(repo, ['log', '-1', '--format=%s', commit]).trim();
   const match = /^Added Version (\d+(?:\.\d+){1,3})\b/.exec(subject);
@@ -47,7 +58,7 @@ export function resolveSourceCode({ repo, ref } = {}) {
 
 /** Resolve a Private ref and read a numeric localization batch manifest. */
 export function resolvePrivate({ repo, ref, batch } = {}) {
-  repo = path.resolve(repo || process.env.DARKTIDE_PRIVATE_REPO || siblingRepo('DARKTIDE User Setting'));
+  repo = resolvePrivateRepo({ repo });
   ref = ref || process.env.DARKTIDE_PRIVATE_REF || 'origin/master';
   const refCommit = git(repo, ['rev-parse', '--verify', `${ref}^{commit}`]).trim();
   if (!batch) {

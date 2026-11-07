@@ -8,9 +8,9 @@ test('UnitT10_fixed start instructions contain expected steps and report', () =>
   assert.match(text, /## 提示詞/);
   assert.match(text, /### 第 0 步之前：環境設定/);
   for (const name of ['DARKTIDE_PIPELINE_CLOUD_DIR', 'DARKTIDE_SOURCE_CODE_REPO', 'DARKTIDE_PRIVATE_REPO', 'DARKTIDE_GLOSSARY_FILE']) assert.ok(text.includes(name), name);
-  assert.ok(text.includes('git -C $sourceRepo pull --ff-only'));
-  assert.ok(text.includes('git -C $privateRepo fetch origin'));
-  assert.ok(text.includes('git -C $privateRepo rev-parse --verify $privateRef'));
+  assert.ok(text.includes('Invoke-Git -C $sourceRepo pull --ff-only'));
+  assert.ok(text.includes('Invoke-Git -C $privateRepo fetch origin'));
+  assert.ok(text.includes('Invoke-Git -C $privateRepo rev-parse --verify $privateRef'));
   assert.ok(!text.includes('git -C $privateRepo status --short'));
   assert.ok(!text.includes('git -C $privateRepo branch --show-current'));
   assert.ok(!text.includes('git -C $privateRepo symbolic-ref'));

@@ -19,41 +19,43 @@
 以下指令使用 PowerShell 7（pwsh），在 Source-Data repo 根目錄執行。設定目前程序的環境變數，並把範例路徑換成實際路徑：
 
 - 必填：`$env:DARKTIDE_PIPELINE_CLOUD_DIR = 'C:\path\to\existing-cloud-directory'`。必須是已存在的絕對目錄，供 diff、verify、write 使用。
-- 選填：`$env:DARKTIDE_SOURCE_CODE_REPO = 'C:\path\to\Darktide-Source-Code'`；未設定時為 Source-Data repo 的 `../Darktide-Source-Code`。
-- 選填：`$env:DARKTIDE_PRIVATE_REPO = 'C:\path\to\DARKTIDE User Setting'`；未設定時為 Source-Data repo 的 `../DARKTIDE User Setting`。
+- 選填：`$env:DARKTIDE_SOURCE_CODE_REPO = 'C:\path\to\Darktide-Source-Code'`；未設定時由腳本依相鄰目錄優先、往上兩層次之解析。
+- 選填：`$env:DARKTIDE_PRIVATE_REPO = 'C:\path\to\DARKTIDE User Setting'`；未設定時由腳本依相鄰目錄優先、往上兩層次之解析。
 - 選填：`$env:DARKTIDE_GLOSSARY_FILE = 'C:\path\to\Translation.md'`；未設定時為 Source-Data repo 的 `../Warhammer-40-000-DARKTIDE-Mods/Referneces/Translation.md`。
 
-必填變數未設定、不是絕對路徑或目錄不存在時，AI 直接回報「需要使用者處理」及原因後結束，不要建立目錄。選填變數只在需要覆寫預設路徑時設定；worktree 的預設路徑相對於該 worktree。
+必填變數未設定、不是絕對路徑或目錄不存在時，AI 直接回報「需要使用者處理」及原因後結束，不要建立目錄。選填變數只在需要覆寫預設路徑時設定；若兩個候選路徑均不存在，腳本使用相鄰路徑。
 
 ### 步驟
 
-0. 更新輸入來源：先執行 Source-Data 的 `git status --short`，確認沒有輸出，再執行 `git pull --ff-only`。接著以環境變數或預設值決定其他 repo 路徑：
+0. 更新輸入來源：在 Source-Data repo 根目錄執行以下整個區塊。路徑由與取數腳本共用的唯讀解析器提供；Source-Code 使用 `HEAD`，Private 使用 `origin/master` 或指定的 ref。
 
    ```powershell
-   $sourceRepo = if ($env:DARKTIDE_SOURCE_CODE_REPO) { $env:DARKTIDE_SOURCE_CODE_REPO } else { Join-Path (Get-Location) '../Darktide-Source-Code' }
-   $privateRepo = if ($env:DARKTIDE_PRIVATE_REPO) { $env:DARKTIDE_PRIVATE_REPO } else { Join-Path (Get-Location) '../DARKTIDE User Setting' }
-   ```
+   function Invoke-Git {
+     git @args
+     if ($LASTEXITCODE -ne 0) { throw "git $args 失敗（exit $LASTEXITCODE）" }
+   }
+   $reposJson = node pipeline/print-repos.mjs
+   if ($LASTEXITCODE -ne 0) { throw '來源 repo 路徑解析失敗' }
+   $repos = $reposJson | ConvertFrom-Json -ErrorAction Stop
+   $sourceRepo = $repos.sourceRepo
+   $privateRepo = $repos.privateRepo
 
-   對 Source-Code 依序執行下列檢查及 fetch；每個 Git 指令都必須成功，`status` 不得有輸出。取得的目前分支必須與 `origin/HEAD` 指向的遠端預設分支一致，無法判定也算失敗。
-
-   ```powershell
-   git -C $sourceRepo status --short
-   git -C $sourceRepo fetch origin
-   git -C $sourceRepo branch --show-current
-   git -C $sourceRepo symbolic-ref --short refs/remotes/origin/HEAD
-   ```
-
-   分支確認方式：例如預設分支輸出為 `origin/master` 時，目前分支必須是 `master`。通過後，執行 `git -C $sourceRepo pull --ff-only`；Source-Code 腳本讀取 `HEAD`。
-
-   Private 只需 fetch 並確認指定的 ref 可解析：
-
-   ```powershell
-   git -C $privateRepo fetch origin
+   $status = @(Invoke-Git status --short)
+   if ($status.Count -ne 0) { throw 'Source-Data 工作目錄不乾淨' }
+   Invoke-Git pull --ff-only
+   $status = @(Invoke-Git -C $sourceRepo status --short)
+   if ($status.Count -ne 0) { throw 'Source-Code 工作目錄不乾淨' }
+   Invoke-Git -C $sourceRepo fetch origin
+   $branch = Invoke-Git -C $sourceRepo branch --show-current
+   $default = Invoke-Git -C $sourceRepo symbolic-ref --short refs/remotes/origin/HEAD
+   if (-not $branch -or $default -ne "origin/$branch") { throw 'Source-Code 不在遠端預設分支' }
+   Invoke-Git -C $sourceRepo pull --ff-only
+   Invoke-Git -C $privateRepo fetch origin
    $privateRef = if ($env:DARKTIDE_PRIVATE_REF) { $env:DARKTIDE_PRIVATE_REF } else { 'origin/master' }
-   git -C $privateRepo rev-parse --verify $privateRef
+   Invoke-Git -C $privateRepo rev-parse --verify $privateRef
    ```
 
-   腳本只讀取 Private 的 `origin/master` 或 `DARKTIDE_PRIVATE_REF` 指定的 ref，不受目前分支與工作目錄影響，因此不檢查也不切換。任何一步失敗，包括工作目錄不乾淨、無法 fast-forward、不在預設分支、fetch 失敗或 Private ref 無法解析，立即整批停止，跳到第 8 步，並在「需要使用者處理的事」列出原因。不得 reset、stash、checkout 或切換分支。
+   任何一步失敗或 `throw` 後立即整批停止，跳到第 8 步，並在「需要使用者處理的事」列出原因。Private 的工作目錄及目前分支不影響腳本讀取，不檢查也不切換。不得 reset、stash、checkout 或切換分支。
 1. 版本與狀態：執行 `node pipeline/check-version.mjs`。
    - 輸出「沒有新版本」：直接跳到第 8 步回報後結束。
    - 輸出 Source-Code commit 與解包批次版本不一致：整批停止，跳到第 8 步。

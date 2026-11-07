@@ -91,10 +91,11 @@ exit 0 表示完成；exit 1 表示候選檔變動、版本倒退、資料驗證
 
 輸入來源與優先序：
 
-- Source-Code：`--source-code-repo` > `DARKTIDE_SOURCE_CODE_REPO` > 相對本 repo 的 `../Darktide-Source-Code`；`--commit` 預設為 `HEAD`。commit subject 必須以 `Added Version <版本>` 開頭。
-- Private：`--private-repo` > `DARKTIDE_PRIVATE_REPO` > `../DARKTIDE User Setting`；ref 為 `--private-ref` > `DARKTIDE_PRIVATE_REF` > `origin/master`。批次為 `--text-batch`，未指定時選該 ref 的 `localization/` 最大數字目錄。程式不 fetch 或 checkout。
-- 預設路徑相對於本 worktree；使用位於 `*-worktrees/` 的 worktree 時，通常需明確傳入上述 repo 路徑或設定環境變數。
+- Source-Code：`--source-code-repo` > `DARKTIDE_SOURCE_CODE_REPO` > 預設解析的 `Darktide-Source-Code`；`--commit` 預設為 `HEAD`。commit subject 必須以 `Added Version <版本>` 開頭。
+- Private：`--private-repo` > `DARKTIDE_PRIVATE_REPO` > 預設解析的 `DARKTIDE User Setting`；ref 為 `--private-ref` > `DARKTIDE_PRIVATE_REF` > `origin/master`。批次為 `--text-batch`，未指定時選該 ref 的 `localization/` 最大數字目錄。程式不 fetch 或 checkout。
 - `--state` 預設 `pipeline/state.json`。extract-text 未指定的 batch 與 gameVersion 取 state.run；其他 extractor 未指定的 commit、batch 與 gameVersion 取 state.run。沒有 run 時須明確提供 `--commit`、`--text-batch`，否則提示先跑 check-version。
+
+兩個預設 repo 路徑均先找 Source-Data 相鄰目錄，再找往上兩層的目錄；都不存在時使用相鄰路徑。`node pipeline/print-repos.mjs` 唯讀輸出實際解析路徑（JSON）。
 
 依 `docs/pipeline/START.md` 先設定環境並更新來源 repo，再執行 check-version → extract-text → 各類 extractor → extract-terms。check-version 先比對 Source-Code 與 manifest 遊戲版本；不一致 exit 2 且不寫 state。相同已完成輸入不重建 run；running/halted 的相同輸入保留進度並接續。`--json` 輸出機器可讀狀態，`--summary` 只讀 state 顯示結果。
 
