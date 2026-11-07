@@ -8,7 +8,7 @@ import {checkText} from '../../pipeline/lib/verify/text.mjs';
 import {buildSkills,readSkillData} from '../../pipeline/extract-skills.mjs';
 import {createSkillResolver} from '../../pipeline/lib/skill-lua.mjs';
 
-const repo=resolveSourceRepo(),options={skip:!existsSync(repo)&&'需要本機固定 Source-Code；小型 fixture 測試仍照常執行'};
+const repo=resolveSourceRepo(),options={skip:process.env.PIPELINE_REAL_SMOKE !== '1' ? '需明確啟用 PIPELINE_REAL_SMOKE=1' : !existsSync(repo)&&'需要本機固定 Source-Code；小型 fixture 測試仍照常執行'};
 const ARC='scripts/settings/fx/effect_templates/arc_chain_lightning_source/arc_grenade_chain_lightning_source.lua';
 const PASSIVE='scripts/settings/buff/archetype_buff_templates/cryptic_buff_templates.lua';
 const WEAPON='scripts/settings/buff/weapon_buff_templates.lua';

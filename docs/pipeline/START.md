@@ -134,3 +134,5 @@
 - 第 8 步的回報數字由 `node pipeline/check-version.mjs --summary` 重新檢查相同輸入（接續時同樣加上 `--commit $run.sourceCommit --text-batch $run.textBatch`）的版本後產生（不寫入狀態檔）；停止或沒有新版本時項目數皆為 0，其餘引用狀態檔摘要。
 - 本檔只寫一般步驟與固定指令。各指令由 WP2～WP4b 實作；指令執行失敗時，視為整批停止並回報。
 - 環境變數與路徑設定請見「第 0 步之前：環境設定」。
+
+開 PR 或驗收前必須執行真實來源完整測試：在 PowerShell 設定 `$env:PIPELINE_REAL_SMOKE='1'`，再執行 `node --test tests/pipeline/cryptic-brittleness-fingerprints.test.mjs tests/pipeline/cryptic-brittleness-reads.test.mjs`，並執行 `node --test tests/pipeline/review33.real.test.mjs` 核對固定來源 binding 行號。預設未設定時 fingerprint／reads 的真實來源案例不會執行，小型 fixture 仍會執行。

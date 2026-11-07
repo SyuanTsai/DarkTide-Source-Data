@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createWeaponStats} from '../../pipeline/lib/weapon-stats.mjs';
+import {createDamageProfileExtractor} from '../../pipeline/lib/weapon-damage-profiles.mjs';
 import {stringifyCanonical} from '../../pipeline/lib/canonical-json.mjs';
 import {loadSchemas} from '../../pipeline/lib/json-schema.mjs';
 
@@ -232,4 +233,42 @@ return weapon_template`;
 // Purpose: guarantee stable IDs, distributions and binding order down to output bytes.
 test('UnitT80_repeated extraction is byte identical',()=>{
   assert.equal(stringifyCanonical(run().profiles),stringifyCanonical(run().profiles));
+});
+
+// Scenario: an inherited hit scan clones a table containing a symbolic profile reference.
+// Purpose: retain the original profile reference location in bindings and source files.
+test('UnitT78_cloned template binding preserves reference source',()=>{
+ const file=projectile+'hit_scan_templates.lua';
+ const extra={[file]:`local D=require("scripts/settings/damage/damage_profile_templates")
+local hit_scan_templates={hip={damage={impact={damage_profile=D.ranged}}}}
+hit_scan_templates.ads=table.clone(hit_scan_templates.hip)
+return hit_scan_templates`};
+ const {profiles,files}=run({extra});
+ const binding=profiles.find(p=>p.id==='ranged').bindings.find(b=>b.action==='ads');
+ assert.deepEqual(binding.source,{path:file,line:2});
+ assert.ok(files.some(f=>f.path===file&&f.line===2));
+});
+
+// Scenario: armor and breed enum tables have dynamic keys; a binding scope also has one.
+// Purpose: ignore unrelated enum tables while retaining fail-closed binding diagnostics.
+test('UnitT79_unrelated enum keys do not produce binding diagnostics',()=>{
+ const actions=`local weapon_template={actions={attack={damage_profile="base",action_armor_hit_mass_mod={[armor_types.armored]=1,[armor_types.super_armor]=2},sticks_to_tags={[breed_tags.monster]=true,[breed_tags.ogryn]=true}}}}
+return weapon_template`;
+ assert.equal(run({actions}).problems.filter(p=>p.code==='DAMAGE_BINDING_UNKNOWN').length,0);
+ const bad=actions.replace('damage_profile="base",','damage_profile="base",[runtime_key]=1,');
+ assert.ok(run({actions:bad}).problems.some(p=>p.code==='DAMAGE_BINDING_UNKNOWN'));
+});
+
+// Scenario: a cloned reference node has a synthetic location after its original reference.
+// Purpose: the binding and its file list use the same original location as name resolution.
+test('UnitT81_clone reference source takes precedence over synthetic node location',()=>{
+ const ref={type:'reference',ref:'D.base',_file:'hitscan.lua',startLine:53};
+ const clone={type:'unsupported',_file:'hitscan.lua',startLine:77,_cloneReference:ref};
+ const key=value=>({type:'string',value});
+ const table=entries=>({type:'table',entries:entries.map(([k,v])=>({key:key(k),value:v}))});
+ const actions=table([['attack',table([['damage_profile',clone]])]]);
+ const extract=createDamageProfileExtractor({lookup:()=>null,resolve:n=>n,field:()=>null,component:n=>n?.value,annotate:()=>{},paths:{damage:'damage.lua'},definition:()=>null,binding:()=>({D:{type:'require',path:'damage'}})});
+ const files=[],profiles=extract({actions,file:'weapon.lua',id:'fixture',files});
+ assert.deepEqual(profiles[0].bindings[0].source,{path:'hitscan.lua',line:53});
+ assert.ok(files.some(f=>f.path==='hitscan.lua'&&f.line===53));
 });

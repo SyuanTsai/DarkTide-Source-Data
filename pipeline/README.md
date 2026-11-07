@@ -211,3 +211,5 @@ step 的 profile 綁定重用 WP2 require/catalog 邏輯，唯一靜態 profile 
 固定來源 `ba6c148`／文字批次 `25606770` 的基準為 137 把武器、25,372 條曲線、146 組連段；73 把近戰中，light／heavy 各 55 把有至少一個已確認攻擊 step（75.34%，包含帶 unknown 的已確認前綴）。real smoke 的兩種連段覆蓋門檻均設為 70%，保留條件分支的保守 unknown，不以空 steps 充作覆蓋。
 
 `extract-weapons.mjs` 讀取玩家武器模板、官方文字與靜態 trait 列，先建立整把武器的貢獻表；min／max 為所有相關屬性條同時 0%／100% 時的遊戲實際值；同一路徑多條會累加後 clamp 到 0～1，再對實際基礎模板內插，固定數字列也參與累加。保留固定值與陣列的各元素。`lib/weapon-stats.mjs` 處理 registry、require、movement state 繼承及 damage profile parent/overrides；damage key 包含實際 profile／override 名稱；profile 專屬 lerp override 整份優先於通用 action 貢獻，只有被選用的來源參與累加；相同語意來源只輸出一次，所有有貢獻的 bar 都保留該 stat。無法靜態解析的數值記為 unknown，`UNRESOLVED_STAT.reason` 區分缺參照、函式與條件算式；movement sentinel 依遊戲設定展開並套用繼承。不存在且遊戲不讀取的路徑略過，每把武器以一筆 `NOT_APPLICABLE_STAT` 彙總數量，未註冊模板仍會輸出。
+
+開 PR 或驗收前必須執行真實來源完整測試：在 PowerShell 設定 `$env:PIPELINE_REAL_SMOKE='1'`，再執行 `node --test tests/pipeline/cryptic-brittleness-fingerprints.test.mjs tests/pipeline/cryptic-brittleness-reads.test.mjs`，並執行 `node --test tests/pipeline/review33.real.test.mjs` 核對固定來源 binding 行號。預設未設定時 fingerprint／reads 的真實來源案例不會執行，小型 fixture 仍會執行。

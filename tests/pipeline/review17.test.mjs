@@ -25,3 +25,14 @@ test('UnitT35_imported factory callback invalidates captured data',()=>{const fi
 // Scenario: a local helper mutates only a local allocation.
 // Purpose: unrelated effects leave the imported enum and math proof intact.
 test('UnitT40_unrelated local helper preserves shared proofs',()=>{const files={'settings.lua':'return {damage_types={sawing=1}}','effects.lua':'local S=require("settings") local output={} local function add(v) output[#output+1]=v end add(1) return output'};const guard=createSharedBindingGuard({exists:p=>p in files,read:p=>files[p]});guard.load('effects.lua');assert.equal(guard.moduleTainted('settings.lua'),false);assert.equal(guard.intact(['math']),true);});
+
+// Scenario: a proof is cached before another module writes the same global.
+// Purpose: a later discovered write revokes cached proof without affecting other guards.
+test('UnitT41_guard cache is isolated and revoked by later writes',()=>{
+ const files={'clean.lua':'return {}','writer.lua':'math.lerp=function() return 0 end return {}'};
+ const reader={exists:p=>p in files,read:p=>files[p]};
+ const first=createSharedBindingGuard(reader),second=createSharedBindingGuard(reader);
+ first.load('clean.lua');assert.equal(first.intact(['math']),true);assert.equal(first.intact(['math']),true);
+ first.load('writer.lua');assert.equal(first.intact(['math']),false);
+ assert.equal(second.intact(['math']),true);
+});

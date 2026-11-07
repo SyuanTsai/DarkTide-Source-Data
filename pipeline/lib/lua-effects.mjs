@@ -449,6 +449,7 @@ export function verifiedBinding({name,bound=false,intact=()=>true,definitionVeri
 export function createSharedBindingGuard(reader) {
  const modules=new Map(),pureBindings=new Set(),tainted=new Set();
  let proofEpoch=0;
+ const intactCache=new Map();
  // Only parsed, effect-guarded literal fields can be excluded from alias unions.
  // A missing module, cycle or unknown key never supplies scalar evidence.
  function importedValue(id) {
@@ -515,7 +516,7 @@ export function createSharedBindingGuard(reader) {
    if(owner){const canonical=identity(file)+path.slice(owner.length);if(!initial.has(canonical)){initial.add(canonical);continue;}record.writes.push(canonical);}
    else if(!path.startsWith('!'))record.writes.push(['math','table','MathUtils'].includes(path.split('.')[0])?path.split('.')[0]:path);
   }
-  if(record.writes.length)proofEpoch++;
+  if(record.writes.length){proofEpoch++;intactCache.clear();}
   // External root writes are monotonic. Keep table reads cheap even after
   // consumers have cached modules and later discover another writer.
   for(const p of record.writes)if(p.startsWith('@')) {
@@ -524,7 +525,10 @@ export function createSharedBindingGuard(reader) {
  }
  function intact(roots,{moduleFile,member}={}) {
   const wanted=[...roots,...(moduleFile?[identity(moduleFile)+(member?'.'+member:'')]:[])];
-  return ![...modules.values()].some(m=>m.writes.some(p=>wanted.some(w=>overlaps(p,w))));
+  const key=JSON.stringify(wanted);
+  if(intactCache.has(key))return intactCache.get(key);
+  const result=![...modules.values()].some(m=>m.writes.some(p=>wanted.some(w=>overlaps(p,w))));
+  intactCache.set(key,result);return result;
  }
  return {load,intact,moduleTainted(file){return Boolean(file)&&tainted.has(identity(file));},analysis(file){load(file);const m=modules.get(file);if(!m)return;
  const fingerprint=[...modules.values()].flatMap(m=>m.writes).filter(p=>!p.startsWith('@')).sort().join('|');

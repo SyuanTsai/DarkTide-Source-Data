@@ -115,10 +115,10 @@ export function createDamageProfileExtractor({lookup,resolve,field,component,ann
         const next=new Set([...route,node]);
         const bindingScope=node===resolve(start)||entries(node).some(([key])=>profileField(key)||fields[key]);
         if(bindingScope&&unknownKey(node))uncertainActions.add(action);
-        if(node.dynamic||unknownKey(node))problem('DAMAGE_BINDING_UNKNOWN','DYNAMIC_VALUE',location(node,fallback),{action});
+        if(bindingScope&&(node.dynamic||unknownKey(node)))problem('DAMAGE_BINDING_UNKNOWN','DYNAMIC_VALUE',location(node,fallback),{action});
         for(const [key,value] of entries(node)) {
           if(profileField(key)) {
-            const name=named(value,'damage',file),source=location(value,location(node,fallback));
+            const name=named(value,'damage',file),source=location(value?._cloneReference??value,location(node,fallback));
             if(!name){problem('DAMAGE_BINDING_UNKNOWN','DYNAMIC_VALUE',source,{action});continue;}
             const p=record(name,source),b={action,kind:context.kind,template:context.template,source};
             // A private profile clone can differ by action but the contract has
