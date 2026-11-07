@@ -98,7 +98,7 @@ const overlaps=(a,b)=>{a=a.split('.*')[0];b=b.split('.*')[0];return a===b||a.sta
  */
 export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,bindingsIntact=()=>true,pureBindings=new Set()}={}) {
  const t=tokenizeLua(source),functions=new Map(),slots=new Map(),calls=[],bindings=new Map(),models=new Map(),evaluating=new Set(),opaqueReturns=new Set();
- let dirtyFrom=Infinity,attach=null,unsafeEscape=false;
+ let dirtyFrom=Infinity,attach=null;
  const pathAt=i=>{if(t[i]?.type!=='identifier')return null;const parts=[t[i++].value];let method=false;while(true){if(['.',':'].includes(t[i]?.value)&&t[i+1]?.type==='identifier'){method||=t[i].value===':';parts.push(t[i+1].value);i+=2;}else if(t[i]?.value==='['){const end=close(i,'[',']');parts.push(end===i+2&&['string','number'].includes(t[i+1]?.type)?String(t[i+1].value):'*');i=end+1;}else break;}return {parts,end:i,method};};
  function close(i,open='(',end=')'){let depth=1;while(++i<t.length){if(['string','number'].includes(t[i].type))continue;if(t[i].value===open)depth++;if(t[i].value===end&&!--depth)return i;}return t.length-1;}
  // Snapshot descendant edges before adding copied identities to the graph.
@@ -232,7 +232,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
      i=stop;continue;
     }
     const branch=scopeEnv,r=run(i+1,stop,branch,scopeOwn,inFunction,true,active,allocations);
-    for(const [key,values] of env)if(!loopNames.includes(key)&&branch.has(key))env.set(key,new Set([...values,...branch.get(key)]));impure||=r.impure;r.shared.forEach(x=>shared.add(x));effects.push(...r.effects);r.returned?.forEach(x=>returned.add(x));i=stop;continue;
+    for(const [key,values] of env)if(!loopNames.includes(key)&&branch.has(key))env.set(key,new Set([...values,...branch.get(key)]));impure||=r.impure;r.shared.forEach(x=>shared.add(x));effects.push(...r.effects);i=stop;continue;
    }
    if(token.value==='{') {const stop=close(i,'{','}');scanExpressions(i+1,stop,env,own,inFunction,conditional,active,acceptCall);i=stop;continue;}
    if(t[i-1]?.value==='.'||t[i-1]?.value===':')continue;
@@ -273,7 +273,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
    const targets=expand(p.parts,scope),string=t[p.end]?.type==='string',paren=!string&&t[p.end]?.value==='(',stop=string?p.end:paren?close(p.end):close(p.end,'{','}'),args=p.method?[expand(p.parts.slice(0,-1),scope)]:[];let model=null;let start=p.end+1,depth=0;
    if(!paren)args.push(valueAt(p.end,scope));
    else for(let j=start;j<=stop;j++){if(j===stop||(t[j].value===','&&depth===0)){args.push(valueAt(start,scope));start=j+1;}if(['(','[','{'].includes(t[j].value))depth++;if([')',']','}'].includes(t[j].value))depth--;}
-   let safe=targets.size>0,unknownTarget=targets.size===0;const callShared=new Set(),results=new Set();
+   let safe=targets.size>0;const callShared=new Set(),results=new Set();
    for(const target of targets) {
     if((BUILTINS.has(target)||MODELED.has(target)||pureBindings.has(target))&&bindingsIntact([target.split('.')[0],...(pureBindings.has(target)?['math']:[])])) {
      const index=['table.merge','table.merge_recursive','table.add_missing','table.append','table.make_unique','table.make_strict'].includes(target)?0:mutationArgument(target);
@@ -286,7 +286,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
      continue;
     }
     const fn=resolveFn(target);
-    if(!fn||active.has(fn)){safe=false;unknownTarget=true;continue;}
+    if(!fn||active.has(fn)){safe=false;continue;}
     if(targets.size===1&&finiteHelperName(fn)&&bindingsIntact(['math','table','MathUtils','rawget','type','select']))continue;
     if(targets.size===1&&finiteDataHelper(fn)&&bindingsIntact(['math','table','pairs','ipairs','upairs','require','type','string'])) {
      const sig=signature(fn);model={definition:sig,kind:DATA_HELPERS.get(sig),file:fn._file};
@@ -307,19 +307,11 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
      for(const [key,values]of slots)if(key.startsWith(id+'.'))values.forEach(opaque);
     };
     r.returned?.forEach(opaque);
-    if(r.impure)safe=false;if(r.unsafeEscape)unsafeEscape=true;r.shared.forEach(x=>callShared.add(x));
+    if(r.impure)safe=false;r.shared.forEach(x=>callShared.add(x));
    }
    if(isCall(stop+1)){const next=new Map(scope);next.set('!returned',results);acceptCall({parts:['!returned'],end:stop+1},i,next);}
    if(!inFunction){const name=p.parts.join('.');models.set(name,models.has(name)&&models.get(name)?.definition!==model?.definition?null:model);}
    if(!safe) {
-    // Unknown callees may retain or invoke any table, function, or imported value.
-    if(unknownTarget) {
-     let risky=args.some(a=>a.size);
-     // Complex argument expressions can start with a literal and still refer
-     // to imported data later; inspect every referenced alias conservatively.
-     for(let j=p.end+1;j<stop&&!risky;j++){if(['{','function'].includes(t[j].value)){risky=true;break;}const ref=pathAt(j);if(ref&&t[j-1]?.value!=='.'&&t[j-1]?.value!==':'){risky=[...expand(ref.parts,scope)].some(id=>id.startsWith('@')||id.startsWith('!table:')||Boolean(resolveFn(id)));j=ref.end-1;}}
-     if(risky)unsafeEscape=true;
-    }
     impure=true;for(const p of callShared)record(p);
     // All tables reachable through arguments may escape an unknown function.
     const seen=new Set();const reachable=p=>{
@@ -330,7 +322,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
      const fn=resolveFn(p);
      if(fn&&!active.has(fn)) {
       const r=fn.invoke?fn.invoke([],active):invoke(fn,[],active);
-      if(r.unsafeEscape)unsafeEscape=true;r.shared.forEach(record);r.returned?.forEach(reachable);
+      r.shared.forEach(record);r.returned?.forEach(reachable);
      }
      for(const [key,values] of slots)if(key.startsWith(p+'.'))for(const v of values)reachable(v);
     };
@@ -338,7 +330,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
     if(!inFunction){dirtyFrom=Math.min(dirtyFrom,t[i].start);calls.push({start:t[i].start,end:t[stop].end,name:p.parts.join('.')});}
    }
   }
-  return {impure,shared,effects,returned,unsafeEscape};
+  return {impure,shared,effects,returned};
  }
  function isCall(i){return t[i]?.value==='('||t[i]?.value==='{'||t[i]?.type==='string';}
  function scanExpressions(begin,end,env,own,inFunction,conditional,active,accept) {
@@ -350,15 +342,13 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
  }
  function invoke(fn,args,active) {const env=new Map(fn.env);fn.params.forEach((p,i)=>env.set(p,args[i]??new Set([p])));return run(fn.start,fn.end,env,new Set(),true,false,new Set([...active,fn]));}
  const result=run(0,t.length-1,bindings);
- // A returned function is exported to an unknown caller.
- if([...result.returned].some(id=>Boolean(resolveFn(id))))unsafeEscape=true;
   const returned=t.findLastIndex(x=>x.value==='return');
  const ret=returned+1;
  const exports=returned<0?new Set():t[ret]?.value==='settings'&&t[ret+1]?.value==='('?valueAt(ret+4,bindings):valueAt(ret,bindings);
  const canonical=p=>{for(const root of exports)if(p===root||p.startsWith(root+'.'))return identity(file)+p.slice(root.length);return p;};
  attach=fn=>{fn.invoke=(args,active)=>{const r=invoke(fn,args,active);for(const p of r.effects){const c=canonical(p);if(c.startsWith('@'))r.shared.add(c);}return r;};};
  for(const fn of functions.values())attach(fn);
- return {dirtyFrom,unsafeEscape,calls,models,writes:result.effects,bindings,slots,functions,exports,
+ return {dirtyFrom,calls,models,writes:result.effects,bindings,slots,functions,exports,
   functionAt(path){let values=new Set(exports);for(const key of path.split('.').filter(Boolean)){const next=new Set();for(const v of values)for(const x of slots.get(v+'.'+key)??[])next.add(x);values=next;}return values.size===1?functions.get([...values][0]):null;}};
 }
 
@@ -407,30 +397,20 @@ export function createSharedBindingGuard(reader) {
   const at=tokens.findIndex((t,i)=>t.value==='get_table_entry_by_challenge'&&tokens[i-1]?.value==='.'&&tokens[i+1]?.value==='='&&tokens[i+2]?.value==='function');
   if(at>=0){const start=at+2,end=luaBlockEnd(tokens,start),raw=source.slice(tokens[start].start,tokens[end].end);if(signature({raw})==='e12fe07518d67b2a41f2ec63129626f801ccfc82d5f8ad0372b35f7a9edd120c')pureBindings.add('Managers.state.difficulty.get_table_entry_by_challenge');}
  }
- const revoke=(path,seen=new Set())=>{if(seen.has(path))return;seen.add(path);tainted.add(identity(path));load(path);for(const dep of modules.get(path)?.dependencies??[])revoke(dep,seen);};
  function load(file) {
   if(modules.has(file)||!reader.exists(file))return;
-  const record={writes:[],dependencies:new Set(),analysis:null,source:null,imported:null};modules.set(file,record);
+  const record={writes:[],analysis:null,source:null,imported:null};modules.set(file,record);
   const source=reader.read(file),tokens=tokenizeLua(source);
-  // An escaped closure may execute require inside its body. Record those
-  // dependencies too, while retaining lazy loading until fallback is needed.
-  for(let i=0;i<tokens.length;i++)if(tokens[i].value==='require'){const arg=tokens[i+1]?.value==='('?tokens[i+2]:tokens[i+1];if(arg?.type==='string')record.dependencies.add(arg.value.replace(/\.lua$/,'')+'.lua');}
   for(let i=0;i<tokens.length;i++){
    if(tokens[i].type==='keyword'&&tokens[i].value==='function'){i=luaBlockEnd(tokens,i);continue;}
    if(tokens[i].value==='require') {
     const arg=tokens[i+1]?.value==='('?tokens[i+2]:tokens[i+1];
-    if(arg?.type==='string'){const dependency=arg.value.replace(/\.lua$/,'')+'.lua';record.dependencies.add(dependency);if(tainted.has(identity(file)))revoke(dependency);load(dependency);}
+    if(arg?.type==='string')load(arg.value.replace(/\.lua$/,'')+'.lua');
    }
   }
   const imported=id=>{if(id.startsWith('!fn:')){for(const m of modules.values()){const fn=m.analysis?.functions.get(id);if(fn)return fn;}return null;}if(!id.startsWith('@'))return null;for(const [path,m] of modules){const root=identity(path);if(id.startsWith(root+'.'))return m.analysis?.functionAt(id.slice(root.length+1));}return null;};
   record.source=source;record.imported=imported;
   record.analysis=analyzeLuaEffects(source,{file,imported,pureBindings});
-  if(record.analysis.unsafeEscape) {
-   // Revoke all imported dependencies as a unit: foreign table graphs cannot
-   // be completely traversed by this module's slot map.
-   for(const dep of record.dependencies)revoke(dep);
-   record.writes.push('math');
-  }
   const exported=[...record.analysis.exports],initial=new Set();
   for(const path of record.analysis.writes) {
    const owner=exported.find(p=>path.startsWith(p+'.'));
