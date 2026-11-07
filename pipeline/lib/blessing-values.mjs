@@ -30,7 +30,14 @@ export function expression(fn, value) {
 export function resolver(reader) {
   const effects=createSharedBindingGuard(reader);
   const cache=new Map(), modules=staticBuffModules(reader); let buff, statBuffs;
-  function parsed(file) { if(!cache.has(file)) cache.set(file,parseLuaStatic(reader.read(file),{filename:file,allowUnsupported:true,effects:effects.analysis(file),builtinIntact:ref=>effects.intact([ref.split('.')[0]])})); return cache.get(file); }
+  function parsed(file) {
+    if(!cache.has(file)) {
+      // The eager metadata reader and lazy values share the same import proof.
+      modules.load(file);
+      cache.set(file,parseLuaStatic(reader.read(file),{filename:file,allowUnsupported:true,effects:effects.analysis(file),resolveImport:p=>modules.load(p.replace(/\.lua$/,'')+'.lua'),builtinIntact:ref=>effects.intact([ref.split('.')[0]])}));
+    }
+    return cache.get(file);
+  }
   function deref(node,file) {
     if(node?.type==='lazy') { const value=modules.force(node); return {node:value,file:value._file??file}; }
     if(node?._file) return {node,file:node._file};

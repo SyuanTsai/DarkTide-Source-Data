@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';
-import {tokenizeLua} from './lua-static-reader.mjs';
+import {tokenizeLua,parseLuaStatic,getTableField} from './lua-static-reader.mjs';
 import {finiteHelperName} from './lua-finite-helpers.mjs';
 
 const BUILTINS=new Set(['require','settings','pairs','ipairs','type','select','rawget','unpack','Vector2','Vector3','Vector4','Quaternion','Color','Application.can_get_resource','upairs','string.format','Script.new_map','Script.new_array','Vector3Box','QuaternionBox','bit.bor',...['abs','floor','ceil','round','max','min','rad','degrees_to_radians','lerp'].map(n=>'math.'+n),...['clone','clone_instance','enum','keys','ukeys','unpack','contains','enum_from_array','index_lookup_table'].map(n=>'table.'+n)]);
@@ -96,23 +96,61 @@ const overlaps=(a,b)=>{a=a.split('.*')[0];b=b.split('.*')[0];return a===b||a.sta
  * Function bodies are inspected only at a call; local allocations are private,
  * parameters and captured allocations are not. Unknown calls fail closed.
  */
-export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,bindingsIntact=()=>true,pureBindings=new Set()}={}) {
+export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,importedValue=()=>null,bindingsIntact=()=>true,pureBindings=new Set()}={}) {
  const t=tokenizeLua(source),functions=new Map(),slots=new Map(),calls=[],bindings=new Map(),models=new Map(),evaluating=new Set(),opaqueReturns=new Set();
  let dirtyFrom=Infinity,attach=null;
  // Only single, literal local bindings with no later assignment are proven keys.
  const constants=new Map(),assigned=new Set();
  for(let i=0;i<t.length;i++)if(t[i].type==='identifier'&&t[i+1]?.value==='=') {
   const name=t[i].value;
-  if(t[i-1]?.value==='local'&&['string','number'].includes(t[i+2]?.type)&&![',','+','-','*','/','%','^','..','and','or','==','~=','<','>','<=','>='].includes(t[i+3]?.value)&&!assigned.has(name)&&!constants.has(name))constants.set(name,String(t[i+2].value));
+  if(t[i-1]?.value==='local'&&(['string','number'].includes(t[i+2]?.type)||['true','false','nil'].includes(t[i+2]?.value))&&![',','+','-','*','/','%','^','..','and','or','==','~=','<','>','<=','>='].includes(t[i+3]?.value)&&!assigned.has(name)&&!constants.has(name))constants.set(name,t[i+2].raw);
   else {assigned.add(name);constants.delete(name);}
  }
- for(const name of constants.keys())if(t.some((token,i)=>token.type==='identifier'&&token.value===name&&!(t[i-1]?.value==='local'&&t[i+1]?.value==='=')&&!(t[i-1]?.value==='['&&t[i+1]?.value===']')))constants.delete(name);
+ const computedTokens=new Set();let bracketDepth=0;
+ for(let i=0;i<t.length;i++){if(t[i].type==='symbol'&&t[i].value===']')bracketDepth--;if(bracketDepth>0)computedTokens.add(i);if(t[i].type==='symbol'&&t[i].value==='[')bracketDepth++;}
+ for(const name of constants.keys())if(t.some((token,i)=>token.type==='identifier'&&token.value===name&&!(t[i-1]?.value==='local'&&t[i+1]?.value==='=')&&!computedTokens.has(i)))constants.delete(name);
 
- const pathAt=i=>{if(t[i]?.type!=='identifier')return null;const parts=[t[i++].value];let method=false;while(true){if(['.',':'].includes(t[i]?.value)&&t[i+1]?.type==='identifier'){method||=t[i].value===':';parts.push(t[i+1].value);i+=2;}else if(t[i]?.value==='['){const end=close(i,'[',']');parts.push(end===i+2?(['string','number'].includes(t[i+1]?.type)?String(t[i+1].value):constants.get(t[i+1]?.value)??'*'):'*');i=end+1;}else break;}return {parts,end:i,method};};
+ // Immutable top-level import/member aliases also prove scalar constructor keys.
+ // Reject shadowed/reassigned names; never copy executable initializers here.
+ const keyDeclarations=[],shadowed=new Set(),assignmentCounts=new Map();
+ for(let i=0;i<t.length;i++) {
+  if(t[i].type==='identifier'&&t[i+1]?.value==='=')assignmentCounts.set(t[i].value,(assignmentCounts.get(t[i].value)??0)+1);
+  if(t[i].value==='function') {let j=i+1;while(j<t.length&&t[j].value!=='(')j++;for(let k=j+1;k<close(j);k++)if(t[k].type==='identifier')shadowed.add(t[k].value);}
+  if(t[i].value==='for')for(let j=i+1;t[j]?.type==='identifier'||t[j]?.value===',';j++)shadowed.add(t[j].value);
+ }
+ for(let i=0;i<t.length;i++) {
+  if(t[i].type==='keyword'&&['function','if','for','while','repeat','do'].includes(t[i].value)){i=luaBlockEnd(t,i);continue;}
+  if(t[i].value!=='local'||t[i+1]?.type!=='identifier'||t[i+2]?.value!=='=')continue;
+  const name=t[i+1].value,start=i+3;let end=start+1;
+  if(assignmentCounts.get(name)!==1||shadowed.has(name))continue;
+  if(constants.has(name))keyDeclarations.push({start:i,raw:`local ${name}=${constants.get(name)}\n`});
+  else if(t[start]?.type==='identifier') {
+   if(t[start].value==='require'&&t[start+1]?.value==='('&&t[start+2]?.type==='string'&&t[start+3]?.value===')')end=start+4;
+   else while(t[end]?.value==='.'&&t[end+1]?.type==='identifier')end+=2;
+   if(t[end]?.type==='eof'||t[end]?.line>t[end-1].endLine||['local','return',';'].includes(t[end]?.value))keyDeclarations.push({start:i,raw:`local ${name}=${source.slice(t[start].start,t[end-1].end)}\n`});
+  }
+ }
+
+ const keyCache=new Map(),revokedKeyRoots=new Set();
+ const keyImport=id=>[...revokedKeyRoots].some(root=>overlaps(root,id))?null:importedValue(id);
+ function keyAt(begin,end) {
+  if(end===begin+1&&['string','number'].includes(t[begin]?.type))return String(t[begin].value);
+  const id=begin+':'+end;if(keyCache.has(id))return keyCache.get(id);
+  let key='*';
+  try {
+   const prefix=keyDeclarations.filter(d=>d.start<begin).map(d=>d.raw).join('');
+   const table=parseLuaStatic(prefix+'return {['+source.slice(t[begin].start,t[end].start)+']=true}',{staticArithmetic:true,allowUnsupported:true,effects:{dirtyFrom:Infinity},resolveImport:p=>keyImport(identity(p)),builtinIntact:ref=>bindingsIntact([ref.split('.')[0]])}).returned;
+   const node=table?.entries?.[0]?.resolvedKey;
+   if(['string','number','boolean'].includes(node?.type))key=String(node.value);
+  }catch { /* Unknown expressions retain every possible slot. */ }
+  keyCache.set(id,key);return key;
+ }
+
+ const pathAt=i=>{if(t[i]?.type!=='identifier')return null;const parts=[t[i++].value];let method=false;while(true){if(['.',':'].includes(t[i]?.value)&&t[i+1]?.type==='identifier'){method||=t[i].value===':';parts.push(t[i+1].value);i+=2;}else if(t[i]?.value==='['){const end=close(i,'[',']');parts.push(keyAt(i+1,end));i=end+1;}else break;}return {parts,end:i,method};};
  function close(i,open='(',end=')'){let depth=1;while(++i<t.length){if(['string','number'].includes(t[i].type))continue;if(t[i].value===open)depth++;if(t[i].value===end&&!--depth)return i;}return t.length-1;}
  // Snapshot descendant edges before adding copied identities to the graph.
  const indexSlots=()=>{const index=new Map();for(const entry of slots){const key=entry[0];for(let at=key.indexOf('.');at>=0;at=key.indexOf('.',at+1)){const prefix=key.slice(0,at);if(!index.has(prefix))index.set(prefix,[]);index.get(prefix).push(entry);}}return index;};
- const expand=(parts,env)=>{let out=env.get(parts[0])??new Set([parts[0]]);for(const key of parts.slice(1)){const next=new Set();for(const p of out){const exact=slots.get(p+'.'+key);for(const q of exact??[p+'.'+key])next.add(q);for(const q of slots.get(p+'.*')??[])next.add(q);}out=next;}return out;};
+ const expand=(parts,env)=>{let out=env.get(parts[0])??new Set([parts[0]]);for(const key of parts.slice(1)){const next=new Set();for(const p of out){const exact=slots.get(p+'.'+key);for(const q of exact??[p+'.'+key])next.add(q);for(const q of slots.get(p+'.*')??[])next.add(q);if(key==='*')for(const [slot,values] of slots)if(slot.startsWith(p+'.')&&!slot.slice(p.length+1).includes('.'))for(const q of values)next.add(q);}out=next;}return new Set([...out].filter(p=>!p.startsWith('@')||!['string','number','boolean','nil'].includes(keyImport(p)?.type)));};
  function fnAt(i,env) {
   const end=luaBlockEnd(t,i);let p=i+1;while(t[p]?.value!=='('&&p<end)p++;
   const stop=close(p),params=t.slice(p+1,stop).filter(x=>x.type==='identifier').map(x=>x.value);
@@ -151,7 +189,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
    for(let j=i+1;j<stop;j++) {
     let key=String(++index),v=j;
     if(t[j]?.type==='identifier'&&t[j+1]?.value==='='){key=t[j].value;v=j+2;}
-    else if(t[j]?.value==='['){const k=close(j,'[',']');key=k===j+2?(['string','number'].includes(t[j+1]?.type)?String(t[j+1].value):constants.get(t[j+1]?.value)??'*'):'*';v=k+2;}
+    else if(t[j]?.value==='['){const k=close(j,'[',']');key=keyAt(j+1,k);v=k+2;}
     const slot=id+'.'+key,values=valueAt(v,env);slots.set(slot,key==='*'?new Set([...(slots.get(slot)??[]),...values]):values);
     j=v;if(t[j]?.value==='function')j=luaBlockEnd(t,j);else if(t[j]?.value==='{')j=close(j,'{','}');else {const p=pathAt(j);if(p)j=p.end-1;if(t[j+1]?.value==='(')j=close(j+1);}
     while(j+1<stop&&![';',','].includes(t[j+1].value))j++;
@@ -210,7 +248,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
   let impure=false;const shared=new Set(),effects=[],returned=new Set();
   // Only allocations defined here have a sequential data model. A write to
   // any external member revokes the entire external table's binding proof.
-  const record=p=>{if(!p.startsWith('!'))p=p.split('.')[0];effects.push(p);if(!p.startsWith('!'))shared.add(p);};
+  const record=p=>{if(!p.startsWith('!'))p=p.split('.')[0];effects.push(p);if(!p.startsWith('!'))shared.add(p);if(p.startsWith('@')){revokedKeyRoots.add(p);keyCache.clear();}};
   const write=(p,local)=>{
    const targets=p.length===1?expand(p,env):new Set([...expand(p.slice(0,-1),env)].map(x=>x+'.'+p.at(-1)));
    if(!local) {
@@ -372,8 +410,10 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
 
 /** Preserve table shape/keys for diagnostics while revoking every reachable value. */
 export function invalidateReachable(node,{resolve=n=>n,dynamic,seen=new Set(),skip=()=>false}={}) {
- node=resolve(node);if(node?.type!=='table'||seen.has(node)||skip(node))return;seen.add(node);node.dynamic=dynamic;
- for(const e of node.entries){const n=resolve(e.value);if(n?.type==='table'){invalidateReachable(n,{resolve,dynamic,seen,skip});e.value=n;}else if(!['unknown','unsupported'].includes(n?.type))e.value=dynamic;}
+ node=resolve(node);if(!node||seen.has(node)||skip(node))return;seen.add(node);
+ if(node.possibleValues){for(const value of node.possibleValues)invalidateReachable(value,{resolve,dynamic,seen,skip});return;}
+ if(node.type!=='table')return;node.dynamic=dynamic;
+ for(const e of node.entries){const n=resolve(e.value);if(n?.type==='table'||n?.possibleValues){invalidateReachable(n,{resolve,dynamic,seen,skip});e.value=n;}else if(!['unknown','unsupported'].includes(n?.type))e.value=dynamic;}
 }
 
 /** Apply finite helper write summaries to actual AST identities. This is shared
@@ -405,6 +445,43 @@ export function verifiedBinding({name,bound=false,intact=()=>true,definitionVeri
  * revoke only intersecting dependencies, including duplicate declarations. */
 export function createSharedBindingGuard(reader) {
  const modules=new Map(),pureBindings=new Set(),tainted=new Set();
+ let proofEpoch=0;
+ // Only parsed, effect-guarded literal fields can be excluded from alias unions.
+ // A missing module, cycle or unknown key never supplies scalar evidence.
+ function importedValue(id) {
+  if(!id.startsWith('@'))return null;
+  const [module,...parts]=id.slice(1).split('.'),file=module+'.lua',record=modules.get(file);
+  if(!record?.analysis||!intact([identity(file)]))return null;
+  if(record.keyProofEpoch!==proofEpoch) {
+   record.keyProof=null;
+   record.keyProofEpoch=proofEpoch;
+   try {
+    const p=parseLuaStatic(record.source,{filename:file,staticArithmetic:true,allowUnsupported:true,effects:record.analysis,resolveImport:p=>importedValue(identity(p)),builtinIntact:ref=>intact([ref.split('.')[0]])});
+    const copies=new Map(),unresolved={type:'unsupported',reason:'DYNAMIC_VALUE'};
+    const materialize=node=>{
+     if(!node)return unresolved;
+     if(copies.has(node))return copies.get(node);
+     if(node.type==='require')return importedValue(identity(node.path))??unresolved;
+     if(node.type==='call'&&node.ref==='settings')return materialize(node.args[1]);
+     if(node.type==='reference') {
+      copies.set(node,unresolved);
+      let value=materialize(p.locals[node.root??node.ref.split('.')[0]]);
+      const parts=node.parts??node.ref.split('.').slice(1).map(value=>({type:'string',value}));
+      for(const key of parts)value=getTableField(value,materialize(key)?.value);
+      const result=materialize(value);copies.set(node,result);return result;
+     }
+     if(node.type!=='table')return node;
+     const out={...node,entries:[]};copies.set(node,out);
+     out.entries=node.entries.map(e=>({...e,key:e.resolvedKey??(e.key?materialize(e.key):null),value:materialize(e.value)}));
+     return out;
+    };
+    record.keyProof=materialize(p.returned);
+   }catch { /* Unsupported modules cannot prove an enum member. */ }
+  }
+  let value=record.keyProof;
+  for(const key of parts)value=getTableField(value,key);
+  return value;
+ }
  // A read-only engine getter can depend on runtime state without mutating it.
  // Verify both its method body and the initialization that binds the instance;
  // never evaluate the difficulty or fold the returned value.
@@ -428,13 +505,14 @@ export function createSharedBindingGuard(reader) {
   }
   const imported=id=>{if(id.startsWith('!fn:')){for(const m of modules.values()){const fn=m.analysis?.functions.get(id);if(fn)return fn;}return null;}if(!id.startsWith('@'))return null;for(const [path,m] of modules){const root=identity(path);if(id.startsWith(root+'.'))return m.analysis?.functionAt(id.slice(root.length+1));}return null;};
   record.source=source;record.imported=imported;
-  record.analysis=analyzeLuaEffects(source,{file,imported,pureBindings});
+  record.analysis=analyzeLuaEffects(source,{file,imported,importedValue,pureBindings});
   const exported=[...record.analysis.exports],initial=new Set();
   for(const path of record.analysis.writes) {
    const owner=exported.find(p=>path.startsWith(p+'.'));
    if(owner){const canonical=identity(file)+path.slice(owner.length);if(!initial.has(canonical)){initial.add(canonical);continue;}record.writes.push(canonical);}
    else if(!path.startsWith('!'))record.writes.push(['math','table','MathUtils'].includes(path.split('.')[0])?path.split('.')[0]:path);
   }
+  if(record.writes.length)proofEpoch++;
   // External root writes are monotonic. Keep table reads cheap even after
   // consumers have cached modules and later discover another writer.
   for(const p of record.writes)if(p.startsWith('@')) {
@@ -447,7 +525,7 @@ export function createSharedBindingGuard(reader) {
  }
  return {load,intact,moduleTainted(file){return Boolean(file)&&tainted.has(identity(file));},analysis(file){load(file);const m=modules.get(file);if(!m)return;
  const fingerprint=[...modules.values()].flatMap(m=>m.writes).filter(p=>!p.startsWith('@')).sort().join('|');
- if(fingerprint&&m.proof!==fingerprint){m.analysis=analyzeLuaEffects(m.source,{file,imported:m.imported,pureBindings,bindingsIntact:roots=>intact(roots)});m.proof=fingerprint;}return m.analysis;}};
+ if(fingerprint&&m.proof!==fingerprint){m.analysis=analyzeLuaEffects(m.source,{file,imported:m.imported,importedValue,pureBindings,bindingsIntact:roots=>intact(roots)});m.proof=fingerprint;}return m.analysis;}};
 }
 
 // Conservative write discovery for skipped control flow. Tokens, never Lua, are

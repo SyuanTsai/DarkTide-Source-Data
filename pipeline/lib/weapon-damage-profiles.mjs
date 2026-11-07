@@ -9,11 +9,11 @@ const compare=(a,b)=>a<b?-1:a>b?1:0;
 /** Read only statically resolved weapon/template bindings; never execute Lua. */
 export function createDamageProfileExtractor({lookup,resolve,field,component,annotate,paths,definition,binding}) {
   const location=(node,fallback)=>({path:node?._file??fallback.path,line:node?.startLine??fallback.line});
-  const unknownKey=node=>node?.type==='table'&&node.entries.some(e=>e.key&&!['string','number','boolean'].includes(resolve(e.key)?.type));
+  const unknownKey=node=>Boolean(node?.hasUnknownKeys);
   const get=(node,key)=>{
     node=resolve(node);
     if(!node||node.type==='nil')return null;
-    if(node.type!=='table'||node.dynamic||unknownKey(node))
+    if(node.type!=='table'||node.dynamic)
       return {type:'unsupported',reason:'DYNAMIC_VALUE',_file:node._file,startLine:node.startLine};
     return resolve(field(node,key));
   };

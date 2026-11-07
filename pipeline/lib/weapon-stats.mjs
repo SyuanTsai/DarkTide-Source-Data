@@ -60,7 +60,9 @@ export function createWeaponStats(reader) {
   const resolved=deref(n);return resolved?.type==='reference'?resolved.ref:resolved?.value;
  };
  function child(node,key) {
+  if(node?.possibleValues)return field(node,key);
   if(node?.type!=='table')return null;
+  if(node.hasUnknownKeys)return field(node,key);
   let index=0;
   return (node.entries.findLast(e=>e.key!=null&&component(e.key)===key)??node.entries.filter(e=>e.key==null).find(()=>++index===key))?.value??node.dynamic;
  }
@@ -122,8 +124,10 @@ export function createWeaponStats(reader) {
    if(visited.has(file))return;visited.add(file);
    const p=chunk(file);if(!p)return;if(p.partial)catalogFailures.add(kind);
    const roots=['hit_scan_templates',kind==='damage'?'damage_templates':kind==='hit_scan'?'hitscan_templates':`${kind}_templates`,`weapon_${kind}_templates`,'templates'];
-   for(const root of roots)for(const e of p.locals[root]?.entries??[])if(e.key?.type==='string')definitions.set(e.key.value,{node:e.value,file});
-   for(const e of p.locals.overrides?.entries??[])if(e.key?.type==='string')definitions.set(e.key.value,{node:e.value,file,override:true});
+   for(const root of [...roots,'overrides'])for(const e of p.locals[root]?.entries??[]) {
+    const key=component(e.resolvedKey??e.key);
+    if(typeof key==='string')definitions.set(key,{node:child(p.locals[root],key),file,...(root==='overrides'?{override:true}:{})});
+   }
    if(p.moduleDynamic)return;
    for(const m of reader.read(file).matchAll(/(?:extract_weapon_tweaks|_add_template_entries|_require_templates)\("([^"]+)"/g))load(m[1]+'.lua');
   }

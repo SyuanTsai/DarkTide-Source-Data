@@ -189,7 +189,7 @@ function cloneNode(node) {
 function tableEntry(node, key) {
   if (node?.type !== 'table' || key === undefined) return null;
   let index=0;
-  return node.entries.find(entry => (entry.key?entry.key.value:++index)===key) ?? null;
+  return node.entries.find(entry => (entry.key?(entry.resolvedKey??entry.key).value:++index)===key) ?? null;
 }
 
 function tableKeyIdentity(key, implicitIndex) {
@@ -208,16 +208,19 @@ function tableKeyIdentities(table) {
 }
 
 export function getTableField(node, key) {
+  // Keep the alias union attached across further reads of an uncertain value.
+  if(node?.possibleValues)return node;
+  if (node?.type === 'table' && (node.hasUnknownKeys || key === undefined)) return {type:'unsupported',reason:'DYNAMIC_VALUE',possibleValues:[...node.entries.map(e=>e.value),...(node.dynamic?[node.dynamic]:[])],_file:node._file,startLine:node.startLine};
   return tableEntry(node, key)?.value ?? node?.dynamic ?? null;
 }
 
 export function getTableArray(node) {
   if (node?.type !== 'table') return [];
-  return node.entries.filter((entry) => entry.key == null).map((entry) => entry.value);
+  return node.entries.filter((entry) => entry.key == null).map((entry) => node.hasUnknownKeys?getTableField(node,undefined):entry.value);
 }
 
 export function getTableEntries(node) {
-  return node?.type === 'table' ? node.entries : [];
+  return node?.type === 'table' ? node.entries.map(entry=>node.hasUnknownKeys?{...entry,value:getTableField(node,undefined)}:entry) : [];
 }
 
 class Parser {
@@ -398,6 +401,11 @@ class Parser {
     const precedence={or:1,and:2,'==':3,'~=':3,'<':3,'>':3,'<=':3,'>=':3,'..':4,'+':5,'-':5,'*':6,'/':6,'%':6,'^':7};
     while((precedence[this.peek().value]??-1)>=min) {
       const op=this.take().value,right=this.parseExpression(precedence[op]+1),a=this.resolveReference(node),b=this.resolveReference(right);
+      if (['and','or'].includes(op) && ['boolean','nil','number','string','table'].includes(a?.type)) {
+        const truthy=a.type!=='nil' && !(a.type==='boolean' && !a.value);
+        node=(op==='and' ? truthy : !truthy) ? right : node;
+        continue;
+      }
       let value;
       if(a?.type==='number'&&b?.type==='number')value=op==='+'?a.value+b.value:op==='-'?a.value-b.value:op==='*'?a.value*b.value:op==='/'?a.value/b.value:undefined;
       node=Number.isFinite(value)?{type:'number',value,_sources:[a,b].flatMap(n=>[...(n._sources??[]),{path:this.filename,line:n.startLine??start.line}])}:{type:'unsupported'};
@@ -453,7 +461,7 @@ class Parser {
     const parts=[];
     while(true) {
       if(this.match('.')) {const token=this.expectIdentifier();ref+='.'+token.value;parts.push(this.literalNode('string',token.value,token));}
-      else if(this.match('[')) {const key=this.parseExpression();this.expect(']');parts.push(key);ref+='['+(key.raw??key.ref??key.value)+']';}
+      else if(this.match('[')) {const key=this.parseKeyExpression();this.expect(']');parts.push(key);ref+='['+(key.raw??key.ref??key.value)+']';}
       else break;
     }
     let node = {
@@ -493,7 +501,7 @@ class Parser {
       let value;
       const entryStart = this.peek();
       if (this.match('[')) {
-        key = this.parseExpression();
+        key = this.parseKeyExpression();
         this.expect(']');
         this.expect('=');
         value = this.parseExpression();
@@ -505,18 +513,26 @@ class Parser {
       } else {
         value = this.parseExpression();
       }
-      entries.push({ key, value, start: entryStart.start, end: value.end, startLine: entryStart.line, endLine: value.endLine });
+      const resolved=this.resolveBinding(key);
+      const resolvedKey=['string','number','boolean'].includes(resolved?.type)?resolved:undefined;
+      entries.push({ key, ...(resolvedKey?{resolvedKey}:{}), value, start: entryStart.start, end: value.end, startLine: entryStart.line, endLine: value.endLine });
       if (!this.match(',') && !this.match(';') && this.peek().value !== '}') {
         this.fail(`Expected table separator, found ${JSON.stringify(this.peek().value)}`);
       }
     }
     const close = this.expect('}');
     return {
-      type: 'table', entries,
+      type: 'table', entries, hasUnknownKeys: entries.some(e=>e.key && !e.resolvedKey),
       start: open.start, end: close.end,
       startLine: open.line, endLine: close.endLine,
       raw: this.source.slice(open.start, close.end)
     };
+  }
+
+  parseKeyExpression() {
+    const arithmetic=this.staticArithmetic;
+    this.staticArithmetic=true;
+    try {return this.parseExpression();}finally {this.staticArithmetic=arithmetic;}
   }
 
   parseFunction() {
@@ -548,7 +564,7 @@ class Parser {
     if(!value)return node;
     value=this.resolveReference(value,next);
     for(const part of parts) {
-      const key=this.resolveReference(part,next);
+      const key=this.resolveBinding(part,next);
       value=getTableField(value,key?.value);
       if(!value)return node;
       value=this.resolveReference(value,next);
@@ -579,15 +595,18 @@ class Parser {
     let table = this.resolveReference(this.environment.get(root));
     const invalid={type:'unsupported',reason:'INVALID_STATIC_ASSIGNMENT',startLine:value.startLine};
     if (table?.type !== 'table') {
+      if(table?.possibleValues) { this.invalidateTable(table,value); return; }
       if(this.staticArithmetic&&this.allowUnsupported){this.environment.set(root,invalid);return;}
       this.fail(`Cannot assign through non-table ${root}`);
     }
     for (const part of parts.slice(0, -1)) {
+      if(table.hasUnknownKeys){this.invalidateTable(table,value);return;}
       const key=this.resolveBinding(part);
       if(!['string','number','boolean'].includes(key?.type)){this.invalidateTable(table,value);return;}
       const entry = key?.type==='reference'?table.entries.find(e=>e.key?.ref===key.ref):tableEntry(table,key?.value);
       const next=this.resolveReference(entry?.value);
       if (next?.type !== 'table') {
+        if(next?.possibleValues){this.invalidateTable(next,value);return;}
         if(this.staticArithmetic&&this.allowUnsupported) {
           if(entry)entry.value=invalid;else table.entries.push({key,value:invalid});
           return;
@@ -597,6 +616,7 @@ class Parser {
       table = next;
     }
     const key = this.resolveBinding(parts.at(-1));
+    if(table.hasUnknownKeys){this.invalidateTable(table,value);return;}
     if(!['string','number','boolean'].includes(key?.type)) {this.invalidateTable(table,value);return;}
     const existing = key.type==='reference'?table.entries.find(e=>e.key?.ref===key.ref):tableEntry(table,key.value);
     if (existing) existing.value = value;
@@ -715,6 +735,7 @@ class Parser {
       const source = this.resolveBinding(node.args[1]);
       if(this.staticArithmetic&&this.allowUnsupported&&(target?.type!=='table'||source?.type!=='table')){if(target?.type==='table')this.invalidateTable(target,node);return node;}
       if (target?.type !== 'table' || source?.type !== 'table') this.fail(`${node.ref} requires statically known tables`, node);
+      target.hasUnknownKeys ||= Boolean(source.hasUnknownKeys);
       if (node.ref === 'table.add_missing') {
         const existing = new Set(tableKeyIdentities(target));
         let implicitIndex = 0;

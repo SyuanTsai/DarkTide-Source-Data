@@ -46,6 +46,7 @@ export class SkillLua {
         if(!this.match(',') && !this.match(';') && this.peek().value!=='}') throw new Error(`${this.file}:${this.peek().line}: table separator`);
       }
       n=this.node('table',{entries},start);
+      this.onTable?.(n);
     } else if(['string','number'].includes(start.type)) {this.take();n=this.node('literal',{value:start.value},start);}
     else if(['true','false','nil'].includes(start.value)) {this.take();n=this.node('literal',{value:start.value==='nil'?null:start.value==='true'},start);}
     else {this.take();n=this.node('reference',{name:start.value,binding:this.env.get(start.value)},start);}
@@ -116,6 +117,13 @@ export function createSkillResolver(reader) {
     if(!reader.exists(file)) return {};
     const pending={}; chunks.set(file,pending);
     const parser=new SkillLua(reader.read(file),file);
+    parser.onTable=table=>{
+      for(const entry of table.entries) {
+        const key=keyScalar(entry.key);
+        if(['string','number','boolean'].includes(typeof key))entry.resolvedKey=literal(key,entry.key);
+      }
+      table.hasUnknownKeys=table.entries.some(e=>!e.resolvedKey);
+    };
     parser.onCall=n=>{
       applyCallMutations(callName(n.callee),n.args,{analysis:effects.analysis(file),resolve,field,entries,capture:(path,owner)=>{const [root,...parts]=path.split('.');let value=(owner===file?parser.env:load(owner).env)?.get(root);for(const part of parts)value=get(value,part);return value;},handled:['_create_entry','_add_template_entries','_require_templates','extract_weapon_tweaks'],dynamic:{type:'unknown',reason:'DYNAMIC_VALUE',file,line:n.line}});
       // Snapshot copied children before subsequent source writes.
@@ -129,8 +137,9 @@ export function createSkillResolver(reader) {
         }
       }
       if(target.type==='reference') {const root=resolve(target);if(root?.type==='table')invalidateReachable(root,{resolve,dynamic:value});return;}
-      const base=resolve(target.base),key=scalar(target.key);
-      if(base?.type==='table' && key!==undefined) base.entries.push({key:literal(key,target),value});
+      const base=resolve(target.base),key=keyScalar(target.key);
+      if(base?.possibleValues||base?.type==='table'&&(key===undefined||unknownKeys(base)))invalidateReachable(base,{resolve,dynamic:unknown(target,'DYNAMIC_VALUE')});
+      else if(base?.type==='table') base.entries.push({key:literal(key,target),value});
     },raw=>{
       // The existing bounded stimm DSL supplies this exact data-copy loop.
       // Any change to its body/iterator falls back to conditional invalidation.
@@ -225,6 +234,7 @@ export function createSkillResolver(reader) {
   }
   function merge(target,source,missing=false,append=false) {
     if(target?.type!=='table' || source?.type!=='table') return;
+    target.hasUnknownKeys ||= unknownKeys(source);
     const entries=[...source.entries];
     for(const e of entries) {
       const key=scalar(e.key);
@@ -257,7 +267,7 @@ export function createSkillResolver(reader) {
       if(trace && n.file) trace.push({path:n.file,line:n.line});
       if(n.type==='reference') return n.binding?resolve(n.binding,trace):unknown(n,`未解析參照 ${n.name}`);
       if(n.type==='index') {
-        const base=resolve(n.base,trace),key=scalar(n.key,trace);
+        const base=resolve(n.base,trace),key=keyScalar(n.key,trace);
         if(base?.type==='unknown')return base;
         return resolve(field(base,key),trace) ?? unknown(n,`未解析索引 ${String(key)}`);
       }
@@ -322,14 +332,30 @@ export function createSkillResolver(reader) {
     } finally {active.delete(n);}
   }
   function scalar(n,trace) {const v=resolve(n,trace);return v?.type==='literal'?v.value:undefined;}
+  function keyScalar(n,trace,seen=new Set()) {
+    if(!n||seen.has(n))return undefined;
+    seen.add(n);
+    if(n.type==='reference'&&n.binding)return keyScalar(n.binding,trace,seen);
+    if(n.type==='binary'&&['and','or'].includes(n.op)) {
+      const value=keyScalar(n.left,trace,new Set(seen));
+      if(value===undefined)return undefined;
+      const truthy=value!==null&&value!==false;
+      return (n.op==='and'?truthy:!truthy)?keyScalar(n.right,trace,seen):value;
+    }
+    return scalar(n,trace);
+  }
+  function unknownKeys(table) {
+    return table.hasUnknownKeys ??= table.entries.some(e=>!['string','number','boolean'].includes(typeof keyScalar(e.key)));
+  }
   function field(table,key) {
     if(table?.type==='unknown')return table;
-    if(table?.type!=='table' || key===undefined) return undefined;
-    for(let i=table.entries.length-1;i>=0;i--) if(scalar(table.entries[i].key)===key) return table.entries[i].value;
+    if(table?.type!=='table') return undefined;
+    if(unknownKeys(table)||key===undefined)return {...unknown(table,'DYNAMIC_VALUE'),possibleValues:[...table.entries.map(e=>e.value),...(table.dynamic?[table.dynamic]:[])]};
+    for(let i=table.entries.length-1;i>=0;i--) if(keyScalar(table.entries[i].resolvedKey??table.entries[i].key)===key) return table.entries[i].value;
     return table.dynamic;
   }
   function get(n,key,trace) {return resolve(field(resolve(n,trace),key),trace);}
-  function entries(n) {const t=resolve(n);if(t?.type!=='table') return [];const map=new Map();for(const e of t.entries) {const k=scalar(e.key);if(k!==undefined) map.set(k,e.value);}return [...map];}
+  function entries(n) {const t=resolve(n);if(t?.type!=='table') return [];const map=new Map();for(const e of t.entries) {const k=scalar(e.key);if(k!==undefined) map.set(k,unknownKeys(t)?field(t,k):e.value);}return [...map];}
   return {load,returned,resolve,scalar,field,get,entries,literal,setStimmDefinitions(value){stimmDefinitions=value;}};
 }
 function math(name,value) {return name==='round'?(value<0?-Math.floor(-value+0.5):Math.floor(value+0.5)):Math[name](value);}

@@ -40,7 +40,7 @@ test('InterT10_weapon rows interpolate actual templates and preserve contracts',
  assert.deepEqual(w.values.params.keywords.value,['ranged']);assert.deepEqual(w.values.params.displayed_keywords.value,['loc_autogun_p1_m1']);
  const unregistered=data.items.find(x=>x.key==='autogun_p1_m2');assert.deepEqual(unregistered.values.actions,[]);assert.equal(unregistered.values.params.ammo_clip.unknown,'DYNAMIC_VALUE');assert.ok(data.problems.some(x=>x.code==='NO_DISPLAYED_ATTACKS'&&x.id===unregistered.id));
  const stats=new Map(w.values.bars[0].stats.map(x=>[x.key,x]));
- for(const [key,min,max] of [['recoil.base.moving.pitch',3,5],['recoil.base.pitch',3.8,7.8],['recoil.base.fixed',9,9],['recoil.base.constant',4,4],['recoil.base.array.1',2,4],['recoil.base.array.2',12,16],['damage.action_shoot.child.power_distribution.attack',20,40],['damage.action_shoot.child.armor.armor_types.armored',0.35,0.65],['damage.action_shoot.child.ranges.min',15,25]]) {
+ for(const [key,min,max] of [['recoil.base.moving.pitch',3,5],['recoil.base.pitch',3.8,7.8],['recoil.base.fixed',9,9],['recoil.base.constant',4,4],['recoil.base.array.1',2,4],['recoil.base.array.2',12,16],['damage.action_shoot.child.power_distribution.attack',20,40],['damage.action_shoot.child.armor.armored',0.35,0.65],['damage.action_shoot.child.ranges.min',15,25]]) {
   assert.equal(stats.get(key)?.min,min,key);assert.equal(stats.get(key)?.max,max,key);
  }
  assert.equal(stats.get('recoil.base.precise').min,0.123456789012345);
