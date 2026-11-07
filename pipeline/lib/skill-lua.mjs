@@ -329,7 +329,25 @@ export function createSkillResolver(reader) {
         }
         return unknown(n,`不支援運算 ${n.op}`);
       }
-      if(n.type==='function')n.mathVerified=verifiedBinding({name:'math',bound:Boolean(n.capture?.has('math'))||/^function\s*\([^)]*\bmath\b/.test(n.raw),intact:roots=>effects.intact(roots)});
+      if(n.type==='function') {
+        n.mathVerified=verifiedBinding({name:'math',bound:Boolean(n.capture?.has('math'))||/^function\s*\([^)]*\bmath\b/.test(n.raw),intact:roots=>effects.intact(roots)});
+        n.mathAliases=Object.create(null);
+        const chunk=load(n.file);
+        const builtinAlias=(binding,seen=new Set())=>{
+          if(!binding || seen.has(binding))return undefined;
+          seen.add(binding);
+          if(binding.type==='reference')return builtinAlias(binding.binding,seen);
+          // A verified builtin function is truthy in Lua: the fallback is unreachable.
+          if(binding.type==='binary' && binding.op==='or')return builtinAlias(binding.left,seen);
+          if(binding.type==='index' && binding.base?.type==='reference' && binding.base.name==='math' && !binding.base.binding && ['abs','floor','ceil','round'].includes(scalar(binding.key)))return scalar(binding.key);
+        };
+        for(const [alias,binding] of n.capture??[]) {
+          if(!n.mathVerified || chunk.env?.get(alias)!==binding)continue;
+          const intrinsic=builtinAlias(binding);if(!intrinsic)continue;
+          n.mathAliases[alias]=intrinsic;
+          if(trace)trace.push({path:binding.file,line:binding.line});
+        }
+      }
       return n;
     } finally {active.delete(n);}
   }
@@ -365,7 +383,9 @@ function math(name,value) {return name==='round'?(value<0?-Math.floor(-value+0.5
 /** Only a single return of whitelisted arithmetic is accepted; no eval/Function. */
 export function manipulate(node,value) {
   if(node?.type!=='function') return undefined;
-  const match=/^function\s*\(\s*([a-zA-Z_]\w*)\s*\)\s*return\s+([\s\S]*?)\s*end$/.exec(node.raw);
+  // Also accept one pure temporary immediately returned, with no other statements.
+  const raw=node.raw.replace(/^(function\s*\([^)]*\))\s*local\s+([A-Za-z_]\w*)\s*=\s*([\s\S]*?)\s+return\s+\2\s+end$/, '$1 return $3 end');
+  const match=/^function\s*\(\s*([a-zA-Z_]\w*)\s*\)\s*return\s+([\s\S]*?)\s*end$/.exec(raw);
   if(!match) return undefined;
   const env=new Map([[match[1],{type:'literal',value}]]),p=new SkillLua(match[2],node.file,env);
   let ast;try {ast=p.expression();} catch {return undefined;}
@@ -376,6 +396,8 @@ export function manipulate(node,value) {
     if(n.type==='unary' && n.op==='-') return -calc(n.arg);
     if(n.type==='binary' && ['+','-','*','/'].includes(n.op)) {const a=calc(n.left),b=calc(n.right);return n.op==='+'?a+b:n.op==='-'?a-b:n.op==='*'?a*b:a/b;}
     const name=callName(n.callee);
+    if(n.type==='call' && n.callee.type==='reference' && node.mathAliases?.[name] && n.args.length===1)
+      return math(node.mathAliases[name],calc(n.args[0]));
     if(n.type==='call' && /^math\.(abs|floor|ceil|round)$/.test(name) && n.args.length===1 && verifiedBinding({name,bound:node.mathVerified===false})) return math(name.slice(5),calc(n.args[0]));
     return undefined;
   }

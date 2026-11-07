@@ -9,7 +9,9 @@ import { loadSchemas } from './lib/json-schema.mjs';
 import { diffCategory, inputHashFor } from './lib/diff-core.mjs';
 import { resolveCloudRoot, cloudLayout, itemFileName, copyIfChanged } from './lib/cloud-dir.mjs';
 import { resolveGlossary, matchGlossary } from './lib/glossary.mjs';
-import { dataFile } from './lib/candidate.mjs';
+import { dataFile, applyEffectTask } from './lib/candidate.mjs';
+import { loadTextIndex } from './lib/official-text.mjs';
+import { effectTaskFor, effectNeedsRefresh } from './lib/official-effect.mjs';
 
 const repo = fileURLToPath(new URL('../', import.meta.url));
 const schemas = loadSchemas(join(repo, 'pipeline/schema'));
@@ -79,14 +81,18 @@ async function main() {
     checked(schemas.validate('ai-input.schema.json', input), logical(inputPath));
     checked(schemas.validate('ai-output.schema.json', output), logical(outputPath));
     if (input.id !== id || input.item.id !== id || output.id !== id || input.category !== entry.category || input.change !== entry.change) throw new Error('項目 id、category 或 change 不符');
-    if (input.inputHash !== entry.inputHash || output.inputHash !== entry.inputHash || inputHashFor(entry.category, entry.change, input.item) !== entry.inputHash) throw new Error('inputHash 不符；說明可能已過期，請依新輸入重寫');
-    checked(checkDataFile(entry.category, stringifyCanonical(dataFile(entry.category, run, [{ ...input.item, explanation: output.explanation, errata: output.errata }], entry.category === 'weapons' && !Object.hasOwn(input.item.values, 'curves') ? '1.0.0' : '1.1.0'))), logical(outputPath));
+    const effectTask=Object.hasOwn(input,'lockedEffect')?{lockedEffect:input.lockedEffect}:Object.hasOwn(input,'effectTask')?{effectTask:input.effectTask}:undefined;
+    if (input.inputHash !== entry.inputHash || output.inputHash !== entry.inputHash || inputHashFor(entry.category, entry.change, input.item, undefined, effectTask) !== entry.inputHash) throw new Error('inputHash 不符；說明可能已過期，請依新輸入重寫');
+    const explanation=effectTask?applyEffectTask(output.explanation,effectTask):output.explanation;
+    checked(checkDataFile(entry.category, stringifyCanonical(dataFile(entry.category, run, [{ ...input.item, explanation, errata: output.errata }], entry.category === 'weapons' && !Object.hasOwn(input.item.values, 'curves') ? '1.0.0' : '1.1.0'))), logical(outputPath));
     if (entry.outcome === 'kept-previous') state = reopenItem(state, id);
     state = advanceItem(state, id, 'described'); await writeState(stateFile, state);
     console.log(`已標記：${id}`); return;
   }
   const work = resolve(options['--work-dir'] || join(repo, '.pipeline-work', run.gameVersion));
   const dataDir = resolve(options['--data-dir'] || join(repo, 'data'));
+  const textFile=join(work,'extract','text.json');
+  const textIndex=await optional(textFile)!==null?loadTextIndex(textFile):undefined;
   logicalRoots.push([join(work, 'extract'), 'extract'], [dataDir, 'data']);
   const glossary = resolveGlossary({ override: options['--glossary'] });
   if (!glossary) console.log('找不到 Translation.md，AI 輸入不含譯名對照');
@@ -113,14 +119,25 @@ async function main() {
       if (prevText !== null) { checked(checkDataFile(category, prevText), logical(prevFile)); const prev = parse(prevText, logical(prevFile)); if (previousSchemaVersion && previousSchemaVersion !== prev.schemaVersion) throw new Error('資料檔 schemaVersion 不一致'); previousSchemaVersion = prev.schemaVersion; if (prev.gameVersion !== previousVersion) throw new Error(`${logical(prevFile)} 的 gameVersion 不符`); previous = prev.items; }
     }
     const diff = diffCategory(category, previous, extract.items);
+    if (extract.schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)) {
+      const oldById=new Map(previous.map(item=>[item.id,item])), newById=new Map(extract.items.map(item=>[item.id,item]));
+      diff.unchanged=diff.unchanged.filter(id=>{
+        const task=effectTaskFor(newById.get(id),textIndex,extract.effectFormats?.[id]);
+        if (!effectNeedsRefresh(oldById.get(id)?.explanation,task)) return true;
+        diff.changed.push(id); return false;
+      });
+      diff.changed.sort();
+    }
     report.categories[category] = { status: 'ok', reason: null, ...diff };
     const oldMap = new Map(previous.map((item) => [item.id, item])), newMap = new Map(extract.items.map((item) => [item.id, item]));
     for (const change of ['added', 'changed', 'removed']) for (const id of diff[change]) {
-      const item = newMap.get(id), old = oldMap.get(id), inputHash = inputHashFor(category, change, item, old);
+      const item = newMap.get(id), old = oldMap.get(id);
+      const effectTask=change!=='removed' && extract.schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)?effectTaskFor(item,textIndex,extract.effectFormats?.[id]):undefined;
+      const inputHash = inputHashFor(category, change, item, old, effectTask);
       registrations.push({ id, category, change, inputHash });
       if (change !== 'removed') {
         const prev = old ? { gameVersion: previousVersion, name: old.name, official: old.official, values: old.values, explanation: old.explanation, errata: old.errata } : null;
-        const input = { schemaVersion: '1.0.0', id, category, change, ...Object.fromEntries(fields.map((k) => [k, run[k]])), inputHash, item, previous: prev, glossary: { source: glossary?.source ?? null, matches: matchGlossary(glossary?.entries ?? [], [item.name.en, item.official.en, prev?.name.en, prev?.official.en]) }, outputFile: `ai/output/${itemFileName(id)}` };
+        const input = { schemaVersion: '1.0.0', id, category, change, ...Object.fromEntries(fields.map((k) => [k, run[k]])), inputHash, item, previous: prev, glossary: { source: glossary?.source ?? null, matches: matchGlossary(glossary?.entries ?? [], [item.name.en, item.official.en, prev?.name.en, prev?.official.en]) }, outputFile: `ai/output/${itemFileName(id)}`,...effectTask };
         checked(schemas.validate('ai-input.schema.json', input), `AI 輸入 ${id}`); inputs.push(input);
       }
     }
@@ -139,6 +156,7 @@ async function main() {
   }
   await writeState(stateFile, state);
   for (const category of [...CATEGORIES, 'text']) { const src = join(work, 'extract', `${category}.json`); if (await optional(src) !== null) await copyIfChanged(src, join(layout.extract, `${category}.json`)); }
+  await writeChanged(join(layout.diff, 'text-current.json'), {available: await optional(textFile) !== null});
   await writeChanged(join(layout.diff, 'diff.json'), report);
   for (const input of inputs) await writeChanged(join(layout.aiInput, itemFileName(input.id)), input);
   for (const category of CATEGORIES) { const c = report.categories[category]; console.log(c.status === 'ok' ? `${category}：新增 ${c.added.length}、變動 ${c.changed.length}、移除 ${c.removed.length}、沿用 ${c.unchanged.length}` : `${category}：${c.status}${c.reason ? `（${c.reason}）` : ''}`); }

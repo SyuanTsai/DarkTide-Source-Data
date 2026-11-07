@@ -1,9 +1,9 @@
-import {createSharedBindingGuard,verifiedBinding} from './lua-effects.mjs';
+import {createSharedBindingGuard,verifiedBinding,conditionalWrites,luaBlockEnd} from './lua-effects.mjs';
 import { parseLuaStatic, getTableField as field, getTableArray as array, getTableEntries as entries, tokenizeLua } from './lua-static-reader.mjs';
 import { staticBuffModules } from './blessing-buff-index.mjs';
 
 export const str = n => n?.type === 'string' ? n.value : null;
-export function expression(fn, value) {
+export function expression(fn, value, {angleConversions=false}={}) {
   const m = /^function\s*\(\s*([a-zA-Z_]\w*)\s*\)\s*return\s+([\s\S]*?)\s*end$/.exec(fn?.raw ?? '');
   if (!m) return null;
   try {
@@ -16,8 +16,9 @@ export function expression(fn, value) {
       if (x.type==='number') return x.value;
       if (x.value===m[1]) return value;
       if (x.value==='math' && verifiedBinding({name:'math',bound:fn._mathVerified===false}) && t[i++]?.value==='.') {
-        const name=t[i++]?.value; if (!['abs','floor','ceil','round'].includes(name) || t[i++]?.value!=='(') throw 0;
+        const name=t[i++]?.value; if (!['abs','floor','ceil','round',...(angleConversions?['radians_to_degrees']:[])].includes(name) || t[i++]?.value!=='(') throw 0;
         const v=sum(); if(t[i++]?.value!==')') throw 0;
+        if(name==='radians_to_degrees')return v*(180/Math.PI);
         return name==='round' ? (v>=0?Math.floor(v+0.5):Math.ceil(v-0.5)) : Math[name](v);
       }
       throw 0;
@@ -38,8 +39,30 @@ export function resolver(reader) {
     }
     return cache.get(file);
   }
+  let conversions;
+  function mathConversions() {
+    if(conversions)return conversions;
+    const file='scripts/foundation/utilities/math.lua',sources=[];
+    if(!reader.exists(file))return conversions={valid:false,sources};
+    const tokens=tokenizeLua(reader.read(file)),writes=conditionalWrites(tokens);
+    for(const [helper,builtin] of [['degrees_to_radians','rad'],['radians_to_degrees','deg']]) {
+      const relevant=writes.filter(p=>p[0]==='math' && (p.length===1 || [helper,builtin].includes(p[1])));
+      const wanted=tokenizeLua(`math.${helper}=math.${builtin}`).slice(0,-1);let found;
+      for(let i=0;i<tokens.length;i++) {
+        if(wanted.every((t,j)=>t.type===tokens[i+j]?.type && t.value===tokens[i+j]?.value))found=tokens[i].line;
+        if(tokens[i].type==='keyword' && ['function','if','for','while','repeat','do'].includes(tokens[i].value))i=luaBlockEnd(tokens,i);
+      }
+      if(!found || relevant.length!==1 || relevant[0].join('.')!==`math.${helper}`)return conversions={valid:false,sources:[]};
+      sources.push({path:file,line:found});
+    }
+    return conversions={valid:true,sources};
+  }
   function deref(node,file) {
-    if(node?.type==='lazy') { const value=modules.force(node); return {node:value,file:value._file??file}; }
+    if(node?.type==='lazy') { const value=modules.force(node); return deref(value,value._file??file); }
+    if(node?.type==='call' && node.ref==='math.degrees_to_radians' && node.args?.length===1 && mathConversions().valid && !parsed(file).locals.math && verifiedBinding({name:'math',bound:effects.analysis(file)?.bindings.has('math'),intact:roots=>effects.intact(roots)})) {
+      const arg=deref(node.args[0],file)?.node;
+      if(arg?.type==='number' && Number.isFinite(arg.value))return {node:{...node,type:'number',value:arg.value*(Math.PI/180)},file,sources:mathConversions().sources};
+    }
     if(node?._file) return {node,file:node._file};
     if(node?.type==='call' && node.ref==='table.clone' && node.args?.length===1) return deref(node.args[0],file);
     if(node?.type!=='reference') return node ? {node,file} : null;
@@ -80,5 +103,5 @@ export function resolver(reader) {
     const entry=buff.get(name), node=modules.force(entry?.value);
     return node ? {node,file:node._file,definition:entry.definition} : null;
   }
-  return {parsed,deref,enumKey,walk,buffTemplate};
+  return {parsed,deref,enumKey,walk,buffTemplate,mathConversions};
 }

@@ -1,4 +1,7 @@
 import './extract-skills.test.mjs';
+import './cryptic-brittleness.test.mjs';
+import './cryptic-brittleness-fingerprints.test.mjs';
+import './cryptic-brittleness-reads.test.mjs';
 import './json-schema.test.mjs';
 import './effect-origin.test.mjs';
 import './data-format.test.mjs';
@@ -36,6 +39,8 @@ import './review6.test.mjs';
 import './review7.test.mjs';
 import './review8.test.mjs';
 import './start-repos.test.mjs';
+import './official-template-numbers.test.mjs';
+import './official-effect.test.mjs';
 import './migrate-legacy-copy.test.mjs';
 import './migration-repair.test.mjs';
 import './review16.test.mjs';

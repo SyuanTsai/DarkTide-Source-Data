@@ -10,6 +10,7 @@ import { emptyState, startRun, writeState } from '../../pipeline/lib/state.mjs';
 import { contentHash, diffCategory } from '../../pipeline/lib/diff-core.mjs';
 import { itemFileName } from '../../pipeline/lib/cloud-dir.mjs';
 import { parseGlossary, matchGlossary } from '../../pipeline/lib/glossary.mjs';
+import { buildCandidates } from '../../pipeline/lib/candidate.mjs';
 
 const repo = resolve('.'), fixture = join(repo, 'tests/pipeline/fixtures/diff');
 if (process.env.NODE_TEST_CONTEXT) delete process.env.NODE_OPTIONS;
@@ -32,6 +33,43 @@ async function snapshot(dir) {
   async function visit(path, prefix = '') { for (const entry of await readdir(path, { withFileTypes: true })) { const name = prefix ? `${prefix}/${entry.name}` : entry.name; if (entry.isDirectory()) await visit(join(path, entry.name), name); else result[name] = await readFile(join(path, entry.name)); } }
   await visit(dir); return result;
 }
+
+// Scenario: schema 1.1.0 skills supply complete and missing official effects. Purpose: bind tasks to hashes, preserve work metadata, and lock candidate effects through the actual CLI.
+test('InterT60_official effect inputs survive diff resume mark-described and candidate composition', async t => {
+  const f=await setup(t),file=join(f.work,'extract','skills.json'),extract=await read(file);
+  extract.schemaVersion='1.1.0';extract.effectFormats={};
+  for(const [n,i] of extract.items.entries()) {
+    i.official.zh=n===0?'傷害{bonus:%s}':null;i.values.params={bonus:{value:15,unit:'percent'}};
+    extract.effectFormats[i.id]={params:{bonus:{type:'percentage',numDecimals:1,prefix:'+',suffix:'',valueSpace:'display',manipulation:null,token:'bonus'}}};
+  }
+  await writeFile(file,stringifyCanonical(extract));
+  // All categories in one diff must share the same schema version.
+  for(const category of CATEGORIES.filter(c=>c!=='skills')) {const p=join(f.work,'extract',category+'.json'),d=await read(p);d.schemaVersion='1.1.0';if(category==='weapons'){d.status='structure-mismatch';d.items=[];d.reason='outside test scope';}await writeFile(p,stringifyCanonical(d));}
+  f.run();const first=await snapshot(f.base);f.run();assert.deepEqual(await snapshot(f.base),first);
+  await mkdir(join(f.base,'ai/output'),{recursive:true});
+  for(const [n,i] of extract.items.entries()) {
+    const input=await read(join(f.base,'ai/input',itemFileName(i.id)));
+    assert.equal(input.item.effectFormats,undefined);assert.equal(input.item.values.format,undefined);
+    if(n===0)assert.equal(input.lockedEffect,'傷害+15.0%');else assert.equal(input.effectTask,'translate-official-en');
+    const explanation={effect:'AI效果',conditions:'條件',calculation:'計算',notes:'補充',extra:''};
+    await writeFile(join(f.base,'ai/output',itemFileName(i.id)),JSON.stringify({schemaVersion:'1.0.0',id:i.id,inputHash:input.inputHash,explanation,errata:[]}));
+    f.run('--mark-described',i.id);
+  }
+  const state=await read(f.state),report=await read(join(f.base,'diff/diff.json'));
+  const candidates=await buildCandidates({run:state.run,extractDir:join(f.base,'extract'),aiOutputDir:join(f.base,'ai/output'),previousDir:join(f.data,'1.0'),diffReport:report});
+  for(const [n,i] of extract.items.entries()) {
+    const candidate=candidates.skills.items.find(c=>c.id===i.id);
+    assert.equal(candidate.explanation.effectOrigin,n===0?'official':'unofficial-translation');
+    assert.equal(candidate.explanation.effect,n===0?'傷害+15.0%':'AI效果');
+  }
+  const inputPath=join(f.base,'ai/input',itemFileName(extract.items[0].id)),before=await read(inputPath);
+  extract.effectFormats[extract.items[0].id].params.bonus.prefix='';await writeFile(file,stringifyCanonical(extract));f.run();
+  const after=await read(inputPath);assert.notEqual(after.inputHash,before.inputHash);
+  f.fail(/inputHash/,'--mark-described',extract.items[0].id);
+  const tampered={...after,lockedEffect:'任意更改'};await writeFile(inputPath,stringifyCanonical(tampered));
+  await writeFile(join(f.base,'ai/output',itemFileName(after.id)),JSON.stringify({schemaVersion:'1.0.0',id:after.id,inputHash:after.inputHash,explanation:{effect:'效果',conditions:'',calculation:'',notes:'',extra:''},errata:[]}));
+  f.fail(/inputHash/,'--mark-described',after.id);
+});
 test('fixture 通過 WP1 驗證，比對與譯名規則', async () => {
   assert.equal(checkCurrent(await readFile(join(fixture, 'data/current.json'), 'utf8')).valid, true);
   for (const category of CATEGORIES) {
@@ -169,4 +207,41 @@ test('InterT10_diff accepts modern weapon curves and combos against legacy data'
   const input = await read(join(a.base, 'ai/input', itemFileName('darktide:weapon:example_family:fixture_a')));
   assert.ok(input.item.values.curves.length); assert.deepEqual(input.item.values.attackCombos, []);
   assert.ok(input.item.values.bars[0].stats[0].curveId); assert.equal(input.previous.values.curves, undefined);
+});
+
+// Scenario: the same cloud directory is reused with a work directory lacking text.json. Purpose: prevent an older index from changing the accepted effect policy.
+test('InterT65_missing current text does not reuse a stale cloud index', async t => {
+  const f=await setup(t), file=join(f.work,'extract','skills.json'), extract=await read(file);
+  for(const c of CATEGORIES) {const p=join(f.work,'extract',c+'.json'), d=await read(p);d.schemaVersion='1.1.0';if(c!=='skills'){d.status='structure-mismatch';d.items=[];d.reason='test';}await writeFile(p,stringifyCanonical(d));}
+  const i=extract.items.find(x=>x.id.endsWith('fixture_d')); i.official.zh='{word:%s}';i.values.params={word:{value:'keyword'}};
+  extract.schemaVersion='1.1.0';extract.effectFormats={[i.id]:{params:{word:{type:'loc_string',numDecimals:null,prefix:'',suffix:'',valueSpace:'display',token:'word'}}}};
+  await writeFile(file,stringifyCanonical(extract));
+  const {locHash}=await import('../../pipeline/lib/official-text.mjs');
+  await writeFile(join(f.work,'extract','text.json'),JSON.stringify({batch:meta.textBatch,resources:{items:{[locHash('keyword')]:{en:'word',zh:'文字'}},ui:{}}}));
+  f.run();const first=await read(join(f.base,'ai/input',itemFileName(i.id)));assert.equal(first.lockedEffect,'文字');
+  const alternate=join(f.dir,'alternate');await cp(f.work,alternate,{recursive:true});await rm(join(alternate,'extract','text.json'));
+  const args=[...f.args];args[args.indexOf('--work-dir')+1]=alternate;
+  execFileSync(process.execPath,['pipeline/diff.mjs',...args],{cwd:repo});
+  const input=await read(join(f.base,'ai/input',itemFileName(i.id)));assert.equal(input.effectTask,'translate-official-en');assert.notEqual(input.inputHash,first.inputHash);
+  const outputDir=join(f.base,'ai/output');await mkdir(outputDir,{recursive:true});
+  await writeFile(join(outputDir,itemFileName(i.id)),JSON.stringify({schemaVersion:'1.0.0',id:i.id,inputHash:input.inputHash,explanation:{effect:'翻譯',conditions:'',calculation:'',notes:'',extra:''},errata:[]}));
+  execFileSync(process.execPath,['pipeline/diff.mjs',...args,'--mark-described',i.id],{cwd:repo});
+  const candidates=await buildCandidates({run:(await read(f.state)).run,extractDir:join(f.base,'extract'),aiOutputDir:outputDir,previousDir:join(f.data,'1.0'),diffReport:await read(join(f.base,'diff/diff.json'))});
+  assert.equal(candidates.skills.items.find(x=>x.id===i.id).explanation.effectOrigin,'unofficial-translation');
+});
+
+// Scenario: unchanged source fields have different current effect dependencies. Purpose: create AI work instead of relabeling an old official effect.
+test('InterT70_unchanged effects reopen only when the current policy invalidates them', async t => {
+  const f=await setup(t);
+  for(const c of CATEGORIES) {const p=join(f.work,'extract',c+'.json'), d=await read(p);d.schemaVersion='1.1.0';if(c!=='skills'){d.status='structure-mismatch';d.items=[];d.reason='test';}await writeFile(p,stringifyCanonical(d));}
+  const file=join(f.work,'extract','skills.json'), extract=await read(file), i=extract.items.find(x=>x.id.endsWith('fixture_a'));
+  const prevFile=join(f.data,'1.0','skills.json'), prev=await read(prevFile), old=prev.items.find(x=>x.id===i.id);
+  old.explanation={...old.explanation,effect:'原文',effectOrigin:'official'};prev.schemaVersion='1.1.0';await writeFile(prevFile,stringifyCanonical(prev));
+  i.official.zh=old.official.zh='原文';await writeFile(prevFile,stringifyCanonical(prev));
+  extract.effectFormats={[i.id]:{params:{}}};await writeFile(file,stringifyCanonical(extract));
+  f.run();let report=await read(join(f.base,'diff/diff.json'));assert.ok(report.categories.skills.unchanged.includes(i.id));
+  old.explanation.effect='過期原文';await writeFile(prevFile,stringifyCanonical(prev));f.run();report=await read(join(f.base,'diff/diff.json'));assert.ok(report.categories.skills.changed.includes(i.id));assert.equal((await read(join(f.base,'ai/input',itemFileName(i.id)))).lockedEffect,'原文');
+  i.official.zh=old.official.zh='{missing:%s}';await writeFile(file,stringifyCanonical(extract));await writeFile(prevFile,stringifyCanonical(prev));f.run();report=await read(join(f.base,'diff/diff.json'));assert.ok(report.categories.skills.changed.includes(i.id));assert.equal((await read(join(f.base,'ai/input',itemFileName(i.id)))).effectTask,'translate-official-en');
+  const candidates=await buildCandidates({run:(await read(f.state)).run,extractDir:join(f.base,'extract'),aiOutputDir:join(f.base,'ai/output'),previousDir:join(f.data,'1.0'),diffReport:report});
+  assert.equal(candidates.skills.items.some(x=>x.id===i.id),false);
 });

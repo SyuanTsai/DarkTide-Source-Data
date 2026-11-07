@@ -3,6 +3,7 @@ import { checkNumbers, derived, extractNumbers, isGameValuePath, matches } from 
 
 export const ALLOWED_WORDS = Object.freeze(['LV', 'Lv']);
 export const EXPLANATION_SECTIONS = Object.freeze(['effect', 'conditions', 'calculation', 'notes', 'extra']);
+const officialNumbers = (text) => extractNumbers(typeof text === 'string' ? text.replace(/\{[a-zA-Z_][a-zA-Z0-9_]*(?=:)/g, '{') : text);
 const numberSet = (text) => [...new Set(extractNumbers(text).map((n) => n.value))].sort((a, b) => a - b);
 export function checkText(item, extracted, allowedNames, conflicts, table) {
   const failures = [], notes = [], exp = item?.explanation;
@@ -44,7 +45,7 @@ export function checkText(item, extracted, allowedNames, conflicts, table) {
     notes.push({ code: 'ERRATA_CHECK_SKIPPED_UNKNOWN', message: '項目含未知參數，略過官方數字勘誤完整性檢查' });
   else {
     for (const locale of ['en', 'zh']) {
-      const missing = extractNumbers(item?.official?.[locale]).filter((token) => !matches(token, numeric.numbers) &&
+      const missing = officialNumbers(item?.official?.[locale]).filter((token) => !matches(token, numeric.numbers) &&
         !errata.some((entry) => extractNumbers(entry?.official).some((n) => n.value === token.value)));
       if (missing.length) failures.push(failure('text', 'T_ERRATA_MISSING', `/official/${locale}`, `官方數字未附勘誤：${[...new Set(missing.map((n) => n.raw))].sort().join('、')}`));
     }

@@ -48,17 +48,10 @@ function stimmDefinitions(r,reader) {
   return result;
 }
 
-/** Discover committed trees and class/base talent tables; last duplicate wins. */
-export function skillStructure(reader) {
-  const treeFiles=reader.list('scripts/ui/views/').filter(p=>/^scripts\/ui\/views\/(talent_builder_view|broker_stimm_builder_view)\/layouts\/[^/]+_tree\.lua$/.test(p));
-  if(!treeFiles.length) throw new StructureError('skills','TREES_MISSING','找不到技能樹檔');
-  for(const file of [REGISTRY,LAYOUT_PARSER]) if(!reader.exists(file)) throw new StructureError('skills','FILE_MISSING',`找不到必要檔案：${file}`);
-  // Validate the named table, rather than matching an unrelated occurrence.
-  const r=createSkillResolver(reader),parserChunk=r.load(LAYOUT_PARSER);
-  if(!r.field(r.resolve(parserChunk.env.get('FIND_VALUE_FUNCTIONS')),'buff_template')) throw new StructureError('skills','FINDER_MISSING','FIND_VALUE_FUNCTIONS 缺少 buff_template');
-  const problems=[], definitions=new Map();
-  const generated=stimmDefinitions(r,reader);
-  r.setStimmDefinitions(generated);
+/** Shared selection for extraction and its independent source proof. Preserve
+ * reader order: the last file for an archetype replaces its entire map. */
+export function readTalentDefinitions(r,reader,problems=[]) {
+  const definitions=new Map();
   for(const file of reader.list(TALENTS).filter(p=>p.endsWith('_talents.lua'))) {
     const definition=r.returned(file),archetype=file===TALENTS+'base_talents.lua'?'base':r.scalar(r.get(definition,'archetype')) ?? file.slice(TALENTS.length).replace(/_talents\.lua$/,'');
     const talents=r.get(definition,'talents');const map=new Map();
@@ -70,6 +63,20 @@ export function skillStructure(reader) {
     }
     definitions.set(archetype,map);
   }
+  return definitions;
+}
+
+/** Discover committed trees and class/base talent tables; last duplicate wins. */
+export function skillStructure(reader) {
+  const treeFiles=reader.list('scripts/ui/views/').filter(p=>/^scripts\/ui\/views\/(talent_builder_view|broker_stimm_builder_view)\/layouts\/[^/]+_tree\.lua$/.test(p));
+  if(!treeFiles.length) throw new StructureError('skills','TREES_MISSING','找不到技能樹檔');
+  for(const file of [REGISTRY,LAYOUT_PARSER]) if(!reader.exists(file)) throw new StructureError('skills','FILE_MISSING',`找不到必要檔案：${file}`);
+  // Validate the named table, rather than matching an unrelated occurrence.
+  const r=createSkillResolver(reader),parserChunk=r.load(LAYOUT_PARSER);
+  if(!r.field(r.resolve(parserChunk.env.get('FIND_VALUE_FUNCTIONS')),'buff_template')) throw new StructureError('skills','FINDER_MISSING','FIND_VALUE_FUNCTIONS 缺少 buff_template');
+  const problems=[],generated=stimmDefinitions(r,reader);
+  r.setStimmDefinitions(generated);
+  const definitions=readTalentDefinitions(r,reader,problems);
   if(generated.size) {
     const broker=definitions.get('broker') ?? new Map();
     for(const [k,v] of generated) broker.set(k,v);
