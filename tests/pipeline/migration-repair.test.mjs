@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { buildMigration, applyPatch, checkCandidate } from '../../scripts/migration/lib/repair-tasks.mjs';
-import { writePrepared, applyPrepared, assertExternalOutput, loadLegacyCache } from '../../scripts/migration/lib/migration-io.mjs';
+import { writePrepared, applyPrepared, assertExternalOutput, loadLegacyCache, exists } from '../../scripts/migration/lib/migration-io.mjs';
 import { itemFileName } from '../../pipeline/lib/cloud-dir.mjs';
 import { inputs, term, hash } from './fixtures/migration.mjs';
 
@@ -26,6 +26,14 @@ async function snapshot(dir, prefix = '') {
 }
 const patchFor = task => ({ id: task.id, taskHash: task.taskHash, extractHash: task.extractHash,
   replacements: task.allowedChanges.ranges.map(r => ({ rangeId: r.id, originalHash: r.sha256, text: '修復。' })), errata: [] });
+
+// Scenario: lstat of a child of a file reports ENOTDIR; a separate lookup reports EACCES. Purpose: treat only missing paths as absent and propagate permission errors.
+test('UnitT05_exists_handles_enotdir_and_propagates_permission_errors', async () => {
+  const enotdir = Object.assign(new Error('not a directory'), { code: 'ENOTDIR' });
+  const denied = Object.assign(new Error('permission denied'), { code: 'EACCES' });
+  assert.equal(await exists('file/child', async () => { throw enotdir; }), false);
+  await assert.rejects(exists('restricted', async () => { throw denied; }), error => error === denied);
+});
 
 // Scenario: Valid copy passes the existing gates. Purpose: issue an exclusion-only task without permitting edits.
 test('UnitT10_valid_copy_produces_exclusion_only_task', () => {
@@ -182,6 +190,18 @@ test('InterT80_reject_git_output_and_require_absolute_path', async t => {
   const worktree = await out(t); await writeFile(join(worktree, '.git'), 'gitdir: C:/missing\n');
   await assert.rejects(assertExternalOutput(join(worktree, 'nested')), /git/i);
   await assert.rejects(assertExternalOutput('relative'), /absolute/);
+});
+
+// Scenario: output names an existing file or a missing nested path in and outside a repository. Purpose: scan from the nearest existing directory without missing repository ancestors.
+test('InterT82_check_existing_file_and_missing_nested_output', async t => {
+  const external = await out(t), repo = await out(t);
+  const file = join(external, 'map.json'); await writeFile(file, '{}');
+  assert.equal(await assertExternalOutput(file), file);
+  assert.equal(await assertExternalOutput(join(external, 'missing', 'map.json')), join(external, 'missing', 'map.json'));
+  execFileSync('git', ['init', '--quiet', repo]);
+  const repoFile = join(repo, 'map.json'); await writeFile(repoFile, '{}');
+  await assert.rejects(assertExternalOutput(repoFile), /git/i);
+  await assert.rejects(assertExternalOutput(join(repo, 'missing', 'map.json')), /git/i);
 });
 
 // Scenario: A nested output junction points into a repo, or the output is a bare repo. Purpose: prevent physical writes into any repository.

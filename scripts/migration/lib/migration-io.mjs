@@ -11,8 +11,8 @@ import { applyPatch, buildMigration, checkCandidate, currentFile, dataFile, summ
 export const PIN = Object.freeze({ contentVersion: '1.13.4.5',
   dataRevision: '3688cf214c4498d88dd8b1be42c423cb363f9602e7031b9d7a556abacddb2ea7',
   manifestSha256: 'f196af262902394369bc8ad35beff50215f1c5ed77ae7bc5f865446107327e96' });
-async function exists(path) {
-  try { await lstat(path); return true; } catch (error) { if (error.code === 'ENOENT') return false; throw error; }
+export async function exists(path, stat = lstat) {
+  try { await stat(path); return true; } catch (error) { if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return false; throw error; }
 }
 async function resolvedPath(path) {
   if (await exists(path)) return realpath(path);
@@ -23,7 +23,10 @@ async function resolvedPath(path) {
 export async function assertExternalOutput(path) {
   if (typeof path !== 'string' || !isAbsolute(path)) throw new Error('Output requires an explicit absolute path');
   const canonical = await resolvedPath(resolve(path));
-  for (let ancestor = canonical; ; ancestor = dirname(ancestor)) {
+  let start = canonical;
+  while (!await exists(start)) start = dirname(start);
+  if (!(await lstat(start)).isDirectory()) start = dirname(start);
+  for (let ancestor = start; ; ancestor = dirname(ancestor)) {
     const marker = join(ancestor, '.git');
     // An empty directory has no Git metadata. Keep scanning ancestors; do not change it.
     const gitMarker = await exists(marker) && (!(await lstat(marker)).isDirectory() || (await readdir(marker)).length > 0);
