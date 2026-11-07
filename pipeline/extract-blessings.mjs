@@ -4,7 +4,7 @@ import { runExtractCli, itemId, nameFromText } from './lib/extract-output.mjs';
 import { StructureError } from './lib/errors.mjs';
 import { resolver, str, expression } from './lib/blessing-values.mjs';
 import { verifiedTextKeys, sharedTextCandidates } from './lib/blessing-text.mjs';
-import { captureEffectFormat } from './lib/effect-format.mjs';
+import { captureEffectFormat, gameDecimals } from './lib/effect-format.mjs';
 import { pathToFileURL } from 'node:url';
 
 const SCRIPT = 'pipeline/extract-blessings.mjs@1.1.0';
@@ -65,7 +65,11 @@ export function build({reader,text,envelope}) {
           if(angles?.valid)for(const source of angles.sources)add(source.path,source.line);
           value=manipulation ? expression(manipulation,value,{angleConversions:angles?.valid}) : fmt==='percentage' ? value*100 : value;
           if(manipulation && value===null) { reason='DYNAMIC_MANIPULATION'; detail='value_manipulation 不是允許的單一 return 運算式'; }
-          if(value!==null && Number.isFinite(value)) value=Number(value.toPrecision(12)); else value=undefined;
+          if(value!==null && Number.isFinite(value)) {
+            if(varying) (formats.params[name].displayDecimals ??= Array(tiers.length).fill(null))[tier-1]=gameDecimals(value);
+            else formats.params[name].displayDecimals=gameDecimals(value);
+            value=Number(value.toPrecision(12));
+          } else value=undefined;
         } else if((fmt==='number'||fmt==='percentage') && typeof value!=='number') value=undefined;
         else if((fmt==='string'||fmt==='loc_string') && typeof value!=='string') value=undefined;
         if(value===undefined || value===null) { problems.push({code:'UNRESOLVED_VALUE',message:`[${reason}] 參數 ${name}（tier ${tier}）：${detail}`,id}); return {value:null,unknown:'DYNAMIC_VALUE',...(fmt==='percentage'?{unit:'percent'}:{})}; }

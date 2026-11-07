@@ -11,7 +11,7 @@ import { resolveCloudRoot, cloudLayout, itemFileName, copyIfChanged } from './li
 import { resolveGlossary, matchGlossary } from './lib/glossary.mjs';
 import { dataFile, applyEffectTask } from './lib/candidate.mjs';
 import { loadTextIndex } from './lib/official-text.mjs';
-import { effectTaskFor } from './lib/official-effect.mjs';
+import { effectTaskFor, effectNeedsRefresh } from './lib/official-effect.mjs';
 
 const repo = fileURLToPath(new URL('../', import.meta.url));
 const schemas = loadSchemas(join(repo, 'pipeline/schema'));
@@ -119,6 +119,15 @@ async function main() {
       if (prevText !== null) { checked(checkDataFile(category, prevText), logical(prevFile)); const prev = parse(prevText, logical(prevFile)); if (previousSchemaVersion && previousSchemaVersion !== prev.schemaVersion) throw new Error('資料檔 schemaVersion 不一致'); previousSchemaVersion = prev.schemaVersion; if (prev.gameVersion !== previousVersion) throw new Error(`${logical(prevFile)} 的 gameVersion 不符`); previous = prev.items; }
     }
     const diff = diffCategory(category, previous, extract.items);
+    if (extract.schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)) {
+      const oldById=new Map(previous.map(item=>[item.id,item])), newById=new Map(extract.items.map(item=>[item.id,item]));
+      diff.unchanged=diff.unchanged.filter(id=>{
+        const task=effectTaskFor(newById.get(id),textIndex,extract.effectFormats?.[id]);
+        if (!effectNeedsRefresh(oldById.get(id)?.explanation,task)) return true;
+        diff.changed.push(id); return false;
+      });
+      diff.changed.sort();
+    }
     report.categories[category] = { status: 'ok', reason: null, ...diff };
     const oldMap = new Map(previous.map((item) => [item.id, item])), newMap = new Map(extract.items.map((item) => [item.id, item]));
     for (const change of ['added', 'changed', 'removed']) for (const id of diff[change]) {
@@ -147,6 +156,7 @@ async function main() {
   }
   await writeState(stateFile, state);
   for (const category of [...CATEGORIES, 'text']) { const src = join(work, 'extract', `${category}.json`); if (await optional(src) !== null) await copyIfChanged(src, join(layout.extract, `${category}.json`)); }
+  await writeChanged(join(layout.diff, 'text-current.json'), {available: await optional(textFile) !== null});
   await writeChanged(join(layout.diff, 'diff.json'), report);
   for (const input of inputs) await writeChanged(join(layout.aiInput, itemFileName(input.id)), input);
   for (const category of CATEGORIES) { const c = report.categories[category]; console.log(c.status === 'ok' ? `${category}：新增 ${c.added.length}、變動 ${c.changed.length}、移除 ${c.removed.length}、沿用 ${c.unchanged.length}` : `${category}：${c.status}${c.reason ? `（${c.reason}）` : ''}`); }

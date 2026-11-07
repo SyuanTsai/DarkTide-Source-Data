@@ -6,6 +6,7 @@ import { canonicalize } from './canonical-json.mjs';
 import { itemFileName } from './cloud-dir.mjs';
 import { loadSchemas } from './json-schema.mjs';
 import { loadTextIndex } from './official-text.mjs';
+import { inputHashFor } from './diff-core.mjs';
 import { effectTaskFor } from './official-effect.mjs';
 
 const schemas = loadSchemas(fileURLToPath(new URL('../schema/', import.meta.url)));
@@ -32,8 +33,12 @@ export function composeCandidate({ category, run, extract, previous, unchanged =
         schemas.validate('ai-output.schema.json', output).valid && output.id === item.id && output.inputHash === entry.inputHash)
         description = output;
     }
+    if (description && !unchangedIds.has(item.id) && extract.schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)) {
+      const entry=run.items[item.id], task=effectTaskFor(item,textIndex,extract.effectFormats?.[item.id]);
+      if (inputHashFor(category,entry.change,item,old.get(item.id),task)!==entry.inputHash) throw new Error(`效果任務 inputHash 不符，請重跑 diff：${item.id}`);
+    }
     if (description) {
-      const explanation=extract.schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)
+      const explanation=!unchangedIds.has(item.id) && extract.schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)
         ?applyEffectTask(description.explanation,effectTaskFor(item,textIndex,extract.effectFormats?.[item.id])):description.explanation;
       items.push({ ...item, explanation, errata: description.errata });
     }
@@ -52,7 +57,8 @@ async function optionalJson(file, tolerateInvalid = false) {
 export async function buildCandidates({ run, extractDir, aiOutputDir, previousDir, diffReport }) {
   const result = {};
   const textFile=join(extractDir,'text.json');
-  const textIndex=await optionalJson(textFile)?loadTextIndex(textFile):undefined;
+  const textCurrent=await optionalJson(join(extractDir,'..','diff','text-current.json'));
+  const textIndex=textCurrent?.available!==false && await optionalJson(textFile)?loadTextIndex(textFile):undefined;
   for (const category of CATEGORIES) {
     if (diffReport.categories?.[category]?.status !== 'ok') { result[category] = null; continue; }
     const extract = await optionalJson(join(extractDir, `${category}.json`));

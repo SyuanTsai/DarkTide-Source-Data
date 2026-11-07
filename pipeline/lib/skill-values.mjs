@@ -1,5 +1,5 @@
 import { manipulate } from './skill-lua.mjs';
-import { captureEffectFormat } from './effect-format.mjs';
+import { captureEffectFormat, gameDecimals } from './effect-format.mjs';
 
 /** Resolve display params exactly as the UI's static subset allows. */
 export function skillParams(r,definition,id,problems,trace,formats={params:{}},literalTokens=new Set()) {
@@ -37,6 +37,7 @@ export function skillParams(r,definition,id,problems,trace,formats={params:{}},l
       } else valueNode=get(finder,'value');
     }
     const manipulation=get(config,'value_manipulation');
+    const displayDecimals=[];
     function display(n) {
       let v=scalar(n);
       if(v===undefined || v===null) {reason ??=r.resolve(n)?.reason ?? '無法靜態解析參照或值';return undefined;}
@@ -45,6 +46,7 @@ export function skillParams(r,definition,id,problems,trace,formats={params:{}},l
         if(manipulation && scalar(manipulation)!==null) v=manipulate(manipulation,v);
         else if(format==='percentage') v*=100;
         if(!Number.isFinite(v)) {reason ??='value_manipulation 不符合單一 return 靜態運算規則';return undefined;}
+        displayDecimals.push(gameDecimals(v));
         return Number(v.toPrecision(12));
       }
       return ['string','number','boolean'].includes(typeof v)?v:undefined;
@@ -54,6 +56,7 @@ export function skillParams(r,definition,id,problems,trace,formats={params:{}},l
       if(tier) {if(!valueNode.length) reason='talent_overrides 無法解析';else {value=valueNode.map(display);if(value.some(v=>v===undefined)) reason ??='tier 無法解析';}}
       else value=display(valueNode);
     }
+    if(!reason && displayDecimals.length) formats.params[name].displayDecimals=tier?displayDecimals:displayDecimals[0];
     if(reason || value===undefined) {
       params[name]={value:null,unknown:'DYNAMIC_VALUE'};
       problems.push({code:'UNRESOLVED_VALUE',id,param:name,message:reason ?? '非靜態值',...(reason==='CONDITIONAL_ASSIGNMENT'?{reason}:{})});

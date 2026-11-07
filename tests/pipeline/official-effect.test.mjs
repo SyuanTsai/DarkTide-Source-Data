@@ -78,7 +78,12 @@ test('UnitT60_candidate locks complete effects and labels translations only in s
   const i={...item('傷害{power:%s}',{power:{value:15}}),key:'test'},formats=meta({power:format('percentage')});
   const inputHash='0'.repeat(64),run={gameVersion:'1.13.4',sourceCommit:'a'.repeat(40),textBatch:'1',items:{[i.id]:{category:'skills',change:'added',inputHash}}};
   const output={schemaVersion:'1.0.0',id:i.id,inputHash,explanation:{effect:'AI改寫',conditions:'',calculation:'',notes:'',extra:''},errata:[]};
-  const build=(zh,category='skills',schemaVersion='1.1.0')=>composeCandidate({category,run:{...run,items:{[i.id]:{...run.items[i.id],category}}},extract:{status:'ok',schemaVersion,items:[{...i,official:{...i.official,zh}}],effectFormats:{[i.id]:formats}},outputs:{[i.id]:output}}).items[0];
+  const build=(zh,category='skills',schemaVersion='1.1.0')=>{
+    const current={...i,official:{...i.official,zh}};
+    const task=schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)?effectTaskFor(current,undefined,formats):undefined;
+    const hash=inputHashFor(category,'added',current,undefined,task);
+    return composeCandidate({category,run:{...run,items:{[i.id]:{...run.items[i.id],category,inputHash:hash}}},extract:{status:'ok',schemaVersion,items:[current],effectFormats:{[i.id]:formats}},outputs:{[i.id]:{...output,inputHash:hash}}}).items[0];
+  };
   assert.equal(build(i.official.zh).explanation.effect,'傷害15%');assert.equal(build(i.official.zh).explanation.effectOrigin,'official');
   assert.equal(build(null).explanation.effect,'AI改寫');assert.equal(build(null).explanation.effectOrigin,'unofficial-translation');
   for(const [category,version] of [['weapons','1.1.0'],['terms','1.1.0'],['skills','1.0.0']])assert.equal(build(null,category,version).explanation.effectOrigin,undefined);
@@ -148,4 +153,27 @@ test('UnitT95_static talent override arrays use the nodes point range', () => {
   const m=meta({power:format('percentage',{pointTiers:true})});
   assert.deepEqual(expand(i,m),{status:'complete',text:'10%',missing:[]});
   i.values.maxPoints=2;assert.equal(expand(i,m).text,'10%／20%');
+});
+
+// Scenario: raw display doubles differ from normalized values. Purpose: use captured source precision.
+test('UnitT16_source precision survives normalized display values', () => {
+  assert.equal(expand(item('{n:%s}',{n:{value:3.3}}),meta({n:format('percentage',{displayDecimals:1})})).text,'3.3%');
+  assert.equal(expand(item('{n:%s}',{n:{value:-28}}),meta({n:format('percentage',{displayDecimals:2})})).text,'-28.00%');
+});
+
+// Scenario: the source task changed after the AI output was produced. Purpose: reject stale policy hashes.
+test('UnitT17_candidate rejects a changed effect policy', () => {
+  const i=item('{n:%s}',{n:{value:1}}), task={lockedEffect:'old'};
+  const hash=inputHashFor('skills','added',i,undefined,task);
+  const output={schemaVersion:'1.0.0',id:i.id,inputHash:hash,explanation:{effect:'x',conditions:'',calculation:'',notes:'',extra:''},errata:[]};
+  assert.throws(()=>composeCandidate({category:'skills',run:{items:{[i.id]:{category:'skills',change:'added',inputHash:hash}}},extract:{status:'ok',schemaVersion:'1.1.0',items:[i],effectFormats:{[i.id]:meta({n:format()})}},outputs:{[i.id]:output}}),/重跑 diff/);
+});
+
+// Scenario: unchanged items have official, translated, or changed expanded effects. Purpose: reopen only invalidated descriptions.
+test('UnitT18_effect task changes invalidate previous descriptions', async () => {
+  const {effectNeedsRefresh}=await import('../../pipeline/lib/official-effect.mjs');
+  assert.equal(effectNeedsRefresh({effect:'原文',effectOrigin:'official'},{effectTask:'translate-official-en'}),true);
+  assert.equal(effectNeedsRefresh({effect:'原文',effectOrigin:'official'},{lockedEffect:'新文'}),true);
+  assert.equal(effectNeedsRefresh({effect:'原文',effectOrigin:'official'},{lockedEffect:'原文'}),false);
+  assert.equal(effectNeedsRefresh({effect:'譯文',effectOrigin:'unofficial-translation'},{effectTask:'translate-official-en'}),false);
 });
