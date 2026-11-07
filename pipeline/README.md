@@ -129,6 +129,24 @@ extract-terms 的 keyword 包含兩種 glossary 前綴；碰到同名時分別�
 
 ### 技能取數
 
+cryptic 的電弧手榴彈／電擊每層脆弱值補收，須同時通過既有靜態證明與 e46b892 全文 SHA-256 釘選（完整 **478 檔、3 個目錄清單及兩個技能名稱／描述的雙語文字 hash**見 `lib/cryptic-brittleness-sources.json`）。範圍是這次 **extract-skills 整體實際讀取集合**：主抽取器、所有技能樹及其 require 閉包、獨立 proof resolver，以及任何經由 reader 的檔案讀取與 `reader.list()` 掃描；不是只有兩條 proof 的引用鏈。主抽取器與 proof 共用 reader 快照，直到全部讀取結束才比對內容與完整集合並提交補值／來源 trace；預檢讀取不計入實際集合。任一釘選檔內容改變或缺失、多讀或少讀檔案／目錄、目錄清單成員或順序變動，實際定義不符，或實際文字鍵／內容變更，都回報 `BRITTLENESS_SOURCE_CHANGED`（引用鏈來源已變更，需重新核實）及 `files`／`directories`，兩筆回到原本的 `T_NUMBER`。主抽取器與獨立 proof 仍共用最後定義優先的選取邏輯，並核對實際定義的檔案、位置與原文；完整集合檢查額外涵蓋來源位置相同但有效 AST 或綁定已被其他模組改寫的情況。值與行號仍由解析取得，指紋不提供保底值。清單擴大表示**技能相關來源一有變動就需要重新核實**，即使只改 BOM、空白或註解亦同。
+
+遊戲更新後，於 repository 根目錄以 pwsh 7／Node 24 執行以下流程：
+
+1. 固定欲核實的 Source-Code commit，執行候選收集腳本。以下為 e46b892 的可重現範例；更新時替換 commit 與輸出目錄（輸出檔已存在時會拒絕覆寫）。腳本以 Git blob 原始 bytes（含 BOM）計算 SHA-256，**不套用舊 pins**，先走與正式抽取共用的完整主抽取遍歷，再重新選取定義並完成兩條獨立靜態證明，收集兩者的全部讀檔與有序目錄清單後才輸出 `candidate-pins.json` 與 `pins-diff.json`；不會覆寫正式清單。後者包含相對於正式清單的檔案／目錄新增、移除、內容或順序變更，文字鍵與雙語字串 hash 的差異，以及實際定義位置、解析參數和引用鏈 trace。
+
+   ```powershell
+   node scripts/cryptic-brittleness-pins.mjs `
+     --source-repo 'F:/GitFile/Persion - Games/Darktide-Source-Code' `
+     --source-commit e46b8926cfa3fa35503e4b80b15aab7a804314e4 `
+     --text-file 'F:/GitFile/Persion - Games/DarkTide-Pipeline-Work/cryptic-brittleness/extract/text.json' `
+     --output-dir 'F:/GitFile/Persion - Games/DarkTide-Pipeline-Work/cryptic-brittleness/pins-e46b892-review'
+   ```
+
+2. 人工核對（或交 astra review）兩份 JSON 與指定 commit 的差異：確認實際選用的 talent、special rule／passive → registry → `rending_debuff.stat_buffs.rending_multiplier` 及套用層數仍成立，解析值為 `0.025` 且與官方 2.5% 相符。e46b892 的值位於 `weapon_buff_templates.lua:374`，但後續版本須依 trace 重新找位置；不能把它當保底行號。靜態證明失敗時腳本不輸出候選，應先審查來源與證明邏輯；不得關閉檢查或直接採用舊 pins。
+3. 核對無誤後，才明確將候選的完整 `sourceCommit`、`files`、`directories`、`text` 更新至 `pipeline/lib/cryptic-brittleness-sources.json`。再次用相同 commit 和新輸出目錄跑腳本，確認候選與正式清單逐項一致，檔案、目錄與文字差異均為零。
+4. 執行 `node --test tests/pipeline/`，確認反例仍拒收。以新 commit 和對應文字索引執行 `node tests/pipeline/cryptic-brittleness.acceptance.mjs --source-commit <新 commit> --text-file <text.json>`；省略 commit 時預設使用正式 pins 的 commit。確認兩筆補值、checkText／checkValues 通過、其他項目 byte 相同且重跑一致。e46b892 的基準另驗證 618 筆中其餘 616 筆不變。更新 pins 後，舊 commit 因來源不符被拒收屬預期行為。
+
 `extract-skills.mjs` 動態發現職業與 broker stimm 樹，只輸出樹節點引用的天賦，未引用定義列入 `excluded`。技能專用 `skill-*` 模組靜態解析 require、table 路徑、enum/computed key、常值四則運算、merge/clone 與 stimm 資料 DSL，不執行 Lua。百分比保留顯示數值，tier 保留完整陣列；傷害計算、lerp、條件或不支援的函式保留 `DYNAMIC_VALUE` 與問題原因。名稱使用共用官方文字政策，多段說明以換行串接，來源記錄實際讀取檔案與行號。
 
 PowerShell 設定 `$env:PIPELINE_REAL_SMOKE='1'` 後執行 `node --test tests/pipeline/`，亦會驗證固定技能 commit／文字批次的項目範圍、官方英文名稱比例及重跑 byte 一致，並印出各職業與問題統計。

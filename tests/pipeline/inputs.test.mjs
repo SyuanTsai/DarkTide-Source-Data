@@ -20,6 +20,21 @@ import {siblingRepo} from '../../pipeline/lib/inputs.mjs';
 import {mkdirSync} from 'node:fs';
 import path from 'node:path';
 
+// Scenario: a committed Lua blob contains a BOM and callers mutate returned bytes.
+// Purpose: fingerprint exact Git bytes while preserving BOM-free parser input and immutable cached data.
+test('InterT10_source reader preserves raw BOM bytes and isolates its cache',t=>{
+  const f=fixture(t),file='scripts/test/raw.lua',raw=Buffer.from('\uFEFFreturn {}\r\n');
+  put(f.source,file,raw);const sha=commit(f.source),reader=createSourceReader({repo:f.source,commit:sha});
+  assert.equal(reader.read(file),'return {}\r\n');
+  assert.deepEqual(reader.readBytes(file),raw);
+  const copy=reader.readBytes(file);copy.fill(0);
+  put(f.source,file,'changed working copy');
+  assert.deepEqual(reader.readBytes(file),raw);
+  assert.equal(reader.read(file),'return {}\r\n');
+  assert.throws(()=>reader.readBytes('../outside'));
+  assert.throws(()=>reader.readBytes('missing'),StructureError);
+});
+
 test('review worktree defaults search adjacent then one parent higher, preserving missing path',t=>{
  const f=fixture(t),root=path.join(f.dir,'worktrees','task');mkdirSync(root,{recursive:true});
  assert.equal(siblingRepo('missing',root),path.join(f.dir,'worktrees','missing'));
