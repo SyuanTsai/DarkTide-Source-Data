@@ -170,6 +170,10 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 1.1.0 武器可選填 `values.damageProfiles[]`，保存來源明示的 attack／impact 原始數值與動作或模板綁定；hitScan／projectile 的明示 powerLevel 保存在各自的 binding。數值附來源位置，缺值以 unknown 原因表示；這些是原始數值，不是最終傷害。
 
+新版 `extract-weapons` 一律輸出此陣列，依 profile id 排序；distributions 保留 root、各 target／default target 與 near／far，bindings 保留個別 action 和模板情境（例如 hip／ADS），shotshell／flamerGas／explosion 不附 powerLevel。不讀取共用 `grenade_ability_*` 動作。繼承採來源的 clone，再依 override 列順序指定末端欄位；指定整表時整表替換，不深層合併。中間路徑必須已存在；無法證明的 override key、列或集合使該模板 fail closed，不能略過並沿用 parent 數值。動態值用 `DYNAMIC_VALUE`，來源未明示用 `NOT_EXPOSED_BY_SOURCE`，找不到的 profile 用 `NOT_VERIFIED`，並以 `DAMAGE_PROFILE_UNKNOWN`／`DAMAGE_BINDING_UNKNOWN` problems 回報無法確認的結構或綁定。數值保留原始端點，不套用素質、powerLevel、護甲、buff 或執行期傷害公式。
+
+`WeaponTweaks.create_new` 的 `num_keys = #row - 1` 使可證明長度為 0／1 的 row 不執行寫入；這類靜態 no-op 可安全保留，與無法解讀的 row 不同。nil 或無法證明非 nil 的末值可能改變 Lua `#row` 邊界，使寫入路徑也無法確認，因此整個 override 模板 fail closed。透過 alias 取得的 parent 表也先隔離再寫入。無法靜態展開的 action 另記 `DAMAGE_ACTION_UNKNOWN`（例如執行期建構的 inspect／unwield），不代表已輸出 profile 的端點缺失；輸出不是完整執行期 action 圖譜。私有 profile clone 無法證明與其來源 id 相同時回報 unknown／problems，不套用原 profile 的數值。
+
 step 的 profile 綁定重用 WP2 require/catalog 邏輯，唯一靜態 profile 才填值，否則 `damageProfile: null` 及 `DAMAGE_PROFILE_BINDING_NOT_FOUND`。displayed_attacks 必須能以明確 action_name 對應 display_name 才填名稱；群組 gestalt 名稱不推定為每個 action 的名稱。
 
 連段原因碼：`CONDITIONAL_CHAIN`（chain validation／action condition／running action state requirement）、`CHAIN_TARGET_NOT_FOUND`（缺目標）、`CHAIN_START_AMBIGUOUS`（多起點）、`CHAIN_CYCLE_WITHOUT_ATTACK`（無攻擊循環）、`DYNAMIC_VALUE`（函式／動態邊或 kind），另保留既有 `REFERENCE_NOT_FOUND`。遇不確定分支保留已證實的 steps 前綴。`CURVE_UNKNOWN`、`COMBO_UNKNOWN` problems 均帶 reason，可直接彙總；profile unknown 由 steps 的 `damageProfileUnknown` 統計。

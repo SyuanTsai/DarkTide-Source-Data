@@ -20,6 +20,14 @@ test('InterT10_weapon rows interpolate actual templates and preserve contracts',
  const f=setup(t),data=f.run(),w=data.items.find(x=>x.key==='autogun_p1_m1');
  assert.equal(data.status,'ok');assert.equal(data.items.length,3);
  assert.equal(data.schemaVersion,'1.1.0');
+ for(const item of data.items) {
+  assert.ok(Array.isArray(item.values.damageProfiles));
+  const ids=new Set(item.values.damageProfiles.map(p=>p.id));
+  for(const combo of item.values.attackCombos)for(const step of combo.steps)
+   if(step.damageProfile!==null)assert.ok(ids.has(step.damageProfile));
+ }
+ assert.equal(w.values.damageProfiles.find(p=>p.id==='child').distributions[0].attack.min,10);
+ assert.equal(w.values.damageProfiles.find(p=>p.id==='child').distributions[0].impact.unknown,'NOT_EXPOSED_BY_SOURCE');
  for(const item of data.items)for(const bar of item.values.bars)for(const stat of bar.stats){
   const curve=item.values.curves.find(c=>c.id===stat.curveId);
   assert.equal(curve.bar,bar.id);assert.equal(curve.stat,stat.key);

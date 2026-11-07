@@ -3,6 +3,7 @@ import './json-schema.test.mjs';
 import './effect-origin.test.mjs';
 import './data-format.test.mjs';
 import './damage-profiles.test.mjs';
+import './damage-profiles-extract.test.mjs';
 import './diff.test.mjs';
 import './candidate.test.mjs';
 import './verify.test.mjs';
