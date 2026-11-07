@@ -32,4 +32,3 @@ test('collects the exact psyker parameter context, without merging same names', 
   delete files[buff];
   await assert.rejects(buildTerms({reader,text:{lookup:()=>null},envelope,workDir:dir}), /psyker_buff_templates/);
 });
-
