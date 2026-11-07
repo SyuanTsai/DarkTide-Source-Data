@@ -127,6 +127,16 @@ exit 0 表示完成；exit 1 表示候選檔變動、版本倒退、資料驗證
 
 extract-terms 的 keyword 包含兩種 glossary 前綴；碰到同名時分別加 `:term`／`:glossary`。skill-type 直接掃描 talent 字串，class 讀 archetype_name，weapon-type 讀 UI patterns，並連結同 family 的武器 id。class 的 official 使用 archetype_description，其餘使用該 loc key。所有來源出現位置均記錄 path/line；動態拼接前綴只記 `DYNAMIC_KEY`。skills/weapons extract 缺少或非 ok 時記 `DEPENDENCY_UNAVAILABLE`；武器 refs 為空，不把它當結構不符。
 
+### Lua 靜態解析器前提
+
+技能、祝福與武器共用的整個 Lua 靜態解析器假設：遊戲設定模組不會透過任何函式呼叫（包括 callback、計算 key 取得的別名、括號呼叫）改寫跨模組的共用設定表。在此前提下，無法理解的 override、動態值與其他無法證實的結構仍須 fail-closed，標記 unknown 或回報 problems，不猜測數值。
+
+Table constructor 的計算 key 必須有字面值或靜態常數證明；可解析且未失效的 imported enum 字串／數字欄位也屬於證明。無法證明的 key 會標記 `hasUnknownKeys`，從該表讀取任何欄位都傳遞 `DYNAMIC_VALUE`。未知計算 key 的讀取保留所有可能值及共用表別名，後續寫入或傳給可能修改資料的函式會使所有可能共用表失效；已證明的 key 則精確讀取。
+
+本次靜態解析驗收以 e46b892 實際使用的設定語法與固定產出為範圍；未在該版來源出現的 Lua 寫法不在保證範圍內，由 START.md 抽查把關。
+
+已知限制以測試記錄：透過函式呼叫改寫共用表的寫法（例如 review17／19／24 的反例）不在上述保證範圍內；解析器可能仍輸出 known。安全網是依 [START.md](../docs/pipeline/START.md) 的 astra 逐 profile 抽查對照 Source-Code，並在每次遊戲更新時進行人工驗收；發現不一致即停止。
+
 ### 技能取數
 
 cryptic 的電弧手榴彈／電擊每層脆弱值補收，須同時通過既有靜態證明與 e46b892 全文 SHA-256 釘選（完整 **478 檔、3 個目錄清單及兩個技能名稱／描述的雙語文字 hash**見 `lib/cryptic-brittleness-sources.json`）。範圍是這次 **extract-skills 整體實際讀取集合**：主抽取器、所有技能樹及其 require 閉包、獨立 proof resolver，以及任何經由 reader 的檔案讀取與 `reader.list()` 掃描；不是只有兩條 proof 的引用鏈。主抽取器與 proof 共用 reader 快照，直到全部讀取結束才比對內容與完整集合並提交補值／來源 trace；預檢讀取不計入實際集合。任一釘選檔內容改變或缺失、多讀或少讀檔案／目錄、目錄清單成員或順序變動，實際定義不符，或實際文字鍵／內容變更，都回報 `BRITTLENESS_SOURCE_CHANGED`（引用鏈來源已變更，需重新核實）及 `files`／`directories`，兩筆回到原本的 `T_NUMBER`。主抽取器與獨立 proof 仍共用最後定義優先的選取邏輯，並核對實際定義的檔案、位置與原文；完整集合檢查額外涵蓋來源位置相同但有效 AST 或綁定已被其他模組改寫的情況。值與行號仍由解析取得，指紋不提供保底值。清單擴大表示**技能相關來源一有變動就需要重新核實**，即使只改 BOM、空白或註解亦同。
@@ -186,6 +196,12 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 `values.attackCombos[]` 依 light、heavy 輸入追蹤 action 圖。起點採 `start_input = start_attack`，沒有時才使用有 light/heavy 邊的其他明確 start_input。多起點時 steps 為空、unknown 為 `CHAIN_START_AMBIGUOUS`；受 start 必須為字串的結構限制，start/source 指向來源順序第一個候選，不能視為已確認的唯一入口。連段從已進入 start action 的狀態開始；後續轉入 action（含返回 start）才檢查 action condition。windup 不列入 steps，沿 `start_attack` 推進；只有 kind 可靜態確認的 sweep 或具有靜態 damage profile 的傷害 action 列入。`loopsTo` 是 steps 的零起算索引；無循環為 null。純遠程無此結構則為空陣列。時間不影響順序，未使用時間選分支。原始碼語意依 `scripts/settings/equipment/weapon_templates/default_melee_action_input_setup.lua`、`melee_action_input_setup_mid.lua` 與 `scripts/utilities/action/action_handler.lua` 的 `_valid_action_from_action_input`、`_validate_single_chain_action` 核對；`_anim_end_event` 的 callback 僅控制動畫收尾，不是連段條件。
 
+1.1.0 武器可選填 `values.damageProfiles[]`，保存來源明示的 attack／impact 原始數值與動作或模板綁定；hitScan／projectile 的明示 powerLevel 保存在各自的 binding。數值附來源位置，缺值以 unknown 原因表示；這些是原始數值，不是最終傷害。
+
+新版 `extract-weapons` 一律輸出此陣列，依 profile id 排序；distributions 保留 root、各 target／default target 與 near／far，bindings 保留個別 action 和模板情境（例如 hip／ADS），shotshell／flamerGas／explosion 不附 powerLevel。不讀取共用 `grenade_ability_*` 動作。繼承採來源的 clone，再依 override 列順序指定末端欄位；指定整表時整表替換，不深層合併。中間路徑必須已存在；無法證明的 override key、列或集合使該模板 fail closed，不能略過並沿用 parent 數值。動態值用 `DYNAMIC_VALUE`，來源未明示用 `NOT_EXPOSED_BY_SOURCE`，找不到的 profile 用 `NOT_VERIFIED`，並以 `DAMAGE_PROFILE_UNKNOWN`／`DAMAGE_BINDING_UNKNOWN` problems 回報無法確認的結構或綁定。數值保留原始端點，不套用素質、powerLevel、護甲、buff 或執行期傷害公式。
+
+`WeaponTweaks.create_new` 的 `num_keys = #row - 1` 使可證明長度為 0／1 的 row 不執行寫入；這類靜態 no-op 可安全保留，與無法解讀的 row 不同。nil 或無法證明非 nil 的末值可能改變 Lua `#row` 邊界，使寫入路徑也無法確認，因此整個 override 模板 fail closed。透過 alias 取得的 parent 表也先隔離再寫入。無法靜態展開的 action 另記 `DAMAGE_ACTION_UNKNOWN`（例如執行期建構的 inspect／unwield），不代表已輸出 profile 的端點缺失；輸出不是完整執行期 action 圖譜。私有 profile clone 無法證明與其來源 id 相同時回報 unknown／problems，不套用原 profile 的數值。
+
 step 的 profile 綁定重用 WP2 require/catalog 邏輯，唯一靜態 profile 才填值，否則 `damageProfile: null` 及 `DAMAGE_PROFILE_BINDING_NOT_FOUND`。displayed_attacks 必須能以明確 action_name 對應 display_name 才填名稱；群組 gestalt 名稱不推定為每個 action 的名稱。
 
 連段原因碼：`CONDITIONAL_CHAIN`（chain validation／action condition／running action state requirement）、`CHAIN_TARGET_NOT_FOUND`（缺目標）、`CHAIN_START_AMBIGUOUS`（多起點）、`CHAIN_CYCLE_WITHOUT_ATTACK`（無攻擊循環）、`DYNAMIC_VALUE`（函式／動態邊或 kind），另保留既有 `REFERENCE_NOT_FOUND`。遇不確定分支保留已證實的 steps 前綴。`CURVE_UNKNOWN`、`COMBO_UNKNOWN` problems 均帶 reason，可直接彙總；profile unknown 由 steps 的 `damageProfileUnknown` 統計。
@@ -195,3 +211,5 @@ step 的 profile 綁定重用 WP2 require/catalog 邏輯，唯一靜態 profile 
 固定來源 `ba6c148`／文字批次 `25606770` 的基準為 137 把武器、25,372 條曲線、146 組連段；73 把近戰中，light／heavy 各 55 把有至少一個已確認攻擊 step（75.34%，包含帶 unknown 的已確認前綴）。real smoke 的兩種連段覆蓋門檻均設為 70%，保留條件分支的保守 unknown，不以空 steps 充作覆蓋。
 
 `extract-weapons.mjs` 讀取玩家武器模板、官方文字與靜態 trait 列，先建立整把武器的貢獻表；min／max 為所有相關屬性條同時 0%／100% 時的遊戲實際值；同一路徑多條會累加後 clamp 到 0～1，再對實際基礎模板內插，固定數字列也參與累加。保留固定值與陣列的各元素。`lib/weapon-stats.mjs` 處理 registry、require、movement state 繼承及 damage profile parent/overrides；damage key 包含實際 profile／override 名稱；profile 專屬 lerp override 整份優先於通用 action 貢獻，只有被選用的來源參與累加；相同語意來源只輸出一次，所有有貢獻的 bar 都保留該 stat。無法靜態解析的數值記為 unknown，`UNRESOLVED_STAT.reason` 區分缺參照、函式與條件算式；movement sentinel 依遊戲設定展開並套用繼承。不存在且遊戲不讀取的路徑略過，每把武器以一筆 `NOT_APPLICABLE_STAT` 彙總數量，未註冊模板仍會輸出。
+
+開 PR 或驗收前必須執行真實來源完整測試：在 PowerShell 設定 `$env:PIPELINE_REAL_SMOKE='1'`，再執行 `node --test tests/pipeline/cryptic-brittleness-fingerprints.test.mjs tests/pipeline/cryptic-brittleness-reads.test.mjs`，並執行 `node --test tests/pipeline/review33.real.test.mjs` 核對固定來源 binding 行號。預設未設定時 fingerprint／reads 的真實來源案例不會執行，小型 fixture 仍會執行。

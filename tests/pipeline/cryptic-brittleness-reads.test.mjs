@@ -9,7 +9,7 @@ import {skillStructure} from '../../pipeline/lib/skill-structure.mjs';
 import {buildSkills} from '../../pipeline/extract-skills.mjs';
 import {checkText} from '../../pipeline/lib/verify/text.mjs';
 
-const repo=resolveSourceRepo(),options={skip:!existsSync(repo)&&'需要本機固定 Source-Code'};
+const repo=resolveSourceRepo(),options={skip:process.env.PIPELINE_REAL_SMOKE !== '1' ? '需明確啟用 PIPELINE_REAL_SMOKE=1' : !existsSync(repo)&&'需要本機固定 Source-Code'};
 const TALENTS='scripts/settings/ability/archetype_talents/talents/cryptic_talents.lua';
 const TREE='scripts/ui/views/talent_builder_view/layouts/cryptic_tree.lua';
 const EXTRA='scripts/review23_new_dependency.lua';

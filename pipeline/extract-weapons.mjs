@@ -79,13 +79,15 @@ export async function buildWeapons({reader,text,envelope}) {
   }
   statReader.finish(contributions);
   curves.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
-  const attackCombos=weaponCombos({actions:statReader.actions(t.file)??readTable('weapon_template.actions'),displayed:attacks,file:t.file,profiles:statReader.profiles,textValue:key=>textValue(text,key)});
+  const damageActions=statReader.actions(t.file)??readTable('weapon_template.actions');
+  const attackCombos=weaponCombos({actions:damageActions,displayed:attacks,file:t.file,profiles:statReader.profiles,textValue:key=>textValue(text,key)});
+  const damageProfiles=statReader.damageProfiles({actions:damageActions,file:t.file,id,problems,files,attackCombos});
   for(const combo of attackCombos)if(combo.unknown)problems.push({code:'COMBO_UNKNOWN',message:`連段未確認：${combo.kind}`,id,kind:combo.kind,reason:combo.unknown});
   if(notApplicable)problems.push({code:'NOT_APPLICABLE_STAT',id,message:`遊戲不讀取的 stat 路徑：${notApplicable} 筆`});
   for(const k of ['keywords','displayed_keywords']) {const n=readTable(`weapon_template.${k}`); if(n){const values=getTableArray(n).map(x=>k==='keywords'?string(x):string(field(x,'display_name'))).filter(x=>x!==null);params[k]={value:values};}}
   const ammo=assigned(source,'ammo_template'); if(ammo&&ammo!=='no_ammo'){const file=paths.ammo,node=field(catalog(file,'weapon_ammo_templates'),ammo); for(const [key,names] of [['ammo_reserve',['ammo_amount_capacity_lerp','ammunition_reserve']],['ammo_clip',['ammo_amount_clip_lerp','ammunition_clips']]]) {let v=null;for(const name of names){let x=field(node,name);v=endpoints(x);if(!v&&getTableArray(x).length===1)v=endpoints(getTableArray(x)[0]);if(v) break;} params[key]=v?{value:v}:{value:null,unknown:'DYNAMIC_VALUE'};}}
   const unique=[...new Map(files.map(x=>[`${x.path}:${x.line}`,x])).values()].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:a.line-b.line);
-  items.push({id,key:t.name,name:resolved.name,official:{en:null,zh:null},values:{family,mark,weaponType:itemId('terms','weapon-type',family),archetypes:[],actions,bars,curves,attackCombos,blessings:[...new Set(bespokeTraitsForTemplate(reader,t).map(x=>itemId('blessings',x.traitKey)))].sort(),params},source:{commit:envelope.sourceCommit,files:unique,scriptVersion:VERSION,text:{batch:envelope.textBatch,keys:{name:loc}}}});
+  items.push({id,key:t.name,name:resolved.name,official:{en:null,zh:null},values:{family,mark,weaponType:itemId('terms','weapon-type',family),archetypes:[],actions,bars,curves,attackCombos,damageProfiles,blessings:[...new Set(bespokeTraitsForTemplate(reader,t).map(x=>itemId('blessings',x.traitKey)))].sort(),params},source:{commit:envelope.sourceCommit,files:unique,scriptVersion:VERSION,text:{batch:envelope.textBatch,keys:{name:loc}}}});
  }
  if(missing>templates.length/2) throw new StructureError('weapons','INVALID_STRUCTURE','超過半數模板缺少 base_stats 或 displayed_attacks');
  return {items,problems,excluded:[]};

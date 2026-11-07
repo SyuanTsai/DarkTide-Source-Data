@@ -31,6 +31,20 @@ export function checkDataFile(category, text) {
   value.items.forEach((x, i) => {
     if (!x || typeof x !== 'object') return;
     const p = `/items/${i}`;
+    if (x.values && Object.hasOwn(x.values, 'damageProfiles')) {
+      let supportedVersion = false;
+      try { supportedVersion = compareVersions(value.schemaVersion, '1.1.0') >= 0; }
+      catch { /* Schema validation reports malformed versions. */ }
+      if (category !== 'weapons' || !supportedVersion)
+        add(`${p}/values/damageProfiles`, 'damageProfiles requires schema 1.1.0 or later and weapons');
+      if (category === 'weapons' && Array.isArray(x.values.damageProfiles)) {
+        const ids = new Set(x.values.damageProfiles.map(profile => profile?.id));
+        for (const [j, combo] of (Array.isArray(x.values.attackCombos) ? x.values.attackCombos : []).entries())
+          for (const [k, step] of (Array.isArray(combo?.steps) ? combo.steps : []).entries())
+            if (step?.damageProfile != null && !ids.has(step.damageProfile))
+              add(`${p}/values/attackCombos/${j}/steps/${k}/damageProfile`, 'Damage profile must refer to an existing profile');
+      }
+    }
     if (x.explanation && Object.hasOwn(x.explanation, 'effectOrigin')) {
       let supportedVersion = false;
       try { supportedVersion = compareVersions(value.schemaVersion, '1.1.0') >= 0; }

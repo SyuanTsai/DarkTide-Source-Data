@@ -44,12 +44,15 @@ export function staticBuffModules(reader) {
   function get(node,key) {
     node=force(node);
     if(node?.type!=='table') return node?.type==='unknown'?node:unknown('PATH_MISSING',`非 table 無法讀取 ${key}`,node?._file,node?.startLine);
+    if(node.hasUnknownKeys||key===undefined)return {...unknown('DYNAMIC_VALUE','無法證明計算 key',node._file,node.startLine),possibleValues:[...node.entries.map(e=>e.value),...(node.dynamic?[node.dynamic]:[])]};
     let index=0;
     const entry=node.entries.find(e => (e.key ? force(e.key)?.value : ++index)===key);
     return entry ? force(entry.value) : node.dynamic ?? unknown('PATH_MISSING',`路徑不存在：${key}`,node._file,node.startLine);
   }
   function set(table,key,value,missing=false,definition) {
-    table=force(table); if(table?.type!=='table') return;
+    table=force(table);
+    if(table?.possibleValues||table?.hasUnknownKeys){invalidateReachable(table,{resolve:force,dynamic:unknown('DYNAMIC_VALUE','不確定目的表寫入',table._file)});return;}
+    if(table?.type!=='table') return;
     const found=table.entries.find(e=>force(e.key)?.value===key);
     if(found) { if(!missing) { found.value=value; found.definition=definition; } }
     else table.entries.push({key:{type:typeof key,value:key},value,definition});
@@ -57,16 +60,30 @@ export function staticBuffModules(reader) {
   function lazy(expression,env,file) {
     return {type:'lazy',expression,env:new Map(env),_file:file,startLine:expression?.startLine};
   }
+  function keyValue(n,env,file) {
+    if(n?.type!=='unsupported')return force(evaluate(n,env,file));
+    const prefix=[...env].flatMap(([name,node])=>{
+      const value=force(node);
+      return ['string','number','boolean','nil'].includes(value?.type)?[`local ${name}=${value.type==='nil'?'nil':JSON.stringify(value.value)}\n`]:[];
+    }).join('');
+    try {return parseLuaStatic(prefix+'return {['+n.raw+']=true}',{staticArithmetic:true,allowUnsupported:true,effects:{dirtyFrom:Infinity}}).returned.entries[0].resolvedKey;}
+    catch {return undefined;}
+  }
   function evaluate(n,env,file) {
     if(!n) return unknown('PATH_MISSING','來源沒有值',file);
     if(n.type==='reference') {
-      const [root,...parts]=n.ref.split('.');
+      const root=n.root??n.ref.split('.')[0],parts=n.parts??n.ref.split('.').slice(1).map(value=>({type:'string',value}));
       let value=force(env.get(root));
       if(!value) return unknown('RUNTIME_REFERENCE',`無法靜態解析參照 ${n.ref}`,file,n.startLine);
-      for(const part of parts) value=get(value,part);
+      for(const part of parts) value=get(value,keyValue(part,env,file)?.value);
       return force(value);
     }
-    if(n.type==='table') return {...n,_file:file,entries:n.entries.map(e=>({...e,key:e.key?lazy(e.key,env,file):null,value:lazy(e.value,env,file)}))};
+    if(n.type==='table') {
+      // Keys are evaluated at construction, against captured imports/locals.
+      // The expression parser alone cannot prove imported enum members.
+      const entries=n.entries.map(e=>({...e,key:e.key?keyValue(e.key,env,file)??unknown('DYNAMIC_VALUE','無法證明計算 key',file,e.startLine):null,value:lazy(e.value,env,file)}));
+      return {...n,_file:file,entries,hasUnknownKeys:entries.some(e=>e.key&&!['string','number','boolean'].includes(e.key.type))};
+    }
     if(n.type==='call') {
       const root=n.ref?.split('.')[0];
       if(/^(?:math\.|table\.|require$|settings$|unpack$)/.test(n.ref)&&!verifiedBinding({name:root,bound:env.has(root)||effects.analysis(file)?.bindings.has(root),intact:roots=>effects.intact(roots)}))return unknown('DYNAMIC_VALUE','binding 未驗證',file,n.startLine);
@@ -77,7 +94,7 @@ export function staticBuffModules(reader) {
         const source=load(modulePath(n.args[0].value)),model=effects.analysis(file).models.get(n.ref),target=force((environments.get(model.file)??env).get('templates'));
         if(source?.type==='table') for(const entry of source.entries) {
           const key=force(entry.key)?.value;
-          if(typeof key==='string') set(target,key,entry.value,false,entry.definition);
+          if(typeof key==='string') set(target,key,source.hasUnknownKeys?get(source,key):entry.value,false,entry.definition);
         }
         return target;
       }
@@ -92,6 +109,7 @@ export function staticBuffModules(reader) {
           if(n.ref==='table.merge') for(const entry of target.entries) entry.value=dynamic;
         }
         if(source?.type!=='table') return target;
+        target.hasUnknownKeys ||= Boolean(source.hasUnknownKeys);
         for(const entry of source.entries) {
           const key=force(entry.key)?.value;
           if(key!==undefined) set(target,key,entry.value,n.ref==='table.add_missing',entry.definition??{path:source._file,line:entry.startLine??source.startLine});
@@ -185,7 +203,7 @@ export function staticBuffModules(reader) {
     const root=load(file);
     for(const entry of root?.entries??[]) {
       const key=force(entry.key)?.value;
-      if(typeof key==='string') result.set(key,{value:entry.value,definition:entry.definition??{path:root._file,line:entry.startLine??root.startLine}});
+      if(typeof key==='string') result.set(key,{value:root.hasUnknownKeys?get(root,key):entry.value,definition:entry.definition??{path:root._file,line:entry.startLine??root.startLine}});
     }
     return result;
   }

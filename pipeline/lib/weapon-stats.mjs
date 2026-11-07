@@ -4,6 +4,7 @@ import {evaluateFiniteHelper,finiteHelperName} from './lua-finite-helpers.mjs';
 import {parseLuaStatic, getTableField as field, getTableArray as array, tokenizeLua} from './lua-static-reader.mjs';
 import {createTemplateInitializer} from './weapon-template-init.mjs';
 import {createSharedBindingGuard} from './lua-effects.mjs';
+import {createDamageProfileExtractor} from './weapon-damage-profiles.mjs';
 
 const ROOT='scripts/settings/equipment/weapon_templates/';
 const PATHS={shotshell:'scripts/settings/projectile/shotshell_templates.lua',explosion:'scripts/settings/damage/explosion_templates.lua',projectile:'scripts/settings/projectile/projectile_templates.lua',burninating:'scripts/settings/equipment/weapon_handling_templates/weapon_burninating_templates.lua',size_of_flame:'scripts/settings/equipment/weapon_handling_templates/weapon_size_of_flame_templates.lua',recoil:'scripts/settings/equipment/recoil_templates.lua',spread:'scripts/settings/equipment/spread_templates.lua',sway:'scripts/settings/equipment/sway_templates.lua',damage:'scripts/settings/damage/damage_profile_templates.lua',hit_scan:'scripts/settings/projectile/hit_scan_templates.lua',ammo:'scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua',dodge:'scripts/settings/dodge/weapon_dodge_templates.lua',sprint:'scripts/settings/sprint/weapon_sprint_templates.lua',stamina:'scripts/settings/stamina/weapon_stamina_templates.lua',movement_curve_modifier:'scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua',charge:'scripts/settings/equipment/weapon_handling_templates/weapon_charge_templates.lua',warp_charge:'scripts/settings/warp_charge/weapon_warp_charge_templates.lua',weapon_handling:'scripts/settings/equipment/weapon_handling_templates/weapon_handling_templates.lua',weapon_chain_lightning:'scripts/settings/equipment/weapon_handling_templates/weapon_chain_lightning_templates.lua',weapon_shout:'scripts/settings/equipment/weapon_handling_templates/weapon_shout_templates.lua'};
@@ -49,7 +50,9 @@ function statementBoundaries(source) {
 
 /** Cached static catalogs; no Lua execution, including require and registry inheritance. */
 export function createWeaponStats(reader) {
+ const paths={...PATHS,flamer_gas:'scripts/settings/projectile/flamer_gas_templates.lua'};
  const effects=createSharedBindingGuard(reader);
+ const importedTables=new WeakSet();
  const chunks=new Map(),catalogs=new Map(),parseFailures=new Set(),catalogFailures=new Set(),effectiveCache=new Map(),stateCache=new WeakMap(),revoked=new WeakSet();
  const component=n=>{
   // These two table-valued constants are identity sentinels, not enum values.
@@ -57,12 +60,14 @@ export function createWeaponStats(reader) {
   const resolved=deref(n);return resolved?.type==='reference'?resolved.ref:resolved?.value;
  };
  function child(node,key) {
+  if(node?.possibleValues)return field(node,key);
   if(node?.type!=='table')return null;
+  if(node.hasUnknownKeys||(typeof key==='number'&&node.expandedListFrom!==undefined&&key>=node.expandedListFrom))return field(node,key);
   let index=0;
-  return (node.entries.findLast(e=>e.key!=null&&component(e.key)===key)??node.entries.filter(e=>e.key==null).find(()=>++index===key))?.value??node.dynamic;
+  return (node.entries.findLast(e=>e.key!=null&&component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined))===key)??node.entries.filter(e=>e.key==null).find(()=>++index===key))?.value??node.dynamic;
  }
  const set=(root,keys,value)=>setPath(root,keys,value,child);
- const initialization=createTemplateInitializer(reader,PATHS,{setPath:set,annotate});
+ const initialization=createTemplateInitializer(reader,paths,{setPath:set,annotate});
  const mathProofs=new Map();
  function mathVerified(name) {
   if(mathProofs.has(name))return mathProofs.get(name);
@@ -93,14 +98,16 @@ export function createWeaponStats(reader) {
  }
  function imported(path) {
   const node=chunk(path.replace(/\.lua$/,'')+'.lua')?.returned;
-  return node?.type==='call'&&node.ref==='settings'?deref(node.args[1]):node;
+  const result=node?.type==='call'&&node.ref==='settings'?deref(node.args[1]):node;
+  const mark=n=>{if(n?.type!=='table'||importedTables.has(n))return;importedTables.add(n);for(const e of n.entries)mark(e.value);};
+  mark(result);return result;
  }
  function chunk(file) {
   effects.load(file);
   if(!chunks.has(file)) {
    let p=null;
    chunks.set(file,null); // Require cycles cannot acquire speculative bindings.
-   if(reader.exists(file))try{p=parseLuaStatic(statementBoundaries(reader.read(file)),{filename:file,allowUnsupported:true,staticArithmetic:true,effects:{...effects.analysis(file),dirtyFrom:effects.moduleTainted(file)?0:effects.analysis(file)?.dirtyFrom},resolveImport:imported,resolveNode:deref,evaluateFinite:finite,builtinIntact:ref=>effects.intact([ref.split('.')[0]]),mathRadiansVerified:mathVerified('degrees_to_radians')});for(const n of Object.values(p.locals))annotate(n,file);annotate(p.returned,file);}catch{
+   if(reader.exists(file))try{p=parseLuaStatic(statementBoundaries(reader.read(file)),{filename:file,allowUnsupported:true,staticArithmetic:true,isImportedTable:n=>importedTables.has(n),effects:{...effects.analysis(file),dirtyFrom:effects.moduleTainted(file)?0:effects.analysis(file)?.dirtyFrom},resolveImport:imported,resolveNode:deref,evaluateFinite:finite,builtinIntact:ref=>effects.intact([ref.split('.')[0]]),mathRadiansVerified:mathVerified('degrees_to_radians')});for(const n of Object.values(p.locals))annotate(n,file);annotate(p.returned,file);}catch{
     parseFailures.add(file);
     // Require declarations remain statically readable even if an unrelated
     // statement (for example appending runtime trait keys) cannot be parsed.
@@ -117,12 +124,14 @@ export function createWeaponStats(reader) {
    if(visited.has(file))return;visited.add(file);
    const p=chunk(file);if(!p)return;if(p.partial)catalogFailures.add(kind);
    const roots=['hit_scan_templates',kind==='damage'?'damage_templates':kind==='hit_scan'?'hitscan_templates':`${kind}_templates`,`weapon_${kind}_templates`,'templates'];
-   for(const root of roots)for(const e of p.locals[root]?.entries??[])if(e.key?.type==='string')definitions.set(e.key.value,{node:e.value,file});
-   for(const e of p.locals.overrides?.entries??[])if(e.key?.type==='string')definitions.set(e.key.value,{node:e.value,file,override:true});
+   for(const root of [...roots,'overrides'])for(const e of p.locals[root]?.entries??[]) {
+    const key=component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined));
+    if(typeof key==='string')definitions.set(key,{node:child(p.locals[root],key),file,...(root==='overrides'?{override:true}:{})});
+   }
    if(p.moduleDynamic)return;
    for(const m of reader.read(file).matchAll(/(?:extract_weapon_tweaks|_add_template_entries|_require_templates)\("([^"]+)"/g))load(m[1]+'.lua');
   }
-  if(PATHS[kind])load(PATHS[kind]);
+  if(paths[kind])load(paths[kind]);
   return definitions;
  }
  function deref(node,seen=new Set()) {
@@ -138,8 +147,8 @@ export function createWeaponStats(reader) {
    n=q?.returned;
    if(n?.type==='call'&&n.ref==='settings')n=n.args[1];
    // Registry modules assemble tables through extract_weapon_tweaks calls.
-   if(parts.length&&Object.values(PATHS).includes(target)) {
-    const kind=Object.keys(PATHS).find(k=>PATHS[k]===target),d=effective(kind,parts.shift());n=d;
+   if(parts.length&&Object.values(paths).includes(target)) {
+    const kind=Object.keys(paths).find(k=>paths[k]===target),d=effective(kind,parts.shift());n=d;
    }
   }
   n=deref(n,nextSeen);
@@ -151,12 +160,47 @@ export function createWeaponStats(reader) {
   if(effectiveCache.has(key))return effectiveCache.get(key);
   const d=catalog(kind).get(name);if(!d)return null;
   const n=deref(d.node);if(!d.override){const result=initialization.template(n,kind,name);effectiveCache.set(key,result);return result;}
-  const parent=field(n,'parent_template_name');
-  const base=effective(kind,parent?.value,new Set([...seen,key]));if(!base)return null;
+  const blocked=cause=>({type:'unsupported',reason:'DYNAMIC_VALUE',_file:cause?._file??d.file,startLine:cause?.startLine??n?.startLine??1});
+  const parent=deref(child(n,'parent_template_name'));
+  if(parent?.type!=='string')return blocked(parent??n);
+  const base=effective(kind,parent.value,new Set([...seen,key]));
+  if(base?.type!=='table'||base.dynamic)return blocked(base??n);
   const out=structuredClone(base);
-  for(const row of array(field(n,'overrides'))) {
-   const values=array(row),keys=values.slice(0,-1).map(component);
-   if(values.length>=2&&keys.every(x=>x!=null))set(out,keys,values.at(-1));
+  // WeaponTweaks.create_new indexes existing intermediate tables and assigns the
+  // final key in source order. An unreadable row may affect ANY inherited value;
+  // never skip it, invent intermediate tables, or resume with a speculative base.
+  const rows=deref(child(n,'overrides'));
+  const list=node=>node?.type==='table'&&!node.dynamic&&node.entries.every(e=>e.key==null);
+  if(!list(rows))return blocked(rows??n);
+  for(const entry of rows.entries) {
+   const row=deref(entry.value);
+   if(!list(row))return blocked(row??entry.value);
+   // create_new uses num_keys = #row - 1: these proven rows execute no writes.
+   if(row.entries.length<2)continue;
+   const values=row.entries.map(e=>e.value),keys=values.slice(0,-1).map(n=>deref(n));
+   if(!keys.every(k=>k?.type==='string'||k?.type==='number'&&Number.isInteger(k.value)&&k.value>=1))return blocked(row);
+   const value=values.at(-1),resolvedValue=deref(value);
+   // Lua's #row is not the syntactic entry count if its final value may be nil.
+   // That can change BOTH the write path and value, not just one endpoint.
+   const sourceChunk=value?._file&&chunk(value._file);
+   const huge=value?.type==='reference'&&value.ref==='math.huge'&&sourceChunk&&!sourceChunk.partial&&!sourceChunk.locals?.math&&
+    !(sourceChunk?.bindingChanges??[]).some(p=>p==='math'||p.startsWith('math.'))&&effects.intact(['math']);
+   if(!['number','string','boolean','table','function'].includes(resolvedValue?.type)&&!huge)return blocked(row);
+   let target=out;
+   for(const k of keys.slice(0,-1)) {
+    const raw=child(target,k.value),resolved=deref(raw);
+    if(resolved?.type!=='table'||resolved.dynamic)return blocked(row);
+    // table.clone also isolates tables reached through static aliases. Resolve
+    // these lazily along the write path; never mutate a catalog/source binding.
+    if(raw!==resolved) {
+     const copy=structuredClone(resolved);
+     if(raw?.type==='reference')copy._cloneReference=raw;
+     if(!set(target,[k.value],copy))return blocked(row);
+     target=copy;
+    } else target=resolved;
+   }
+   if(target?.type!=='table'||target.dynamic)return blocked(row);
+   if(!set(target,[keys.at(-1).value],structuredClone(value)))return blocked(row);
   }
   const result=initialization.template(out,kind,name);effectiveCache.set(key,result);return result;
  }
@@ -169,7 +213,7 @@ export function createWeaponStats(reader) {
   if(parent?.type!=='table')return null;
   // The game clones the movement state and replaces each overridden property.
   const copy=structuredClone(parent);
-  for(const entry of node.entries)if(component(entry.key)!=='inherits')set(copy,[component(entry.key)],entry.value);
+  for(const entry of node.entries)if(component(entry.resolvedKey??(['string','number','boolean'].includes(entry.key?.type)?entry.key:undefined))!=='inherits')set(copy,[component(entry.resolvedKey??(['string','number','boolean'].includes(entry.key?.type)?entry.key:undefined))],entry.value);
   const result=initialization.state(copy,kind);stateCache.set(node,result);return result;
  }
  function traverse(node,keys,kind) {for(const key of keys){node=inheritedState(deref(node),kind);if(['function','call','unsupported','reference'].includes(node?.type))return {type:'blocked',cause:node};node=child(node,key);}return deref(node);}
@@ -188,7 +232,7 @@ export function createWeaponStats(reader) {
    };
    const name=templateName(projectile,'projectile');
    const found=new Set(),seen=new Set();
-   const visit=n=>{n=deref(n);if(n?.type!=='table'||seen.has(n))return;seen.add(n);if(n._file)files.push({path:n._file,line:n.startLine??1});for(const e of n.entries){if(component(e.key)==='explosion_template'){const v=e.value;const id=templateName(v,'explosion');if(id)found.add(id);}else visit(e.value);}};
+   const visit=n=>{n=deref(n);if(n?.type!=='table'||seen.has(n))return;seen.add(n);if(n._file)files.push({path:n._file,line:n.startLine??1});for(const e of n.entries){if(component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined))==='explosion_template'){const v=e.value;const id=templateName(v,'explosion');if(id)found.add(id);}else visit(e.value);}};
    visit(effective('projectile',name));return [...found];
   }
   return null;
@@ -202,7 +246,7 @@ export function createWeaponStats(reader) {
     if(!n._file)n={...n,_file:context};const resolved=deref(n);if(resolved!==n&&resolved?.type!=='reference')visit(resolved,resolved?._file??context);return;
    }
    if(n.type!=='table')return;
-   for(const e of n.entries){const key=component(e.key);
+   for(const e of n.entries){const key=component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined));
     if(typeof key==='string'&&/^(?:damage_profile(?:_|$)|.+_damage_profile$)/.test(key)) {
      const v=e.value._cloneReference??e.value;
      files.push({path:v._file??context,line:v.startLine??n.startLine??1});
@@ -254,7 +298,7 @@ export function createWeaponStats(reader) {
   if(values(node,0,1)){out.push(keys);return out;}
   if(node.type==='table') {
    const next=new Set([...seen,node]);let index=0;
-   for(const e of node.entries){const key=e.key?component(e.key):++index;if(key!=='inherits')endpointPaths(e.value,[...keys,key],kind,out,next);}
+   for(const e of node.entries){const key=e.key?component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined)):++index;if(key!=='inherits')endpointPaths(e.value,[...keys,key],kind,out,next);}
   }
   return out;
  }
@@ -301,7 +345,9 @@ export function createWeaponStats(reader) {
    }
   }
  }
- return {label,finish,profiles,actions(file){const actions=field(chunk(file)?.locals.weapon_template,'actions');annotate(actions,file);return actions;},extract({source,file,kind,target,group,actions,alternate,emit,unknown,files,notApplicable=()=>{},contributions=null}) {
+ const damageProfiles=createDamageProfileExtractor({lookup:effective,resolve:deref,field:child,component,annotate,paths,
+  definition:(kind,name)=>catalog(kind).get(name),binding:file=>chunk(file)?.locals});
+ return {label,finish,profiles,damageProfiles,actions(file){const actions=field(chunk(file)?.locals.weapon_template,'actions');annotate(actions,file);return actions;},extract({source,file,kind,target,group,actions,alternate,emit,unknown,files,notApplicable=()=>{},contributions=null}) {
   actions=field(chunk(file)?.locals.weapon_template,'actions')??actions;
   annotate(actions,file);annotate(alternate,file);
   const collected=contributions??[],pending=[];
@@ -333,7 +379,7 @@ export function createWeaponStats(reader) {
      for(const name of new Set(names))for(const keys of paths)pending.push({name,keys,distinct:names.length>1,override:explicitProfile!==null,lo:lo?.value,hi:hi?.value,traitFile,param,row,...(lo?.type!=='number'||hi?.type!=='number'?{dynamic:reason(param)}:{})});
     }
    }
-   for(const e of field(group,'overrides')?.entries??[])groupRows(e.value,component(e.key));
+   for(const e of field(group,'overrides')?.entries??[])groupRows(e.value,component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined)));
   }
   groupRows(group);
   for(const entry of pending) {

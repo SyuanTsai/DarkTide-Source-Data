@@ -8,7 +8,7 @@
 
 ### 規則
 
-1. 數值只能來自腳本輸出，你不可以自己推算或改數字。你的工作只有第 4 步：研究邏輯、寫說明。
+1. 數值只能來自腳本輸出，你不可以自己推算或改數字。第 4 步研究邏輯、寫說明；第 5a 步由 astra 對照來源抽查數值。
 2. 每完成一個項目就更新狀態檔，中斷後重跑本提示詞會從狀態檔接續，不重做已完成的項目。
 3. 不修改 `pipeline/` 下的腳本。腳本回報找不到預期結構時，照第 5 步的降級規則處理並在回報中列出。
 4. 不把大型 JSON 整個讀進對話；需要時用指令只輸出要看的項目。
@@ -90,7 +90,7 @@
 
    任何一步失敗或 `throw` 後立即整批停止，跳到第 8 步，並在「需要使用者處理的事」列出原因。Private 的工作目錄及目前分支不影響腳本讀取，不檢查也不切換。不得 reset、stash、checkout 或切換分支。
 1. 版本與狀態：接續時執行 `node pipeline/check-version.mjs --commit $run.sourceCommit --text-batch $run.textBatch`；新 run 執行 `node pipeline/check-version.mjs`。固定輸入無法讀取時立即整批停止。接續時各取數腳本依 state.run 讀取相同 commit 與批次；Private ref 必須仍可讀到該批次，否則停止。
-   - 輸出「沒有新版本」或 run 已 completed，且接續模式仍有未提交的流程產物：跳到第 6 步的 validate 與交付，不重做 AI 說明或 write。
+   - 輸出「沒有新版本」或 run 已 completed，且接續模式仍有未提交的流程產物：跳到第 5a 步抽查，再接續第 6 步的 validate 與交付，不重做 AI 說明或 write。
    - 輸出「沒有新版本」且沒有待提交產物：直接跳到第 8 步回報後結束。
    - 輸出 Source-Code commit 與解包批次版本不一致：整批停止，跳到第 8 步。
 2. 取數與官方文字：依序執行
@@ -104,6 +104,7 @@
    - 1.1.0 祝福／技能輸入有 `lockedEffect` 時，`effect` 逐字照抄該全文，只另外撰寫 `conditions`／`calculation`／`notes`／`extra` 四節實際運作機制；candidate 會強制使用鎖定效果並設定 `effectOrigin: "official"`。
    - 有 `effectTask: "translate-official-en"` 時，依 `item.official.en` 與 `item.values` 翻譯效果，再寫四節機制；pipeline 會標示為「非官方翻譯」（`unofficial-translation`）。未知值不猜測。AI 輸出不得包含 `effectOrigin`。
 5. 檢查：執行 `node pipeline/verify.mjs`。未通過的單一項目會保留上一版內容並記錄原因；這不算失敗，繼續下一步。若輸出「整批停止」，跳到第 8 步。
+5a. damage profile 抽查：由 astra 對照本次固定 Source-Code commit，逐一檢查抽樣的 damage profile 與來源位置、override 後的 attack／impact 端點及 binding 的 powerLevel；每個武器家族至少抽一個 profile，抽樣須涵蓋近戰多 target、遠程 near／far、powerLevel 明示與未明示。若任一類型不存在，記錄原因。記錄每筆的武器家族、武器／profile id、Source-Code commit 與 path:line、抽查欄位、來源值、輸出值及一致／不一致結果。任何不一致或無法完成必要抽查時立即整批停止，跳到第 8 步回報，不得 write 或 commit；回報列出上述明細及原因。接續已 completed 的 run 也須先抽查再 commit。
 6. 寫入：執行 `node pipeline/write.mjs`，再執行 `node pipeline/validate.mjs`。接續已 completed 的 run 時從 validate 開始。通過後執行以下 pwsh 指令，只加入該 run 的檔案，再 commit（訊息：`data: <遊戲版本> 內容更新`）、`git push`。
 
    ```powershell
@@ -123,6 +124,7 @@
 - 更新項目數：技能 N、武器 N、祝福 N、術語 N
 - 保留上一版的項目：<id>：<原因>（逐項列出；沒有寫「無」）
 - 保留上一版的類別：<類別>：<原因>（沒有寫「無」）
+- damage profile 抽查：<astra 抽樣範圍與逐筆家族、武器／profile id、commit、path:line、欄位、來源值、輸出值及結果；未執行或不足時列原因>
 - 需要使用者處理的事：<逐項列出；沒有寫「無」>
 - commit：<hash 或「未 commit」>
 ```
@@ -132,3 +134,5 @@
 - 第 8 步的回報數字由 `node pipeline/check-version.mjs --summary` 重新檢查相同輸入（接續時同樣加上 `--commit $run.sourceCommit --text-batch $run.textBatch`）的版本後產生（不寫入狀態檔）；停止或沒有新版本時項目數皆為 0，其餘引用狀態檔摘要。
 - 本檔只寫一般步驟與固定指令。各指令由 WP2～WP4b 實作；指令執行失敗時，視為整批停止並回報。
 - 環境變數與路徑設定請見「第 0 步之前：環境設定」。
+
+開 PR 或驗收前必須執行真實來源完整測試：在 PowerShell 設定 `$env:PIPELINE_REAL_SMOKE='1'`，再執行 `node --test tests/pipeline/cryptic-brittleness-fingerprints.test.mjs tests/pipeline/cryptic-brittleness-reads.test.mjs`，並執行 `node --test tests/pipeline/review33.real.test.mjs` 核對固定來源 binding 行號。預設未設定時 fingerprint／reads 的真實來源案例不會執行，小型 fixture 仍會執行。

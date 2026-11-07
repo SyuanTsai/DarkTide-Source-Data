@@ -31,6 +31,14 @@ export function expression(fn, value, {angleConversions=false}={}) {
 export function resolver(reader) {
   const effects=createSharedBindingGuard(reader);
   const cache=new Map(), modules=staticBuffModules(reader); let buff, statBuffs;
+  function parsed(file) {
+    if(!cache.has(file)) {
+      // The eager metadata reader and lazy values share the same import proof.
+      modules.load(file);
+      cache.set(file,parseLuaStatic(reader.read(file),{filename:file,allowUnsupported:true,effects:effects.analysis(file),resolveImport:p=>modules.load(p.replace(/\.lua$/,'')+'.lua'),builtinIntact:ref=>effects.intact([ref.split('.')[0]])}));
+    }
+    return cache.get(file);
+  }
   let conversions;
   function mathConversions() {
     if(conversions)return conversions;
@@ -49,7 +57,6 @@ export function resolver(reader) {
     }
     return conversions={valid:true,sources};
   }
-  function parsed(file) { if(!cache.has(file)) cache.set(file,parseLuaStatic(reader.read(file),{filename:file,allowUnsupported:true,effects:effects.analysis(file),builtinIntact:ref=>effects.intact([ref.split('.')[0]])})); return cache.get(file); }
   function deref(node,file) {
     if(node?.type==='lazy') { const value=modules.force(node); return deref(value,value._file??file); }
     if(node?.type==='call' && node.ref==='math.degrees_to_radians' && node.args?.length===1 && mathConversions().valid && !parsed(file).locals.math && verifiedBinding({name:'math',bound:effects.analysis(file)?.bindings.has('math'),intact:roots=>effects.intact(roots)})) {
@@ -71,7 +78,7 @@ export function resolver(reader) {
       const member=parts.at(-1), src=reader.read(settings), match=/buff_settings\.stat_buffs\s*=\s*table\.enum\s*\(([\s\S]*?)\)/.exec(src);
       if (statBuffs === undefined) {
         const settingsRoot=parsed(settings).locals.buff_settings;
-        statBuffs = new Set(entries(field(settingsRoot,'stat_buff_types')).map(e=>str(e.key)).filter(Boolean));
+        statBuffs = new Set(entries(field(settingsRoot,'stat_buff_types')).map(e=>str(e.resolvedKey??(e.key?.type==='string'?e.key:undefined))).filter(Boolean));
         if (match) for(const token of tokenizeLua(match[1])) if(token.type==='string') statBuffs.add(token.value);
       }
       if (statBuffs.has(member)) return member;
@@ -86,7 +93,7 @@ export function resolver(reader) {
       if(cur?.node?.type!=='table') return cur?.node?.type==='unknown'?cur:null;
       let found;
       if(typeof part==='number') found=array(cur.node)[part-1];
-      else found=entries(cur.node).find(e=>enumKey(e.key,cur.file)===part)?.value;
+      else found=entries(cur.node).find(e=>enumKey(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined),cur.file)===part)?.value;
       cur=found ? {node:found,file:cur.file} : null;
     }
     return cur && deref(cur.node,cur.file);
