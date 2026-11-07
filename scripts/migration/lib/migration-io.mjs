@@ -3,6 +3,7 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { stringifyCanonical, writeCanonicalFile } from '../../../pipeline/lib/canonical-json.mjs';
 import { CATEGORIES, checkDataFile, checkCurrent, checkFileConsistency } from '../../../pipeline/lib/data-files.mjs';
 import { itemFileName } from '../../../pipeline/lib/cloud-dir.mjs';
+import { loadTextIndex } from '../../../pipeline/lib/official-text.mjs';
 import { siblingRepo } from '../../../pipeline/lib/inputs.mjs';
 import { translationConflicts } from '../../../pipeline/lib/verify/translation.mjs';
 import { sha256, VERSION } from './legacy-copy.mjs';
@@ -102,6 +103,7 @@ export async function applyPrepared(plan, out) {
   const rows = structuredClone(plan.rows);
   for (const name of patchNames) {
     const task = tasks.get(name), row = rows.find(r => r.id === task.id);
+    if (row.status === 'excluded') throw new Error('Automatically excluded item cannot be patched');
     const result = applyPatch(task, await json(await safePath(root, `repair/patches/${name}`)));
     if (result.exclude) {
       if (row.status.startsWith('blocked:')) throw new Error('Blocked item cannot be excluded by patch');
@@ -163,7 +165,11 @@ export async function loadMigration({ extractDir, legacyCache, translation }) {
   for (const category of CATEGORIES) if (extracts[category]?.items?.length !== expected[category]) throw new Error(`Extract count mismatch: ${category}; expected ${expected[category]}`);
   const legacy = await loadLegacyCache(legacyCache);
   const translationFile = translation || process.env.DARKTIDE_GLOSSARY_FILE || join(siblingRepo('Warhammer-40-000-DARKTIDE-Mods'), 'Referneces/Translation.md');
-  const plan = buildMigration({ extracts, ...legacy, translation: await readFile(translationFile, 'utf8') });
+  const textFile = join(extractDir, 'text.json');
+  const textHash = sha256(await readFile(textFile));
+  const textIndex = loadTextIndex(textFile);
+  if (textIndex.batch !== VERSION.textBatch) throw new Error('Text index batch mismatch');
+  const plan = buildMigration({ extracts, ...legacy, translation: await readFile(translationFile, 'utf8'), textIndex, textHash });
   const expectedMapping = { weapons: 82, blessings: 610, skills: 1, terms: 1 }, expectedLegacy = { weapons: 78, blessings: 1, skills: 1, terms: 1 };
   for (const category of CATEGORIES) if (plan.report.mapping.categories[category] !== expectedMapping[category] ||
     plan.report.categories[category].total !== expectedLegacy[category]) throw new Error(`Legacy mapping/coverage count mismatch: ${category}`);

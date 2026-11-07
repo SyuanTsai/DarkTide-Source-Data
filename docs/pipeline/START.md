@@ -99,13 +99,22 @@
    - `node pipeline/extract-weapons.mjs`
    - `node pipeline/extract-blessings.mjs`
    - `node pipeline/extract-terms.mjs`
-3. 差異：執行 `node pipeline/diff.mjs`，它會列出新增／變動／移除的項目，並把清單寫進狀態檔。
+3. 差異：第一次正式執行 1.13.4 時，使用已驗證的 repo 外遷移 baseline 作為前版資料；路徑可依環境設定：
+
+   ```powershell
+   $migrationBaselineData = 'F:/GitFile/Persion - Games/DarkTide-Pipeline-Work/migration/syp-391-v3/baseline/data'
+   if (-not (Test-Path -LiteralPath (Join-Path $migrationBaselineData 'current.json') -PathType Leaf)) { throw '找不到遷移 baseline，停止執行' }
+   node pipeline/diff.mjs --data-dir $migrationBaselineData
+   if ($LASTEXITCODE -ne 0) { throw 'diff 失敗' }
+   ```
+
+   確認 diff 中 baseline 項目均為 unchanged，其餘均為 added，且沒有 changed／removed；不符立即停止並查明原因。後續版本正常執行 `node pipeline/diff.mjs`，使用 repo 的 `data/`。diff 會列出新增／變動／移除的項目，並把清單寫進狀態檔。
 4. 說明：對狀態檔中還沒寫好說明的每個項目（`node pipeline/diff.mjs --pending` 會列出），讀取腳本給的該項目輸入，寫出五節說明（效果／條件／計算／補充／額外）與勘誤，存到腳本指定的位置，然後執行 `node pipeline/diff.mjs --mark-described <項目 id>`。一次處理一個項目。
    - 1.1.0 祝福／技能輸入有 `lockedEffect` 時，`effect` 逐字照抄該全文，只另外撰寫 `conditions`／`calculation`／`notes`／`extra` 四節實際運作機制；candidate 會強制使用鎖定效果並設定 `effectOrigin: "official"`。
    - 有 `effectTask: "translate-official-en"` 時，依 `item.official.en` 與 `item.values` 翻譯效果，再寫四節機制；pipeline 會標示為「非官方翻譯」（`unofficial-translation`）。未知值不猜測。AI 輸出不得包含 `effectOrigin`。
-5. 檢查：執行 `node pipeline/verify.mjs`。未通過的單一項目會保留上一版內容並記錄原因；這不算失敗，繼續下一步。若輸出「整批停止」，跳到第 8 步。
+5. 檢查：第一次正式執行 1.13.4 時執行 `node pipeline/verify.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')`，讓 candidate 與檢查使用同一份 baseline；後續版本執行 `node pipeline/verify.mjs`。未通過的單一項目會保留上一版內容並記錄原因；這不算失敗，繼續下一步。若輸出「整批停止」，跳到第 8 步。
 5a. damage profile 抽查：由 astra 對照本次固定 Source-Code commit，逐一檢查抽樣的 damage profile 與來源位置、override 後的 attack／impact 端點及 binding 的 powerLevel；每個武器家族至少抽一個 profile，抽樣須涵蓋近戰多 target、遠程 near／far、powerLevel 明示與未明示。若任一類型不存在，記錄原因。記錄每筆的武器家族、武器／profile id、Source-Code commit 與 path:line、抽查欄位、來源值、輸出值及一致／不一致結果。任何不一致或無法完成必要抽查時立即整批停止，跳到第 8 步回報，不得 write 或 commit；回報列出上述明細及原因。接續已 completed 的 run 也須先抽查再 commit。
-6. 寫入：執行 `node pipeline/write.mjs`，再執行 `node pipeline/validate.mjs`。接續已 completed 的 run 時從 validate 開始。通過後執行以下 pwsh 指令，只加入該 run 的檔案，再 commit（訊息：`data: <遊戲版本> 內容更新`）、`git push`。
+6. 寫入：寫入 repo 前先確認第 3 步 diff 使用正確的資料目錄與結果、所有待寫項目均已處理、第 5 步 verify 沒有整批停止，且第 5a 步抽查完成並一致；任何一項不符即停止。第一次正式執行 1.13.4 時執行 `node pipeline/write.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')`，後續版本執行 `node pipeline/write.mjs`；再執行 `node pipeline/validate.mjs`。接續已 completed 的 run 時從 validate 開始。通過後執行以下 pwsh 指令，只加入該 run 的檔案，再 commit（訊息：`data: <遊戲版本> 內容更新`）、`git push`。
 
    ```powershell
    $run = (Get-Content -Raw -LiteralPath pipeline/state.json | ConvertFrom-Json -ErrorAction Stop).run

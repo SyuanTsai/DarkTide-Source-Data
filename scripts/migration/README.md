@@ -5,8 +5,8 @@ Windows、pwsh 7、Node 24。此工具將固定的線上 `1.13.4.5` 快取轉為
 ## 指令與來源
 
 ```powershell
-$migrationOut = 'F:/GitFile/Persion - Games/DarkTide-Pipeline-Work/migration/syp-391'
-$migrationExtract = "$migrationOut/run/spec10/work/extract"
+$migrationOut = 'F:/GitFile/Persion - Games/DarkTide-Pipeline-Work/migration/syp-391-v3'
+$migrationExtract = "$migrationOut/run/extract"
 $migrationCache = 'F:/GitFile/Persion - Games/DarkTide-Web-worktrees/_inventory/wp0-scripts/cache'
 $migrationTranslation = 'F:/GitFile/Persion - Games/Warhammer-40-000-DARKTIDE-Mods/Referneces/Translation.md'
 node scripts/migration/syp-391-baseline.mjs prepare --extract-dir $migrationExtract --legacy-cache $migrationCache --out $migrationOut --translation $migrationTranslation
@@ -22,18 +22,19 @@ CLI 固定 manifest bytes SHA-256、revision `3688cf214c4498d88dd8b1be42c423cb36
 
 ```text
 <out>/
+  run/{state.json,extract/,cloud/}    # 本輪取數與 diff
   draft/data/current.json
   draft/data/1.13.4/{weapons,blessings,skills,terms}.json
   migration-map.json
   repair/tasks/<itemFileName>.json
   repair/patches/<itemFileName>.json  # 下一包提供；本工具不代寫
   report.json
-  baseline/data/...                 # 僅 apply 全部非 blocked 項目通過才建立
+  baseline/data/...                 # 僅 apply 全部未排除項目通過才建立
 ```
 
 draft 只含 81 份舊文案，不帶 `retainedFrom`。mapping 核對全部 694 個舊實體（82／610／1／1），記錄來源路徑、原文與 hash，另保存 Web presentation／術語標籤和引用。身份、name、official、values、aliases、source 都取本輪 extract。武器 note→effect；各 detailSection 同名對應；parts 依 claim 展開；四階原序保留；術語 definition→effect，context 精確比對。
 
-祝福與技能的舊 effects 移到 notes，effect 暫放 raw `official.zh`，不實作展開器。若 effect 無法通過既有檢查，report 列 `blocked:official-effect`；apply 排除它們並明列 blocked。所有官方 effect 都鎖定，不能由局部修復 patch 改寫。
+祝福與技能的舊 effects 移到 notes；使用本輪 extract 的 `text.json` 與 `effectFormats` 呼叫官方展開器。完整展開的 effect 設定 `effectOrigin: "official"` 並鎖定，不能由局部修復 patch 改寫；無法完整展開者自動排除並列出 `official-effect-incomplete` 及缺漏細節，交由一般 AI 流程處理。文字索引 hash 納入任務輸入。
 
 ## 修復任務與 patch
 
@@ -55,12 +56,12 @@ patch 檔名沿用 pipeline 的 `itemFileName(id)`（冒號轉等號）：
 
 只接受 `allowedChanges.ranges` 列出的完整句子或 section；省略的範圍逐字保留。禁止未知欄位、重複替換、範圍／hash 不符。只有 `appendErrata: true` 才可附加 errata；須包含真實的 values `valueRef` 和 `anchor`，並重新通過既有 schema／文字檢查。既有 errata 不能刪改。
 
-不沿用舊文案時，可改用 `{ "id": "...", "taskHash": "...", "extractHash": "...", "exclude": { "reason": "insufficient-after-cleanup", "detail": "說明原因" } }`。`reason` 只接受 `insufficient-after-cleanup`、`nd-strict-unresolved` 或 `legacy-copy-disclaimer-only`（僅出處或免責文字），`detail` 必須非空；不可同時提供 `replacements` 或 `errata`。任務 hash 綁定來源、候選及 extract；未知項目、錯誤 hash、重複或未知 patch 均拒絕。排除項目不進 baseline，report 的 `excluded` 明列原因與說明，分類和總數分別計數；blocked 項目仍維持 blocked。剩餘非 blocked、非 excluded 項目全部通過才建立 baseline。
+不沿用舊文案時，可改用 `{ "id": "...", "taskHash": "...", "extractHash": "...", "exclude": { "reason": "insufficient-after-cleanup", "detail": "說明原因" } }`。`reason` 只接受 `insufficient-after-cleanup`、`nd-strict-unresolved` 或 `legacy-copy-disclaimer-only`（僅出處或免責文字），`detail` 必須非空；不可同時提供 `replacements` 或 `errata`。任務 hash 綁定來源、候選及 extract；未知項目、錯誤 hash、重複或未知 patch 均拒絕。排除項目不進 baseline，report 的 `excluded` 明列原因與說明，分類和總數分別計數；自動排除的效果不接受 patch。剩餘未排除項目全部通過才建立 baseline。
 
-apply 從相同快取、extract、譯名表重建計畫，核對磁碟上的 mapping、draft、全部 task；不接受手改 task 來擴張權限。合併後重跑原檢查，任何非 blocked 項目未通過都不建立 baseline，report 列 `unresolved`。baseline 再用實際非 blocked 候選集合檢查允許名稱與譯名規則。
+apply 從相同快取、extract、譯名表重建計畫，核對磁碟上的 mapping、draft、全部 task；不接受手改 task 來擴張權限。合併後重跑原檢查，任何未排除項目未通過都不建立 baseline，report 列 `unresolved`。baseline 再用實際未排除候選集合檢查允許名稱與譯名規則。
 
 所有 JSON canonical、無時間戳，相同輸入重跑 bytes 相同。不刪資料、不清目錄；換輸入或覆寫已變動的 draft／task 須改用新 `--out`。已建立 baseline 只允許相同 patch 的 byte 相同 apply；prepare 不會覆寫既有 baseline。
 
-exit：prepare 成功 0（可含待修／blocked）；apply 全部 eligible 通過 0、仍有 unresolved 1；參數、輸入、hash、權限或 IO 錯誤 2。blocked 清單仍須交下一包處理，baselineReady 僅表示本包非 blocked 集合全部通過。
+exit：prepare 成功 0（可含待修／排除）；apply 全部 eligible 通過 0、仍有 unresolved 1；參數、輸入、hash、權限或 IO 錯誤 2。自動排除項目交一般 AI 流程處理；baselineReady 表示所有未排除項目均已通過。
 
 驗證：`node --test tests/pipeline/`。
