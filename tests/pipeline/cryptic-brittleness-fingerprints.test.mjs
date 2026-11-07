@@ -23,6 +23,17 @@ const definitionFor=key=>{
   definitionResolver??=createSkillResolver(source());
   return definitionResolver.get(definitionResolver.get(definitionResolver.returned(TALENTS),'talents'),key);
 };
+function expectedRendingMultiplierLine() {
+  const resolver=createSkillResolver(source());
+  const debuff=resolver.get(resolver.returned(WEAPON),'rending_debuff');
+  assert.equal(debuff?.type,'table',`${WEAPON} is missing the rending_debuff definition`);
+  const statBuffs=resolver.get(debuff,'stat_buffs');
+  assert.equal(statBuffs?.type,'table',`${WEAPON} rending_debuff is missing stat_buffs`);
+  const multiplier=resolver.get(statBuffs,'rending_multiplier');
+  assert.equal(multiplier?.file,WEAPON,`${WEAPON} rending_debuff is missing rending_multiplier`);
+  assert.ok(Number.isInteger(multiplier.line)&&multiplier.line>0,`${WEAPON} rending_multiplier has no source line`);
+  return multiplier.line;
+}
 
 function numericCheck(id,stacks,params) {
   const text=`施加${stacks}層2.5%脆弱。`;
@@ -45,11 +56,12 @@ test('InterT10_pinned sources supplement both ratios and account for every read'
   const supplement=createBrittlenessSupplement(source());
   mainReads(supplement);
   const staged=keys.map(([key,stacks])=>stage(supplement,key,stacks));
+  const expectedLine=expectedRendingMultiplierLine();
   supplement.finish();
   for(const {id,params,problems,trace,stacks} of staged) {
     assert.deepEqual(problems,[]);
     assert.deepEqual(params.brittleness_per_stack,{value:0.025,unit:'ratio'});
-    assert.ok(trace.some(p=>p.path===WEAPON&&p.line===374));
+    assert.ok(trace.some(p=>p.path===WEAPON&&p.line===expectedLine));
     assert.deepEqual(numericCheck(id,stacks,params),{failures:[],notes:[]});
   }
   assert.deepEqual(supplement.filesRead(),Object.keys(BRITTLENESS_SOURCE_PINS).sort());
