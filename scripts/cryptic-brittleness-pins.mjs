@@ -3,7 +3,8 @@ import {existsSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {git,parseArgs,resolveSourceRepo} from '../pipeline/lib/inputs.mjs';
-import {createSourceReader} from '../pipeline/lib/source-reader.mjs';
+import {createSourceReader,createSourceReadSnapshot} from '../pipeline/lib/source-reader.mjs';
+import {readSkillData} from '../pipeline/extract-skills.mjs';
 import {createSkillResolver} from '../pipeline/lib/skill-lua.mjs';
 import {readTalentDefinitions} from '../pipeline/lib/skill-structure.mjs';
 import {skillParams} from '../pipeline/lib/skill-values.mjs';
@@ -11,40 +12,30 @@ import {proveBrittleness} from '../pipeline/lib/skill-brittleness.mjs';
 
 const KEYS=['cryptic_arc_grenades_brittleness','cryptic_electrocution_applies_brittleness'];
 const manifestUrl=new URL('../pipeline/lib/cryptic-brittleness-sources.json',import.meta.url);
-const sortedEntries=map=>[...map].sort(([a],[b])=>a<b?-1:a>b?1:0);
 
 /** Re-prove both actual selected definitions WITHOUT checking any old pins.
  * This collector cannot supplement production extracts or update the manifest. */
 export function collectBrittlenessPins(reader) {
   if(!/^[0-9a-f]{40}$/i.test(reader.commit))throw new Error('來源 commit 必須是完整 40 位 SHA');
-  const snapshots=new Map(),directories=new Map();
-  function snapshot(file) {
-    if(!snapshots.has(file)) {
-      const bytes=Buffer.from(reader.readBytes(file)),text=reader.read(file);
-      if(bytes.toString('utf8').replace(/^\uFEFF/,'')!==text)throw new Error(`來源 bytes 與文字不一致：${file}`);
-      snapshots.set(file,{bytes,text});
-    }
-    return snapshots.get(file);
-  }
-  const recorded={...reader,
-    read:file=>snapshot(file).text,readBytes:file=>Buffer.from(snapshot(file).bytes),
-    list(prefix='') {
-      if(!directories.has(prefix))directories.set(prefix,[...reader.list(prefix)]);
-      return [...directories.get(prefix)];
-    }};
+  const audit=createSourceReadSnapshot(reader),recorded=audit.reader;
+  // Localization does not control source discovery; run every main skill/value
+  // traversal, including all trees, before the independent proof resolver.
+  const {skills}=readSkillData({reader:recorded,text:{lookup:()=>({en:'Skill',zh:'技能'})},envelope:{textBatch:'pins'}});
   const r=createSkillResolver(recorded),definitions=readTalentDefinitions(r,recorded);
   const selected=new Map([...(definitions.get('base')??[]),...(definitions.get('cryptic')??[])]),proofs=[];
   for(const key of KEYS) {
     const id='darktide:skill:cryptic:'+key,definition=r.resolve(selected.get(key)),problems=[],trace=[];
     if(!definition)throw new Error(`找不到實際選用定義：${id}`);
+    const actual=skills.find(s=>s.item.id===id)?.definition;
+    if(!actual || ['file','start','line','raw'].some(k=>actual[k]!==definition[k]))throw new Error(`實際選用定義不符：${id}`);
     const params=skillParams(r,definition,id,problems,trace);
     proveBrittleness(r,recorded,definition,id,params,problems,trace);
     if(problems.length || !Object.hasOwn(params,'brittleness_per_stack'))
       throw new Error(`靜態證明失敗，未產生候選 pins：${id} ${JSON.stringify(problems)}`);
     proofs.push({id,definition:{file:definition.file,start:definition.start,line:definition.line},params,trace});
   }
-  const files=Object.fromEntries(sortedEntries(snapshots).map(([p,{bytes}])=>[p,createHash('sha256').update(bytes).digest('hex')]));
-  return {pins:{sourceCommit:reader.commit,files,directories:Object.fromEntries(sortedEntries(directories))},proofs};
+  const files=Object.fromEntries(audit.filesRead().map(p=>[p,createHash('sha256').update(audit.snapshot(p).bytes).digest('hex')]));
+  return {pins:{sourceCommit:reader.commit,files,directories:audit.directoriesRead()},proofs};
 }
 
 export function diffBrittlenessPins(previous,candidate) {

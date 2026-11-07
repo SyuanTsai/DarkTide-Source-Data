@@ -129,11 +129,11 @@ extract-terms 的 keyword 包含兩種 glossary 前綴；碰到同名時分別�
 
 ### 技能取數
 
-cryptic 的電弧手榴彈／電擊每層脆弱值補收，須同時通過既有靜態證明與 e46b892 引用鏈全文 SHA-256 釘選（完整 438 檔及 2 個目錄清單見 `lib/cryptic-brittleness-sources.json`）。主抽取器與獨立 proof resolver 使用同一套最後定義優先的選取邏輯；helper 另外核對實際輸出定義的檔案、位置及原文。證明會自動記錄 resolver／effects 實際讀過的所有來源檔及 `reader.list()` 結果，包含 talents 的 `*_talents.lua`；清單保留順序，新增、移除或改變順序皆拒收。任一釘選檔內容改變、缺失，實際定義不符，或新增清單外讀檔／掃描時，會回報 `BRITTLENESS_SOURCE_CHANGED`（引用鏈來源已變更，需重新核實）及 `files`／`directories`，兩筆回到原本的 `T_NUMBER`。值與行號仍由解析取得，指紋不提供保底值；即使只改 BOM、空白或註解也必須重新核實。
+cryptic 的電弧手榴彈／電擊每層脆弱值補收，須同時通過既有靜態證明與 e46b892 全文 SHA-256 釘選（完整 **478 檔及 3 個目錄清單**見 `lib/cryptic-brittleness-sources.json`）。範圍是這次 **extract-skills 整體實際讀取集合**：主抽取器、所有技能樹及其 require 閉包、獨立 proof resolver，以及任何經由 reader 的檔案讀取與 `reader.list()` 掃描；不是只有兩條 proof 的引用鏈。主抽取器與 proof 共用 reader 快照，直到全部讀取結束才比對內容與完整集合並提交補值／來源 trace；預檢讀取不計入實際集合。任一釘選檔內容改變或缺失、多讀或少讀檔案／目錄、目錄清單成員或順序變動，或實際定義不符，都回報 `BRITTLENESS_SOURCE_CHANGED`（引用鏈來源已變更，需重新核實）及 `files`／`directories`，兩筆回到原本的 `T_NUMBER`。主抽取器與獨立 proof 仍共用最後定義優先的選取邏輯，並核對實際定義的檔案、位置與原文；完整集合檢查額外涵蓋來源位置相同但有效 AST 或綁定已被其他模組改寫的情況。值與行號仍由解析取得，指紋不提供保底值。清單擴大表示**技能相關來源一有變動就需要重新核實**，即使只改 BOM、空白或註解亦同。
 
 遊戲更新後，於 repository 根目錄以 pwsh 7／Node 24 執行以下流程：
 
-1. 固定欲核實的 Source-Code commit，執行候選收集腳本。以下為 e46b892 的可重現範例；更新時替換 commit 與輸出目錄（輸出檔已存在時會拒絕覆寫）。腳本以 Git blob 原始 bytes（含 BOM）計算 SHA-256，**不套用舊 pins**，重新選取定義並完成兩條靜態證明後才輸出 `candidate-pins.json` 與 `pins-diff.json`；不會覆寫正式清單。後者包含相對於正式清單的檔案／目錄新增、移除、內容或順序變更，以及實際定義位置、解析參數和引用鏈 trace。
+1. 固定欲核實的 Source-Code commit，執行候選收集腳本。以下為 e46b892 的可重現範例；更新時替換 commit 與輸出目錄（輸出檔已存在時會拒絕覆寫）。腳本以 Git blob 原始 bytes（含 BOM）計算 SHA-256，**不套用舊 pins**，先走與正式抽取共用的完整主抽取遍歷，再重新選取定義並完成兩條獨立靜態證明，收集兩者的全部讀檔與有序目錄清單後才輸出 `candidate-pins.json` 與 `pins-diff.json`；不會覆寫正式清單。後者包含相對於正式清單的檔案／目錄新增、移除、內容或順序變更，以及實際定義位置、解析參數和引用鏈 trace。
 
    ```powershell
    node scripts/cryptic-brittleness-pins.mjs `

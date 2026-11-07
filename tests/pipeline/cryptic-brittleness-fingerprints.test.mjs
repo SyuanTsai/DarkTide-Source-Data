@@ -5,7 +5,7 @@ import {createSourceReader} from '../../pipeline/lib/source-reader.mjs';
 import {resolveSourceRepo} from '../../pipeline/lib/inputs.mjs';
 import {createBrittlenessSupplement,BRITTLENESS_SOURCE_PINS,BRITTLENESS_SOURCE_COMMIT,BRITTLENESS_DIRECTORY_PINS} from '../../pipeline/lib/skill-brittleness.mjs';
 import {checkText} from '../../pipeline/lib/verify/text.mjs';
-import {buildSkills} from '../../pipeline/extract-skills.mjs';
+import {buildSkills,readSkillData} from '../../pipeline/extract-skills.mjs';
 import {createSkillResolver} from '../../pipeline/lib/skill-lua.mjs';
 
 const repo=resolveSourceRepo(),options={skip:!existsSync(repo)&&'需要本機固定 Source-Code；小型 fixture 測試仍照常執行'};
@@ -30,13 +30,23 @@ function numericCheck(id,stacks,params) {
   return checkText(item,item,[],[],new Map());
 }
 
+function mainReads(supplement) {
+  readSkillData({reader:supplement.reader,text:{lookup:()=>({en:'Skill',zh:'技能'})},envelope:{textBatch:'26101089'}});
+}
+function stage(supplement,key,stacks,actual=definitionFor(key)) {
+  const id='darktide:skill:cryptic:'+key,params={stacks:{value:stacks}},problems=[],trace=[];
+  supplement(id,params,problems,trace,actual);
+  return {id,params,problems,trace,stacks};
+}
+
 // Scenario: the actual e46b892 sources match the complete reviewed manifest.
 // Purpose: prove both parsed ratios/lines and compare the automatically observed read set to ALL pins.
 test('InterT10_pinned sources supplement both ratios and account for every read',options,()=>{
   const supplement=createBrittlenessSupplement(source());
-  for(const [key,stacks] of keys) {
-    const id='darktide:skill:cryptic:'+key,params={stacks:{value:stacks}},problems=[],trace=[];
-    supplement(id,params,problems,trace,definitionFor(key));
+  mainReads(supplement);
+  const staged=keys.map(([key,stacks])=>stage(supplement,key,stacks));
+  supplement.finish();
+  for(const {id,params,problems,trace,stacks} of staged) {
     assert.deepEqual(problems,[]);
     assert.deepEqual(params.brittleness_per_stack,{value:0.025,unit:'ratio'});
     assert.ok(trace.some(p=>p.path===WEAPON&&p.line===374));
@@ -50,9 +60,10 @@ test('InterT10_pinned sources supplement both ratios and account for every read'
 // Purpose: fingerprint success cannot replace the existing static proof or publish partial trace.
 test('InterT20_matching fingerprints still require the static proof',options,()=>{
   const supplement=createBrittlenessSupplement(source());
-  for(const [key] of keys) {
-    const params={stacks:{value:99}},problems=[],trace=[];
-    supplement('darktide:skill:cryptic:'+key,params,problems,trace,definitionFor(key));
+  mainReads(supplement);
+  const staged=keys.map(([key])=>stage(supplement,key,99));
+  supplement.finish();
+  for(const {params,problems,trace} of staged) {
     assert.ok(!Object.hasOwn(params,'brittleness_per_stack'));
     assert.deepEqual(problems.map(p=>p.code),['BRITTLENESS_SOURCE_UNPROVEN']);
     assert.deepEqual(trace,[]);
@@ -93,11 +104,13 @@ for(const [name,file,from,to] of cases)test(`InterT30_${name} refuses changed so
   const reader={...source(),read:p=>p===file?changed:source().read(p),
     readBytes:p=>p===file?Buffer.from('\uFEFF'+changed):source().readBytes(p)};
   const supplement=createBrittlenessSupplement(reader);
-  for(const [key,stacks] of keys) {
-    const id='darktide:skill:cryptic:'+key,params={stacks:{value:stacks}},problems=[],trace=[];
-    supplement(id,params,problems,trace,definitionFor(key));
+  mainReads(supplement);
+  const staged=keys.map(([key,stacks])=>stage(supplement,key,stacks));
+  supplement.finish();
+  for(const {id,params,problems,trace,stacks} of staged) {
     assert.ok(!Object.hasOwn(params,'brittleness_per_stack'));
-    assert.deepEqual(problems.map(p=>({code:p.code,files:p.files})),[{code:'BRITTLENESS_SOURCE_CHANGED',files:[file]}]);
+    assert.deepEqual(problems.map(p=>p.code),['BRITTLENESS_SOURCE_CHANGED']);
+    assert.ok(problems[0].files.includes(file));
     assert.match(problems[0].message,/引用鏈來源已變更，需重新核實/);
     assert.deepEqual(trace,[]);
     const check=numericCheck(id,stacks,params);
@@ -151,9 +164,10 @@ function assertRejectedBuild(reader,selectedFile) {
 test('InterT60_actual definition identity mismatch refuses supplementation',options,()=>{
   const r=createSkillResolver(source()),talents=r.get(r.returned(TALENTS),'talents');
   const supplement=createBrittlenessSupplement(source());
-  for(const [key,stacks] of keys) {
-    const actual={...r.get(talents,key),start:0},params={stacks:{value:stacks}},problems=[],trace=[];
-    supplement('darktide:skill:cryptic:'+key,params,problems,trace,actual);
+  mainReads(supplement);
+  const staged=keys.map(([key,stacks])=>stage(supplement,key,stacks,{...r.get(talents,key),start:0}));
+  supplement.finish();
+  for(const {params,problems,trace} of staged) {
     assert.ok(!Object.hasOwn(params,'brittleness_per_stack'));
     assert.deepEqual(problems.map(p=>p.code),['BRITTLENESS_SOURCE_CHANGED']);
     assert.ok(problems[0].files.includes(TALENTS));assert.deepEqual(trace,[]);

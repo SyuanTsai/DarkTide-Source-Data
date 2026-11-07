@@ -15,8 +15,20 @@ export function validateSkillParents(items) {
 }
 
 export function buildSkills({reader,text,envelope}) {
-  const {r,trees,definitions,problems}=skillStructure(reader),items=[],excluded=[],seen=new Set(),used=new Map(),effectFormats={};
   const supplementBrittleness=createBrittlenessSupplement(reader);
+  const {data,skills}=readSkillData({reader:supplementBrittleness.reader,text,envelope});
+  for(const {item,definition,trace} of skills)supplementBrittleness(item.id,item.values.params,data.problems,trace,definition);
+  supplementBrittleness.finish();
+  for(const {item,trace} of skills)item.source.files=sourceFiles(trace);
+  return data;
+}
+
+const sourceFiles=trace=>[...new Map(trace.filter(x=>x.path && x.line).map(x=>[`${x.path}:${x.line}`,x])).values()].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:a.line-b.line);
+
+/** Shared complete main traversal, without the separately audited supplement.
+ * The candidate pin collector uses this exact path without applying old pins. */
+export function readSkillData({reader,text,envelope}) {
+  const {r,trees,definitions,problems}=skillStructure(reader),items=[],skills=[],excluded=[],seen=new Set(),used=new Map(),effectFormats={};
   for(const {file,node:tree} of trees) {
     const str=(n,k)=>r.scalar(r.get(n,k)),archetype=str(tree,'archetype_name'),treeName=str(tree,'name');
     const nodes=r.entries(r.get(tree,'nodes')).map(([,n])=>r.resolve(n));
@@ -44,13 +56,12 @@ export function buildSkills({reader,text,envelope}) {
       const formats={params:{},descriptions:descNode?.type==='table'?descKeys.map((key,n)=>({key:key??null,index:n+1})):[],perIndex:r.entries(r.get(definition,'format_values_per_index')).map(([key])=>key)};
       const literalTokens=new Set(Object.values(official).flatMap(s=>[...(s??'').matchAll(/\{([A-Za-z_][A-Za-z0-9_]*)(?=[:}])/g)].map(m=>m[1])));
       const params=skillParams(r,definition,id,problems,trace,formats,literalTokens);
-      supplementBrittleness(id,params,problems,trace,definition);
       effectFormats[id]=formats;
-      const files=[...new Map(trace.filter(x=>x.path && x.line).map(x=>[`${x.path}:${x.line}`,x])).values()].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:a.line-b.line);
-      items.push({id,key,name:named.name,official,
+      const item={id,key,name:named.name,official,
         values:{archetype,tree:treeName,nodeType,icon:str(node,'icon') ?? str(definition,'icon') ?? null,maxPoints:str(node,'max_points') ?? 1,parents,params},
-        source:{commit:reader.commit,files,scriptVersion:SCRIPT_VERSION,
-          text:{batch:envelope.textBatch,keys:{...(typeof nameKey==='string'?{name:nameKey}:{}),...(typeof descKeys[0]==='string'?{description:descKeys[0]}:{})}}}});
+        source:{commit:reader.commit,files:sourceFiles(trace),scriptVersion:SCRIPT_VERSION,
+          text:{batch:envelope.textBatch,keys:{...(typeof nameKey==='string'?{name:nameKey}:{}),...(typeof descKeys[0]==='string'?{description:descKeys[0]}:{})}}}};
+      items.push(item);skills.push({item,definition,trace});
     }
   }
   for(const [archetype,defs] of definitions) for(const [key] of defs) {
@@ -61,7 +72,7 @@ export function buildSkills({reader,text,envelope}) {
   // Placeholder nodes have no emitted skill and contribute no parent edge.
   for(const item of items)item.values.parents=item.values.parents.filter(id=>emitted.has(id));
   validateSkillParents(items);
-  return {items,problems,excluded,effectFormats};
+  return {data:{items,problems,excluded,effectFormats},skills};
 }
 
 if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) await runExtractCli({category:'skills',scriptVersion:SCRIPT_VERSION,build:buildSkills});

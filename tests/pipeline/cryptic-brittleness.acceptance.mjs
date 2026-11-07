@@ -6,7 +6,7 @@ import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
-import {buildSkills,SCRIPT_VERSION} from '../../pipeline/extract-skills.mjs';
+import {buildSkills,readSkillData,SCRIPT_VERSION} from '../../pipeline/extract-skills.mjs';
 import {createSourceReader} from '../../pipeline/lib/source-reader.mjs';
 import {loadTextIndex} from '../../pipeline/lib/official-text.mjs';
 import {writeExtract,validateExtractItems} from '../../pipeline/lib/extract-output.mjs';
@@ -17,7 +17,6 @@ import {checkDataFile} from '../../pipeline/lib/data-files.mjs';
 import {stringifyCanonical} from '../../pipeline/lib/canonical-json.mjs';
 import {contentHash} from '../../pipeline/lib/diff-core.mjs';
 import {createBrittlenessSupplement,BRITTLENESS_SOURCE_PINS,BRITTLENESS_DIRECTORY_PINS} from '../../pipeline/lib/skill-brittleness.mjs';
-import {skillStructure} from '../../pipeline/lib/skill-structure.mjs';
 
 const repo=resolve('.'),root='F:/GitFile/Persion - Games/DarkTide-Pipeline-Work/cryptic-brittleness';
 const source='F:/GitFile/Persion - Games/Darktide-Source-Code',commit='e46b8926cfa3fa35503e4b80b15aab7a804314e4';
@@ -74,15 +73,17 @@ for(const item of actual.items) {
 assert.equal(unchanged.length,616);assert.equal(changed.length,2);
 assert.deepEqual(actual.problems.filter(p=>keys.some(k=>p.id?.endsWith(':'+k))),[]);
 assert.deepEqual(validateExtractItems('skills',[...actual.items].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0),envelope),[]);
-// Confirm the manifest was generated from the proof's actual reads rather than
-// from a hand-maintained dependency guess. Preflight reads are excluded here.
+// Compare the entire main + proof read set. Preflight inspections are excluded.
 const audited=createBrittlenessSupplement(reader);
-const {r:definitionResolver,definitions}=skillStructure(reader);
+const {skills}=readSkillData({reader:audited.reader,text,envelope});
+const staged=[];
 for(const item of actual.items.filter(i=>keys.includes(i.key))) {
   const params=structuredClone(item.values.params),problems=[];delete params.brittleness_per_stack;
-  audited(item.id,params,problems,[],definitionResolver.resolve(definitions.get('cryptic').get(item.key)));
-  assert.deepEqual(problems,[]);assert.deepEqual(params,item.values.params);
+  audited(item.id,params,problems,[],skills.find(s=>s.item.id===item.id).definition);
+  staged.push({item,params,problems});
 }
+audited.finish();
+for(const {item,params,problems} of staged){assert.deepEqual(problems,[]);assert.deepEqual(params,item.values.params);}
 const proofFilesRead=audited.filesRead();
 assert.deepEqual(proofFilesRead,Object.keys(BRITTLENESS_SOURCE_PINS).sort());
 assert.deepEqual(audited.directoriesRead(),BRITTLENESS_DIRECTORY_PINS);

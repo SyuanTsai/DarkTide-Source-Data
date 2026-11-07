@@ -1,3 +1,23 @@
+# SYP-391 spec40：cryptic review23 修正
+
+## spec40 實作計畫
+
+- 目標／範圍：R23-01，釘選這次 extract-skills 主抽取器與獨立 proof resolver 實際讀取的完整檔案及有序目錄清單。只修改本 worktree，實跑輸出限指定工作根；不改 state、verify、schema、不安裝下載、不 push、不改寫歷史、不略過 hook。
+- 證據／修改點：目前 `buildSkills` 在建立 proof audit 前已讀取技能樹；定義的 file/start/line/raw 相同仍可能有不同的有效 AST。於 `source-reader.mjs` 共用快照記錄，audit 在主抽取前建立；延後補值與來源 trace 的提交，直到主抽取及兩條 proof 全部完成，再比較內容及讀取集合（含多讀、少讀及目錄順序）。
+- 變更：抽出共用的主抽取遍歷供正式抽取與候選腳本使用。候選收集不套舊 pins，走完整主遍歷及兩條 proof；保留既有靜態證明與實際 definition 核對。README 說明技能相關來源變更皆需重新核實；正式清單依固定 e46b892 重新收集並核對原始 Git blob。
+- TDD／驗證：先加入 review23 兩個完整 buildSkills 反例（有效 talent 改寫、tree require 清單外 callback writer）及少讀集合的單元案例，確認 Red；再完成 Green。維持 review18／20／21 拒收測試，接入 index。候選對 e46b892 重產零差異；固定 e46b892／dd430f5／26101089 驗收 618 筆（兩筆 0.025，616 筆完整 bytes 不變，重跑一致，checkText／checkValues／schema 通過）；最後 `node --test tests/pipeline/`。
+- 風險／交付：完整集合會增加且任何相關來源異動都須重新核實；預檢不算實際抽取讀取，避免掩蓋少讀。查核 Source-Code 的 fs／Git 旁路。新增指定訊息及 Co-Authored-By 的 commit；可回退該 commit 恢復原行為，無資料遷移。
+
+## spec40 完成紀錄
+
+- R23-01：`source-reader.mjs` 提供共用檔案／目錄快照；正式 audit 於主抽取前建立，完整涵蓋主 resolver、技能樹、require 閉包及獨立 proof。兩筆 value／trace 暫存至全部遍歷完成，最後核對內容與集合相等（含少讀）才提交；預檢不計入實際讀取。
+- Red：`spec40-red.log` 確認兩個 review23 完整 buildSkills 反例均錯補 0.025，以及少讀集合缺少拒收 API，3 項全失敗。Green：相同 3 項全通過，報告 tree 與清單外 callback writer，拒收並保留 T_NUMBER；35 項小型 fixture／候選清單測試亦通過。新模組已接入 `tests/pipeline/index.js`。
+- 新清單 **478 檔、3 份目錄清單**：原 438 檔無移除、無指紋變動，新增 40 檔（含 8 份技能樹、layout parser、ability templates 及其依賴）。目錄前綴為 talents（8 筆）、abilities（7 筆）、`scripts/ui/views/`（331 筆），保留掃描順序。已另以 e46b892 Git blob 核對全部 478 個原始 SHA-256，以 Git ls-tree 核對全部目錄清單。`spec40-pins-check` 重產候選與正式 JSON bytes 相同，檔案／目錄增刪改均為零。
+- 來源旁路查核：主抽取器與 skill／Lua／effects 相依模組沒有直接 fs 或其他 Git 通道讀取 Source-Code 內容；Lua 原始內容統一由 source reader 的 Git cat-file 取得，目錄由 reader.list 記錄。CLI 的 rev-parse／log 僅解析 commit 與版本 metadata，official-text 的 fs 讀取是已抽出的 Private 文字 JSON；acceptance 的 git show 僅載入舊版抽取器程式作比對基準。
+- 固定 e46b892／Private dd430f5／batch 26101089 驗收通過：618 筆中只有兩筆補 0.025（解析來源仍為 `weapon_buff_templates.lua:374`），checkText／checkValues／schema 全通過；其餘 616 筆 canonical bytes 與 contentHash 相同；兩次完整輸出 bytes 相同，SHA-256 `600c4ad4484df0a32069025edd4d91ae511c17c92ad39deae4e53ae4ad17707d`。實際讀取集合與 478 檔／3 目錄 pins 完全相等。
+- 最終 `node --test tests/pipeline/`：**378 項，372 通過、6 項既有 opt-in real-smoke 略過、0 失敗**；review18／20／21 與 review23 的反例全部拒收。`git diff --check` 通過。
+- 所有實跑及暫存證據限指定工作根：`spec40-red.log`、`spec40-green-reads.log`、`spec40-unit.log`、`spec40-pins-review/`、`spec40-pins-verified.json`、`spec40-pins-check/`、`spec40-acceptance.log`、`acceptance.json`、`spec40-pipeline-tests.log`。正式 state SHA-256 維持 `ceb6b1a612492c32397ce7d8da1959dda7968d93d59bad093ee13c62910bd5e3`；verify／schema／official-effect 無變更。
+
 # SYP-391 spec37：cryptic review21 修正
 
 ## spec37 實作計畫

@@ -3,6 +3,7 @@ import { tokenizeLua } from './lua-static-reader.mjs';
 import { callName, createSkillResolver } from './skill-lua.mjs';
 import { analyzeLuaEffects } from './lua-effects.mjs';
 import { readTalentDefinitions } from './skill-structure.mjs';
+import { createSourceReadSnapshot } from './source-reader.mjs';
 import sourcePins from './cryptic-brittleness-sources.json' with { type: 'json' };
 
 const ARC_KEY='cryptic_arc_grenades_brittleness';
@@ -18,50 +19,45 @@ export const BRITTLENESS_SOURCE_PINS=Object.freeze(sourcePins.files);
 export const BRITTLENESS_SOURCE_COMMIT=sourcePins.sourceCommit;
 export const BRITTLENESS_DIRECTORY_PINS=Object.freeze(sourcePins.directories??{});
 
-/** Snapshot every proof read, including recursive resolver/effects reads. The
+/** Snapshot the whole extraction, including recursive resolver/effects reads. The
  * injected pins parameter is only for unit-testing this low-level audit; the
  * production supplement always uses the fixed, reviewed manifest above. */
 export function createBrittlenessSourceAudit(reader,pins=BRITTLENESS_SOURCE_PINS,directoryPins={}) {
-  const snapshots=new Map(),readFiles=new Set(),changed=new Set(),lists=new Map(),listReads=new Set(),changedDirectories=new Set();
-  function snapshot(file) {
-    if(snapshots.has(file))return snapshots.get(file);
+  const recorded=createSourceReadSnapshot(reader),changed=new Set(),changedDirectories=new Set();
+  function checkFile(file) {
     try {
-      if(!reader.exists(file))throw new Error('Missing source');
-      const text=reader.read(file),bytes=reader.readBytes?.(file)??Buffer.from(text);
-      if(createHash('sha256').update(bytes).digest('hex')!==pins[file] ||
-        bytes.toString('utf8').replace(/^\uFEFF/,'')!==text)changed.add(file);
-      const source={text,bytes:Buffer.from(bytes)};snapshots.set(file,source);return source;
-    } catch(error) {changed.add(file);throw error;}
+      if(createHash('sha256').update(recorded.snapshot(file).bytes).digest('hex')!==pins[file])changed.add(file);
+    } catch {changed.add(file);}
   }
-  // Check ALL pins even if a changed file makes the static proof exit early.
-  for(const file of Object.keys(pins))try {snapshot(file);} catch { /* reported below */ }
-  function listSnapshot(prefix) {
-    if(!lists.has(prefix))try {
-      const paths=[...reader.list(prefix)];lists.set(prefix,paths);
+  function checkDirectory(prefix) {
+    try {
+      const paths=recorded.listSnapshot(prefix);
       if(JSON.stringify(paths)!==JSON.stringify(directoryPins[prefix]))changedDirectories.add(prefix);
-    } catch(error) {changedDirectories.add(prefix);throw error;}
-    return [...lists.get(prefix)];
+    } catch {changedDirectories.add(prefix);}
   }
-  for(const prefix of Object.keys(directoryPins))try {listSnapshot(prefix);} catch { /* reported below */ }
+  // Preflight ALL pins, but never count these inspections as actual reads.
+  for(const file of Object.keys(pins))checkFile(file);
+  for(const prefix of Object.keys(directoryPins))checkDirectory(prefix);
   return {
-    reader:{...reader,
-      list(prefix=''){listReads.add(prefix);return listSnapshot(prefix);},
-      read(file){readFiles.add(file);return snapshot(file).text;},
-      readBytes(file){readFiles.add(file);return Buffer.from(snapshot(file).bytes);}},
-    filesRead:()=>[...readFiles].sort(),
-    changedFiles:()=>[...changed].sort(),
-    changedDirectories:()=>[...changedDirectories].sort(),
-    directoriesRead:()=>Object.fromEntries([...listReads].sort().filter(p=>lists.has(p)).map(p=>[p,[...lists.get(p)]])),
+    reader:recorded.reader,filesRead:recorded.filesRead,directoriesRead:recorded.directoriesRead,
+    changedFiles(){for(const file of recorded.filesRead())checkFile(file);return [...changed].sort();},
+    changedDirectories(){for(const prefix of Object.keys(recorded.directoriesRead()))checkDirectory(prefix);return [...changedDirectories].sort();},
+    finish() {
+      const actualFiles=new Set(recorded.filesRead()),actualDirectories=recorded.directoriesRead();
+      for(const file of Object.keys(pins))if(!actualFiles.has(file))changed.add(file);
+      for(const prefix of Object.keys(directoryPins))if(!Object.hasOwn(actualDirectories,prefix))changedDirectories.add(prefix);
+    },
   };
 }
 
 /** Each extraction gets a separate resolver so a warmed shared cache cannot
- * hide reads from the audit. Stage values and trace until both gates pass. */
+ * hide reads from the audit. Publish nothing until ALL main/proof reads finish. */
 export function createBrittlenessSupplement(reader) {
-  let audit,r,definitions;
+  const audit=createBrittlenessSourceAudit(reader,BRITTLENESS_SOURCE_PINS,BRITTLENESS_DIRECTORY_PINS),staged=[];
+  let r,definitions,finished=false;
   function supplement(id,params,problems,trace,actualDefinition) {
+    if(finished)throw new Error('補收已完成');
     if(![ARC_KEY,PASSIVE_KEY].some(key=>id===`darktide:skill:cryptic:${key}`))return;
-    audit??=createBrittlenessSourceAudit(reader,BRITTLENESS_SOURCE_PINS,BRITTLENESS_DIRECTORY_PINS);
     const pending={...params},proof=[],failures=[];
     const mismatched=new Set();
     if(!audit.changedFiles().length && !audit.changedDirectories().length)try {
@@ -75,16 +71,26 @@ export function createBrittlenessSupplement(reader) {
         if(!mismatched.size)mismatched.add('scripts/settings/ability/archetype_talents/talents/');
       } else proveBrittleness(r,audit.reader,definition,id,pending,failures,proof);
     } catch {failures.push({code:'BRITTLENESS_SOURCE_UNPROVEN',id,message:'每層脆弱值的靜態引用鏈無法核實，未補收參數'});}
-    const files=[...new Set([...audit.changedFiles(),...mismatched])].sort(),directories=audit.changedDirectories();
-    if(files.length || directories.length) {
-      problems.push({code:'BRITTLENESS_SOURCE_CHANGED',id,message:'引用鏈來源已變更，需重新核實；未補收每層脆弱值',files,...(directories.length?{directories}:{})});return;
-    }
-    if(failures.length) {problems.push(...failures);return;}
-    if(Object.hasOwn(pending,'brittleness_per_stack'))params.brittleness_per_stack=pending.brittleness_per_stack;
-    trace.push(...proof);
+    staged.push({id,params,problems,trace,pending,proof,failures,mismatched});
   }
-  supplement.filesRead=()=>audit?.filesRead()??[];
-  supplement.directoriesRead=()=>audit?.directoriesRead()??{};
+  supplement.reader=audit.reader;
+  supplement.finish=()=>{
+    if(finished)throw new Error('補收已完成');
+    finished=true;audit.finish();
+    const changed=audit.changedFiles(),directories=audit.changedDirectories();
+    for(const {id,params,problems,trace,pending,proof,failures,mismatched} of staged) {
+      const files=[...new Set([...changed,...mismatched])].sort();
+      if(files.length || directories.length) {
+        problems.push({code:'BRITTLENESS_SOURCE_CHANGED',id,message:'引用鏈來源已變更，需重新核實；未補收每層脆弱值',files,...(directories.length?{directories}:{})});
+      } else if(failures.length)problems.push(...failures);
+      else {
+        if(Object.hasOwn(pending,'brittleness_per_stack'))params.brittleness_per_stack=pending.brittleness_per_stack;
+        trace.push(...proof);
+      }
+    }
+  };
+  supplement.filesRead=audit.filesRead;
+  supplement.directoriesRead=audit.directoriesRead;
   return supplement;
 }
 
