@@ -18,6 +18,8 @@ WP1 提供 `lib/`、`schema/`、`validate.mjs` 與 `state.json`；WP2 提供版�
 
 Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 compact JSON 並以一個換行結尾。
 
+中間檔目錄使用已存在、不在任何 Git repo 內的本機絕對目錄，檔案放在遊戲版本子目錄；需要封存到 Google 雲端時，跑完後再上傳。`F:\GitFile\Persion - Games\DarkTide-Pipeline-Work` 僅為範例。
+
 ## 差異（WP3）
 
 `node pipeline/diff.mjs` 讀取 state.run、extract 與目前正式資料，將新增／變動／移除登記至 state；沿用項目不需重寫說明。
@@ -43,7 +45,7 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 | --- | --- |
 | `--root` | repo 根目錄 |
 | `--state` | `<root>/pipeline/state.json`；無 run 時提示先跑 check-version |
-| `--cloud-dir` | `DARKTIDE_PIPELINE_CLOUD_DIR`；需要雲端預設路徑時才解析 |
+| `--cloud-dir` | `DARKTIDE_PIPELINE_CLOUD_DIR`；需要中間檔預設路徑時才解析 |
 | `--version-info` | 由 run 推出 sourceGameVersion、textGameVersion、sourceCommit、textBatch；指定時讀 JSON 檔 |
 | `--extract-dir` | `<cloud>/<ver>/extract` |
 | `--candidate-dir` | 未指定時由 extract、diff/diff.json、ai/output 與上一版組裝至 `<cloud>/<ver>/candidate` |
@@ -60,7 +62,7 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 報告的 `categories.<category>.candidateSha256` 記錄實際候選檔原始 bytes 的 SHA-256，無檔為 null；`previousGameVersion` 記錄合併所用的上一版，供寫入中斷或完成後重跑。exit 0 表示通過或部分降級；exit 2 表示參數、狀態或 IO 錯誤；exit 3 表示整批停止，不應執行 write。
 
-相容舊介面：同時明確指定 candidate-dir、extract-dir、version-info，且未使用雲端設定時，可無 state／cloud 執行。此模式未指定 report 時不存報告，未指定 out-dir 時使用結束即清除的自有暫存目錄。一般無參數流程或有雲端設定時使用上表雲端預設值。
+相容舊介面：同時明確指定 candidate-dir、extract-dir、version-info，且未使用中間檔目錄設定時，可無 state／cloud 執行。此模式未指定 report 時不存報告，未指定 out-dir 時使用結束即清除的自有暫存目錄。一般無參數流程或有中間檔目錄設定時使用上表預設值。
 
 在 `*-worktrees/` 的 worktree 中執行時，請用 `--translation <Translation.md>`（或 `DARKTIDE_GLOSSARY_FILE`）指定譯名表；相鄰 Mods repo 的預設位置通常不同。diff 對應的覆寫參數是 `--glossary`。
 

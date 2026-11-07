@@ -18,7 +18,7 @@
 
 以下指令使用 PowerShell 7（pwsh），在 Source-Data repo 根目錄執行。設定目前程序的環境變數，並把範例路徑換成實際路徑：
 
-- 必填：`$env:DARKTIDE_PIPELINE_CLOUD_DIR = 'C:\path\to\existing-cloud-directory'`。必須是已存在的絕對目錄，供 diff、verify、write 使用。
+- 必填：`$env:DARKTIDE_PIPELINE_CLOUD_DIR = 'F:\GitFile\Persion - Games\DarkTide-Pipeline-Work'`（僅為範例）。請使用已存在、不在任何 Git repo 內的本機絕對目錄，供 diff、verify、write 使用；中間檔放在遊戲版本子目錄。需要封存到 Google 雲端時，跑完後再上傳。
 - 選填：`$env:DARKTIDE_SOURCE_CODE_REPO = 'C:\path\to\Darktide-Source-Code'`；未設定時由腳本依相鄰目錄優先、往上兩層次之解析。
 - 選填：`$env:DARKTIDE_PRIVATE_REPO = 'C:\path\to\DARKTIDE User Setting'`；未設定時由腳本依相鄰目錄優先、往上兩層次之解析。
 - 選填：`$env:DARKTIDE_GLOSSARY_FILE = 'C:\path\to\Translation.md'`；未設定時為 Source-Data repo 的 `../Warhammer-40-000-DARKTIDE-Mods/Referneces/Translation.md`。
