@@ -11,7 +11,7 @@ export function extractNumbers(text) {
     const raw = /^[+\-−]/.test(match[0]) && /[\d%]\s*$/.test(before) ? match[0].slice(1) : match[0];
     const value = Number(raw.replace('−', '-'));
     if (/^[1-4]$/.test(raw) && (/(?:LV|Lv|第)\s*$/.test(before) || /^\s*階/.test(after))) continue;
-    const suffix = /^\s*(%|秒|公尺|米|m(?:eters?|etres?)?\b|s(?:ec(?:onds?)?)?\b)/i.exec(after)?.[1];
+    const suffix = /^\s*((?:%|秒|公尺|米|m(?:eters?|etres?)?\b|s(?:ec(?:onds?)?)?\b)(?:\s*[/／]\s*[%\p{L}]+)*)/iu.exec(after)?.[1];
     result.push({ value, raw, signed: /^[+\-−]/.test(raw), decimals: raw.split('.')[1]?.length ?? 0, suffix });
   }
   return result;
@@ -44,8 +44,8 @@ export function derivable(values) {
 const unitName = suffix => {
   if (!suffix) return undefined;
   if (suffix === '%') return 'percent';
-  if (suffix === '秒' || /^s/i.test(suffix)) return 'seconds';
-  if (suffix === '公尺' || suffix === '米' || /^m/i.test(suffix)) return 'meters';
+  if (suffix === '秒' || /^s(?:ec(?:onds?)?)?$/i.test(suffix)) return 'seconds';
+  if (suffix === '公尺' || suffix === '米' || /^m(?:eters?|etres?)?$/i.test(suffix)) return 'meters';
 };
 function stringValue(value) {
   if (typeof value !== 'string') return null;
@@ -70,8 +70,12 @@ export function checkNumbers(values, text, lockedEffect, sections) {
     if (!isGameValuePath(values, path)) return;
     const parsed = stringValue(v);
     if (parsed) {
+      const paramPath = path.replace(/\/value(?:\/\d+)?$/, '');
+      const param = paramPath !== path ? atPointer(values, paramPath) : undefined;
+      const parentUnit = param?.unit;
+      if (parsed.unit !== undefined && parentUnit !== undefined && parsed.unit !== parentUnit) return;
       stringValues.push(parsed);
-      if (parsed.value > 0) positiveValues.push(parsed);
+      if (parsed.value > 0) positiveValues.push({ ...parsed, unit: parentUnit ?? parsed.unit });
     }
     if (typeof v === 'number' && Number.isFinite(v) && v > 0) {
       const paramPath = path.replace(/\/value(?:\/\d+)?$/, '');
