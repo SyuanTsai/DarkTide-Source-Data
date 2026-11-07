@@ -50,3 +50,8 @@ test('slash command detection excludes paths', () => {
   }
   assert.deepEqual(slashCommands(readFileSync('docs/pipeline/START.md', 'utf8')), []);
 });
+
+test('first 1.13.4 run uses the verified migration baseline and gates writes', () => {
+  const text = readFileSync('docs/pipeline/START.md', 'utf8');
+  for (const phrase of ['syp-391-v3/baseline/data', 'node pipeline/diff.mjs --data-dir $migrationBaselineData', 'baseline 項目均為 unchanged', '其餘均為 added', '後續版本正常執行', '寫入 repo 前先確認', '第 5a 步抽查完成並一致', "node pipeline/verify.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')", "node pipeline/write.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')"]) assert.ok(text.includes(phrase), phrase);
+});

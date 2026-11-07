@@ -1,3 +1,4 @@
+import { expandOfficialEffect } from '../../../pipeline/lib/official-effect.mjs';
 import { checkDataFile, CATEGORIES } from '../../../pipeline/lib/data-files.mjs';
 import { stringifyCanonical } from '../../../pipeline/lib/canonical-json.mjs';
 import { checkValues } from '../../../pipeline/lib/verify/values.mjs';
@@ -107,13 +108,13 @@ export function summarize(rows, tasks, stage = 'prepare', baselineReady = false)
     unresolved: rows.filter(r => r.status === 'repair').map(r => r.id),
     blocked: rows.filter(r => r.status.startsWith('blocked:')).map(r => ({ id: r.id, reason: r.status })),
     excluded: rows.filter(r => r.status === 'excluded').map(r => ({ id: r.id, ...r.exclusion })),
-    excludedReasons: Object.fromEntries(['insufficient-after-cleanup', 'nd-strict-unresolved', 'legacy-copy-disclaimer-only'].map(reason =>
+    excludedReasons: Object.fromEntries(['insufficient-after-cleanup', 'nd-strict-unresolved', 'legacy-copy-disclaimer-only', 'official-effect-incomplete'].map(reason =>
       [reason, rows.filter(r => r.status === 'excluded' && r.exclusion.reason === reason).length])),
     items: rows.map(r => ({ id: r.id, category: r.category, status: r.status, failures: r.failures, notes: r.notes })),
     notAutomated: ['文字條件、限制及機制語意仍須人工確認；數字與 schema 通過不代表語意正確'] };
 }
 
-export function buildMigration({ extracts, documents, provenance, translation }) {
+export function buildMigration({ extracts, documents, provenance, translation, textIndex, textHash }) {
   for (const category of CATEGORIES) {
     const extract = extracts[category];
     if (!extract || extract.category !== category || extract.status !== 'ok' ||
@@ -128,17 +129,24 @@ export function buildMigration({ extracts, documents, provenance, translation })
     return { id: row.id, category: row.category, sourceHash: row.originalHash, originalExplanation: converted.originalExplanation,
       extracted, candidate: { ...structuredClone(extracted), explanation: converted.explanation, errata: converted.errata } };
   });
-  // Match verify's candidate set, including the blocked candidates in draft.
+  for (const row of rows) if (['blessings', 'skills'].includes(row.category)) {
+    const effect = expandOfficialEffect(row.extracted, textIndex, extracts[row.category].effectFormats?.[row.id]);
+    if (effect.status === 'complete') {
+      row.candidate.explanation.effect = effect.text;
+      row.candidate.explanation.effectOrigin = 'official';
+    } else {
+      row.status = 'excluded';
+      row.exclusion = { reason: 'official-effect-incomplete', detail: JSON.stringify({ status: effect.status, missing: effect.missing }) };
+    }
+  }
+  // Match verify's candidate set, including excluded candidates in draft.
   const candidates = rows.map(row => row.candidate);
   context.allowedNames = candidates.filter(i => i.name.zh === null).map(i => i.name.en);
   context.conflicts = translationConflicts(candidates, context.table);
-  const inputHash = hashObject({ extracts, provenance, mapping, translationHash: sha256(translation) });
+  const inputHash = hashObject({ extracts, provenance, mapping, translationHash: sha256(translation), textHash: textHash ?? null });
   for (const row of rows) {
     Object.assign(row, checkCandidate(row.category, row.candidate, row.extracted, context));
-    const officialGate = ['blessings', 'skills'].includes(row.category) && checkText({ ...row.candidate,
-      explanation: { ...emptyExplanation(), effect: row.candidate.explanation.effect } }, row.extracted,
-    context.allowedNames, context.conflicts, context.table).failures.some(f => !['T_COVERAGE', 'T_ERRATA_MISSING'].includes(f.code));
-    row.status = officialGate ? 'blocked:official-effect' : row.failures.length ? 'repair' : 'passed';
+    if (row.status !== 'excluded') row.status = row.failures.length ? 'repair' : 'passed';
   }
   const tasks = rows.map(row => makeTask(row, context, inputHash));
   const report = summarize(rows, tasks);

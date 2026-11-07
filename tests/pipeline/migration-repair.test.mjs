@@ -95,8 +95,8 @@ test('UnitT45_official_effect_is_blocked_and_immutable', () => {
   input.documents = [{ path: 'domains/skills.json', value: { kind: 'skills', source: { records: [{ recordId: 'old:skill', kind: 'skill', payload: { nameKey: 'loc_test' } }] },
     web: { presentations: [{ locale: 'zh-TW', entityRef: { recordId: 'old:skill' }, detailSections: [{ sectionId: 'effects', items: [{ text: '舊機制。' }] }] }] } } }];
   const plan = buildMigration(input);
-  assert.equal(plan.rows[0].status, 'blocked:official-effect');
-  assert.equal(plan.report.totals.blocked, 1);
+  assert.equal(plan.rows[0].status, 'excluded');
+  assert.equal(plan.report.excluded[0].reason, 'official-effect-incomplete');
   assert.ok(!plan.tasks[0].allowedChanges.ranges.some(r => r.section === 'effect'));
 });
 
@@ -163,7 +163,7 @@ test('InterT65_baseline_excludes_official_effect_blockers', async t => {
     web: { presentations: [{ locale: 'zh-TW', entityRef: { recordId: 'old:skill' }, detailSections: [{ sectionId: 'effects', items: [{ text: '舊機制。' }] }] }] } } });
   const plan = buildMigration(input); await writePrepared(plan, dir);
   const report = await applyPrepared(plan, dir);
-  assert.equal(report.baselineReady, true); assert.equal(report.totals.blocked, 1);
+  assert.equal(report.baselineReady, true); assert.equal(report.totals.excluded, 1);
   assert.equal(JSON.parse(await readFile(join(dir, 'baseline/data/1.13.4/skills.json'))).items.length, 0);
   assert.equal(JSON.parse(await readFile(join(dir, 'baseline/data/1.13.4/terms.json'))).items.length, 1);
 });
