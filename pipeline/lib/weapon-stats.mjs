@@ -193,7 +193,7 @@ export function createWeaponStats(reader) {
   }
   return null;
  }
- function profiles(action,file,files=[]) {
+ function profiles(action,file,files=[],binding={}) {
   const found=new Set(),seen=new Set();
   function visit(n,context) {
    if(!n)return;
@@ -209,7 +209,9 @@ export function createWeaponStats(reader) {
      if(v.type==='reference') {
       const [alias,name]=v.ref.split('.'),p=chunk(v._file??context),required=p?.locals[alias];
       if(name&&required?.type==='require'&&required.path.replace(/\.lua$/,'')+'.lua'===PATHS.damage)found.add(name);
+      else binding.unknown=true;
      }else if(v.type==='string')found.add(v.value);
+     else binding.unknown=true;
     }else if(key==='hit_scan_template'&&e.value.type==='string')visit(effective('hit_scan',e.value.value),context);
     else visit(e.value,n._file??context);
    }
@@ -288,11 +290,18 @@ export function createWeaponStats(reader) {
    for(const row of rows) {
     if(sent.has(row.emit))continue;sent.add(row.emit);
     if(dynamic){row.unknown(example.key,dynamic.dynamic);continue;}
-    for(const v of result??[])row.emit({key:example.key+v.suffix,min:v.min,max:v.max});
+    // Keep WP2 endpoints intact. Curves use the same result and carry the proof
+    // separately; the runtime clamps accumulated tweak weights per contribution.
+    const curveUnknown=rows.some(r=>r.lo<0||r.lo>1||r.hi<0||r.hi>1)?'LERP_T_OUT_OF_RANGE'
+     :rows.length>1&&(lo<0||hi>1||lo>1||hi<0)?'NONLINEAR_COMBINATION'
+     :null;
+    const basic=deref(field(example.node,'lerp_basic'));
+    const curveSource={path:basic?._file??example.node._file,line:basic?.startLine??example.node.startLine??1};
+    for(const v of result??[])row.emit({key:example.key+v.suffix,min:v.min,max:v.max,curveUnknown,curveSource});
    }
   }
  }
- return {label,finish,extract({source,file,kind,target,group,actions,alternate,emit,unknown,files,notApplicable=()=>{},contributions=null}) {
+ return {label,finish,profiles,actions(file){const actions=field(chunk(file)?.locals.weapon_template,'actions');annotate(actions,file);return actions;},extract({source,file,kind,target,group,actions,alternate,emit,unknown,files,notApplicable=()=>{},contributions=null}) {
   actions=field(chunk(file)?.locals.weapon_template,'actions')??actions;
   annotate(actions,file);annotate(alternate,file);
   const collected=contributions??[],pending=[];

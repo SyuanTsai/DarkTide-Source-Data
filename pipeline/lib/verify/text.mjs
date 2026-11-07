@@ -1,5 +1,5 @@
 import { atPointer, equal, failure, firstDifference, params } from './common.mjs';
-import { checkNumbers, derived, extractNumbers, matches } from './numbers.mjs';
+import { checkNumbers, derived, extractNumbers, isGameValuePath, matches } from './numbers.mjs';
 
 export const ALLOWED_WORDS = Object.freeze(['LV', 'Lv']);
 export const EXPLANATION_SECTIONS = Object.freeze(['effect', 'conditions', 'calculation', 'notes', 'extra']);
@@ -37,7 +37,7 @@ export function checkText(item, extracted, allowedNames, conflicts, table) {
     const value = ref && typeof ref === 'object' ? ref.value : ref;
     if (typeof entry?.official !== 'string' || !entry.official.length || typeof item?.official?.[entry.locale] !== 'string' ||
       !item.official[entry.locale].includes(entry.official) || equal(numberSet(entry.official), numberSet(entry.corrected)) ||
-      typeof value !== 'number' || !Number.isFinite(value) || !extractNumbers(entry.corrected).some((n) => matches(n, derived(value))))
+      !isGameValuePath(item?.values, entry?.valueRef) || typeof value !== 'number' || !Number.isFinite(value) || !extractNumbers(entry.corrected).some((n) => matches(n, derived(value))))
       failures.push(failure('text', 'T_ERRATA_INVALID', path, '勘誤原文不符、未更正數字，或更正數字無法由引用值推導'));
   }
   if (params(item?.values).some(({ param }) => param.value === null))

@@ -52,7 +52,9 @@ test('review F3: missing lerp paths use scope default then game fallback, preser
  assert.equal(damageLerpValue(new Map(),['missing','attack'],0.5),0.5);
 });
 
-test('review F4: expand four movement states before inherited endpoint lookup',()=>{
+// Scenario: inherited movement endpoints are expanded for each movement state.
+// Purpose: retain endpoint values and their curve provenance.
+test('UnitT45_review F4 expands movement states before inherited endpoint lookup',()=>{
  const r=reader({
   [root+'sway_trait_templates.lua']:`local sway_trait_templates={test={{ALL_WEAPON_MOVEMENT_STATES,"continuous_sway","pitch",{min=0.1,max=0.95}}}} return sway_trait_templates`,
   'scripts/settings/equipment/weapon_movement_state_settings.lua':`local weapon_movement_state_settings={weapon_movement_states=table.enum("still","moving","crouch_still","crouch_moving")} return weapon_movement_state_settings`,
@@ -61,7 +63,7 @@ test('review F4: expand four movement states before inherited endpoint lookup',(
  const stats=[];let na=0;
  createWeaponStats(r).extract({source:'',file:'weapon.lua',kind:'sway',target:'alternate_fire',alternate:lua('{sway_template="gun"}'),group:lua('{sway_trait_templates.test}'),files:[],emit:s=>stats.push(s),unknown:(k,r)=>assert.fail(k+':'+r),notApplicable:()=>na++});
  assert.equal(stats.length,2);assert.equal(na,2);
- assert.deepEqual(stats[0],{key:'sway.alternate_fire.still.continuous_sway.pitch',min:1.85,max:0.575});
+ assert.deepEqual(stats[0],{key:'sway.alternate_fire.still.continuous_sway.pitch',min:1.85,max:0.575,curveUnknown:null,curveSource:{path:'scripts/settings/equipment/sway_templates.lua',line:1}});
 });
 
 for(const branch of [

@@ -17,7 +17,7 @@ export function itemId(category, ...parts) {
 }
 /** Validate extract items against WP1's data schema using envelope metadata. */
 export function validateExtractItems(category, items, envelope = {gameVersion:'0.0',sourceCommit:items[0]?.source?.commit ?? '0'.repeat(40),textBatch:items[0]?.source?.text?.batch ?? '0'}) {
-  const value = {schemaVersion:'1.0.0', category, gameVersion:envelope.gameVersion, sourceCommit:envelope.sourceCommit, textBatch:envelope.textBatch,
+  const value = {schemaVersion:'1.1.0', category, gameVersion:envelope.gameVersion, sourceCommit:envelope.sourceCommit, textBatch:envelope.textBatch,
     items:items.map(item => ({...item, explanation:{effect:'-',conditions:'',calculation:'',notes:'',extra:''}, errata:[]}))};
   const errors = checkDataFile(category, stringifyCanonical(value)).errors;
   items.forEach((item, i) => {
@@ -33,7 +33,7 @@ export async function writeExtract({workDir, category, envelope, items = [], pro
   const errors = validateExtractItems(category, sorted, envelope);
   if (errors.length) throw new Error(`extract 驗證失敗：${JSON.stringify(errors)}`);
   const compare = (a,b) => { const x = stringifyCanonical(a), y = stringifyCanonical(b); return x < y ? -1 : x > y ? 1 : 0; };
-  await writeCanonicalFile(path.join(workDir,'extract',`${category}.json`), {schemaVersion:'1.0.0', category, ...envelope, status:envelope.status || 'ok', reason:envelope.reason || null, problems:[...problems].sort(compare), excluded:[...excluded].sort(compare), items:sorted});
+  await writeCanonicalFile(path.join(workDir,'extract',`${category}.json`), {schemaVersion:'1.1.0', category, ...envelope, status:envelope.status || 'ok', reason:envelope.reason || null, problems:[...problems].sort(compare), excluded:[...excluded].sort(compare), items:sorted});
 }
 /** Execute an extractor with pinned inputs, state updates, and structural fallback. */
 export async function runExtractCli({category, scriptVersion, build}) {

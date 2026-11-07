@@ -7,6 +7,9 @@ export function composeFinal({ category, status, candidate, previous, rows, vers
   if (status === 'kept-previous')
     return dataFile(category, version, (previous?.items ?? []).map((item) => retainItem(item, previous))
       .sort((a, b) => compare(a.id, b.id)), previous?.schemaVersion);
+  if (rows.some((row) => row.category === category && row.decision === 'kept-previous') &&
+      candidate?.schemaVersion !== previous?.schemaVersion)
+    throw new Error('保留項目的 schemaVersion 與候選資料不一致');
   const current = new Map((candidate?.items ?? []).map((item) => [item?.id, item]));
   const old = new Map((previous?.items ?? []).map((item) => [item?.id, item]));
   const items = rows.filter((row) => row.category === category && row.decision !== 'excluded').map((row) => {

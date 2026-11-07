@@ -80,7 +80,7 @@ async function main() {
     checked(schemas.validate('ai-output.schema.json', output), logical(outputPath));
     if (input.id !== id || input.item.id !== id || output.id !== id || input.category !== entry.category || input.change !== entry.change) throw new Error('項目 id、category 或 change 不符');
     if (input.inputHash !== entry.inputHash || output.inputHash !== entry.inputHash || inputHashFor(entry.category, entry.change, input.item) !== entry.inputHash) throw new Error('inputHash 不符；說明可能已過期，請依新輸入重寫');
-    checked(checkDataFile(entry.category, stringifyCanonical(dataFile(entry.category, run, [{ ...input.item, explanation: output.explanation, errata: output.errata }]))), logical(outputPath));
+    checked(checkDataFile(entry.category, stringifyCanonical(dataFile(entry.category, run, [{ ...input.item, explanation: output.explanation, errata: output.errata }], entry.category === 'weapons' && !Object.hasOwn(input.item.values, 'curves') ? '1.0.0' : '1.1.0'))), logical(outputPath));
     if (entry.outcome === 'kept-previous') state = reopenItem(state, id);
     state = advanceItem(state, id, 'described'); await writeState(stateFile, state);
     console.log(`已標記：${id}`); return;
@@ -95,19 +95,22 @@ async function main() {
   if (currentText !== null) { checked(checkCurrent(currentText), logical(currentPath)); previousVersion = parse(currentText, logical(currentPath)).gameVersion; }
   const report = { schemaVersion: '1.0.0', ...Object.fromEntries(fields.map((k) => [k, run[k]])), previousGameVersion: previousVersion, categories: {} };
   const registrations = [], inputs = [];
+  let extractVersion, previousSchemaVersion;
   for (const category of CATEGORIES) {
     const file = join(work, 'extract', `${category}.json`), text = await optional(file);
     const blank = { added: [], changed: [], removed: [], unchanged: [] };
     if (text === null) { report.categories[category] = { status: 'missing', reason: null, ...blank }; console.log(`缺少 extract：${category}（該類別保留上一版）`); continue; }
     const extract = parse(text, logical(file));
-    if (!extract || typeof extract !== 'object' || extract.category !== category || extract.schemaVersion !== '1.0.0' || !['ok', 'structure-mismatch'].includes(extract.status) || !Array.isArray(extract.items) || !Array.isArray(extract.problems) || !Array.isArray(extract.excluded) || !(extract.reason === null || typeof extract.reason === 'string') || typeof extract.scriptVersion !== 'string') throw new Error(`extract 格式錯誤：${logical(file)}`);
+    if (!extract || typeof extract !== 'object' || extract.category !== category || !['1.0.0', '1.1.0'].includes(extract.schemaVersion) || !['ok', 'structure-mismatch'].includes(extract.status) || !Array.isArray(extract.items) || !Array.isArray(extract.problems) || !Array.isArray(extract.excluded) || !(extract.reason === null || typeof extract.reason === 'string') || typeof extract.scriptVersion !== 'string') throw new Error(`extract 格式錯誤：${logical(file)}`);
+    if (extractVersion && extractVersion !== extract.schemaVersion) throw new Error('extract schemaVersion 不一致');
+    extractVersion = extract.schemaVersion;
     for (const key of fields) if (extract[key] !== run[key]) throw new Error(`${logical(file)} 的 ${key} 與 state 不符`);
     if (extract.status === 'structure-mismatch') { report.categories[category] = { status: extract.status, reason: extract.reason, ...blank }; continue; }
-    checked(checkDataFile(category, stringifyCanonical(dataFile(category, run, extract.items.map((item) => ({ ...item, explanation: emptyExplanation, errata: [] }))))), logical(file));
+    checked(checkDataFile(category, stringifyCanonical(dataFile(category, run, extract.items.map((item) => ({ ...item, explanation: emptyExplanation, errata: [] })), extract.schemaVersion))), logical(file));
     let previous = [];
     if (previousVersion !== null) {
       const prevFile = join(dataDir, previousVersion, `${category}.json`), prevText = await optional(prevFile);
-      if (prevText !== null) { checked(checkDataFile(category, prevText), logical(prevFile)); const prev = parse(prevText, logical(prevFile)); if (prev.gameVersion !== previousVersion) throw new Error(`${logical(prevFile)} 的 gameVersion 不符`); previous = prev.items; }
+      if (prevText !== null) { checked(checkDataFile(category, prevText), logical(prevFile)); const prev = parse(prevText, logical(prevFile)); if (previousSchemaVersion && previousSchemaVersion !== prev.schemaVersion) throw new Error('資料檔 schemaVersion 不一致'); previousSchemaVersion = prev.schemaVersion; if (prev.gameVersion !== previousVersion) throw new Error(`${logical(prevFile)} 的 gameVersion 不符`); previous = prev.items; }
     }
     const diff = diffCategory(category, previous, extract.items);
     report.categories[category] = { status: 'ok', reason: null, ...diff };

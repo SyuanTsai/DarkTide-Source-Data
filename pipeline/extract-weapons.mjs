@@ -1,6 +1,7 @@
 import {createSharedBindingGuard,invalidateReachable} from './lib/lua-effects.mjs';
 import path from 'node:path';
 import {createWeaponStats} from './lib/weapon-stats.mjs';
+import {weaponCombos} from './lib/weapon-combos.mjs';
 import { fileURLToPath } from 'node:url';
 import { parseLuaStatic, findLuaTableAssignment, getLuaTableFields, getTableField, getTableArray, tokenizeLua } from './lib/lua-static-reader.mjs';
 import {controlFlowWrites} from './lib/lua-effects.mjs';
@@ -8,7 +9,7 @@ import { playerWeaponTemplates, weaponPattern, bespokeTraitsForTemplate } from '
 import { StructureError } from './lib/errors.mjs';
 import { runExtractCli, itemId, nameFromText } from './lib/extract-output.mjs';
 
-const VERSION='pipeline/extract-weapons.mjs@1.0.0';
+const VERSION='pipeline/extract-weapons.mjs@1.1.0';
 const ROOT='scripts/settings/equipment/weapon_templates/';
 const UI='scripts/settings/ui/ui_weapon_pattern_settings.lua';
 const paths={ammo:'scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua',dodge:'scripts/settings/dodge/weapon_dodge_templates.lua',sprint:'scripts/settings/sprint/weapon_sprint_templates.lua',stamina:'scripts/settings/stamina/weapon_stamina_templates.lua',movement_curve_modifier:'scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua',charge:'scripts/settings/equipment/weapon_handling_templates/weapon_charge_templates.lua',warp_charge:'scripts/settings/warp_charge/weapon_warp_charge_templates.lua'};
@@ -18,7 +19,9 @@ function parse(raw) { try {return parseLuaStatic(`local x = ${raw}\nreturn x`,{a
 const writesCache=new Map();
 function table(source,ref,analysis) {
  try {
-  const node=parse(findLuaTableAssignment(source,ref).raw),prefix=ref.split('.');
+  const literal=findLuaTableAssignment(source,ref),node=parse(literal.raw),prefix=ref.split('.');
+  const relocate=n=>{if(!n||typeof n!=='object')return;if(n.startLine)n.startLine+=literal.startLine-1;if(n.type==='table')for(const e of n.entries){relocate(e.key);relocate(e.value);}};
+  relocate(node);
   if(!writesCache.has(source))writesCache.set(source,controlFlowWrites(tokenizeLua(source)));
   for(const path of writesCache.get(source)) {
    if(!path.slice(0,Math.min(path.length,prefix.length)).every((k,i)=>k===prefix[i]))continue;
@@ -52,7 +55,7 @@ export async function buildWeapons({reader,text,envelope}) {
   if(!patterns.includes(family)) problems.push({code:'PATTERN_NOT_IN_UI',message:`UI 缺少 pattern：${family}`,id});
   const analysis=effects.analysis(t.file),readTable=ref=>table(source,ref,analysis);
   const attacks=readTable('weapon_template.displayed_attacks'), stats=readTable('weapon_template.base_stats');
-  const contributions=[];let notApplicable=0;
+  const contributions=[],curves=[];let notApplicable=0;
   if(!attacks||!stats) missing++;
   if(!attacks) problems.push({code:'NO_DISPLAYED_ATTACKS',message:'沒有 displayed_attacks',id});
   function visitAttack(node,slot,top=false) {if(node?.type!=='table') return; const type=string(field(node,'type')),name=string(field(node,'display_name')); if(top||type||name) actions.push({slot,id:slot,type:type??'unknown',name:textValue(text,name)}); for(const e of entries(node)) if(e.node?.type==='table') visitAttack(e.node,`${slot}.${e.key}`);}
@@ -65,16 +68,24 @@ export async function buildWeapons({reader,text,envelope}) {
    for(const kind of entries(bar.node)) {if(kind.node?.type!=='table')continue;for(const target of entries(kind.node)){if(target.node?.type!=='table')continue;
     const name=textValue(text,statReader.label(field(target.node,'display_data'),t.file));
     statReader.extract({source,file:t.file,kind:kind.key,target:target.key,group:target.node,actions:readTable('weapon_template.actions'),alternate:readTable('weapon_template.alternate_fire_settings'),files,unknown,contributions,notApplicable(){notApplicable++;},emit(stat){
-     if(!duplicate(stat.key))output.stats.push({...stat,name});
+     if(!duplicate(stat.key)) {
+      const {curveUnknown,curveSource,...value}=stat,curveId=bar.key+'.'+stat.key;
+      output.stats.push({...value,name,curveId});
+      curves.push({id:curveId,bar:bar.key,stat:stat.key,name,input:{source:'base_stat_value',unit:'ratio',min:0,max:1},interpolation:curveUnknown?'unknown':'linear',knots:[{input:0,output:curveUnknown?null:stat.min},{input:1,output:curveUnknown?null:stat.max}],outputUnit:null,unknown:curveUnknown,source:curveSource});
+      if(curveUnknown)problems.push({code:'CURVE_UNKNOWN',message:`曲線未確認：${curveId}`,id,bar:bar.key,key:stat.key,reason:curveUnknown});
+     }
     }});
    }}
   }
   statReader.finish(contributions);
+  curves.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+  const attackCombos=weaponCombos({actions:statReader.actions(t.file)??readTable('weapon_template.actions'),displayed:attacks,file:t.file,profiles:statReader.profiles,textValue:key=>textValue(text,key)});
+  for(const combo of attackCombos)if(combo.unknown)problems.push({code:'COMBO_UNKNOWN',message:`連段未確認：${combo.kind}`,id,kind:combo.kind,reason:combo.unknown});
   if(notApplicable)problems.push({code:'NOT_APPLICABLE_STAT',id,message:`遊戲不讀取的 stat 路徑：${notApplicable} 筆`});
   for(const k of ['keywords','displayed_keywords']) {const n=readTable(`weapon_template.${k}`); if(n){const values=getTableArray(n).map(x=>k==='keywords'?string(x):string(field(x,'display_name'))).filter(x=>x!==null);params[k]={value:values};}}
   const ammo=assigned(source,'ammo_template'); if(ammo&&ammo!=='no_ammo'){const file=paths.ammo,node=field(catalog(file,'weapon_ammo_templates'),ammo); for(const [key,names] of [['ammo_reserve',['ammo_amount_capacity_lerp','ammunition_reserve']],['ammo_clip',['ammo_amount_clip_lerp','ammunition_clips']]]) {let v=null;for(const name of names){let x=field(node,name);v=endpoints(x);if(!v&&getTableArray(x).length===1)v=endpoints(getTableArray(x)[0]);if(v) break;} params[key]=v?{value:v}:{value:null,unknown:'DYNAMIC_VALUE'};}}
   const unique=[...new Map(files.map(x=>[`${x.path}:${x.line}`,x])).values()].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:a.line-b.line);
-  items.push({id,key:t.name,name:resolved.name,official:{en:null,zh:null},values:{family,mark,weaponType:itemId('terms','weapon-type',family),archetypes:[],actions,bars,blessings:[...new Set(bespokeTraitsForTemplate(reader,t).map(x=>itemId('blessings',x.traitKey)))].sort(),params},source:{commit:envelope.sourceCommit,files:unique,scriptVersion:VERSION,text:{batch:envelope.textBatch,keys:{name:loc}}}});
+  items.push({id,key:t.name,name:resolved.name,official:{en:null,zh:null},values:{family,mark,weaponType:itemId('terms','weapon-type',family),archetypes:[],actions,bars,curves,attackCombos,blessings:[...new Set(bespokeTraitsForTemplate(reader,t).map(x=>itemId('blessings',x.traitKey)))].sort(),params},source:{commit:envelope.sourceCommit,files:unique,scriptVersion:VERSION,text:{batch:envelope.textBatch,keys:{name:loc}}}});
  }
  if(missing>templates.length/2) throw new StructureError('weapons','INVALID_STRUCTURE','超過半數模板缺少 base_stats 或 displayed_attacks');
  return {items,problems,excluded:[]};

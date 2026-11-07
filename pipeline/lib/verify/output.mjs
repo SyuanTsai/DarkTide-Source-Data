@@ -1,4 +1,4 @@
-import { checkDataFile, checkCurrent, checkVersionDir } from '../data-files.mjs';
+import { checkDataFile, checkCurrent, checkVersionDir, checkFileConsistency } from '../data-files.mjs';
 import { stringifyCanonical, writeCanonicalFile } from '../canonical-json.mjs';
 import { join } from 'node:path';
 import { compare, failure, itemIndex, validationMessage } from './common.mjs';
@@ -14,8 +14,13 @@ export function verifyMerged(loaded, categories, rows, checker = checkDataFile, 
     let changed = false;
     for (const [category, entry] of Object.entries(loaded)) {
       const categoryRows = rows.filter((r) => r.category === category);
-      const data = composeFinal({ category, status: categories[category].status, candidate: entry.candidate,
-        previous: entry.previous, rows: categoryRows, version: version ?? entry.candidate });
+      let data;
+      try { data = composeFinal({ category, status: categories[category].status, candidate: entry.candidate,
+        previous: entry.previous, rows: categoryRows, version: version ?? entry.candidate }); }
+      catch (error) {
+        if (!error.message.includes('schemaVersion')) throw error;
+        return { merged, errors: [{ code: 'SCHEMA_VERSION_MISMATCH', category, path: '/schemaVersion', message: error.message }] };
+      }
       const selected = categories[category].status === 'ok'
         ? categoryRows.filter((row) => row.decision !== 'excluded').sort((a, b) => compare(a.id, b.id)) : [];
       merged[category] = data;
@@ -28,7 +33,9 @@ export function verifyMerged(loaded, categories, rows, checker = checkDataFile, 
       }
     }
     if (changed) continue;
-    errors.sort((a, b) => compare(a.category, b.category) || compare(a.path, b.path) || compare(a.message, b.message));
+    errors.push(...checkFileConsistency(Object.entries(merged).map(([category, value]) => ({ category, value })), ['schemaVersion'])
+      .map((e) => ({ code: 'SCHEMA_VERSION_MISMATCH', path: e.path, message: '合併後類別的 schemaVersion 不一致，包含保留上一版時須人工處理' })));
+    errors.sort((a, b) => compare(a.category ?? '', b.category ?? '') || compare(a.path, b.path) || compare(a.message, b.message));
     return { merged, errors };
   }
   throw new Error('合併資料重試超過項目數');

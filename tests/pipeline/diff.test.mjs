@@ -147,3 +147,26 @@ test('InterT40_mark described validates errata anchors', async (t) => {
     await writeFile(a.state, before);
   }
 });
+// Scenario: a 1.1 weapon extraction is compared with a 1.0 release.
+// Purpose: retain new weapon values and identify them as changes across schema versions.
+test('InterT10_diff accepts modern weapon curves and combos against legacy data', async (t) => {
+  const a = await setup(t);
+  for (const category of CATEGORIES) {
+    const file = join(a.work, 'extract', category + '.json'), extract = await read(file);
+    extract.schemaVersion = '1.1.0';
+    if (category === 'weapons') for (const item of extract.items) {
+      item.values.curves = []; item.values.attackCombos = [];
+      for (const bar of item.values.bars) for (const stat of bar.stats) {
+        stat.curveId = `${bar.id}.${stat.key}`;
+        item.values.curves.push({id:stat.curveId,bar:bar.id,stat:stat.key,name:stat.name,input:{source:'base_stat_value',unit:'ratio',min:0,max:1},interpolation:'linear',knots:[{input:0,output:stat.min},{input:1,output:stat.max}],outputUnit:null,unknown:null,source:{path:'scripts/example.lua',line:1}});
+      }
+    }
+    await writeFile(file, stringifyCanonical(extract));
+  }
+  a.run();
+  const report = await read(join(a.base, 'diff/diff.json'));
+  assert.ok(report.categories.weapons.changed.includes('darktide:weapon:example_family:fixture_a'));
+  const input = await read(join(a.base, 'ai/input', itemFileName('darktide:weapon:example_family:fixture_a')));
+  assert.ok(input.item.values.curves.length); assert.deepEqual(input.item.values.attackCombos, []);
+  assert.ok(input.item.values.bars[0].stats[0].curveId); assert.equal(input.previous.values.curves, undefined);
+});

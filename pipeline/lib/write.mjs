@@ -1,7 +1,7 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CATEGORIES, checkDataFile, checkCurrent, compareVersions } from './data-files.mjs';
+import { CATEGORIES, checkDataFile, checkCurrent, checkFileConsistency, compareVersions } from './data-files.mjs';
 import { stringifyCanonical, writeCanonicalFile } from './canonical-json.mjs';
 import { readState, writeState, advanceItem, keepPrevious, completeRun } from './state.mjs';
 import { resolveCloudRoot } from './cloud-dir.mjs';
@@ -160,6 +160,8 @@ export async function runWrite(inputOptions = {}) {
     }
     checked(checkDataFile(category, stringifyCanonical(final[category])), `${category} 最終資料`);
   }
+  if (checkFileConsistency(Object.entries(final).map(([category, value]) => ({ category, value })), ['schemaVersion']).length)
+    throw new WriteError('最終資料的 schemaVersion 不一致');
   const index = { schemaVersion: '1.0.0', gameVersion: run.gameVersion, path: `data/${run.gameVersion}`,
     sourceCommit: run.sourceCommit, textBatch: run.textBatch,
     versions: [...new Set([...(current?.value.versions ?? []), run.gameVersion])].sort(compareVersions) };

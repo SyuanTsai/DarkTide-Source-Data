@@ -15,6 +15,40 @@ import { readState } from '../../pipeline/lib/state.mjs';
 const base = 'pipeline/schema/examples',
   read = (p) => JSON.parse(readFileSync(p, 'utf8'));
 const file = (c) => read(`${base}/0.0.0-example/${c}.json`);
+// Scenario: old and new weapon envelopes are checked under their declared version.
+// Purpose: keep old data compatible while requiring all new fields together.
+test('UnitT45_weapon schema versions require distinct contracts',()=>{
+ const old=file('weapons'),check=x=>checkDataFile('weapons',stringifyCanonical(x));
+ const current=read(`${base}/current.json`);current.schemaVersion='1.1.0';assert.equal(checkCurrent(stringifyCanonical(current)).valid,true);
+ assert.equal(check(old).valid,true);
+ const modern=structuredClone(old);modern.schemaVersion='1.1.0';
+ assert.equal(check(modern).valid,false);
+ modern.items[0].values.curves=[];modern.items[0].values.attackCombos=[];
+ for(const bar of modern.items[0].values.bars)for(const stat of bar.stats){
+  stat.curveId=bar.id+'.'+stat.key;
+  modern.items[0].values.curves.push({id:stat.curveId,bar:bar.id,stat:stat.key,name:stat.name,input:{source:'base_stat_value',unit:'ratio',min:0,max:1},interpolation:'linear',knots:[{input:0,output:stat.min},{input:1,output:stat.max}],outputUnit:null,unknown:null,source:{path:'scripts/example.lua',line:1}});
+ }
+ assert.equal(check(modern).valid,true);
+ for(const key of ['curves','attackCombos']){const bad=structuredClone(modern);delete bad.items[0].values[key];assert.equal(check(bad).valid,false);}
+ const forbidden=structuredClone(modern);forbidden.schemaVersion='1.0.0';assert.equal(check(forbidden).valid,false);
+ const missingId=structuredClone(modern);delete missingId.items[0].values.bars[0].stats[0].curveId;assert.equal(check(missingId).valid,false);
+ const oldId=structuredClone(old);oldId.items[0].values.bars[0].stats[0].curveId='forbidden';assert.equal(check(oldId).valid,false);
+ const badUnknown=structuredClone(modern);badUnknown.items[0].values.curves[0].knots[0].output=null;assert.equal(check(badUnknown).valid,false);
+ for(const change of [
+  v=>v.curves.push(structuredClone(v.curves[0])),
+  v=>v.curves[0].knots.reverse(),
+  v=>v.bars[0].stats[0].curveId='absent',
+  v=>v.attackCombos.push({id:'light',kind:'light',start:'start',steps:[],loopsTo:0,unknown:null,source:{path:'scripts/example.lua',line:1}})
+ ]){const bad=structuredClone(modern);change(bad.items[0].values);assert.equal(check(bad).valid,false);}
+});
+// Scenario: one otherwise valid category changes its schema version.
+// Purpose: reject mixed schema versions within a published release.
+test('UnitT46_release files must agree on schemaVersion',t=>{
+ const dir=mkdtempSync(join(tmpdir(),'schema-release-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
+ const versionDir=join(dir,'0.0.0');cpSync(`${base}/0.0.0-example`,versionDir,{recursive:true});
+ const skills=file('skills');skills.schemaVersion='1.1.0';writeFileSync(join(versionDir,'skills.json'),stringifyCanonical(skills));
+ assert.ok(checkVersionDir(versionDir).errors.some(e=>e.path.endsWith('/schemaVersion')&&e.message==='Files disagree'));
+});
 test('canonical JSON', () => {
   assert.equal(stringifyCanonical({ b: 1, a: 2 }), stringifyCanonical({ a: 2, b: 1 }));
   assert.match(stringifyCanonical({}), /\n$/);
@@ -35,6 +69,7 @@ test('UnitT10_examples and CLI', async (t) => {
       checkDataFile(c, readFileSync(`${base}/0.0.0-example/${c}.json`, 'utf8')).valid,
       true,
     );
+  for(const c of ['skills','weapons','blessings','terms'])assert.equal(checkDataFile(c,readFileSync(`${base}/1.1.0-example/${c}.json`,'utf8')).valid,true);
   assert.equal(checkCurrent(readFileSync(`${base}/current.json`, 'utf8')).valid, true);
   assert.equal(checkVersionDir(join(root, 'data', '0.0.0')).valid, true);
   assert.equal(spawnSync(process.execPath, ['pipeline/validate.mjs', '--root', root]).status, 0);

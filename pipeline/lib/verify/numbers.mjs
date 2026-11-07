@@ -1,4 +1,4 @@
-import { failure, params, walk } from './common.mjs';
+import { atPointer, failure, params, walk } from './common.mjs';
 
 export function normalizeNumbers(text) {
   return text.replace(/[０-９＋－．％]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0));
@@ -22,9 +22,22 @@ export function matches(token, numbers) {
   return numbers.some((n) => (!token.signed || sameSign(token, n)) && near(token, n)) ||
     (!token.signed && numbers.some((n) => near(token, Math.abs(n))));
 }
+export function isGameValuePath(values, path) {
+  if (typeof path !== 'string' || /^\/curves\/\d+\/input(?:\/|$)/.test(path) ||
+      /^\/curves\/\d+\/knots\/\d+\/input(?:\/|$)/.test(path) ||
+      /^\/attackCombos\/\d+\/loopsTo(?:\/|$)/.test(path)) return false;
+  for (const match of path.matchAll(/(?:^|\/)source(?=\/|$)/g)) {
+    const source = atPointer(values, path.slice(0, match.index + match[0].length));
+    if (source && typeof source === 'object' && !Array.isArray(source) &&
+        Object.hasOwn(source, 'path') && Object.hasOwn(source, 'line')) return false;
+  }
+  return true;
+}
 export function derivable(values) {
   const numbers = [];
-  walk(values, (v) => { if (typeof v === 'number' && Number.isFinite(v)) numbers.push(...derived(v)); });
+  walk(values, (v, path) => {
+    if (isGameValuePath(values, path) && typeof v === 'number' && Number.isFinite(v)) numbers.push(...derived(v));
+  });
   return numbers;
 }
 export function checkNumbers(values, text) {

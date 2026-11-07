@@ -71,3 +71,16 @@ test('InterT50_candidate ignores extract when diff status is not ok', async (t) 
   const result = await buildCandidates({ run, extractDir: root, aiOutputDir: root, previousDir: root, diffReport: { categories: { skills: { status: 'missing' } } } });
   assert.equal(result.skills, null);
 });
+
+// Scenario: extracted data uses the newer schema. Purpose: preserve its version when constructing a candidate.
+test('UnitT60_candidate preserves extract schema version', () => {
+  const result = composeCandidate({ category: 'skills', run, extract: { ...extract, schemaVersion: '1.1.0' }, previous, unchanged: [item.id] });
+  assert.equal(result.schemaVersion, '1.1.0');
+});
+
+// Scenario: a retained item belongs to an older schema. Purpose: prevent silently relabeling retained data.
+test('UnitT70_retained item rejects a different schema version', () => {
+  const candidate = { ...previous, schemaVersion: '1.1.0' };
+  assert.throws(() => composeFinal({ category: 'skills', status: 'ok', candidate, previous, version: run,
+    rows: [{ category: 'skills', id: item.id, decision: 'kept-previous' }] }), /schemaVersion/);
+});

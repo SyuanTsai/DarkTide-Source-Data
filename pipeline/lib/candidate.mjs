@@ -29,7 +29,7 @@ export function composeCandidate({ category, run, extract, previous, unchanged =
     if (description) items.push({ ...item, explanation: description.explanation, errata: description.errata });
   }
   items.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
-  return canonicalize(dataFile(category, run, items));
+  return canonicalize(dataFile(category, run, items, extract.schemaVersion));
 }
 
 async function optionalJson(file, tolerateInvalid = false) {
