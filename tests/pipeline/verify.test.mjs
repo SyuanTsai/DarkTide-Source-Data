@@ -591,3 +591,25 @@ test('InterT94_null 候選項目逐項排除', async (t) => {
   assert.ok(r.report.items.some((row) => row.id === 'skills/items/0' && row.decision === 'excluded'));
   assert.equal(r.merged.skills.items.length, 3);
 });
+
+test('verify 重新展開 extract 並在報告保留官方名稱 warning', async (t) => {
+  const f = await fixture(t);
+  for (const c of CATEGORIES) { f.data[c].schemaVersion = '1.1.0'; f.extracts[c].schemaVersion = '1.1.0'; }
+  const example = JSON.parse(await readFile(new URL('../../pipeline/schema/examples/1.1.0-example/weapons.json', import.meta.url), 'utf8'));
+  for (const weapon of f.data.weapons.items) {
+    weapon.values.curves = structuredClone(example.items[0].values.curves);
+    weapon.values.attackCombos = structuredClone(example.items[0].values.attackCombos);
+    weapon.values.bars[0].stats[0].curveId = 'example.example';
+  }
+  f.extracts.weapons.items = f.data.weapons.items.map(strip);
+  const item = f.data.skills.items[0], extracted = f.extracts.skills.items[0];
+  item.official.zh = '私譯效果提升25%。'; extracted.official.zh = item.official.zh;
+  item.explanation.effect = item.official.zh; item.explanation.effectOrigin = 'official';
+  await writeFile(f.options.translation, '- Example 0 - 私譯\n');
+  const result = await f.run(), row = result.report.items.find(x => x.id === item.id);
+  assert.equal(row.decision, 'pass');
+  assert.equal(row.warnings[0].code, 'W_OFFICIAL_TEXT_NAME_MISMATCH');
+  item.explanation.effect += '私譯';
+  const changed = await f.run();
+  assert.ok(changed.report.items.find(x => x.id === item.id).failures.some(x => x.code === 'T_NAME_NOT_OFFICIAL'));
+});

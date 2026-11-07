@@ -9,6 +9,9 @@ import { compare, failure, itemIndex } from './common.mjs';
 import { InputError, categoryReason, inputHalt, loadInput } from './input.mjs';
 import { checkValues } from './values.mjs';
 import { checkText } from './text.mjs';
+import { effectTaskFor } from '../official-effect.mjs';
+import { loadTextIndex } from '../official-text.mjs';
+import { readJson } from './input.mjs';
 import { parseTranslation, translationConflicts } from './translation.mjs';
 import { decide, verifyMerged, checkOldVersions, writeMerged } from './output.mjs';
 import { execute, handleIssues, stderrTail } from './issues.mjs';
@@ -65,6 +68,10 @@ export async function runVerify(inputOptions) {
     const allowedNames = candidateItems.filter((i) => i?.name?.zh === null && typeof i.name.en === 'string').map((i) => i.name.en);
     const table = parseTranslation(input.translation);
     report.translationConflicts = translationConflicts(allItems, table);
+    const textFile = join(options.extractDir, 'text.json');
+    const textCurrent = await readJson(join(options.extractDir, '..', 'diff', 'text-current.json'), true);
+    const textData = await readJson(textFile, true);
+    const textIndex = textCurrent?.value?.available !== false && textData ? loadTextIndex(textFile) : undefined;
     for (const [category, entry] of checked) {
       for (const [index, item] of entry.candidate.items.entries()) {
         const id = typeof item?.id === 'string' ? item.id : `${category}/items/${index}`;
@@ -74,8 +81,10 @@ export async function runVerify(inputOptions) {
           entry.schemaErrors.filter((e) => itemIndex(e.path) === String(index))), notes: [] };
         if (stateMatches && input.state.run.items[id]?.stage === 'extracted')
           row.failures.push(failure('values', 'V_NOT_DESCRIBED', '/explanation', '項目仍在取數階段，尚未完成說明'));
-        const text = checkText(item, extracted, allowedNames, report.translationConflicts, table);
-        row.failures.push(...text.failures); row.notes.push(...text.notes);
+        const task = extracted && entry.extract.schemaVersion === '1.1.0' && ['skills', 'blessings'].includes(category)
+          ? effectTaskFor(extracted, textIndex, entry.extract.effectFormats?.[id]) : undefined;
+        const text = checkText(item, extracted, allowedNames, report.translationConflicts, table, task?.lockedEffect);
+        row.failures.push(...text.failures); row.notes.push(...text.notes); row.warnings = text.warnings;
         decide(row, entry.previous); report.items.push(row);
       }
       for (const item of entry.extract.items) {

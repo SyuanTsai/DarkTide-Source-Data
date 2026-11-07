@@ -56,3 +56,4 @@ import './review31.test.mjs';
 import './review33.real.test.mjs';
 
 import './migration-official-effect.test.mjs';
+import './locked-name.test.mjs';

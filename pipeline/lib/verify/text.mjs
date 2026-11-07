@@ -5,8 +5,8 @@ export const ALLOWED_WORDS = Object.freeze(['LV', 'Lv']);
 export const EXPLANATION_SECTIONS = Object.freeze(['effect', 'conditions', 'calculation', 'notes', 'extra']);
 const officialNumbers = (text) => extractNumbers(typeof text === 'string' ? text.replace(/\{[a-zA-Z_][a-zA-Z0-9_]*(?=:)/g, '{') : text);
 const numberSet = (text) => [...new Set(extractNumbers(text).map((n) => n.value))].sort((a, b) => a - b);
-export function checkText(item, extracted, allowedNames, conflicts, table) {
-  const failures = [], notes = [], exp = item?.explanation;
+export function checkText(item, extracted, allowedNames, conflicts, table, lockedEffect) {
+  const failures = [], notes = [], warnings = [], exp = item?.explanation;
   if (EXPLANATION_SECTIONS.some((k) => typeof exp?.[k] !== 'string') || !exp.effect.trim())
     failures.push(failure('text', 'T_FORMAT', '/explanation', '說明五節必須是字串，效果不得空白'));
   const sections = EXPLANATION_SECTIONS.map((k) => typeof exp?.[k] === 'string' ? exp[k] : '');
@@ -50,10 +50,14 @@ export function checkText(item, extracted, allowedNames, conflicts, table) {
       if (missing.length) failures.push(failure('text', 'T_ERRATA_MISSING', `/official/${locale}`, `官方數字未附勘誤：${[...new Set(missing.map((n) => n.raw))].sort().join('、')}`));
     }
   }
+  const locked = exp?.effectOrigin === 'official' && typeof lockedEffect === 'string' && exp.effect === lockedEffect;
+  const checkedText = locked ? sections.slice(1).join('\n') : text;
   for (const conflict of conflicts) {
     const variants = table.get(conflict.en.toLowerCase())?.variants ?? [];
-    const wrong = variants.filter((v) => !conflict.officialZh.includes(v) && text.includes(v));
+    const wrong = variants.filter((v) => !conflict.officialZh.includes(v) && checkedText.includes(v));
     if (wrong.length) failures.push(failure('text', 'T_NAME_NOT_OFFICIAL', '/explanation', `說明使用非官方譯名：${wrong.join('、')}；官方中文：${conflict.officialZh}`));
+    const officialWrong = locked ? variants.filter((v) => !conflict.officialZh.includes(v) && exp.effect.includes(v)) : [];
+    if (officialWrong.length) warnings.push({ code: 'W_OFFICIAL_TEXT_NAME_MISMATCH', path: '/explanation/effect', message: `官方原文用字：${officialWrong.join('、')}；官方中文：${conflict.officialZh}` });
   }
-  return { failures, notes };
+  return { failures, notes, warnings };
 }
