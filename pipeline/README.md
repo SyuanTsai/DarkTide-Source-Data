@@ -133,6 +133,8 @@ extract-terms 的 keyword 包含兩種 glossary 前綴；碰到同名時分別�
 
 Table constructor 的計算 key 必須有字面值或靜態常數證明；可解析且未失效的 imported enum 字串／數字欄位也屬於證明。無法證明的 key 會標記 `hasUnknownKeys`，從該表讀取任何欄位都傳遞 `DYNAMIC_VALUE`。未知計算 key 的讀取保留所有可能值及共用表別名，後續寫入或傳給可能修改資料的函式會使所有可能共用表失效；已證明的 key 則精確讀取。
 
+本次靜態解析驗收以 e46b892 實際使用的設定語法與固定產出為範圍；未在該版來源出現的 Lua 寫法不在保證範圍內，由 START.md 抽查把關。
+
 已知限制以測試記錄：透過函式呼叫改寫共用表的寫法（例如 review17／19／24 的反例）不在上述保證範圍內；解析器可能仍輸出 known。安全網是依 [START.md](../docs/pipeline/START.md) 的 astra 逐 profile 抽查對照 Source-Code，並在每次遊戲更新時進行人工驗收；發現不一致即停止。
 
 ### 技能取數
