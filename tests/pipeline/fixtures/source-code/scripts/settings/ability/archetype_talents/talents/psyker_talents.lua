@@ -1,0 +1,1 @@
+psyker_brain_burst_improved = { format_values = { damage = { find_value = { buff_template_name = "psyker_brain_burst_improved", find_value_type = "buff_template", path = { "stat_buffs", stat_buffs.smite_damage_multiplier } } } } }
