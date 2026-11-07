@@ -168,6 +168,8 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 `values.attackCombos[]` 依 light、heavy 輸入追蹤 action 圖。起點採 `start_input = start_attack`，沒有時才使用有 light/heavy 邊的其他明確 start_input。多起點時 steps 為空、unknown 為 `CHAIN_START_AMBIGUOUS`；受 start 必須為字串的結構限制，start/source 指向來源順序第一個候選，不能視為已確認的唯一入口。連段從已進入 start action 的狀態開始；後續轉入 action（含返回 start）才檢查 action condition。windup 不列入 steps，沿 `start_attack` 推進；只有 kind 可靜態確認的 sweep 或具有靜態 damage profile 的傷害 action 列入。`loopsTo` 是 steps 的零起算索引；無循環為 null。純遠程無此結構則為空陣列。時間不影響順序，未使用時間選分支。原始碼語意依 `scripts/settings/equipment/weapon_templates/default_melee_action_input_setup.lua`、`melee_action_input_setup_mid.lua` 與 `scripts/utilities/action/action_handler.lua` 的 `_valid_action_from_action_input`、`_validate_single_chain_action` 核對；`_anim_end_event` 的 callback 僅控制動畫收尾，不是連段條件。
 
+1.1.0 武器可選填 `values.damageProfiles[]`，保存來源明示的 attack／impact 原始數值與動作或模板綁定；hitScan／projectile 的明示 powerLevel 保存在各自的 binding。數值附來源位置，缺值以 unknown 原因表示；這些是原始數值，不是最終傷害。
+
 step 的 profile 綁定重用 WP2 require/catalog 邏輯，唯一靜態 profile 才填值，否則 `damageProfile: null` 及 `DAMAGE_PROFILE_BINDING_NOT_FOUND`。displayed_attacks 必須能以明確 action_name 對應 display_name 才填名稱；群組 gestalt 名稱不推定為每個 action 的名稱。
 
 連段原因碼：`CONDITIONAL_CHAIN`（chain validation／action condition／running action state requirement）、`CHAIN_TARGET_NOT_FOUND`（缺目標）、`CHAIN_START_AMBIGUOUS`（多起點）、`CHAIN_CYCLE_WITHOUT_ATTACK`（無攻擊循環）、`DYNAMIC_VALUE`（函式／動態邊或 kind），另保留既有 `REFERENCE_NOT_FOUND`。遇不確定分支保留已證實的 steps 前綴。`CURVE_UNKNOWN`、`COMBO_UNKNOWN` problems 均帶 reason，可直接彙總；profile unknown 由 steps 的 `damageProfileUnknown` 統計。
