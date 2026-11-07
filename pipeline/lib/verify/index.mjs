@@ -70,8 +70,9 @@ export async function runVerify(inputOptions) {
     report.translationConflicts = translationConflicts(allItems, table);
     const textFile = join(options.extractDir, 'text.json');
     const textCurrent = await readJson(join(options.extractDir, '..', 'diff', 'text-current.json'), true);
-    const textData = await readJson(textFile, true);
-    const textIndex = textCurrent?.value?.available !== false && textData ? loadTextIndex(textFile) : undefined;
+    let textIndex;
+    if (textCurrent?.value?.available !== false && await readJson(textFile, true))
+      textIndex = loadTextIndex(textFile);
     for (const [category, entry] of checked) {
       for (const [index, item] of entry.candidate.items.entries()) {
         const id = typeof item?.id === 'string' ? item.id : `${category}/items/${index}`;

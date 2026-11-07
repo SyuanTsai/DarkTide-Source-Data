@@ -613,3 +613,42 @@ test('verify 重新展開 extract 並在報告保留官方名稱 warning', async
   const changed = await f.run();
   assert.ok(changed.report.items.find(x => x.id === item.id).failures.some(x => x.code === 'T_NAME_NOT_OFFICIAL'));
 });
+
+// Scenario: this run marks its text index unavailable but leaves malformed text.json behind. Purpose: ignore stale JSON and keep the ordinary effect name check active.
+test('InterT96_文字索引不可用時略過損壞殘留並檢查效果譯名', async (t) => {
+  const f = await fixture(t);
+  for (const c of CATEGORIES) { f.data[c].schemaVersion = '1.1.0'; f.previous[c].schemaVersion = '1.1.0'; f.extracts[c].schemaVersion = '1.1.0'; }
+  const example = JSON.parse(await readFile(new URL('../../pipeline/schema/examples/1.1.0-example/weapons.json', import.meta.url), 'utf8'));
+  for (const weapon of f.data.weapons.items) {
+    weapon.values.curves = structuredClone(example.items[0].values.curves);
+    weapon.values.attackCombos = structuredClone(example.items[0].values.attackCombos);
+    weapon.values.bars[0].stats[0].curveId = 'example.example';
+  }
+  f.extracts.weapons.items = f.data.weapons.items.map(strip);
+
+  const item = f.data.skills.items[0], extracted = f.extracts.skills.items[0];
+  const keyword = { value: 'loc_effect_name' };
+  item.values.params.keyword = keyword;
+  extracted.values.params.keyword = structuredClone(keyword);
+  item.official.zh = '獲得{keyword:%s}，效果提升25%。';
+  extracted.official.zh = item.official.zh;
+  item.explanation.effect = '私譯效果提升25%。';
+  item.explanation.effectOrigin = 'official';
+  f.extracts.skills.effectFormats = { [item.id]: { params: { keyword: {
+    type: 'loc_string', numDecimals: null, prefix: '', suffix: '', valueSpace: 'display', manipulation: null,
+  } } } };
+  await writeFile(f.options.translation, '- Example 0 - 私譯\n');
+
+  const diffDir = join(f.root, 'diff'), reportFile = join(f.root, 'report.json');
+  await mkdir(diffDir);
+  await json(join(diffDir, 'text-current.json'), { available: false });
+  await writeFile(join(f.dirs.extract, 'text.json'), '{');
+
+  const result = await f.run({ report: reportFile });
+  const row = result.report.items.find((entry) => entry.id === item.id);
+  assert.equal(result.exitCode, 0, JSON.stringify(result.report));
+  assert.equal(result.report.result, 'degraded');
+  assert.ok(row.failures.some((failure) => failure.code === 'T_NAME_NOT_OFFICIAL'));
+  const written = JSON.parse(await readFile(reportFile, 'utf8'));
+  assert.ok(written.items.find((entry) => entry.id === item.id).failures.some((failure) => failure.code === 'T_NAME_NOT_OFFICIAL'));
+});
