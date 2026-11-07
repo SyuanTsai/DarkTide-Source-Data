@@ -44,3 +44,4 @@ import './review17.test.mjs';
 import './review19.test.mjs';
 import './review22.test.mjs';
 import './review24.test.mjs';
+import './review25.test.mjs';

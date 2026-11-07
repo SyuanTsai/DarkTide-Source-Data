@@ -99,11 +99,20 @@ const overlaps=(a,b)=>{a=a.split('.*')[0];b=b.split('.*')[0];return a===b||a.sta
 export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,bindingsIntact=()=>true,pureBindings=new Set()}={}) {
  const t=tokenizeLua(source),functions=new Map(),slots=new Map(),calls=[],bindings=new Map(),models=new Map(),evaluating=new Set(),opaqueReturns=new Set();
  let dirtyFrom=Infinity,attach=null;
- const pathAt=i=>{if(t[i]?.type!=='identifier')return null;const parts=[t[i++].value];let method=false;while(true){if(['.',':'].includes(t[i]?.value)&&t[i+1]?.type==='identifier'){method||=t[i].value===':';parts.push(t[i+1].value);i+=2;}else if(t[i]?.value==='['){const end=close(i,'[',']');parts.push(end===i+2&&['string','number'].includes(t[i+1]?.type)?String(t[i+1].value):'*');i=end+1;}else break;}return {parts,end:i,method};};
+ // Only single, literal local bindings with no later assignment are proven keys.
+ const constants=new Map(),assigned=new Set();
+ for(let i=0;i<t.length;i++)if(t[i].type==='identifier'&&t[i+1]?.value==='=') {
+  const name=t[i].value;
+  if(t[i-1]?.value==='local'&&['string','number'].includes(t[i+2]?.type)&&![',','+','-','*','/','%','^','..','and','or','==','~=','<','>','<=','>='].includes(t[i+3]?.value)&&!assigned.has(name)&&!constants.has(name))constants.set(name,String(t[i+2].value));
+  else {assigned.add(name);constants.delete(name);}
+ }
+ for(const name of constants.keys())if(t.some((token,i)=>token.type==='identifier'&&token.value===name&&!(t[i-1]?.value==='local'&&t[i+1]?.value==='=')&&!(t[i-1]?.value==='['&&t[i+1]?.value===']')))constants.delete(name);
+
+ const pathAt=i=>{if(t[i]?.type!=='identifier')return null;const parts=[t[i++].value];let method=false;while(true){if(['.',':'].includes(t[i]?.value)&&t[i+1]?.type==='identifier'){method||=t[i].value===':';parts.push(t[i+1].value);i+=2;}else if(t[i]?.value==='['){const end=close(i,'[',']');parts.push(end===i+2?(['string','number'].includes(t[i+1]?.type)?String(t[i+1].value):constants.get(t[i+1]?.value)??'*'):'*');i=end+1;}else break;}return {parts,end:i,method};};
  function close(i,open='(',end=')'){let depth=1;while(++i<t.length){if(['string','number'].includes(t[i].type))continue;if(t[i].value===open)depth++;if(t[i].value===end&&!--depth)return i;}return t.length-1;}
  // Snapshot descendant edges before adding copied identities to the graph.
  const indexSlots=()=>{const index=new Map();for(const entry of slots){const key=entry[0];for(let at=key.indexOf('.');at>=0;at=key.indexOf('.',at+1)){const prefix=key.slice(0,at);if(!index.has(prefix))index.set(prefix,[]);index.get(prefix).push(entry);}}return index;};
- const expand=(parts,env)=>{let out=env.get(parts[0])??new Set([parts[0]]);for(const key of parts.slice(1)){const next=new Set();for(const p of out)for(const q of slots.get(p+'.'+key)??[p+'.'+key])next.add(q);out=next;}return out;};
+ const expand=(parts,env)=>{let out=env.get(parts[0])??new Set([parts[0]]);for(const key of parts.slice(1)){const next=new Set();for(const p of out){const exact=slots.get(p+'.'+key);for(const q of exact??[p+'.'+key])next.add(q);for(const q of slots.get(p+'.*')??[])next.add(q);}out=next;}return out;};
  function fnAt(i,env) {
   const end=luaBlockEnd(t,i);let p=i+1;while(t[p]?.value!=='('&&p<end)p++;
   const stop=close(p),params=t.slice(p+1,stop).filter(x=>x.type==='identifier').map(x=>x.value);
@@ -142,8 +151,8 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
    for(let j=i+1;j<stop;j++) {
     let key=String(++index),v=j;
     if(t[j]?.type==='identifier'&&t[j+1]?.value==='='){key=t[j].value;v=j+2;}
-    else if(t[j]?.value==='['){const k=close(j,'[',']');key=String(t[j+1]?.value);v=k+2;}
-    slots.set(id+'.'+key,valueAt(v,env));
+    else if(t[j]?.value==='['){const k=close(j,'[',']');key=k===j+2?(['string','number'].includes(t[j+1]?.type)?String(t[j+1].value):constants.get(t[j+1]?.value)??'*'):'*';v=k+2;}
+    const slot=id+'.'+key,values=valueAt(v,env);slots.set(slot,key==='*'?new Set([...(slots.get(slot)??[]),...values]):values);
     j=v;if(t[j]?.value==='function')j=luaBlockEnd(t,j);else if(t[j]?.value==='{')j=close(j,'{','}');else {const p=pathAt(j);if(p)j=p.end-1;if(t[j+1]?.value==='(')j=close(j+1);}
     while(j+1<stop&&![';',','].includes(t[j+1].value))j++;
     if([';',','].includes(t[j+1]?.value))j++;

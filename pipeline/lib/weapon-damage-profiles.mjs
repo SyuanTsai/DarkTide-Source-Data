@@ -9,10 +9,11 @@ const compare=(a,b)=>a<b?-1:a>b?1:0;
 /** Read only statically resolved weapon/template bindings; never execute Lua. */
 export function createDamageProfileExtractor({lookup,resolve,field,component,annotate,paths,definition,binding}) {
   const location=(node,fallback)=>({path:node?._file??fallback.path,line:node?.startLine??fallback.line});
+  const unknownKey=node=>node?.type==='table'&&node.entries.some(e=>e.key&&!['string','number','boolean'].includes(resolve(e.key)?.type));
   const get=(node,key)=>{
     node=resolve(node);
     if(!node||node.type==='nil')return null;
-    if(node.type!=='table'||node.dynamic)
+    if(node.type!=='table'||node.dynamic||unknownKey(node))
       return {type:'unsupported',reason:'DYNAMIC_VALUE',_file:node._file,startLine:node.startLine};
     return resolve(field(node,key));
   };
@@ -35,7 +36,7 @@ export function createDamageProfileExtractor({lookup,resolve,field,component,ann
     node=resolve(node);
     const source=location(node,fallback),number=n=>n?.type==='number'&&Number.isFinite(n.value);
     if(number(node))return {kind:'fixed',min:node.value,max:node.value,unknown:null,source};
-    if(node?.type==='table'&&!node.dynamic) {
+    if(node?.type==='table'&&!node.dynamic&&!unknownKey(node)) {
       const a=get(node,'lerp_basic'),b=get(node,'lerp_perfect'),list=entries(node);
       if(number(a)&&number(b))return {kind:'lerp',min:a.value,max:b.value,unknown:null,source};
       if(list.length===2&&list.every(([key,n],i)=>key===i+1&&number(resolve(n))))
@@ -44,7 +45,8 @@ export function createDamageProfileExtractor({lookup,resolve,field,component,ann
     return {kind:'unknown',min:null,max:null,unknown:dynamic(node)?'DYNAMIC_VALUE':'NOT_EXPOSED_BY_SOURCE',source};
   }
   return function damageProfiles({actions,file,id,problems=[],files=[],attackCombos=[]}) {
-    const fallback={path:file,line:actions?.startLine??1},records=new Map();
+    const fallback={path:file,line:actions?.startLine??1},records=new Map(),uncertainActions=new Set();
+    const uncertainActionTable=unknownKey(actions);
     annotate(actions,file);
     function problem(code,reason,source,details={}) {
       const p={code,id,reason,source,...details};
@@ -60,6 +62,7 @@ export function createDamageProfileExtractor({lookup,resolve,field,component,ann
         if(normal) {
           const at=location(normal,location(scope,p.source));
           p.distributions.push({target,range:null,attack:raw(get(normal,'attack'),at),impact:raw(get(normal,'impact'),at)});
+          if(unknownKey(resolve(normal)))problem('DAMAGE_PROFILE_UNKNOWN','DYNAMIC_VALUE',at,{profile:name});
         }
         if(ranged)for(const range of ['near','far']) {
           const at=location(ranged,location(scope,p.source));
@@ -75,14 +78,17 @@ export function createDamageProfileExtractor({lookup,resolve,field,component,ann
           // other statically named modifier properties are not target scopes.
           else if(typeof target!=='string'&&typeof target!=='number')p.unknown='DYNAMIC_VALUE';
         }
-        if(targets&&targets.type!=='table'||targets?.dynamic)p.unknown='DYNAMIC_VALUE';
+        if(targets&&targets.type!=='table'||targets?.dynamic||unknownKey(targets))p.unknown='DYNAMIC_VALUE';
       } else p.unknown=node?'DYNAMIC_VALUE':'NOT_VERIFIED';
       if(!p.distributions.length) {
         p.unknown??='NOT_EXPOSED_BY_SOURCE';
         const unknown={kind:'unknown',min:null,max:null,unknown:p.unknown,source:location(node,p.source)};
         p.distributions.push({target:null,range:null,attack:{...unknown},impact:{...unknown}});
       }
-      if(p.unknown)problem('DAMAGE_PROFILE_UNKNOWN',p.unknown,p.source,{profile:name});
+      if(p.unknown) {
+        for(const d of p.distributions)for(const key of ['attack','impact'])d[key]={kind:'unknown',min:null,max:null,unknown:p.unknown,source:d[key].source};
+        problem('DAMAGE_PROFILE_UNKNOWN',p.unknown,p.source,{profile:name});
+      }
       return p;
     }
     function power(node,source) {
@@ -107,7 +113,9 @@ export function createDamageProfileExtractor({lookup,resolve,field,component,ann
         if(seen.get(node)?.has(identity))return;
         if(!seen.has(node))seen.set(node,new Set());seen.get(node).add(identity);
         const next=new Set([...route,node]);
-        if(node.dynamic)problem('DAMAGE_BINDING_UNKNOWN','DYNAMIC_VALUE',location(node,fallback),{action});
+        const bindingScope=node===resolve(start)||entries(node).some(([key])=>profileField(key)||fields[key]);
+        if(bindingScope&&unknownKey(node))uncertainActions.add(action);
+        if(node.dynamic||unknownKey(node))problem('DAMAGE_BINDING_UNKNOWN','DYNAMIC_VALUE',location(node,fallback),{action});
         for(const [key,value] of entries(node)) {
           if(profileField(key)) {
             const name=named(value,'damage',file),source=location(value,location(node,fallback));
@@ -147,11 +155,12 @@ export function createDamageProfileExtractor({lookup,resolve,field,component,ann
       if(resolve(start)?.type!=='table')problem('DAMAGE_ACTION_UNKNOWN','DYNAMIC_VALUE',location(start,fallback),{action});
       visit(start);
     }
-    if(!actions||actions.dynamic||actions.type!=='table')problem('DAMAGE_ACTION_UNKNOWN','DYNAMIC_VALUE',fallback);
+    if(!actions||actions.dynamic||actions.type!=='table'||unknownKey(actions))problem('DAMAGE_ACTION_UNKNOWN','DYNAMIC_VALUE',fallback);
     // Also retain every combo foreign key when resolution failed elsewhere.
     for(const combo of attackCombos)for(const step of combo.steps)if(step.damageProfile)record(step.damageProfile,combo.source);
     const result=[...records.values()].sort((a,b)=>compare(a.id,b.id));
     for(const p of result) {
+      if(uncertainActionTable||p.bindings.some(b=>uncertainActions.has(b.action))){p.unknown='DYNAMIC_VALUE';for(const d of p.distributions)for(const key of ['attack','impact'])d[key]={kind:'unknown',min:null,max:null,unknown:p.unknown,source:d[key].source};problem('DAMAGE_PROFILE_UNKNOWN',p.unknown,p.source,{profile:p.id});}
       const target=n=>n===null?0:n==='default'?Infinity:n;
       p.distributions.sort((a,b)=>target(a.target)-target(b.target)||[null,'near','far'].indexOf(a.range)-[null,'near','far'].indexOf(b.range));
       p.bindings.sort((a,b)=>compare(a.action,b.action)||compare(a.kind,b.kind)||compare(a.template,b.template)||compare(stringifyCanonical(a),stringifyCanonical(b)));
