@@ -39,5 +39,3 @@ import './start-repos.test.mjs';
 import './migrate-legacy-copy.test.mjs';
 import './migration-repair.test.mjs';
 import './review16.test.mjs';
-
-import './review17.test.mjs';

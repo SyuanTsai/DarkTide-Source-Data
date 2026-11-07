@@ -98,7 +98,7 @@ const overlaps=(a,b)=>{a=a.split('.*')[0];b=b.split('.*')[0];return a===b||a.sta
  */
 export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,bindingsIntact=()=>true,pureBindings=new Set()}={}) {
  const t=tokenizeLua(source),functions=new Map(),slots=new Map(),calls=[],bindings=new Map(),models=new Map(),evaluating=new Set(),opaqueReturns=new Set();
- let dirtyFrom=Infinity,attach=null;
+ let dirtyFrom=Infinity;
  const pathAt=i=>{if(t[i]?.type!=='identifier')return null;const parts=[t[i++].value];let method=false;while(true){if(['.',':'].includes(t[i]?.value)&&t[i+1]?.type==='identifier'){method||=t[i].value===':';parts.push(t[i+1].value);i+=2;}else if(t[i]?.value==='['){const end=close(i,'[',']');parts.push(end===i+2&&['string','number'].includes(t[i+1]?.type)?String(t[i+1].value):'*');i=end+1;}else break;}return {parts,end:i,method};};
  function close(i,open='(',end=')'){let depth=1;while(++i<t.length){if(['string','number'].includes(t[i].type))continue;if(t[i].value===open)depth++;if(t[i].value===end&&!--depth)return i;}return t.length-1;}
  // Snapshot descendant edges before adding copied identities to the graph.
@@ -110,7 +110,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
   if(t.slice(i+1,p).some(x=>x.value===':'))params.unshift('self');
   const fn={start:stop+1,end,params,env,raw:'function'+source.slice(t[p].start,t[end].end),_file:file,type:'function'};
   fn.lookup=path=>{const ids=expand(path.split('.'),env);return ids.size===1?resolveFn([...ids][0]):null;};
-  const id='!fn:'+file+':'+i;functions.set(id,fn);if(attach)attach(fn);return new Set([id]);
+  const id='!fn:'+file+':'+i;functions.set(id,fn);return new Set([id]);
  }
  function valueAt(i,env) {
   if(['string','number'].includes(t[i]?.type))return new Set();
@@ -314,18 +314,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
    if(!safe) {
     impure=true;for(const p of callShared)record(p);
     // All tables reachable through arguments may escape an unknown function.
-    const seen=new Set();const reachable=p=>{
-     if(seen.has(p))return;seen.add(p);
-     if(!p.startsWith('!'))record(p);
-     // An unknown callee can invoke a callback, retain it, or invoke a
-     // callback it returns. Follow its actual effects, not every closure.
-     const fn=resolveFn(p);
-     if(fn&&!active.has(fn)) {
-      const r=fn.invoke?fn.invoke([],active):invoke(fn,[],active);
-      r.shared.forEach(record);r.returned?.forEach(reachable);
-     }
-     for(const [key,values] of slots)if(key.startsWith(p+'.'))for(const v of values)reachable(v);
-    };
+    const seen=new Set();const reachable=p=>{if(seen.has(p))return;seen.add(p);if(!p.startsWith('!'))record(p);for(const [key,values] of slots)if(key.startsWith(p+'.'))for(const v of values)reachable(v);};
     args.forEach(a=>a.forEach(reachable));
     if(!inFunction){dirtyFrom=Math.min(dirtyFrom,t[i].start);calls.push({start:t[i].start,end:t[stop].end,name:p.parts.join('.')});}
    }
@@ -346,8 +335,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
  const ret=returned+1;
  const exports=returned<0?new Set():t[ret]?.value==='settings'&&t[ret+1]?.value==='('?valueAt(ret+4,bindings):valueAt(ret,bindings);
  const canonical=p=>{for(const root of exports)if(p===root||p.startsWith(root+'.'))return identity(file)+p.slice(root.length);return p;};
- attach=fn=>{fn.invoke=(args,active)=>{const r=invoke(fn,args,active);for(const p of r.effects){const c=canonical(p);if(c.startsWith('@'))r.shared.add(c);}return r;};};
- for(const fn of functions.values())attach(fn);
+ for(const fn of functions.values())fn.invoke=(args,active)=>{const r=invoke(fn,args,active);for(const p of r.effects){const c=canonical(p);if(c.startsWith('@'))r.shared.add(c);}return r;};
  return {dirtyFrom,calls,models,writes:result.effects,bindings,slots,functions,exports,
   functionAt(path){let values=new Set(exports);for(const key of path.split('.').filter(Boolean)){const next=new Set();for(const v of values)for(const x of slots.get(v+'.'+key)??[])next.add(x);values=next;}return values.size===1?functions.get([...values][0]):null;}};
 }
@@ -408,7 +396,7 @@ export function createSharedBindingGuard(reader) {
     if(arg?.type==='string')load(arg.value.replace(/\.lua$/,'')+'.lua');
    }
   }
-  const imported=id=>{if(id.startsWith('!fn:')){for(const m of modules.values()){const fn=m.analysis?.functions.get(id);if(fn)return fn;}return null;}if(!id.startsWith('@'))return null;for(const [path,m] of modules){const root=identity(path);if(id.startsWith(root+'.'))return m.analysis?.functionAt(id.slice(root.length+1));}return null;};
+  const imported=id=>{if(!id.startsWith('@'))return null;for(const [path,m] of modules){const root=identity(path);if(id.startsWith(root+'.'))return m.analysis?.functionAt(id.slice(root.length+1));}return null;};
   record.source=source;record.imported=imported;
   record.analysis=analyzeLuaEffects(source,{file,imported,pureBindings});
   const exported=[...record.analysis.exports],initial=new Set();
