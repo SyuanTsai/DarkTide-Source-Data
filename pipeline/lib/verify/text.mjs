@@ -19,8 +19,10 @@ export function checkText(item, extracted, allowedNames, conflicts, table, locke
     residual = residual.replace(new RegExp(`(?<![A-Za-z])${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![A-Za-z])`, 'g'), '');
   const english = [...new Set(residual.match(/[A-Za-z]{2,}/g) ?? [])].sort();
   if (english.length) failures.push(failure('text', 'T_ENGLISH', '/explanation', `說明殘留英文：${english.join('、')}`));
-  const numeric = checkNumbers(item?.values, text);
+  const locked = exp?.effectOrigin === 'official' && typeof lockedEffect === 'string' && exp.effect === lockedEffect;
+  const numeric = checkNumbers(item?.values, text, locked ? exp.effect : undefined, sections);
   failures.push(...numeric.failures);
+  warnings.push(...numeric.warnings);
   if (extracted) {
     const path = firstDifference(item?.name, extracted.name, '/name') ?? firstDifference(item?.official, extracted.official, '/official');
     if (path !== null) failures.push(failure('text', 'T_OFFICIAL_CHANGED', path, '候選名稱或官方原文與 extract 不同'));
@@ -50,7 +52,6 @@ export function checkText(item, extracted, allowedNames, conflicts, table, locke
       if (missing.length) failures.push(failure('text', 'T_ERRATA_MISSING', `/official/${locale}`, `官方數字未附勘誤：${[...new Set(missing.map((n) => n.raw))].sort().join('、')}`));
     }
   }
-  const locked = exp?.effectOrigin === 'official' && typeof lockedEffect === 'string' && exp.effect === lockedEffect;
   const checkedText = locked ? sections.slice(1).join('\n') : text;
   for (const conflict of conflicts) {
     const variants = table.get(conflict.en.toLowerCase())?.variants ?? [];

@@ -57,3 +57,4 @@ import './review33.real.test.mjs';
 
 import './migration-official-effect.test.mjs';
 import './locked-name.test.mjs';
+import './locked-direction.test.mjs';

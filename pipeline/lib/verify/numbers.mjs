@@ -40,12 +40,20 @@ export function derivable(values) {
   });
   return numbers;
 }
-export function checkNumbers(values, text) {
-  const tokens = extractNumbers(text), numbers = derivable(values), failures = [];
-  const wrong = [], direction = [];
-  for (const token of tokens) {
+export function checkNumbers(values, text, lockedEffect, sections) {
+  const tokens = sections ? sections.flatMap(extractNumbers) : extractNumbers(text), numbers = derivable(values), failures = [];
+  const wrong = [], direction = [], warnings = [], positiveValues = [];
+  walk(values, (v, path) => {
+    if (isGameValuePath(values, path) && typeof v === 'number' && Number.isFinite(v) && v > 0) positiveValues.push(v);
+  });
+  const lockedCount = typeof lockedEffect === 'string' ? extractNumbers(lockedEffect).length : 0;
+  for (const [index, token] of tokens.entries()) {
     if (matches(token, numbers)) continue;
-    if (token.signed && numbers.some((n) => !sameSign(token, n) && near({ ...token, value: Math.abs(token.value) }, Math.abs(n)))) direction.push(token.raw);
+    if (token.signed && numbers.some((n) => !sameSign(token, n) && near({ ...token, value: Math.abs(token.value) }, Math.abs(n)))) {
+      const matching = index < lockedCount && /^[\-−]/.test(token.raw) ? positiveValues.filter((v) => derived(v).some((n) => n > 0 && near({ ...token, value: Math.abs(token.value) }, n))) : [];
+      if (matching.length) warnings.push({ code: 'W_OFFICIAL_TEXT_DIRECTION', path: '/explanation/effect', message: `官方原文數字 ${token.raw}；values：${[...new Set(matching)].join('、')}` });
+      else direction.push(token.raw);
+    }
     else wrong.push(token.raw);
   }
   if (wrong.length) failures.push(failure('text', 'T_NUMBER', '/explanation', `說明數字無法由資料推導：${[...new Set(wrong)].sort().join('、')}`));
@@ -55,5 +63,5 @@ export function checkNumbers(values, text) {
     typeof param.value === 'number' && Number.isFinite(param.value) && param.value !== 0 &&
     !tokens.some((token) => matches({ ...token, signed: false, value: Math.abs(token.value) }, derived(param.value))));
   if (uncovered.length) failures.push(failure('text', 'T_COVERAGE', '/values', `說明未涵蓋參數：${uncovered.map(({ path }) => `/values${path}`).sort().join('、')}`));
-  return { failures, tokens, numbers };
+  return { failures, tokens, numbers, warnings };
 }
