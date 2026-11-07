@@ -107,7 +107,7 @@ export function summarize(rows, tasks, stage = 'prepare', baselineReady = false)
     unresolved: rows.filter(r => r.status === 'repair').map(r => r.id),
     blocked: rows.filter(r => r.status.startsWith('blocked:')).map(r => ({ id: r.id, reason: r.status })),
     excluded: rows.filter(r => r.status === 'excluded').map(r => ({ id: r.id, ...r.exclusion })),
-    excludedReasons: Object.fromEntries(['insufficient-after-cleanup', 'nd-strict-unresolved'].map(reason =>
+    excludedReasons: Object.fromEntries(['insufficient-after-cleanup', 'nd-strict-unresolved', 'legacy-copy-disclaimer-only'].map(reason =>
       [reason, rows.filter(r => r.status === 'excluded' && r.exclusion.reason === reason).length])),
     items: rows.map(r => ({ id: r.id, category: r.category, status: r.status, failures: r.failures, notes: r.notes })),
     notAutomated: ['文字條件、限制及機制語意仍須人工確認；數字與 schema 通過不代表語意正確'] };
@@ -140,7 +140,7 @@ export function buildMigration({ extracts, documents, provenance, translation })
     context.allowedNames, context.conflicts, context.table).failures.some(f => !['T_COVERAGE', 'T_ERRATA_MISSING'].includes(f.code));
     row.status = officialGate ? 'blocked:official-effect' : row.failures.length ? 'repair' : 'passed';
   }
-  const tasks = rows.filter(row => row.failures.length).map(row => makeTask(row, context, inputHash));
+  const tasks = rows.map(row => makeTask(row, context, inputHash));
   const report = summarize(rows, tasks);
   report.mapping = { total: mapping.length, categories: Object.fromEntries(CATEGORIES.map(category =>
     [category, mapping.filter(r => r.category === category).length])), ambiguous: 0, unmatched: 0 };
@@ -162,10 +162,11 @@ export function applyPatch(task, patch) {
   if (Object.hasOwn(patch, 'exclude')) {
     if (Object.hasOwn(patch, 'replacements') || Object.hasOwn(patch, 'errata')) throw new Error('Exclusion cannot include replacements or errata');
     onlyFields(patch.exclude, ['reason', 'detail']);
-    if (!['insufficient-after-cleanup', 'nd-strict-unresolved'].includes(patch.exclude.reason)) throw new Error('Invalid exclusion reason');
+    if (!['insufficient-after-cleanup', 'nd-strict-unresolved', 'legacy-copy-disclaimer-only'].includes(patch.exclude.reason)) throw new Error('Invalid exclusion reason');
     if (typeof patch.exclude.detail !== 'string' || !patch.exclude.detail.trim()) throw new Error('Invalid exclusion detail');
     return { exclude: structuredClone(patch.exclude) };
   }
+  if (task.status === 'passed') throw new Error('Passing task permits exclusion only');
   if (!Array.isArray(patch.replacements) || !Array.isArray(patch.errata)) throw new Error('Invalid patch arrays');
   const candidate = structuredClone(task.candidate), replacements = [], used = new Set();
   for (const edit of patch.replacements) {

@@ -27,10 +27,11 @@ async function snapshot(dir, prefix = '') {
 const patchFor = task => ({ id: task.id, taskHash: task.taskHash, extractHash: task.extractHash,
   replacements: task.allowedChanges.ranges.map(r => ({ rangeId: r.id, originalHash: r.sha256, text: '修復。' })), errata: [] });
 
-// Scenario: Valid copy passes the existing gates. Purpose: avoid requesting unnecessary edits.
-test('UnitT10_valid_copy_produces_no_repair_task', () => {
+// Scenario: Valid copy passes the existing gates. Purpose: issue an exclusion-only task without permitting edits.
+test('UnitT10_valid_copy_produces_exclusion_only_task', () => {
   const plan = buildMigration(inputs());
-  assert.equal(plan.tasks.length, 0);
+  assert.equal(plan.tasks.length, 1);
+  assert.equal(plan.tasks[0].status, 'passed');
   assert.equal(plan.report.totals.passed, 1);
 });
 
@@ -228,4 +229,20 @@ test('InterT67_exclusion_is_reported_and_omitted_from_ready_baseline', async t =
   assert.equal(report.excludedReasons['insufficient-after-cleanup'], 1);
   assert.equal(JSON.parse(await readFile(join(dir, 'baseline/data/1.13.4/terms.json'))).items.length, 0);
   const first = await snapshot(dir); await applyPrepared(plan, dir); assert.deepEqual(await snapshot(dir), first);
+});
+
+// Scenario: A passing item is excluded with a bound task. Purpose: prevent text edits and reject stale or incomplete exclusion decisions.
+test('InterT68_passing_item_supports_only_bound_exclusion', async t => {
+  const dir = await out(t), plan = buildMigration(inputs()), task = plan.tasks.find(t => t.status === 'passed');
+  assert.ok(task); assert.ok(task.sourceHash && task.extractHash);
+  const patch = { id: task.id, taskHash: task.taskHash, extractHash: task.extractHash, exclude: { reason: 'legacy-copy-disclaimer-only', detail: '僅出處與免責。' } };
+  assert.throws(() => applyPatch(task, { ...patch, id: 'unknown' }), /hash/i);
+  assert.throws(() => applyPatch(task, { ...patch, extractHash: 'bad' }), /hash/i);
+  assert.throws(() => applyPatch(task, { ...patch, exclude: { reason: patch.exclude.reason } }), /detail/i);
+  assert.throws(() => applyPatch(task, { id: task.id, taskHash: task.taskHash, extractHash: task.extractHash, replacements: [], errata: [] }), /exclusion/i);
+  await writePrepared(plan, dir); await mkdir(join(dir, 'repair/patches'), { recursive: true });
+  await writeFile(join(dir, 'repair/patches', itemFileName(task.id)), JSON.stringify(patch));
+  const report = await applyPrepared(plan, dir);
+  assert.equal(report.baselineReady, true); assert.equal(report.excludedReasons['legacy-copy-disclaimer-only'], 1);
+  assert.equal(JSON.parse(await readFile(join(dir, 'baseline/data/1.13.4/terms.json'))).items.length, 0);
 });

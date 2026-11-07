@@ -37,7 +37,7 @@ draft 只含 81 份舊文案，不帶 `retainedFrom`。mapping 核對全部 694 
 
 ## 修復任務與 patch
 
-每個失敗項目各一份任務，含完整舊五節、候選五節、extract、逐條 code／path／message／locations、允許範圍與不可修改內容。句子按 `。；;！？!?` 或換行切割，保留分隔符和空白；index 為零起算，start／end 是 JavaScript UTF-16 offset，end 不含尾端位置。對每句單獨呼叫原 `checkText` 定位。跨句失敗用 `scope: "section"`；`T_COVERAGE` 是全文缺少數值涵蓋，不能把每個單句的缺覆蓋誤當定位，因此以 calculation（若有內容）或 notes 整節作補充範圍。report 的 `scopeSectionTasks` 計入任何 section fallback 任務，包括鎖定的 effect。
+每個項目各一份 hash 綁定任務；通過的項目只接受排除 patch，不接受文字變更。失敗項目的任務含完整舊五節、候選五節、extract、逐條 code／path／message／locations、允許範圍與不可修改內容。句子按 `。；;！？!?` 或換行切割，保留分隔符和空白；index 為零起算，start／end 是 JavaScript UTF-16 offset，end 不含尾端位置。對每句單獨呼叫原 `checkText` 定位。跨句失敗用 `scope: "section"`；`T_COVERAGE` 是全文缺少數值涵蓋，不能把每個單句的缺覆蓋誤當定位，因此以 calculation（若有內容）或 notes 整節作補充範圍。report 的 `scopeSectionTasks` 計入任何 section fallback 任務，包括鎖定的 effect。
 
 patch 檔名沿用 pipeline 的 `itemFileName(id)`（冒號轉等號）：
 
@@ -55,7 +55,7 @@ patch 檔名沿用 pipeline 的 `itemFileName(id)`（冒號轉等號）：
 
 只接受 `allowedChanges.ranges` 列出的完整句子或 section；省略的範圍逐字保留。禁止未知欄位、重複替換、範圍／hash 不符。只有 `appendErrata: true` 才可附加 errata；須包含真實的 values `valueRef` 和 `anchor`，並重新通過既有 schema／文字檢查。既有 errata 不能刪改。
 
-不沿用舊文案時，可改用 `{ "id": "...", "taskHash": "...", "extractHash": "...", "exclude": { "reason": "insufficient-after-cleanup", "detail": "說明原因" } }`。`reason` 只接受 `insufficient-after-cleanup` 或 `nd-strict-unresolved`，`detail` 必須非空；不可同時提供 `replacements` 或 `errata`。排除項目不進 baseline，report 的 `excluded` 明列原因與說明，分類和總數分別計數；blocked 項目仍維持 blocked。剩餘非 blocked、非 excluded 項目全部通過才建立 baseline。
+不沿用舊文案時，可改用 `{ "id": "...", "taskHash": "...", "extractHash": "...", "exclude": { "reason": "insufficient-after-cleanup", "detail": "說明原因" } }`。`reason` 只接受 `insufficient-after-cleanup`、`nd-strict-unresolved` 或 `legacy-copy-disclaimer-only`（僅出處或免責文字），`detail` 必須非空；不可同時提供 `replacements` 或 `errata`。任務 hash 綁定來源、候選及 extract；未知項目、錯誤 hash、重複或未知 patch 均拒絕。排除項目不進 baseline，report 的 `excluded` 明列原因與說明，分類和總數分別計數；blocked 項目仍維持 blocked。剩餘非 blocked、非 excluded 項目全部通過才建立 baseline。
 
 apply 從相同快取、extract、譯名表重建計畫，核對磁碟上的 mapping、draft、全部 task；不接受手改 task 來擴張權限。合併後重跑原檢查，任何非 blocked 項目未通過都不建立 baseline，report 列 `unresolved`。baseline 再用實際非 blocked 候選集合檢查允許名稱與譯名規則。
 
