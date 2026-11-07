@@ -59,3 +59,4 @@ import './migration-official-effect.test.mjs';
 import './locked-name.test.mjs';
 import './locked-direction.test.mjs';
 import './locked-direction-units.test.mjs';
+import './spec56.test.mjs';

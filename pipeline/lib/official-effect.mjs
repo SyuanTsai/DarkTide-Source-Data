@@ -2,7 +2,7 @@ import { gameDecimals, fixedDisplay } from './effect-format.mjs';
 
 /** Mechanically expand official Chinese using this extract's display values and work-only rules. */
 export function expandOfficialEffect(item, textIndex, formats) {
-  if(item.official?.zh==null)return {status:'missing-official',text:null,missing:[]};
+  if(item.official?.zh==null || item.official.zh===item.official.en)return {status:'missing-official',text:null,missing:[]};
   const missing=[];
   const miss=(code,token,detail)=>{missing.push({code,token,...(detail?{detail}:{})});};
   if(!item.official.zh.trim())miss('EMPTY_OFFICIAL','official.zh');
