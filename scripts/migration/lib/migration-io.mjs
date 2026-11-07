@@ -99,13 +99,19 @@ export async function applyPrepared(plan, out) {
   const rows = structuredClone(plan.rows);
   for (const name of patchNames) {
     const task = tasks.get(name), row = rows.find(r => r.id === task.id);
-    row.candidate = applyPatch(task, await json(await safePath(root, `repair/patches/${name}`)));
+    const result = applyPatch(task, await json(await safePath(root, `repair/patches/${name}`)));
+    if (result.exclude) {
+      if (row.status.startsWith('blocked:')) throw new Error('Blocked item cannot be excluded by patch');
+      row.status = 'excluded'; row.exclusion = result.exclude;
+    }
+    else row.candidate = result;
   }
-  const ready = rows.filter(row => !row.status.startsWith('blocked:'));
+  const ready = rows.filter(row => !row.status.startsWith('blocked:') && row.status !== 'excluded');
   const candidates = ready.map(row => row.candidate);
   const context = { table: plan.context.table, conflicts: translationConflicts(candidates, plan.context.table),
     allowedNames: candidates.filter(i => i.name.zh === null).map(i => i.name.en) };
   for (const row of rows) {
+    if (row.status === 'excluded') { row.failures = []; row.notes = []; continue; }
     Object.assign(row, checkCandidate(row.category, row.candidate, row.extracted, row.status.startsWith('blocked:') ? plan.context : context));
     if (!row.status.startsWith('blocked:')) row.status = row.failures.length ? 'repair' : 'passed';
   }

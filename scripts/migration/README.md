@@ -55,6 +55,8 @@ patch 檔名沿用 pipeline 的 `itemFileName(id)`（冒號轉等號）：
 
 只接受 `allowedChanges.ranges` 列出的完整句子或 section；省略的範圍逐字保留。禁止未知欄位、重複替換、範圍／hash 不符。只有 `appendErrata: true` 才可附加 errata；須包含真實的 values `valueRef` 和 `anchor`，並重新通過既有 schema／文字檢查。既有 errata 不能刪改。
 
+不沿用舊文案時，可改用 `{ "id": "...", "taskHash": "...", "extractHash": "...", "exclude": { "reason": "insufficient-after-cleanup", "detail": "說明原因" } }`。`reason` 只接受 `insufficient-after-cleanup` 或 `nd-strict-unresolved`，`detail` 必須非空；不可同時提供 `replacements` 或 `errata`。排除項目不進 baseline，report 的 `excluded` 明列原因與說明，分類和總數分別計數；blocked 項目仍維持 blocked。剩餘非 blocked、非 excluded 項目全部通過才建立 baseline。
+
 apply 從相同快取、extract、譯名表重建計畫，核對磁碟上的 mapping、draft、全部 task；不接受手改 task 來擴張權限。合併後重跑原檢查，任何非 blocked 項目未通過都不建立 baseline，report 列 `unresolved`。baseline 再用實際非 blocked 候選集合檢查允許名稱與譯名規則。
 
 所有 JSON canonical、無時間戳，相同輸入重跑 bytes 相同。不刪資料、不清目錄；換輸入或覆寫已變動的 draft／task 須改用新 `--out`。已建立 baseline 只允許相同 patch 的 byte 相同 apply；prepare 不會覆寫既有 baseline。

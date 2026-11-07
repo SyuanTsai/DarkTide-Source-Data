@@ -205,3 +205,27 @@ test('InterT90_reject_unpinned_cache', async t => {
   const dir = await out(t); await writeFile(join(dir, 'manifest.json'), JSON.stringify({ contentVersion: 'wrong', files: [] }));
   await assert.rejects(loadLegacyCache(dir), /snapshot|hash/);
 });
+
+// Scenario: An exclusion patch contains conflicting fields, invalid reason, or stale hashes. Purpose: preserve strict patch validation.
+test('UnitT42_exclusion_rejects_conflicts_invalid_reason_and_hashes', () => {
+  const task = buildMigration(inputs('broken。')).tasks[0];
+  const patch = { id: task.id, taskHash: task.taskHash, extractHash: task.extractHash, exclude: { reason: 'insufficient-after-cleanup', detail: '無實際效果。' } };
+  assert.throws(() => applyPatch(task, { ...patch, replacements: [] }), /exclu/i);
+  assert.throws(() => applyPatch(task, { ...patch, exclude: { ...patch.exclude, reason: 'unknown' } }), /reason/i);
+  for (const field of ['taskHash', 'extractHash']) assert.throws(() => applyPatch(task, { ...patch, [field]: 'bad' }), /hash/i);
+});
+
+// Scenario: A failed item is explicitly excluded. Purpose: create a baseline without it and report its reason deterministically.
+test('InterT67_exclusion_is_reported_and_omitted_from_ready_baseline', async t => {
+  const dir = await out(t), plan = buildMigration(inputs('broken。'));
+  await writePrepared(plan, dir); await mkdir(join(dir, 'repair/patches'), { recursive: true });
+  const task = plan.tasks[0], exclude = { reason: 'insufficient-after-cleanup', detail: '無實際效果。' };
+  await writeFile(join(dir, 'repair/patches', itemFileName(task.id)), JSON.stringify({ id: task.id, taskHash: task.taskHash, extractHash: task.extractHash, exclude }));
+  const report = await applyPrepared(plan, dir);
+  assert.equal(report.baselineReady, true);
+  assert.deepEqual(report.excluded, [{ id: task.id, ...exclude }]);
+  assert.equal(report.totals.excluded, 1); assert.equal(report.categories.terms.excluded, 1);
+  assert.equal(report.excludedReasons['insufficient-after-cleanup'], 1);
+  assert.equal(JSON.parse(await readFile(join(dir, 'baseline/data/1.13.4/terms.json'))).items.length, 0);
+  const first = await snapshot(dir); await applyPrepared(plan, dir); assert.deepEqual(await snapshot(dir), first);
+});

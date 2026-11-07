@@ -96,7 +96,8 @@ function makeTask(row, context, inputHash) {
 
 export function summarize(rows, tasks, stage = 'prepare', baselineReady = false) {
   const counts = subset => ({ total: subset.length, passed: subset.filter(r => r.status === 'passed').length,
-    repair: subset.filter(r => r.status === 'repair').length, blocked: subset.filter(r => r.status.startsWith('blocked:')).length });
+    repair: subset.filter(r => r.status === 'repair').length, blocked: subset.filter(r => r.status.startsWith('blocked:')).length,
+    excluded: subset.filter(r => r.status === 'excluded').length });
   const codes = [...new Set(rows.flatMap(r => r.failures.map(f => f.code)))].sort(compare);
   return { schemaVersion: '1.0.0', ...VERSION, stage, baselineReady, totals: counts(rows),
     categories: Object.fromEntries(CATEGORIES.map(category => [category, counts(rows.filter(r => r.category === category))])),
@@ -105,6 +106,9 @@ export function summarize(rows, tasks, stage = 'prepare', baselineReady = false)
       failures: rows.reduce((n, r) => n + r.failures.filter(f => f.code === code).length, 0) }])),
     unresolved: rows.filter(r => r.status === 'repair').map(r => r.id),
     blocked: rows.filter(r => r.status.startsWith('blocked:')).map(r => ({ id: r.id, reason: r.status })),
+    excluded: rows.filter(r => r.status === 'excluded').map(r => ({ id: r.id, ...r.exclusion })),
+    excludedReasons: Object.fromEntries(['insufficient-after-cleanup', 'nd-strict-unresolved'].map(reason =>
+      [reason, rows.filter(r => r.status === 'excluded' && r.exclusion.reason === reason).length])),
     items: rows.map(r => ({ id: r.id, category: r.category, status: r.status, failures: r.failures, notes: r.notes })),
     notAutomated: ['文字條件、限制及機制語意仍須人工確認；數字與 schema 通過不代表語意正確'] };
 }
@@ -152,9 +156,16 @@ const onlyFields = (value, fields) => {
 export function applyPatch(task, patch) {
   const { taskHash, ...body } = task;
   if (hashObject(body) !== taskHash) throw new Error('Task hash mismatch');
-  onlyFields(patch, ['id', 'taskHash', 'extractHash', 'replacements', 'errata']);
+  onlyFields(patch, ['id', 'taskHash', 'extractHash', 'replacements', 'errata', 'exclude']);
   if (patch.id !== task.id || patch.taskHash !== task.taskHash || patch.extractHash !== task.extractHash ||
     hashObject(task.extracted) !== task.extractHash) throw new Error('Patch task/extract hash mismatch');
+  if (Object.hasOwn(patch, 'exclude')) {
+    if (Object.hasOwn(patch, 'replacements') || Object.hasOwn(patch, 'errata')) throw new Error('Exclusion cannot include replacements or errata');
+    onlyFields(patch.exclude, ['reason', 'detail']);
+    if (!['insufficient-after-cleanup', 'nd-strict-unresolved'].includes(patch.exclude.reason)) throw new Error('Invalid exclusion reason');
+    if (typeof patch.exclude.detail !== 'string' || !patch.exclude.detail.trim()) throw new Error('Invalid exclusion detail');
+    return { exclude: structuredClone(patch.exclude) };
+  }
   if (!Array.isArray(patch.replacements) || !Array.isArray(patch.errata)) throw new Error('Invalid patch arrays');
   const candidate = structuredClone(task.candidate), replacements = [], used = new Set();
   for (const edit of patch.replacements) {
