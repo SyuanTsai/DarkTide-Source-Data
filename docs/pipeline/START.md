@@ -14,9 +14,40 @@
 4. 不把大型 JSON 整個讀進對話；需要時用指令只輸出要看的項目。
 5. 官方原文逐字照抄；譯名用官方中文；沒有官方中文時才用 Mods repo 的 `Referneces/Translation.md`。
 
+### 第 0 步之前：環境設定
+
+以下指令使用 PowerShell 7（pwsh），在 Source-Data repo 根目錄執行。設定目前程序的環境變數，並把範例路徑換成實際路徑：
+
+- 必填：`$env:DARKTIDE_PIPELINE_CLOUD_DIR = 'C:\path\to\existing-cloud-directory'`。必須是已存在的絕對目錄，供 diff、verify、write 使用。
+- 選填：`$env:DARKTIDE_SOURCE_CODE_REPO = 'C:\path\to\Darktide-Source-Code'`；未設定時為 Source-Data repo 的 `../Darktide-Source-Code`。
+- 選填：`$env:DARKTIDE_PRIVATE_REPO = 'C:\path\to\DARKTIDE User Setting'`；未設定時為 Source-Data repo 的 `../DARKTIDE User Setting`。
+- 選填：`$env:DARKTIDE_GLOSSARY_FILE = 'C:\path\to\Translation.md'`；未設定時為 Source-Data repo 的 `../Warhammer-40-000-DARKTIDE-Mods/Referneces/Translation.md`。
+
+必填變數未設定、不是絕對路徑或目錄不存在時，AI 直接回報「需要使用者處理」及原因後結束，不要建立目錄。選填變數只在需要覆寫預設路徑時設定；worktree 的預設路徑相對於該 worktree。
+
 ### 步驟
 
-0. 確認工作目錄乾淨：`git status --short` 沒有輸出，並執行 `git pull --ff-only`。
+0. 更新輸入來源：先執行 Source-Data 的 `git status --short`，確認沒有輸出，再執行 `git pull --ff-only`。接著以環境變數或預設值決定其他 repo 路徑：
+
+   ```powershell
+   $sourceRepo = if ($env:DARKTIDE_SOURCE_CODE_REPO) { $env:DARKTIDE_SOURCE_CODE_REPO } else { Join-Path (Get-Location) '../Darktide-Source-Code' }
+   $privateRepo = if ($env:DARKTIDE_PRIVATE_REPO) { $env:DARKTIDE_PRIVATE_REPO } else { Join-Path (Get-Location) '../DARKTIDE User Setting' }
+   ```
+
+   對 Source-Code 和 Private 各自依序執行下列檢查及 fetch；每個 Git 指令都必須成功，`status` 不得有輸出。取得的目前分支必須與 `origin/HEAD` 指向的遠端預設分支一致，無法判定也算失敗。
+
+   ```powershell
+   git -C $sourceRepo status --short
+   git -C $sourceRepo fetch origin
+   git -C $sourceRepo branch --show-current
+   git -C $sourceRepo symbolic-ref --short refs/remotes/origin/HEAD
+   git -C $privateRepo status --short
+   git -C $privateRepo fetch origin
+   git -C $privateRepo branch --show-current
+   git -C $privateRepo symbolic-ref --short refs/remotes/origin/HEAD
+   ```
+
+   分支確認方式：例如預設分支輸出為 `origin/master` 時，目前分支必須是 `master`。兩個 repo 都通過後，執行 `git -C $sourceRepo pull --ff-only`；Source-Code 腳本讀取 `HEAD`，Private 腳本預設讀取 `origin/master`，因此 Private 只需 fetch，不執行 pull。任何一步失敗，包括工作目錄不乾淨、無法 fast-forward 或不在預設分支，立即整批停止，跳到第 8 步，並在「需要使用者處理的事」列出原因。不得 reset、stash、checkout 或切換分支。
 1. 版本與狀態：執行 `node pipeline/check-version.mjs`。
    - 輸出「沒有新版本」：直接跳到第 8 步回報後結束。
    - 輸出 Source-Code commit 與解包批次版本不一致：整批停止，跳到第 8 步。
@@ -48,4 +79,4 @@
 
 - 第 8 步的回報數字由 `node pipeline/check-version.mjs --summary` 重新檢查相同輸入的版本後產生（不寫入狀態檔）；停止或沒有新版本時項目數皆為 0，其餘引用狀態檔摘要。
 - 本檔只寫一般步驟與固定指令。各指令由 WP2～WP4b 實作；指令執行失敗時，視為整批停止並回報。
-- 差異、檢查與寫入共用雲端中間檔，執行前需設定 `DARKTIDE_PIPELINE_CLOUD_DIR` 為已存在的絕對目錄；譯名表位置不同時設定 `DARKTIDE_GLOSSARY_FILE`。
+- 環境變數與路徑設定請見「第 0 步之前：環境設定」。
