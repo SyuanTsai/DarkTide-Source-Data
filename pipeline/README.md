@@ -129,9 +129,9 @@ extract-terms 的 keyword 包含兩種 glossary 前綴；碰到同名時分別�
 
 ### Lua 靜態解析器前提
 
-技能、祝福與武器共用的 Lua 靜態解析器假設：交給未知函式的 callback 不會改寫跨模組的共用設定表。在此前提下，無法理解的 override、動態值與其他無法證實的結構仍須 fail-closed，標記 unknown 或回報 problems，不猜測數值。
+技能、祝福與武器共用的整個 Lua 靜態解析器假設：遊戲設定模組不會透過任何函式呼叫（包括 callback、計算 key 取得的別名、括號呼叫）改寫跨模組的共用設定表。在此前提下，無法理解的 override、動態值與其他無法證實的結構仍須 fail-closed，標記 unknown 或回報 problems，不猜測數值。
 
-已知限制：刻意透過 callback 改寫共用表的寫法（例如 review17／19 的反例）不在上述保證範圍內；解析器可能仍輸出 known。遊戲更新時依 [START.md](../docs/pipeline/START.md) 的 astra 抽查步驟對照 Source-Code，發現不一致即停止。
+已知限制以測試記錄：透過函式呼叫改寫共用表的寫法（例如 review17／19／24 的反例）不在上述保證範圍內；解析器可能仍輸出 known。安全網是依 [START.md](../docs/pipeline/START.md) 的 astra 逐 profile 抽查對照 Source-Code，並在每次遊戲更新時進行人工驗收；發現不一致即停止。
 
 ### 技能取數
 
