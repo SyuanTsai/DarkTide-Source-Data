@@ -262,14 +262,11 @@ class Parser {
     }
     if(Number.isFinite(this.effects.dirtyFrom)) {
       const dynamic={type:'unsupported',reason:'DYNAMIC_VALUE',startLine:1};
-      // Imported tables have their own effects/escape guard; an unrelated
-      // unknown local call must not invalidate their shared AST by reachability.
-      const skip=n=>Boolean(this.options.isImportedTable?.(n));
       for(const [name,n] of this.environment) {
-        invalidateReachable(n,{resolve:n=>this.resolveBinding(n),dynamic,skip});
+        invalidateReachable(n,{resolve:n=>this.resolveBinding(n),dynamic});
         if(n?.type!=='table'&&n?.start>=this.effects.dirtyFrom)this.environment.set(name,dynamic);
       }
-      invalidateReachable(this.returned,{resolve:n=>this.resolveBinding(n),dynamic,skip});
+      invalidateReachable(this.returned,{resolve:n=>this.resolveBinding(n),dynamic});
       if(this.resolveBinding(this.returned)?.type!=='table')this.returned=dynamic;
     }
     return {

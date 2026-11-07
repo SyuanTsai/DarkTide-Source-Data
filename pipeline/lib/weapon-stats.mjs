@@ -52,7 +52,6 @@ function statementBoundaries(source) {
 export function createWeaponStats(reader) {
  const paths={...PATHS,flamer_gas:'scripts/settings/projectile/flamer_gas_templates.lua'};
  const effects=createSharedBindingGuard(reader);
- const importedTables=new WeakSet();
  const chunks=new Map(),catalogs=new Map(),parseFailures=new Set(),catalogFailures=new Set(),effectiveCache=new Map(),stateCache=new WeakMap(),revoked=new WeakSet();
  const component=n=>{
   // These two table-valued constants are identity sentinels, not enum values.
@@ -96,16 +95,14 @@ export function createWeaponStats(reader) {
  }
  function imported(path) {
   const node=chunk(path.replace(/\.lua$/,'')+'.lua')?.returned;
-  const result=node?.type==='call'&&node.ref==='settings'?deref(node.args[1]):node;
-  const mark=n=>{if(n?.type!=='table'||importedTables.has(n))return;importedTables.add(n);for(const e of n.entries)mark(e.value);};
-  mark(result);return result;
+  return node?.type==='call'&&node.ref==='settings'?deref(node.args[1]):node;
  }
  function chunk(file) {
   effects.load(file);
   if(!chunks.has(file)) {
    let p=null;
    chunks.set(file,null); // Require cycles cannot acquire speculative bindings.
-   if(reader.exists(file))try{p=parseLuaStatic(statementBoundaries(reader.read(file)),{filename:file,allowUnsupported:true,staticArithmetic:true,isImportedTable:n=>importedTables.has(n),effects:{...effects.analysis(file),dirtyFrom:effects.moduleTainted(file)?0:effects.analysis(file)?.dirtyFrom},resolveImport:imported,resolveNode:deref,evaluateFinite:finite,builtinIntact:ref=>effects.intact([ref.split('.')[0]]),mathRadiansVerified:mathVerified('degrees_to_radians')});for(const n of Object.values(p.locals))annotate(n,file);annotate(p.returned,file);}catch{
+   if(reader.exists(file))try{p=parseLuaStatic(statementBoundaries(reader.read(file)),{filename:file,allowUnsupported:true,staticArithmetic:true,effects:{...effects.analysis(file),dirtyFrom:effects.moduleTainted(file)?0:effects.analysis(file)?.dirtyFrom},resolveImport:imported,resolveNode:deref,evaluateFinite:finite,builtinIntact:ref=>effects.intact([ref.split('.')[0]]),mathRadiansVerified:mathVerified('degrees_to_radians')});for(const n of Object.values(p.locals))annotate(n,file);annotate(p.returned,file);}catch{
     parseFailures.add(file);
     // Require declarations remain statically readable even if an unrelated
     // statement (for example appending runtime trait keys) cannot be parsed.
@@ -178,10 +175,7 @@ export function createWeaponStats(reader) {
    const value=values.at(-1),resolvedValue=deref(value);
    // Lua's #row is not the syntactic entry count if its final value may be nil.
    // That can change BOTH the write path and value, not just one endpoint.
-   const sourceChunk=value?._file&&chunk(value._file);
-   const huge=value?.type==='reference'&&value.ref==='math.huge'&&sourceChunk&&!sourceChunk.partial&&!sourceChunk.locals?.math&&
-    !(sourceChunk?.bindingChanges??[]).some(p=>p==='math'||p.startsWith('math.'))&&effects.intact(['math']);
-   if(!['number','string','boolean','table','function'].includes(resolvedValue?.type)&&!huge)return blocked(row);
+   if(!['number','string','boolean','table','function'].includes(resolvedValue?.type))return blocked(row);
    let target=out;
    for(const k of keys.slice(0,-1)) {
     const raw=child(target,k.value),resolved=deref(raw);

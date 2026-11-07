@@ -341,9 +341,9 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
 }
 
 /** Preserve table shape/keys for diagnostics while revoking every reachable value. */
-export function invalidateReachable(node,{resolve=n=>n,dynamic,seen=new Set(),skip=()=>false}={}) {
- node=resolve(node);if(node?.type!=='table'||seen.has(node)||skip(node))return;seen.add(node);node.dynamic=dynamic;
- for(const e of node.entries){const n=resolve(e.value);if(n?.type==='table'){invalidateReachable(n,{resolve,dynamic,seen,skip});e.value=n;}else if(!['unknown','unsupported'].includes(n?.type))e.value=dynamic;}
+export function invalidateReachable(node,{resolve=n=>n,dynamic,seen=new Set()}={}) {
+ node=resolve(node);if(node?.type!=='table'||seen.has(node))return;seen.add(node);node.dynamic=dynamic;
+ for(const e of node.entries){const n=resolve(e.value);if(n?.type==='table'){invalidateReachable(n,{resolve,dynamic,seen});e.value=n;}else if(!['unknown','unsupported'].includes(n?.type))e.value=dynamic;}
 }
 
 /** Apply finite helper write summaries to actual AST identities. This is shared
