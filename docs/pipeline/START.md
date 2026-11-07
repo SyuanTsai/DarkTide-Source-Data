@@ -101,6 +101,8 @@
    - `node pipeline/extract-terms.mjs`
 3. 差異：執行 `node pipeline/diff.mjs`，它會列出新增／變動／移除的項目，並把清單寫進狀態檔。
 4. 說明：對狀態檔中還沒寫好說明的每個項目（`node pipeline/diff.mjs --pending` 會列出），讀取腳本給的該項目輸入，寫出五節說明（效果／條件／計算／補充／額外）與勘誤，存到腳本指定的位置，然後執行 `node pipeline/diff.mjs --mark-described <項目 id>`。一次處理一個項目。
+   - 1.1.0 祝福／技能輸入有 `lockedEffect` 時，`effect` 逐字照抄該全文，只另外撰寫 `conditions`／`calculation`／`notes`／`extra` 四節實際運作機制；candidate 會強制使用鎖定效果並設定 `effectOrigin: "official"`。
+   - 有 `effectTask: "translate-official-en"` 時，依 `item.official.en` 與 `item.values` 翻譯效果，再寫四節機制；pipeline 會標示為「非官方翻譯」（`unofficial-translation`）。未知值不猜測。AI 輸出不得包含 `effectOrigin`。
 5. 檢查：執行 `node pipeline/verify.mjs`。未通過的單一項目會保留上一版內容並記錄原因；這不算失敗，繼續下一步。若輸出「整批停止」，跳到第 8 步。
 6. 寫入：執行 `node pipeline/write.mjs`，再執行 `node pipeline/validate.mjs`。接續已 completed 的 run 時從 validate 開始。通過後執行以下 pwsh 指令，只加入該 run 的檔案，再 commit（訊息：`data: <遊戲版本> 內容更新`）、`git push`。
 

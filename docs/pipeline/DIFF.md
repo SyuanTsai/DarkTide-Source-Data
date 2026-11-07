@@ -6,6 +6,10 @@
 
 輸入包含 `schemaVersion`（格式版本）、`id`（項目 ID）、`category`（類別）、`change`（新增或變動）、`gameVersion`、`sourceCommit`、`textBatch`（資料來源版本）、`inputHash`（輸入內容雜湊）、`item`（本次擷取的項目）、`previous`（變動項目的上一版資料，新增時為 null）、`glossary.source`（譯名表來源，可能為 null）、`glossary.matches`（命中的英文、中文及行號），以及 `outputFile`（相對版本目錄的輸出路徑）。
 
+1.1.0 祝福／技能另有且只有一個效果欄位：`lockedEffect` 是官方繁中依本輪來源值、格式與文字索引機械展開的全文；`effect` 照抄它，只另外撰寫 `conditions`／`calculation`／`notes`／`extra` 四節機制。缺官方繁中或展開不完整時，輸入改帶 `effectTask: "translate-official-en"`，請依官方英文與 values 翻譯效果（未知值不猜），並撰寫四節機制。
+
+格式規則保存於 extract 頂層 `effectFormats` 工作資料，不進正式 data 或 values。舊 extract 未帶格式時，有參數的效果會維持不完整，需重新 extract。`inputHash` 同時綁定效果任務，格式或 loc_string 的展開文字改變後，舊 AI 輸出會失效。AI output schema 維持禁止 `effectOrigin`；candidate 重新展開並強制覆寫完整官方效果，設為 `official`；其餘使用 AI 效果並設為 `unofficial-translation`。武器、術語與 1.0.0 不加此標記。官方字面錯數仍受原 verify／errata 檢查，不因鎖定而豁免。
+
 輸出為合法 JSON，例如：
 
 ```json

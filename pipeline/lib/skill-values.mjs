@@ -1,14 +1,23 @@
 import { manipulate } from './skill-lua.mjs';
+import { captureEffectFormat } from './effect-format.mjs';
 
 /** Resolve display params exactly as the UI's static subset allows. */
-export function skillParams(r,definition,id,problems,trace) {
+export function skillParams(r,definition,id,problems,trace,formats={params:{}},literalTokens=new Set()) {
   const params={};
   function param(key,raw,suffix='') {
-    const config=r.resolve(raw,trace);if(config?.type!=='table') return;
+    const config=r.resolve(raw,trace);
     let name=String(key)+suffix;
     if(!/^[a-z][a-z0-9_]*$/.test(name)) name=name.toLowerCase();
     if(!/^[a-z][a-z0-9_]*$/.test(name)) {problems.push({code:'PARAM_NAME',id,param:name,message:`無效 param 名稱 ${name}`});return;}
+    if(config?.type!=='table') {
+      const value=r.scalar(config,trace);
+      if(literalTokens.has(String(key)) && ['string','number','boolean'].includes(typeof value)) {
+        params[name]={value};formats.params[name]=captureEffectFormat(()=>({present:false}),String(key));
+      }
+      return;
+    }
     const get=(n,k)=>r.get(n,k,trace),scalar=n=>r.scalar(n,trace);
+    formats.params[name]=captureEffectFormat(k=>{const n=get(config,k);return {present:Boolean(n),value:scalar(n),raw:n?.raw};},String(key));
     const format=scalar(get(config,'format_type')),finder=get(config,'find_value');
     let valueNode=get(config,'value'),tier=false,reason;
     if(finder) {
@@ -21,6 +30,7 @@ export function skillParams(r,definition,id,problems,trace) {
         if(path.includes('lerped_stat_buffs')) reason='lerped_stat_buffs 只有範圍，無最終值';
         const walk=base=>{for(const key of path) base=get(base,key);return base;};
         tier=scalar(get(finder,'tier'))===true;
+        if(tier)formats.params[name].pointTiers=true;
         if(!path.length) reason='buff_template path 無法解析';
         if(tier) valueNode=r.entries(get(template,'talent_overrides')).map(([,v])=>walk(v));
         else valueNode=walk(template);

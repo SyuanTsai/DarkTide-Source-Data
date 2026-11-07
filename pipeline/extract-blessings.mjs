@@ -4,8 +4,10 @@ import { runExtractCli, itemId, nameFromText } from './lib/extract-output.mjs';
 import { StructureError } from './lib/errors.mjs';
 import { resolver, str, expression } from './lib/blessing-values.mjs';
 import { verifiedTextKeys, sharedTextCandidates } from './lib/blessing-text.mjs';
+import { captureEffectFormat } from './lib/effect-format.mjs';
+import { pathToFileURL } from 'node:url';
 
-const SCRIPT = 'pipeline/extract-blessings.mjs@1.0.0';
+const SCRIPT = 'pipeline/extract-blessings.mjs@1.1.0';
 export function build({reader,text,envelope}) {
   const root='scripts/settings/equipment/weapon_traits/', parser='scripts/utilities/trait_value_parser.lua';
   if(!reader.list(root).length || !reader.exists(parser)) throw new StructureError('blessings','MISSING_STRUCTURE','缺少祝福定義或 trait_value_parser');
@@ -16,7 +18,7 @@ export function build({reader,text,envelope}) {
   if(!['trait_override','buff_template','rarity_value'].every(x=>names.has(x))) throw new StructureError('blessings','MISSING_FUNCTIONS','FIND_VALUE_FUNCTIONS 缺少必要取值方式');
   const definitions=bespokeTraitDefinitions(reader), weapons=new Map();
   for(const template of playerWeaponTemplates(reader)) for(const trait of bespokeTraitsForTemplate(reader,template)) { if(!weapons.has(trait.traitKey)) weapons.set(trait.traitKey,new Set()); weapons.get(trait.traitKey).add(itemId('weapons',template.name)); }
-  const r=resolver(reader), shared=sharedTextCandidates(definitions), items=[], problems=[], excluded=[];
+  const r=resolver(reader), shared=sharedTextCandidates(definitions), items=[], problems=[], excluded=[],effectFormats={};
   for(const def of definitions) {
     const key=def.traitKey, id=itemId('blessings',key), ws=weapons.get(key);
     if(!ws?.size) { excluded.push({key,reason:'no-player-weapon'}); continue; }
@@ -25,11 +27,13 @@ export function build({reader,text,envelope}) {
     if(!count) problems.push({code:'NO_TIERS',message:'找不到 tier',id});
     const tiers=Array.from({length:Math.max(1,Math.min(4,count))},(_,i)=>({tier:i+1,params:{}})), params={}, files=new Map();
     const add=(file,line)=>files.set(`${file}:${line}`,{path:file,line}); add(def.file,def.line);
+    const formats={params:{}};effectFormats[id]=formats;
     for(const entry of entries(field(trait,'format_values'))) {
       if(entry.value?.type!=='table') continue;
       const raw=str(entry.key); if(!raw) continue; const name=raw.toLowerCase();
       if(!/^[a-z][a-z0-9_]*$/.test(name)) { problems.push({code:'PARAM_NAME',message:`無效參數名稱：${raw}`,id}); continue; }
       const config=entry.value, find=field(config,'find_value'), type=str(field(find,'find_value_type')), fmt=str(field(config,'format_type'));
+      formats.params[name]=captureEffectFormat(k=>{const n=field(config,k),resolved=r.deref(n,def.file)?.node;return {present:Boolean(n),value:resolved?.value,raw:resolved?.raw};},raw);
       const varying=type==='trait_override'||type==='rarity_value';
       const run=(tier)=>{
         let result=null, reason='PATH_MISSING', detail='指定的值或路徑不存在';
@@ -54,9 +58,12 @@ export function build({reader,text,envelope}) {
         let value=result?.node?.value;
         if(result && !['number','string','boolean'].includes(result.node.type)) value=undefined;
         if(result && find && result.node.type!=='unknown') add(result.file,result.node.startLine ?? def.line);
+        for(const source of result?.sources??[])add(source.path,source.line);
         if(typeof value==='number' && (fmt==='number'||fmt==='percentage')) {
           const manipulation=field(config,'value_manipulation');
-          value=manipulation ? expression(manipulation,value) : fmt==='percentage' ? value*100 : value;
+          const angles=manipulation?.raw?.includes('math.radians_to_degrees')?r.mathConversions():null;
+          if(angles?.valid)for(const source of angles.sources)add(source.path,source.line);
+          value=manipulation ? expression(manipulation,value,{angleConversions:angles?.valid}) : fmt==='percentage' ? value*100 : value;
           if(manipulation && value===null) { reason='DYNAMIC_MANIPULATION'; detail='value_manipulation 不是允許的單一 return 運算式'; }
           if(value!==null && Number.isFinite(value)) value=Number(value.toPrecision(12)); else value=undefined;
         } else if((fmt==='number'||fmt==='percentage') && typeof value!=='number') value=undefined;
@@ -71,6 +78,6 @@ export function build({reader,text,envelope}) {
     const description=descKey?text.lookup(descKey):null; if(description?.conflict) problems.push({code:'TEXT_CONFLICT',message:`官方文字衝突：${descKey}`,id});
     items.push({id,key,name:named.name,official:{en:description?.conflict?null:description?.en??null,zh:description?.conflict?null:description?.zh??null},values:{weapons:[...ws].sort(),tiers,params},source:{commit:reader.commit,files:[...files.values()].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:a.line-b.line),scriptVersion:SCRIPT,text:{batch:envelope.textBatch,keys:{...(nameKey?{name:nameKey}:{}),...(descKey?{description:descKey}:{})}}}});
   }
-  return {items,problems,excluded};
+  return {items,problems,excluded,effectFormats};
 }
-await runExtractCli({category:'blessings',scriptVersion:SCRIPT,build});
+if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) await runExtractCli({category:'blessings',scriptVersion:SCRIPT,build});
