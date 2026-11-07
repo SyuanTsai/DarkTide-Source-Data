@@ -64,7 +64,7 @@ export function skillStructure(reader) {
     const talents=r.get(definition,'talents');const map=new Map();
     // Inspect raw entries as well as the effective map, so shadowing is visible.
     for(const e of talents?.entries ?? []) {
-      const key=r.scalar(e.key);if(typeof key!=='string') continue;
+      const key=r.scalar(e.resolvedKey??(e.key?.type==='literal'?e.key:undefined));if(typeof key!=='string') continue;
       if(map.has(key)) problems.push({code:'SHADOWED_DEFINITION',key,path:file,line:e.value.line,message:`後者覆蓋 ${key}`});
       map.set(key,e.value);
     }

@@ -210,7 +210,7 @@ function tableKeyIdentities(table) {
 export function getTableField(node, key) {
   // Keep the alias union attached across further reads of an uncertain value.
   if(node?.possibleValues)return node;
-  if (node?.type === 'table' && (node.hasUnknownKeys || key === undefined)) return {type:'unsupported',reason:'DYNAMIC_VALUE',possibleValues:[...node.entries.map(e=>e.value),...(node.dynamic?[node.dynamic]:[])],_file:node._file,startLine:node.startLine};
+  if (node?.type === 'table' && (node.hasUnknownKeys || key === undefined || (typeof key==='number' && node.expandedListFrom!==undefined && key>=node.expandedListFrom))) return {type:'unsupported',reason:'DYNAMIC_VALUE',possibleValues:[...node.entries.map(e=>e.value),...(node.dynamic?[node.dynamic]:[])],_file:node._file,startLine:node.startLine};
   return tableEntry(node, key)?.value ?? node?.dynamic ?? null;
 }
 
@@ -429,6 +429,7 @@ class Parser {
       this.take();
       node = this.literalNode(start.value === 'nil' ? 'nil' : 'boolean', start.value === 'true' ? true : start.value === 'false' ? false : null, start);
     } else if (start.type === 'identifier') node = this.parseReferenceOrCall();
+    else if (start.value === '...' && this.allowUnsupported) { this.take(); node={type:'unsupported',reason:'DYNAMIC_VALUE',raw:'...',start:start.start,end:start.end,startLine:start.line,endLine:start.endLine}; }
     else this.fail(`Unsupported expression beginning with ${JSON.stringify(start.value)}`, start);
 
     if (['+', '-', '*', '/', '%', '^', '..', 'and', 'or', '==', '~=', '<', '>', '<=', '>='].includes(this.peek().value)) {
@@ -521,8 +522,10 @@ class Parser {
       }
     }
     const close = this.expect('}');
+    const last=entries.at(-1);
+    const expandedListFrom=last?.key==null && (last?.value?.type==='call'||last?.value?.raw==='...') ? entries.filter(e=>e.key==null).length : undefined;
     return {
-      type: 'table', entries, hasUnknownKeys: entries.some(e=>e.key && !e.resolvedKey),
+      type: 'table', entries, ...(expandedListFrom===undefined?{}:{expandedListFrom}), hasUnknownKeys: entries.some(e=>e.key && !e.resolvedKey),
       start: open.start, end: close.end,
       startLine: open.line, endLine: close.endLine,
       raw: this.source.slice(open.start, close.end)
@@ -647,7 +650,7 @@ class Parser {
   }
 
   evaluateCall(node, { statement = false } = {}) {
-    if(node?.type==='call')applyCallMutations(node.ref,node.args,{analysis:this.effects,capture:(path,owner)=>owner===this.filename?this.resolveBinding({type:'reference',ref:path}):this.options.resolveImport?.(owner.replace(/\.lua$/,'')),resolve:n=>this.resolveBinding(n),field:getTableField,entries:n=>(n?.entries??[]).map((e,i)=>[e.key?.value??i+1,e.value]),dynamic:{type:'unsupported',reason:'DYNAMIC_VALUE',startLine:node.startLine}});
+    if(node?.type==='call')applyCallMutations(node.ref,node.args,{analysis:this.effects,capture:(path,owner)=>owner===this.filename?this.resolveBinding({type:'reference',ref:path}):this.options.resolveImport?.(owner.replace(/\.lua$/,'')),resolve:n=>this.resolveBinding(n),field:getTableField,entries:n=>{let i=0;return (n?.entries??[]).map(e=>[e.key?(e.resolvedKey??(['string','number','boolean'].includes(e.key.type)?e.key:undefined))?.value:++i,e.value]);},dynamic:{type:'unsupported',reason:'DYNAMIC_VALUE',startLine:node.startLine}});
     const result=this.foldCall(node,{statement});
     if(node?.type==='call'&&(result===node||result?.type==='unsupported')) {
       const seen=new Set();

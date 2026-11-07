@@ -237,9 +237,10 @@ export function createSkillResolver(reader) {
     target.hasUnknownKeys ||= unknownKeys(source);
     const entries=[...source.entries];
     for(const e of entries) {
-      const key=scalar(e.key);
+      const key=scalar(e.resolvedKey??(e.key?.type==='literal'?e.key:undefined));
       if(missing && field(target,key)) continue;
-      target.entries.push(append?{...e,key:literal(target.entries.length+1,e.key)}:e);
+      const appendedKey=append?literal(target.entries.length+1,e.key):undefined;
+      target.entries.push(append?{...e,key:appendedKey,resolvedKey:appendedKey}:e);
     }
   }
   function builtinCallIntact(n) {
@@ -282,7 +283,8 @@ export function createSkillResolver(reader) {
           if(name==='table.keys') {
             const table=resolve(n.args[0],trace);
             if(table?.type!=='table') return unknown(n,'table.keys 非靜態 table');
-            values=[...new Map(table.entries.map(e=>[scalar(e.key,trace),e.key])).values()];
+            if(unknownKeys(table))return unknown(n,'DYNAMIC_VALUE');
+            values=[...new Map(table.entries.map(e=>{const key=e.resolvedKey??(e.key?.type==='literal'?e.key:undefined);return [scalar(key,trace),key];})).values()];
           } else if(name==='unpack' || name==='table.unpack') {
             const table=resolve(n.args[0],trace);
             if(table?.type!=='table') return unknown(n,'unpack 非靜態 table');
@@ -355,7 +357,7 @@ export function createSkillResolver(reader) {
     return table.dynamic;
   }
   function get(n,key,trace) {return resolve(field(resolve(n,trace),key),trace);}
-  function entries(n) {const t=resolve(n);if(t?.type!=='table') return [];const map=new Map();for(const e of t.entries) {const k=scalar(e.key);if(k!==undefined) map.set(k,unknownKeys(t)?field(t,k):e.value);}return [...map];}
+  function entries(n) {const t=resolve(n);if(t?.type!=='table') return [];const map=new Map();for(const e of t.entries) {const k=scalar(e.resolvedKey??(e.key?.type==='literal'?e.key:undefined));if(k!==undefined) map.set(k,unknownKeys(t)?field(t,k):e.value);}return [...map];}
   return {load,returned,resolve,scalar,field,get,entries,literal,setStimmDefinitions(value){stimmDefinitions=value;}};
 }
 function math(name,value) {return name==='round'?(value<0?-Math.floor(-value+0.5):Math.floor(value+0.5)):Math[name](value);}

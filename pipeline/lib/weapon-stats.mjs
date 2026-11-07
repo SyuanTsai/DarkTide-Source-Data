@@ -62,9 +62,9 @@ export function createWeaponStats(reader) {
  function child(node,key) {
   if(node?.possibleValues)return field(node,key);
   if(node?.type!=='table')return null;
-  if(node.hasUnknownKeys)return field(node,key);
+  if(node.hasUnknownKeys||(typeof key==='number'&&node.expandedListFrom!==undefined&&key>=node.expandedListFrom))return field(node,key);
   let index=0;
-  return (node.entries.findLast(e=>e.key!=null&&component(e.key)===key)??node.entries.filter(e=>e.key==null).find(()=>++index===key))?.value??node.dynamic;
+  return (node.entries.findLast(e=>e.key!=null&&component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined))===key)??node.entries.filter(e=>e.key==null).find(()=>++index===key))?.value??node.dynamic;
  }
  const set=(root,keys,value)=>setPath(root,keys,value,child);
  const initialization=createTemplateInitializer(reader,paths,{setPath:set,annotate});
@@ -125,7 +125,7 @@ export function createWeaponStats(reader) {
    const p=chunk(file);if(!p)return;if(p.partial)catalogFailures.add(kind);
    const roots=['hit_scan_templates',kind==='damage'?'damage_templates':kind==='hit_scan'?'hitscan_templates':`${kind}_templates`,`weapon_${kind}_templates`,'templates'];
    for(const root of [...roots,'overrides'])for(const e of p.locals[root]?.entries??[]) {
-    const key=component(e.resolvedKey??e.key);
+    const key=component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined));
     if(typeof key==='string')definitions.set(key,{node:child(p.locals[root],key),file,...(root==='overrides'?{override:true}:{})});
    }
    if(p.moduleDynamic)return;
@@ -213,7 +213,7 @@ export function createWeaponStats(reader) {
   if(parent?.type!=='table')return null;
   // The game clones the movement state and replaces each overridden property.
   const copy=structuredClone(parent);
-  for(const entry of node.entries)if(component(entry.key)!=='inherits')set(copy,[component(entry.key)],entry.value);
+  for(const entry of node.entries)if(component(entry.resolvedKey??(['string','number','boolean'].includes(entry.key?.type)?entry.key:undefined))!=='inherits')set(copy,[component(entry.resolvedKey??(['string','number','boolean'].includes(entry.key?.type)?entry.key:undefined))],entry.value);
   const result=initialization.state(copy,kind);stateCache.set(node,result);return result;
  }
  function traverse(node,keys,kind) {for(const key of keys){node=inheritedState(deref(node),kind);if(['function','call','unsupported','reference'].includes(node?.type))return {type:'blocked',cause:node};node=child(node,key);}return deref(node);}
@@ -232,7 +232,7 @@ export function createWeaponStats(reader) {
    };
    const name=templateName(projectile,'projectile');
    const found=new Set(),seen=new Set();
-   const visit=n=>{n=deref(n);if(n?.type!=='table'||seen.has(n))return;seen.add(n);if(n._file)files.push({path:n._file,line:n.startLine??1});for(const e of n.entries){if(component(e.key)==='explosion_template'){const v=e.value;const id=templateName(v,'explosion');if(id)found.add(id);}else visit(e.value);}};
+   const visit=n=>{n=deref(n);if(n?.type!=='table'||seen.has(n))return;seen.add(n);if(n._file)files.push({path:n._file,line:n.startLine??1});for(const e of n.entries){if(component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined))==='explosion_template'){const v=e.value;const id=templateName(v,'explosion');if(id)found.add(id);}else visit(e.value);}};
    visit(effective('projectile',name));return [...found];
   }
   return null;
@@ -246,7 +246,7 @@ export function createWeaponStats(reader) {
     if(!n._file)n={...n,_file:context};const resolved=deref(n);if(resolved!==n&&resolved?.type!=='reference')visit(resolved,resolved?._file??context);return;
    }
    if(n.type!=='table')return;
-   for(const e of n.entries){const key=component(e.key);
+   for(const e of n.entries){const key=component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined));
     if(typeof key==='string'&&/^(?:damage_profile(?:_|$)|.+_damage_profile$)/.test(key)) {
      const v=e.value._cloneReference??e.value;
      files.push({path:v._file??context,line:v.startLine??n.startLine??1});
@@ -298,7 +298,7 @@ export function createWeaponStats(reader) {
   if(values(node,0,1)){out.push(keys);return out;}
   if(node.type==='table') {
    const next=new Set([...seen,node]);let index=0;
-   for(const e of node.entries){const key=e.key?component(e.key):++index;if(key!=='inherits')endpointPaths(e.value,[...keys,key],kind,out,next);}
+   for(const e of node.entries){const key=e.key?component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined)):++index;if(key!=='inherits')endpointPaths(e.value,[...keys,key],kind,out,next);}
   }
   return out;
  }
@@ -379,7 +379,7 @@ export function createWeaponStats(reader) {
      for(const name of new Set(names))for(const keys of paths)pending.push({name,keys,distinct:names.length>1,override:explicitProfile!==null,lo:lo?.value,hi:hi?.value,traitFile,param,row,...(lo?.type!=='number'||hi?.type!=='number'?{dynamic:reason(param)}:{})});
     }
    }
-   for(const e of field(group,'overrides')?.entries??[])groupRows(e.value,component(e.key));
+   for(const e of field(group,'overrides')?.entries??[])groupRows(e.value,component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined)));
   }
   groupRows(group);
   for(const entry of pending) {

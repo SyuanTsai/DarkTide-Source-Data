@@ -187,9 +187,10 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,importe
   if(t[i]?.value==='{') {
    const id='!table:'+file+':'+i,stop=close(i,'{','}');let index=0;
    for(let j=i+1;j<stop;j++) {
-    let key=String(++index),v=j;
+    let key,v=j;
     if(t[j]?.type==='identifier'&&t[j+1]?.value==='='){key=t[j].value;v=j+2;}
     else if(t[j]?.value==='['){const k=close(j,'[',']');key=keyAt(j+1,k);v=k+2;}
+    else {key=String(++index);const p=pathAt(v);const end=valueEnd(v);if((t[v]?.value==='...'||(p&&isCall(p.end)))&&(end>=stop||end===stop-1&&[',',';'].includes(t[end]?.value)))key='*';}
     const slot=id+'.'+key,values=valueAt(v,env);slots.set(slot,key==='*'?new Set([...(slots.get(slot)??[]),...values]):values);
     j=v;if(t[j]?.value==='function')j=luaBlockEnd(t,j);else if(t[j]?.value==='{')j=close(j,'{','}');else {const p=pathAt(j);if(p)j=p.end-1;if(t[j+1]?.value==='(')j=close(j+1);}
     while(j+1<stop&&![';',','].includes(t[j+1].value))j++;

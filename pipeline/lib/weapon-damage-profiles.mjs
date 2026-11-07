@@ -19,7 +19,7 @@ export function createDamageProfileExtractor({lookup,resolve,field,component,ann
   };
   const entries=node=>{
     node=resolve(node);let index=0;
-    return node?.type==='table'?node.entries.map(e=>[e.key?component(e.key):++index,e.value]):[];
+    return node?.type==='table'?node.entries.map(e=>[e.key?component(e.resolvedKey??(['string','number','boolean'].includes(e.key?.type)?e.key:undefined)):++index,e.value]):[];
   };
   const dynamic=node=>node&&!(node.type==='nil');
   function named(node,kind,file) {
