@@ -15,24 +15,28 @@ import {checkText} from '../../pipeline/lib/verify/text.mjs';
 import {checkValues} from '../../pipeline/lib/verify/values.mjs';
 import {checkDataFile} from '../../pipeline/lib/data-files.mjs';
 import {stringifyCanonical} from '../../pipeline/lib/canonical-json.mjs';
+import {parseArgs,git} from '../../pipeline/lib/inputs.mjs';
 import {contentHash} from '../../pipeline/lib/diff-core.mjs';
-import {createBrittlenessSupplement,BRITTLENESS_SOURCE_PINS,BRITTLENESS_DIRECTORY_PINS} from '../../pipeline/lib/skill-brittleness.mjs';
+import {createBrittlenessSupplement,BRITTLENESS_SOURCE_PINS,BRITTLENESS_DIRECTORY_PINS,BRITTLENESS_SOURCE_COMMIT} from '../../pipeline/lib/skill-brittleness.mjs';
 
 const repo=resolve('.'),root='F:/GitFile/Persion - Games/DarkTide-Pipeline-Work/cryptic-brittleness';
-const source='F:/GitFile/Persion - Games/Darktide-Source-Code',commit='e46b8926cfa3fa35503e4b80b15aab7a804314e4';
+const source='F:/GitFile/Persion - Games/Darktide-Source-Code';
+const args=parseArgs(process.argv.slice(2),{'source-commit':'value','text-file':'value'});
+const commit=git(source,['rev-parse','--verify',`${args['source-commit']??BRITTLENESS_SOURCE_COMMIT}^{commit}`]).trim();
+const historical=commit==='e46b8926cfa3fa35503e4b80b15aab7a804314e4';
 const hash=s=>createHash('sha256').update(s).digest('hex');
 const stateBefore=hash(readFileSync('pipeline/state.json'));
 const baselineSource=execFileSync('git',['show','b133bd0:pipeline/extract-skills.mjs'],{encoding:'utf8'}).replaceAll("'./lib/","'"+pathToFileURL(repo+'/pipeline/lib/').href);
 const baselineBuild=(await import('data:text/javascript;base64,'+Buffer.from(baselineSource).toString('base64'))).buildSkills;
-const reader=createSourceReader({repo:source,commit}),text=loadTextIndex(root+'/extract/text.json');
-const textMeta=JSON.parse(readFileSync(root+'/extract/text.json'));
-assert.equal(textMeta.privateRefCommit,'dd430f524dfd089e013f87cbc20be754af6979d4');
-assert.equal(text.batch,'26101089');
-const envelope={gameVersion:'1.13.4',sourceCommit:commit,textBatch:text.batch,scriptVersion:SCRIPT_VERSION};
+const textFile=args['text-file']??root+'/extract/text.json';
+const reader=createSourceReader({repo:source,commit}),text=loadTextIndex(textFile);
+const textMeta=JSON.parse(readFileSync(textFile));
+if(historical){assert.equal(textMeta.privateRefCommit,'dd430f524dfd089e013f87cbc20be754af6979d4');assert.equal(text.batch,'26101089');}
+const envelope={gameVersion:git(source,['log','-1','--format=%s',commit]).trim().match(/^Added Version (\d+(?:\.\d+)+)/)?.[1]??'1.13.4',sourceCommit:commit,textBatch:text.batch,scriptVersion:SCRIPT_VERSION};
 const baseline=baselineBuild({reader,text,envelope});
-assert.equal(baseline.items.length,618);
+if(historical)assert.equal(baseline.items.length,618);
 await writeExtract({workDir:root+'/baseline',category:'skills',envelope,...baseline});
-console.log('Baseline extracted: 618');
+console.log('Baseline extracted: '+baseline.items.length);
 const runs=[];
 for(const n of [1,2]) {
   const data=buildSkills({reader,text,envelope});
@@ -56,7 +60,7 @@ for(const item of actual.items) {
   const without=structuredClone(item.values);delete without.params.brittleness_per_stack;
   assert.deepEqual(without,before.values);
   assert.notEqual(contentHash('skills',before),contentHash('skills',item));
-  assert.ok(item.source.files.some(s=>s.path==='scripts/settings/buff/weapon_buff_templates.lua'&&s.line===374));
+  if(historical)assert.ok(item.source.files.some(s=>s.path==='scripts/settings/buff/weapon_buff_templates.lua'&&s.line===374));
   const effect=expandOfficialEffect(item,text,actual.effectFormats[item.id]);assert.equal(effect.status,'complete');
   const candidate={...structuredClone(item),explanation:{effect:effect.text,effectOrigin:'official',conditions:'',calculation:'',notes:'',extra:''},errata:[]};
   const ct=checkText(candidate,item,[],[],new Map()),cv=checkValues(candidate,item,undefined,[]);
@@ -70,20 +74,36 @@ for(const item of actual.items) {
   const candidateOnly=checkValues(candidate,before,undefined,[]);assert.ok(candidateOnly.some(f=>f.code==='V_FIELD_CHANGED'));
   checks.push({id:item.id,params:item.values.params,sourceFiles:item.source.files,effect,checkText:ct,checkValues:cv,schema,missingValue:missing,wrongRatio:wrongCheck,candidateOnly,beforeContentHash:contentHash('skills',before),afterContentHash:contentHash('skills',item)});
 }
-assert.equal(unchanged.length,616);assert.equal(changed.length,2);
+if(historical)assert.equal(unchanged.length,616);assert.equal(changed.length,2);
 assert.deepEqual(actual.problems.filter(p=>keys.some(k=>p.id?.endsWith(':'+k))),[]);
 assert.deepEqual(validateExtractItems('skills',[...actual.items].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0),envelope),[]);
 // Compare the entire main + proof read set. Preflight inspections are excluded.
-const audited=createBrittlenessSupplement(reader);
+const audited=createBrittlenessSupplement(reader,text);
 const {skills}=readSkillData({reader:audited.reader,text,envelope});
 const staged=[];
 for(const item of actual.items.filter(i=>keys.includes(i.key))) {
   const params=structuredClone(item.values.params),problems=[];delete params.brittleness_per_stack;
-  audited(item.id,params,problems,[],skills.find(s=>s.item.id===item.id).definition);
+  audited(item.id,params,problems,[],skills.find(s=>s.item.id===item.id).definition,skills.find(s=>s.item.id===item.id).textKeys);
   staged.push({item,params,problems});
 }
 audited.finish();
 for(const {item,params,problems} of staged){assert.deepEqual(problems,[]);assert.deepEqual(params,item.values.params);}
+// Exercise the production gate using the actual loaded index and unchanged metadata.
+for(const lang of ['en','zh']) {
+  const altered=structuredClone(textMeta);
+  for(const resource of Object.values(altered.resources))for(const value of Object.values(resource))
+    if(typeof value?.[lang]==='string')value[lang]=value[lang].replaceAll(lang==='en'?'Brittleness':'脆弱',lang==='en'?'Damage':'傷害');
+  const alteredFile=root+`/review26-mutated-${lang}.json`;
+  writeFileSync(alteredFile,JSON.stringify(altered));
+  const mutated=loadTextIndex(alteredFile);
+  assert.equal(mutated.batch,text.batch);
+  const rejected=buildSkills({reader,text:mutated,envelope});
+  for(const key of keys) {
+    const item=rejected.items.find(i=>i.key===key);
+    assert.ok(!Object.hasOwn(item.values.params,'brittleness_per_stack'));
+    assert.ok(rejected.problems.some(p=>p.id===item.id&&p.code==='BRITTLENESS_SOURCE_CHANGED'&&p.message.includes('文字')));
+  }
+}
 const proofFilesRead=audited.filesRead();
 assert.deepEqual(proofFilesRead,Object.keys(BRITTLENESS_SOURCE_PINS).sort());
 assert.deepEqual(audited.directoriesRead(),BRITTLENESS_DIRECTORY_PINS);

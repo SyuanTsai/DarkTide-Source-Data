@@ -19,6 +19,29 @@ export const BRITTLENESS_SOURCE_PINS=Object.freeze(sourcePins.files);
 export const BRITTLENESS_SOURCE_COMMIT=sourcePins.sourceCommit;
 export const BRITTLENESS_DIRECTORY_PINS=Object.freeze(sourcePins.directories??{});
 
+// Hash the exact strings returned to the extractor, including their localization keys.
+export function collectBrittlenessTextPins(keys,text) {
+  const hashes={};
+  for(const key of [keys.name,...keys.descriptions]) {
+    if(typeof key!=='string')throw new Error('缺少文字鍵');
+    const value=text.lookup(key);
+    if(value?.conflict || typeof value?.en!=='string' || typeof value?.zh!=='string')throw new Error(`缺少文字：${key}`);
+    hashes[key]=Object.fromEntries(['en','zh'].map(lang=>[lang,createHash('sha256').update(value[lang],'utf8').digest('hex')]));
+  }
+  return {name:keys.name,descriptions:keys.descriptions,hashes};
+}
+export function changedBrittlenessText(keys,text,pins) {
+  try {
+    const actual=collectBrittlenessTextPins(keys,text);
+    const changed=new Set();
+    for(const key of new Set([...Object.keys(pins?.hashes??{}),...Object.keys(actual.hashes)]))
+      if(JSON.stringify(pins?.hashes?.[key])!==JSON.stringify(actual.hashes[key]))changed.add(key);
+    if(JSON.stringify([pins?.name,pins?.descriptions])!==JSON.stringify([actual.name,actual.descriptions]))
+      for(const key of [keys.name,...keys.descriptions])changed.add(key);
+    return [...changed].sort();
+  } catch {return [...new Set([keys.name,...keys.descriptions].filter(k=>typeof k==='string'))].sort();}
+}
+
 /** Snapshot the whole extraction, including recursive resolver/effects reads. The
  * injected pins parameter is only for unit-testing this low-level audit; the
  * production supplement always uses the fixed, reviewed manifest above. */
@@ -52,10 +75,10 @@ export function createBrittlenessSourceAudit(reader,pins=BRITTLENESS_SOURCE_PINS
 
 /** Each extraction gets a separate resolver so a warmed shared cache cannot
  * hide reads from the audit. Publish nothing until ALL main/proof reads finish. */
-export function createBrittlenessSupplement(reader) {
+export function createBrittlenessSupplement(reader,text) {
   const audit=createBrittlenessSourceAudit(reader,BRITTLENESS_SOURCE_PINS,BRITTLENESS_DIRECTORY_PINS),staged=[];
   let r,definitions,finished=false;
-  function supplement(id,params,problems,trace,actualDefinition) {
+  function supplement(id,params,problems,trace,actualDefinition,textKeys,textSnapshot=text) {
     if(finished)throw new Error('補收已完成');
     if(![ARC_KEY,PASSIVE_KEY].some(key=>id===`darktide:skill:cryptic:${key}`))return;
     const pending={...params},proof=[],failures=[];
@@ -71,17 +94,18 @@ export function createBrittlenessSupplement(reader) {
         if(!mismatched.size)mismatched.add('scripts/settings/ability/archetype_talents/talents/');
       } else proveBrittleness(r,audit.reader,definition,id,pending,failures,proof);
     } catch {failures.push({code:'BRITTLENESS_SOURCE_UNPROVEN',id,message:'每層脆弱值的靜態引用鏈無法核實，未補收參數'});}
-    staged.push({id,params,problems,trace,pending,proof,failures,mismatched});
+    const textChanged=text ? changedBrittlenessText(textKeys,textSnapshot,sourcePins.text?.[id]) : [];
+    staged.push({id,params,problems,trace,pending,proof,failures,mismatched,textChanged});
   }
   supplement.reader=audit.reader;
   supplement.finish=()=>{
     if(finished)throw new Error('補收已完成');
     finished=true;audit.finish();
     const changed=audit.changedFiles(),directories=audit.changedDirectories();
-    for(const {id,params,problems,trace,pending,proof,failures,mismatched} of staged) {
+    for(const {id,params,problems,trace,pending,proof,failures,mismatched,textChanged} of staged) {
       const files=[...new Set([...changed,...mismatched])].sort();
-      if(files.length || directories.length) {
-        problems.push({code:'BRITTLENESS_SOURCE_CHANGED',id,message:'引用鏈來源已變更，需重新核實；未補收每層脆弱值',files,...(directories.length?{directories}:{})});
+      if(files.length || directories.length || textChanged.length) {
+        problems.push({code:'BRITTLENESS_SOURCE_CHANGED',id,message:textChanged.length?'官方文字已變更，需重新核實；未補收每層脆弱值':'引用鏈來源已變更，需重新核實；未補收每層脆弱值',files,...(directories.length?{directories}:{}),...(textChanged.length?{textKeys:textChanged}:{})});
       } else if(failures.length)problems.push(...failures);
       else {
         if(Object.hasOwn(pending,'brittleness_per_stack'))params.brittleness_per_stack=pending.brittleness_per_stack;

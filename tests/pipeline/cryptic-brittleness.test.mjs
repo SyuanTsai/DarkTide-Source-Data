@@ -296,3 +296,18 @@ test('UnitT98_candidate collection refuses an unproven application chain',async(
   const f=fixture();f.change(ARC,'on_chain_node_add_func = _on_chain_node_add_func','on_chain_node_add_func = changed');
   assert.throws(()=>collectBrittlenessPins({...f.reader,readBytes:p=>Buffer.from(f.files.get(p))}),/靜態證明失敗，未產生候選 pins/);
 });
+
+// Scenario: a pinned localization entry changes while its keys and metadata stay intact.
+// Purpose: reject either language change and missing or conflicting text.
+test('UnitT99_text pins detect changed missing and conflicting localization',async()=>{
+  const {collectBrittlenessTextPins,changedBrittlenessText}=await import('../../pipeline/lib/skill-brittleness.mjs');
+  const entries={name:'name_key',descriptions:['description_key']};
+  const values={name_key:{en:'Name',zh:'名稱'},description_key:{en:'2.5% Brittleness',zh:'2.5%脆弱'}};
+  const text={lookup:key=>values[key]};
+  const pins=collectBrittlenessTextPins(entries,text);
+  assert.deepEqual(changedBrittlenessText(entries,text,pins),[]);
+  for(const changed of [{en:'2.5% Damage',zh:'2.5%傷害'},null,{conflict:true}]) {
+    values.description_key=changed;
+    assert.ok(changedBrittlenessText(entries,text,pins).includes('description_key'));
+  }
+});

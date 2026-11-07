@@ -15,9 +15,9 @@ export function validateSkillParents(items) {
 }
 
 export function buildSkills({reader,text,envelope}) {
-  const supplementBrittleness=createBrittlenessSupplement(reader);
+  const supplementBrittleness=createBrittlenessSupplement(reader,text);
   const {data,skills}=readSkillData({reader:supplementBrittleness.reader,text,envelope});
-  for(const {item,definition,trace} of skills)supplementBrittleness(item.id,item.values.params,data.problems,trace,definition);
+  for(const {item,definition,trace,textKeys,textSnapshot} of skills)supplementBrittleness(item.id,item.values.params,data.problems,trace,definition,textKeys,textSnapshot);
   supplementBrittleness.finish();
   for(const {item,trace} of skills)item.source.files=sourceFiles(trace);
   return data;
@@ -46,8 +46,9 @@ export function readSkillData({reader,text,envelope}) {
       if(!NODE_TYPES.has(nodeType)) {problems.push({code:'UNKNOWN_NODE_TYPE',id,message:`未知節點類型 ${nodeType}`});nodeType='default';}
       const nameKey=str(definition,'display_name'),descNode=r.get(definition,'description');
       const descKeys=descNode?.type==='table'?r.entries(descNode).map(([,v])=>r.scalar(v)):[r.scalar(descNode)];
-      const named=nameFromText(text,nameKey,key);if(named.problem) problems.push({...named.problem,id});
-      const descriptions=descKeys.map(k=>typeof k==='string'?text.lookup(k):null);
+      const textValues=new Map(),usedText={lookup(k){if(!textValues.has(k))textValues.set(k,text.lookup(k));return textValues.get(k);}};
+      const named=nameFromText(usedText,nameKey,key);if(named.problem) problems.push({...named.problem,id});
+      const descriptions=descKeys.map(k=>typeof k==='string'?usedText.lookup(k):null);
       for(let i=0;i<descriptions.length;i++) {
         if(!descriptions[i] || descriptions[i].conflict || descriptions[i].en==null || descriptions[i].zh==null) problems.push({code:descriptions[i]?.conflict?'TEXT_CONFLICT':'MISSING_TEXT',id,message:`缺少官方說明：${descKeys[i] ?? key}`});
       }
@@ -61,7 +62,7 @@ export function readSkillData({reader,text,envelope}) {
         values:{archetype,tree:treeName,nodeType,icon:str(node,'icon') ?? str(definition,'icon') ?? null,maxPoints:str(node,'max_points') ?? 1,parents,params},
         source:{commit:reader.commit,files:sourceFiles(trace),scriptVersion:SCRIPT_VERSION,
           text:{batch:envelope.textBatch,keys:{...(typeof nameKey==='string'?{name:nameKey}:{}),...(typeof descKeys[0]==='string'?{description:descKeys[0]}:{})}}}};
-      items.push(item);skills.push({item,definition,trace});
+      items.push(item);skills.push({item,definition,trace,textKeys:{name:nameKey,descriptions:descKeys},textSnapshot:usedText});
     }
   }
   for(const [archetype,defs] of definitions) for(const [key] of defs) {
