@@ -19,6 +19,7 @@ import './real-smoke.test.mjs';
 import './check-version.test.mjs';
 import './extract-output.test.mjs';
 import './extract-terms.test.mjs';
+import './extract-terms-context.test.mjs';
 import './extract-weapons.test.mjs';
 import './review1.test.mjs';
 import './review2.test.mjs';

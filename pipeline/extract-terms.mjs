@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { tokenizeLua, findLuaTableAssignment, getLuaTableFields } from './lib/lua-static-reader.mjs';
+import { tokenizeLua, findLuaTableAssignment, getLuaTableFields, parseLuaStatic, getTableField, getTableArray } from './lib/lua-static-reader.mjs';
 import { StructureError } from './lib/errors.mjs';
 import { runExtractCli, itemId, nameFromText } from './lib/extract-output.mjs';
 
@@ -76,21 +76,58 @@ export async function buildTerms({reader,text,envelope,workDir}) {
   const buffFields = fields(reader.read(buffFile), 'templates.psyker_brain_burst_improved', buffFile);
   const statBuffs = buffFields.find(f => f.key === 'stat_buffs');
   if (!statBuffs) structure(`${buffFile} 缺少 psyker_brain_burst_improved.stat_buffs`);
-  const statTokens = tokenizeLua(statBuffs.rawValue, {filename:buffFile});
-  const matches = [];
-  let depth = 0;
-  for (const [i, token] of statTokens.entries()) {
-    if (token.value === '{') depth++;
-    if (token.value === '}') depth--;
-    if (depth === 1 && token.value === '[' && statTokens[i+1]?.value === 'stat_buffs' &&
-      statTokens[i+2]?.value === '.' && statTokens[i+3]?.value === 'smite_damage_multiplier' &&
-      statTokens[i+4]?.value === ']' && statTokens[i+5]?.value === '=') matches.push(token);
-  }
+  let table;
+  try { table = parseLuaStatic(`return ${statBuffs.rawValue}`, {filename:buffFile}).returned; }
+  catch (e) { if (e.name !== 'LuaStaticError') throw e; structure(`${buffFile} stat_buffs：${e.message}`); }
+  if (table?.type !== 'table') structure(`${buffFile} stat_buffs 不是靜態 table`);
+  const matches = table.entries.filter(e => e.key?.type === 'reference' && e.key.ref === 'stat_buffs.smite_damage_multiplier');
   if (matches.length !== 1) structure(`${buffFile} 缺少唯一的 smite_damage_multiplier`);
+  if (matches[0].value?.type !== 'number') structure(`${buffFile} smite_damage_multiplier 不是靜態數值`);
+  // Match complete, contiguous token sequences so comments or unrelated occurrences cannot supply evidence.
+  function evidence(file, sequence, offsets) {
+    if (!reader.exists(file)) structure(`找不到 ${file}`);
+    const tokens = tokenizeLua(reader.read(file), {filename:file});
+    const hits = [];
+    for (let i=0;i<tokens.length;i++) if (sequence.every((v,j) => tokens[i+j]?.value === v)) hits.push(i);
+    if (hits.length !== 1) structure(`${file} 缺少唯一的必要引用：${sequence.join(' ')}`);
+    return offsets.map(n => ({path:file,line:tokens[hits[0]+n].line}));
+  }
+  const talentFile = 'scripts/settings/ability/archetype_talents/talents/psyker_talents.lua';
+  const damageFile = 'scripts/utilities/attack/damage_calculation.lua';
+  const smiteFile = 'scripts/settings/equipment/weapon_templates/grenades/psyker_smite.lua';
+  const talentSource = reader.exists(talentFile) ? reader.read(talentFile) : '';
+  // Restrict the find_value match to this talent's table.
+  const talentFields = fields(talentSource,'psyker_brain_burst_improved',talentFile);
+  const format = talentFields.find(f => f.key === 'format_values');
+  if (!format) structure(`${talentFile} 缺少 format_values`);
+  let formatTable;
+  try { formatTable = parseLuaStatic(`return ${format.rawValue}`, {filename:talentFile}).returned; }
+  catch (e) { if (e.name !== 'LuaStaticError') throw e; structure(`${talentFile} format_values：${e.message}`); }
+  const findValue = getTableField(getTableField(formatTable, 'damage'), 'find_value');
+  const findPath = getTableArray(getTableField(findValue, 'path'));
+  if (formatTable?.type !== 'table' || findValue?.type !== 'table' ||
+    getTableField(findValue, 'buff_template_name')?.value !== 'psyker_brain_burst_improved' ||
+    getTableField(findValue, 'find_value_type')?.value !== 'buff_template' || findPath.length !== 2 ||
+    findPath[0]?.type !== 'string' || findPath[0].value !== 'stat_buffs' ||
+    findPath[1]?.type !== 'reference' || findPath[1].ref !== 'stat_buffs.smite_damage_multiplier') {
+    structure(`${talentFile} format_values.damage.find_value 無法靜態確認`);
+  }
+  const talentTokens = tokenizeLua(format.rawValue,{filename:talentFile});
+  const findSequence = ['find_value','=','{','buff_template_name','=','psyker_brain_burst_improved',',','find_value_type','=','buff_template',',','path','=','{','stat_buffs',',','stat_buffs','.','smite_damage_multiplier'];
+  const findHits = talentTokens.flatMap((t,i) => findSequence.every((v,j) => talentTokens[i+j]?.value === v) ? [i] : []);
+  if (findHits.length !== 1) structure(`${talentFile} 缺少唯一的 format_values 引用`);
+  const files = [
+    {path:buffFile,line:statBuffs.startLine + matches[0].key.startLine - 1},
+    {path:talentFile,line:format.startLine + talentTokens[findHits[0]+18].line - 1},
+    ...evidence(smiteFile,['damage_profile','=','DamageProfileTemplates','.','psyker_smite_kill',',','damage_type','=','damage_types','.','smite'],[6]),
+    ...evidence(damageFile,['local','is_smite_attack','=','damage_type','==','damage_types','.','smite'],[0]),
+    ...evidence(damageFile,['local','smite_damage_multiplier_stat_buff','=','is_smite_attack','and','attacker_stat_buffs','.','smite_damage_multiplier','or',1],[0]),
+    ...evidence(damageFile,['damage_multiplier','=','damage_multiplier','*','smite_damage_multiplier_stat_buff'],[0])
+  ].sort((a,b) => compare(a.path,b.path) || a.line-b.line);
   items.push({id:'darktide:term:psyker:smite-damage-multiplier-parameter',key:'smite_damage_multiplier',
     name:{en:'smite_damage_multiplier',zh:null,origin:'internal'},official:{en:null,zh:null},
     values:{category:'keyword',context:'psyker_brain_burst_improved.stat_buffs',refs:['darktide:skill:psyker:psyker_brain_burst_improved'],params:{}},
-    source:{commit:envelope.sourceCommit,files:[{path:buffFile,line:statBuffs.startLine + matches[0].line - 1}],scriptVersion:SCRIPT_VERSION,text:{batch:envelope.textBatch,keys:{}}}});
+    source:{commit:envelope.sourceCommit,files,scriptVersion:SCRIPT_VERSION,text:{batch:envelope.textBatch,keys:{}}}});
   for (const file of archetypes) {
     const fs = fields(reader.read(file),'archetype_data',file), name = fs.find(f => f.key === 'archetype_name'), desc = fs.find(f => f.key === 'archetype_description');
     const locKey = literal(name?.rawValue), description = literal(desc?.rawValue);
