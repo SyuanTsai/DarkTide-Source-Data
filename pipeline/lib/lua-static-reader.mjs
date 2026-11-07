@@ -203,7 +203,7 @@ function tableKeyIdentities(table) {
   let implicitIndex = 0;
   return table.entries.map((entry) => {
     if (entry.key == null) implicitIndex += 1;
-    return tableKeyIdentity(entry.key, implicitIndex);
+    return tableKeyIdentity(entry.resolvedKey ?? entry.key, implicitIndex);
   });
 }
 
@@ -744,7 +744,7 @@ class Parser {
         let implicitIndex = 0;
         for (const entry of source.entries) {
           if (entry.key == null) implicitIndex += 1;
-          const identity = tableKeyIdentity(entry.key, implicitIndex);
+          const identity = tableKeyIdentity(entry.resolvedKey ?? entry.key, implicitIndex);
           if (!existing.has(identity)) {
             target.entries.push(cloneNode(entry));
             existing.add(identity);
@@ -757,7 +757,7 @@ class Parser {
         let implicitIndex = 0;
         for (const entry of source.entries) {
           if (entry.key == null) implicitIndex += 1;
-          const identity = tableKeyIdentity(entry.key, implicitIndex);
+          const identity = tableKeyIdentity(entry.resolvedKey ?? entry.key, implicitIndex);
           const index = identities.indexOf(identity);
           if (index >= 0) target.entries[index] = cloneNode(entry);
           else {

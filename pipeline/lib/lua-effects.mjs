@@ -262,7 +262,9 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,importe
   for(let i=begin;i<end;i++) {
    const token=t[i];
    if(['string','number'].includes(token.type))continue;
-   if(token.type==='keyword'&&token.value==='return')valueAt(i+1,env).forEach(x=>returned.add(x));
+   if(token.type==='keyword'&&token.value==='return') {
+    let j=i+1; while(j<end&&t[j]?.value!==';'&&t[j]?.value!=='end') {valueAt(j,env).forEach(x=>returned.add(x));j=valueEnd(j);if(t[j]?.value!==',')break;j++;}
+   }
    if(token.type==='keyword'&&token.value==='function') {
     const p=pathAt(i+1);
     if(p&&t[p.end]?.value==='(') {const ids=fnAt(i,env);if(t[i-1]?.value==='local'){env.set(p.parts[0],ids);own.add(p.parts[0]);}else {write(p.parts,false);if(p.parts.length===1)env.set(p.parts[0],ids);else for(const path of expand(p.parts,env))slots.set(path,ids);}}
@@ -299,7 +301,7 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,importe
     const targets=[p];let j=p.end;
     while(t[j]?.value===','){const next=pathAt(j+1);if(!next)break;targets.push(next);j=next.end;}
     if(t[j]?.value==='=') {
-     let rhs=j+1;const values=targets.map(()=>{const value=valueAt(rhs,env);rhs=valueEnd(rhs);if(t[rhs]?.value===',')rhs++;return value;});
+     let rhs=j+1,expanded=null;const values=targets.map(()=>{if(expanded)return new Set(expanded);const start=rhs,value=valueAt(rhs,env);rhs=valueEnd(rhs);if(t[rhs]?.value===',')rhs++;else {const call=pathAt(start);if(call&&isCall(call.end))expanded=value;}return value;});
      targets.forEach((target,k)=>{const local=t[i-1]?.value==='local';if(local)own.add(target.parts[0]);else write(target.parts,false);if(target.parts.length===1){const prior=env.get(target.parts[0])??new Set([target.parts[0]]);env.set(target.parts[0],conditional&&!local?new Set([...prior,...values[k]]):values[k]);}else for(const id of expand(target.parts.slice(0,-1),env))slots.set(id+'.'+target.parts.at(-1),values[k]);});
      i=j;continue;
     }
