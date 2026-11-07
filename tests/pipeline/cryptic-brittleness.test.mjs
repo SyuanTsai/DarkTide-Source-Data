@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { buildSkills } from '../../pipeline/extract-skills.mjs';
 import { validateExtractItems } from '../../pipeline/lib/extract-output.mjs';
@@ -66,23 +67,18 @@ function checks(data,text,key) {
   return {item,candidate,text:checkText(candidate,item,[],[],new Map()),values:checkValues(candidate,item,undefined,[])};
 }
 
-// Scenario: the audited calls apply a registry buff whose ratio is absent from format_values.
-// Purpose: both skills gain source-derived proof and pass the unchanged text/value gates.
-test('UnitT10_cryptic per-stack ratios and provenance pass text and values',()=>{
+// Scenario: small fake files have the audited shapes but different full contents.
+// Purpose: exercise the production fingerprint gate; real-source success is verified separately.
+test('UnitT10_small fixtures cannot impersonate the pinned full sources',()=>{
   const f=fixture(),data=f.run();
   assert.deepEqual(validateExtractItems('skills',data.items,envelope),[]);
   for(const key of KEYS) {
     const c=checks(data,f.text,key);
-    assert.deepEqual(c.item.values.params.brittleness_per_stack,{value:0.025,unit:'ratio'},key);
-    assert.deepEqual(c.text,{failures:[],notes:[]});assert.deepEqual(c.values,[]);
-    assert.ok(c.item.source.files.some(s=>s.path===WEAPON&&s.line===4));
-    assert.ok(c.item.source.files.some(s=>s.path===REGISTRY&&s.line===10));
-    assert.ok(c.item.source.files.some(s=>s.path===(key===KEYS[0]?ARC:PASSIVE)));
-    const before=structuredClone(c.item);delete before.values.params.brittleness_per_stack;
-    assert.ok(checkText({...c.candidate,values:before.values},before,[],[],new Map()).failures.some(x=>x.code==='T_NUMBER'));
-    assert.ok(checkValues(c.candidate,before,undefined,[]).some(x=>x.code==='V_FIELD_CHANGED'));
+    assert.ok(!Object.hasOwn(c.item.values.params,'brittleness_per_stack'));
+    assert.ok(c.text.failures.some(x=>x.code==='T_NUMBER'));
+    assert.deepEqual(c.values,[]);
+    assert.ok(data.problems.some(p=>p.id===c.item.id&&p.code==='BRITTLENESS_SOURCE_CHANGED'&&p.files.includes(WEAPON)));
   }
-  assert.ok(!data.problems.some(p=>KEYS.some(k=>p.id?.endsWith(':'+k))));
 });
 
 // Scenario: one reference, callback, binding, registry include or raw value becomes unprovable.
@@ -121,27 +117,27 @@ test('UnitT20_broken or dynamic chains retain T_NUMBER',()=>{
 });
 
 // Scenario: the source ratio changes while localization still states 2.5%.
-// Purpose: extract the new value and let the existing verifier reject the mismatch.
+// Purpose: revoke trust in changed sources and preserve the numeric failure.
 test('UnitT30_source ratio 0.02 still fails T_NUMBER',()=>{
   const f=fixture();f.change(WEAPON,'0.025','0.02');const data=f.run();
   for(const key of KEYS) {
     const c=checks(data,f.text,key);
-    assert.deepEqual(c.item.values.params.brittleness_per_stack,{value:0.02,unit:'ratio'});
+    assert.ok(!Object.hasOwn(c.item.values.params,'brittleness_per_stack'));
     assert.ok(c.text.failures.some(x=>x.code==='T_NUMBER'));assert.deepEqual(c.values,[]);
   }
 });
 
 // Scenario: source comments and line spacing change, or a non-target skill is extracted.
-// Purpose: derive current line numbers while keeping unrelated items byte-identical.
-test('UnitT40_line movement is traced and unrelated skills are unchanged',()=>{
+// Purpose: full-content hashes also revoke comment changes; unrelated items stay identical.
+test('UnitT40_line movement revokes supplementation and unrelated skills are unchanged',()=>{
   const f=fixture(),before=f.run();
   f.files.set(ARC,'-- moved\n\n'+f.files.get(ARC));f.files.set(WEAPON,'-- moved\n\n'+f.files.get(WEAPON));
   const after=f.run();
   for(const key of KEYS) {
     const c=checks(after,f.text,key);
-    assert.deepEqual(c.item.values.params.brittleness_per_stack,{value:0.025,unit:'ratio'});
-    assert.ok(c.item.source.files.some(s=>s.path===WEAPON&&s.line===6));
-    if(key===KEYS[0])assert.ok(c.item.source.files.some(s=>s.path===ARC&&s.line===81));
+    assert.ok(!Object.hasOwn(c.item.values.params,'brittleness_per_stack'));
+    assert.ok(c.text.failures.some(x=>x.code==='T_NUMBER'));
+    assert.ok(after.problems.some(p=>p.id===c.item.id&&p.code==='BRITTLENESS_SOURCE_CHANGED'&&p.files.includes(WEAPON)&&p.files.includes(ARC)));
   }
   const other=data=>JSON.stringify(data.items.find(i=>i.key==='unrelated'));
   assert.equal(other(before),other(after));
@@ -157,7 +153,7 @@ test('UnitT50_missing source modules retain T_NUMBER without unknowns',()=>{
       assert.ok(!Object.hasOwn(c.item.values.params,'brittleness_per_stack'));
       assert.ok(c.text.failures.some(x=>x.code==='T_NUMBER'));
       assert.deepEqual(c.text.notes,[]);
-      assert.ok(data.problems.some(p=>p.id===c.item.id&&p.code==='BRITTLENESS_SOURCE_UNPROVEN'));
+      assert.ok(data.problems.some(p=>p.id===c.item.id&&p.code==='BRITTLENESS_SOURCE_CHANGED'&&p.files.includes(file)));
     }
   }
 });
@@ -179,5 +175,72 @@ for (const [name,file,from,to,keys] of [
     assert.ok(!Object.hasOwn(c.item.values.params,'brittleness_per_stack'));
     assert.ok(c.text.failures.some(x=>x.code==='T_NUMBER'));
     assert.deepEqual(c.text.notes,[]);
+    assert.ok(data.problems.some(p=>p.id===c.item.id&&p.code==='BRITTLENESS_SOURCE_CHANGED'&&p.files.includes(file)));
+  }
+});
+
+// Scenario: a source file differs from the audited fingerprint.
+// Purpose: reject both supplements and identify the changed source.
+test('UnitT70_changed source fingerprints reject supplementation',()=>{
+  const f=fixture(); f.change(WEAPON,'0.025','0.02'); const data=f.run();
+  for(const key of KEYS) {
+    const c=checks(data,f.text,key);
+    assert.ok(!Object.hasOwn(c.item.values.params,'brittleness_per_stack'));
+    assert.ok(c.text.failures.some(x=>x.code==='T_NUMBER'));
+    assert.ok(data.problems.some(p=>p.id===c.item.id && p.code==='BRITTLENESS_SOURCE_CHANGED' && p.files.includes(WEAPON)));
+  }
+});
+
+// Scenario: every review20 script mutation changes an external dependency or binding.
+// Purpose: all such edits revoke the source proof, including variants missed by token analysis.
+for(const [name,file,from,to] of [
+  ...['FixedFrame','talent_settings','group_to_keywords','group_keywords','BuffSettings','TalentSettings'].map(n=>[
+    'local function '+n,PASSIVE,'templates.cryptic_electrocution_applies_brittleness = {',`local function ${n}() return nil end\ntemplates.cryptic_electrocution_applies_brittleness = {`]),
+  ['dependency ScriptUnit','scripts/settings/buff/buff_settings.lua','return {','ScriptUnit.has_extension = function() return nil end\nreturn {'],
+  ['dependency ipairs','scripts/settings/buff/buff_settings.lua','return {','ipairs = function() return function() end end\nreturn {'],
+  ['dynamic stat constructor',WEAPON,'[buff_stat_buffs.rending_multiplier]=0.025','[buff_stat_buffs.rending_multiplier]=0.025, [runtime_stat or "rending_multiplier"]=0.02'],
+  ['dynamic stat assignment',WEAPON,'return {','local templates = {'],
+  ['registry alias',REGISTRY,'return templates','local alias = templates\nalias.rending_debuff = runtime_buff\nreturn templates'],
+  ['registry dynamic key',REGISTRY,'return templates','templates[runtime_buff_name] = runtime_buff\nreturn templates'],
+  ['registry nested stat',REGISTRY,'return templates','templates.rending_debuff.stat_buffs.rending_multiplier = 0.02\nreturn templates'],
+  ['FixedFrame member',PASSIVE,'return templates','FixedFrame.get_latest_fixed_time = nil\nreturn templates'],
+  ['arc callback',ARC,'on_chain_node_add_func = _on_chain_node_add_func','on_chain_node_add_func = runtime_callback']
+]) test(`UnitT75_review20 ${name} reports source changed`,()=>{
+  const f=fixture();f.change(file,from,to);
+  if(name==='dynamic stat assignment')f.files.set(WEAPON,f.files.get(WEAPON)+'\ntemplates.rending_debuff.stat_buffs[runtime_stat or "rending_multiplier"]=0.02\nreturn templates');
+  const data=f.run();
+  for(const key of KEYS) {
+    const c=checks(data,f.text,key);
+    assert.ok(!Object.hasOwn(c.item.values.params,'brittleness_per_stack'));
+    assert.ok(c.text.failures.some(x=>x.code==='T_NUMBER'));
+    assert.deepEqual(c.text.notes,[]);
+    assert.ok(data.problems.some(p=>p.id===c.item.id&&p.code==='BRITTLENESS_SOURCE_CHANGED'&&p.files.includes(file)));
+  }
+});
+
+// Scenario: the resolver follows a new require while every pinned file still matches.
+// Purpose: an actually read file outside the pins must itself revoke trust.
+test('UnitT80_automatically records transitive reads outside pins',async()=>{
+  const {createBrittlenessSourceAudit}=await import('../../pipeline/lib/skill-brittleness.mjs');
+  const {createSkillResolver}=await import('../../pipeline/lib/skill-lua.mjs');
+  const files=new Map([['root.lua','local Child=require("child") return {}'],['child.lua','return {}']]);
+  const pins={'root.lua':createHash('sha256').update(files.get('root.lua')).digest('hex')};
+  const reader={exists:p=>files.has(p),read:p=>files.get(p),list:()=>[...files.keys()]};
+  const audit=createBrittlenessSourceAudit(reader,pins);
+  assert.deepEqual(audit.changedFiles(),[]);
+  createSkillResolver(audit.reader).returned('root.lua');
+  assert.deepEqual(audit.filesRead(),['child.lua','root.lua']);
+  assert.deepEqual(audit.changedFiles(),['child.lua']);
+});
+
+// Scenario: pinned bytes change in ways token fingerprints intentionally ignore.
+// Purpose: hash raw bytes, report all changed/missing paths deterministically, and retain snapshots.
+test('UnitT90_raw fingerprints reject BOM whitespace and missing files',async()=>{
+  const {createBrittlenessSourceAudit}=await import('../../pipeline/lib/skill-brittleness.mjs');
+  const raw=Buffer.from('return {}'),sha=createHash('sha256').update(raw).digest('hex');
+  for(const changed of [Buffer.from('\uFEFFreturn {}'),Buffer.from('return {}\n'),Buffer.from([0xff,...raw])]) {
+    const reader={exists:p=>p==='a.lua',read:()=>changed.toString('utf8').replace(/^\uFEFF/,''),readBytes:()=>changed};
+    const audit=createBrittlenessSourceAudit(reader,{'z.lua':sha,'a.lua':sha});
+    assert.deepEqual(audit.changedFiles(),['a.lua','z.lua']);
   }
 });

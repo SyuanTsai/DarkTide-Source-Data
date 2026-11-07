@@ -1,5 +1,6 @@
 import './extract-skills.test.mjs';
 import './cryptic-brittleness.test.mjs';
+import './cryptic-brittleness-fingerprints.test.mjs';
 import './json-schema.test.mjs';
 import './effect-origin.test.mjs';
 import './data-format.test.mjs';

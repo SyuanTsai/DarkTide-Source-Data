@@ -1,4 +1,23 @@
-# SYP-391 spec28：cryptic 每層脆弱值補收
+# SYP-391 spec33：cryptic 引用鏈檔案指紋釘選
+
+## spec33 實作計畫
+
+- 目標／範圍：兩筆補收只有在 e46b892 全文 SHA-256 與既有靜態證明皆通過時才成立。其餘技能、verify、schema 與正式 state 不變。
+- 證據／修改點：`skill-brittleness.mjs` 現在只釘選 arc tokens 與 passive table；terra 的 UnitT70 已實跑 Red，0.02 仍補收。`SkillResolver` 的 effects guard 會遞迴讀取 require，故用獨立 resolver 與記錄 reader，避免共用快取造成漏記。
+- 變更：程式收集證明實際讀過的來源檔，產生固定 e46b892 的完整清單；檢查所有釘選檔的原始 bytes，證明結束後再比較實際讀檔集合，新增依賴亦拒收。失敗回報 `BRITTLENESS_SOURCE_CHANGED` 與排序的檔案清單，保留 T_NUMBER。參數與行號仍由解析產生。
+- TDD／驗證：沿用合理的 UnitT70 Red，補齊 review18 七例與 review20 所有腳本變體、額外讀檔、缺檔、空白／BOM 變更及靜態證明失敗案例；小 fixture 必須經正式指紋閘門拒收，真實 e46b892 另跑正例。跑 index 全套與手動 618 技能驗收（616 byte 相同、重跑一致、兩筆 checkText/checkValues）。
+- 風險／交付：完整 require closure 可能較大，必須由程式列出並保留全部依賴，不人工縮減。全部實跑輸出限指定 work root；不 push、不略過 hooks。新增指定訊息的 commit；來源更新後須人工重新核實與更新指紋。
+
+以下保留初版實作與驗收背景；spec33 的全文指紋閘門優先於舊版允許註解／行號變動的行為。
+
+## spec33 完成紀錄
+
+- 程式自動走訪兩條證明，實際讀檔聯集為 **423 檔**；`pipeline/lib/cryptic-brittleness-sources.json` 保存完整路徑與固定 e46b892 Git blob 的原始 SHA-256。423 檔皆含 BOM，故 `source-reader.mjs` 增加唯讀的 `readBytes()`，保持原本提供給解析器的文字不變。
+- helper 的獨立 resolver 經記錄 reader 取得來源快照；檢查所有釘選檔後執行原靜態證明，最後再次檢查實際讀到的檔案，通過才寫入 value／trace。清單外檔案、缺檔、全文變更皆回報來源已變更。小型 fixture 不再能冒充完整來源。
+- terra 的 UnitT70 已確認 Red 並沿用；新增依賴讀取與 raw bytes 的 Red 後完成 Green。review18 七例、review20 所有反例腳本變體已接入 index；正式來源測試 27 項通過（24 個 review 變體、1 個註解變更、正例與第二層靜態證明各 1）。
+- `node tests/pipeline/cryptic-brittleness.acceptance.mjs` 通過：e46b892／dd430f5／26101089 重抽 618 筆，兩筆補 0.025、checkText／checkValues／schema 通過，其餘 616 筆 canonical bytes 與 contentHash 相同；兩次整份輸出 byte 相同，SHA-256 `600c4ad4484df0a32069025edd4d91ae511c17c92ad39deae4e53ae4ad17707d`。證明實際讀檔集合與 423 個 pins 完全相等，完整清單納入工作根 `acceptance.json`。
+- `pipeline/state.json` SHA-256 仍為 `ceb6b1a612492c32397ce7d8da1959dda7968d93d59bad093ee13c62910bd5e3`。實跑輸出限指定工作根。README 已說明遊戲更新後須重新核實指紋。
+- 最終 `node --test tests/pipeline/`：**367 項，361 通過、6 項既有 opt-in real-smoke 略過、0 失敗**。27 項 cryptic 正式來源測試在本機實際執行，未略過。執行時將 `TEMP`／`TMP` 指到工作根 `spec33-tmp`，使用 Windows 反斜線絕對路徑，與既有暫存輸出斷言一致。原始 bytes／BOM／快取隔離亦有獨立 Git reader 回歸測試。
 
 ## 目標與實作
 

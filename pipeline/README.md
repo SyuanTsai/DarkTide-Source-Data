@@ -129,6 +129,8 @@ extract-terms 的 keyword 包含兩種 glossary 前綴；碰到同名時分別�
 
 ### 技能取數
 
+cryptic 的電弧手榴彈／電擊每層脆弱值補收，須同時通過既有靜態證明與 e46b892 引用鏈全文 SHA-256 釘選（完整 423 檔清單與指紋見 `lib/cryptic-brittleness-sources.json`）。證明會自動記錄 resolver／effects 實際讀過的所有來源檔；讀到清單外的檔案也會拒收。遊戲更新使任一釘選檔內容改變、缺失，或增加實際讀取的依賴時，會回報 `BRITTLENESS_SOURCE_CHANGED`（引用鏈來源已變更，需重新核實）及檔案清單，兩筆回到原本的 `T_NUMBER`，需要重新核實後更新指紋。值與行號仍由解析取得，指紋不提供保底值；即使只改 BOM、空白或註解也必須重新核實。
+
 `extract-skills.mjs` 動態發現職業與 broker stimm 樹，只輸出樹節點引用的天賦，未引用定義列入 `excluded`。技能專用 `skill-*` 模組靜態解析 require、table 路徑、enum/computed key、常值四則運算、merge/clone 與 stimm 資料 DSL，不執行 Lua。百分比保留顯示數值，tier 保留完整陣列；傷害計算、lerp、條件或不支援的函式保留 `DYNAMIC_VALUE` 與問題原因。名稱使用共用官方文字政策，多段說明以換行串接，來源記錄實際讀取檔案與行號。
 
 PowerShell 設定 `$env:PIPELINE_REAL_SMOKE='1'` 後執行 `node --test tests/pipeline/`，亦會驗證固定技能 commit／文字批次的項目範圍、官方英文名稱比例及重跑 byte 一致，並印出各職業與問題統計。

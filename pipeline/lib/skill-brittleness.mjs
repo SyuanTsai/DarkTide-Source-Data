@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
 import { tokenizeLua } from './lua-static-reader.mjs';
-import { callName } from './skill-lua.mjs';
+import { callName, createSkillResolver } from './skill-lua.mjs';
 import { analyzeLuaEffects } from './lua-effects.mjs';
+import sourcePins from './cryptic-brittleness-sources.json' with { type: 'json' };
 
 const ARC_KEY='cryptic_arc_grenades_brittleness';
 const PASSIVE_KEY='cryptic_electrocution_applies_brittleness';
@@ -12,6 +13,60 @@ const REGISTRY='scripts/settings/buff/buff_templates.lua';
 const WEAPON='scripts/settings/buff/weapon_buff_templates.lua';
 const SETTINGS='scripts/settings/talent/talent_settings';
 const BUFF_SETTINGS='scripts/settings/buff/buff_settings';
+const TALENTS='scripts/settings/ability/archetype_talents/talents/cryptic_talents.lua';
+export const BRITTLENESS_SOURCE_PINS=Object.freeze(sourcePins.files);
+export const BRITTLENESS_SOURCE_COMMIT=sourcePins.sourceCommit;
+
+/** Snapshot every proof read, including recursive resolver/effects reads. The
+ * injected pins parameter is only for unit-testing this low-level audit; the
+ * production supplement always uses the fixed, reviewed manifest above. */
+export function createBrittlenessSourceAudit(reader,pins=BRITTLENESS_SOURCE_PINS) {
+  const snapshots=new Map(),readFiles=new Set(),changed=new Set();
+  function snapshot(file) {
+    if(snapshots.has(file))return snapshots.get(file);
+    try {
+      if(!reader.exists(file))throw new Error('Missing source');
+      const text=reader.read(file),bytes=reader.readBytes?.(file)??Buffer.from(text);
+      if(createHash('sha256').update(bytes).digest('hex')!==pins[file] ||
+        bytes.toString('utf8').replace(/^\uFEFF/,'')!==text)changed.add(file);
+      const source={text,bytes:Buffer.from(bytes)};snapshots.set(file,source);return source;
+    } catch(error) {changed.add(file);throw error;}
+  }
+  // Check ALL pins even if a changed file makes the static proof exit early.
+  for(const file of Object.keys(pins))try {snapshot(file);} catch { /* reported below */ }
+  return {
+    reader:{...reader,
+      read(file){readFiles.add(file);return snapshot(file).text;},
+      readBytes(file){readFiles.add(file);return Buffer.from(snapshot(file).bytes);}},
+    filesRead:()=>[...readFiles].sort(),
+    changedFiles:()=>[...changed].sort(),
+  };
+}
+
+/** Each extraction gets a separate resolver so a warmed shared cache cannot
+ * hide reads from the audit. Stage values and trace until both gates pass. */
+export function createBrittlenessSupplement(reader) {
+  let audit,r;
+  function supplement(id,params,problems,trace) {
+    if(![ARC_KEY,PASSIVE_KEY].some(key=>id===`darktide:skill:cryptic:${key}`))return;
+    audit??=createBrittlenessSourceAudit(reader);
+    const pending={...params},proof=[],failures=[];
+    if(!audit.changedFiles().length)try {
+      r??=createSkillResolver(audit.reader);
+      const definition=r.get(r.get(r.returned(TALENTS),'talents'),id.slice('darktide:skill:cryptic:'.length));
+      proveBrittleness(r,audit.reader,definition,id,pending,failures,proof);
+    } catch {failures.push({code:'BRITTLENESS_SOURCE_UNPROVEN',id,message:'每層脆弱值的靜態引用鏈無法核實，未補收參數'});}
+    const files=audit.changedFiles();
+    if(files.length) {
+      problems.push({code:'BRITTLENESS_SOURCE_CHANGED',id,message:'引用鏈來源已變更，需重新核實；未補收每層脆弱值',files});return;
+    }
+    if(failures.length) {problems.push(...failures);return;}
+    if(Object.hasOwn(pending,'brittleness_per_stack'))params.brittleness_per_stack=pending.brittleness_per_stack;
+    trace.push(...proof);
+  }
+  supplement.filesRead=()=>audit?.filesRead()??[];
+  return supplement;
+}
 
 // Audited e46b892 token shapes, retained as readable Lua in the matching fixture.
 // The arc module proves rule -> context -> registered callbacks -> debuff call,
@@ -24,7 +79,7 @@ const signature=raw=>createHash('sha256').update(JSON.stringify(tokenizeLua(raw)
 
 /** Only these two audited application chains may add an otherwise absent ratio.
  * No Lua body is executed and no localization number supplies a fallback. */
-export function supplementBrittleness(r,reader,definition,id,params,problems,trace) {
+function proveBrittleness(r,reader,definition,id,params,problems,trace) {
   const key=id.slice('darktide:skill:cryptic:'.length);
   if(id!==`darktide:skill:cryptic:${key}` || ![ARC_KEY,PASSIVE_KEY].includes(key))return;
   const proof=[];
