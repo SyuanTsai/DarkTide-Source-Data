@@ -112,7 +112,22 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
   fn.lookup=path=>{const ids=expand(path.split('.'),env);return ids.size===1?resolveFn([...ids][0]):null;};
   const id='!fn:'+file+':'+i;functions.set(id,fn);if(attach)attach(fn);return new Set([id]);
  }
- function valueAt(i,env) {
+ // Lua logical operators return operands; comparison and arithmetic operators
+ // return scalars. Parse their precedence so only possible table results flow.
+ const precedence={or:1,and:2,'<':3,'>':3,'<=':3,'>=':3,'~=':3,'==':3,'..':4,'+':5,'-':5,'*':6,'/':6,'%':6,'^':8};
+ function expression(i,min=1) {
+  let value,end;
+  if(['not','#','-'].includes(t[i]?.value)) {
+   const unary=expression(i+1,7);value=()=>new Set();end=unary.end;
+  } else {value=env=>atomAt(i,env);end=atomEnd(i);}
+  while(precedence[t[end]?.value]>=min) {
+   const op=t[end].value,level=precedence[op],right=expression(end+1,level+(op==='^'||op==='..'?0:1)),left=value;
+   value=op==='and'?right.value:op==='or'?env=>new Set([...left(env),...right.value(env)]):()=>new Set();end=right.end;
+  }
+  return {value,end};
+ }
+ function valueAt(i,env) {return expression(i).value(env);}
+ function atomAt(i,env) {
   if(['string','number'].includes(t[i]?.type))return new Set();
   if(t[i]?.value==='(') {
    const stop=close(i),out=valueAt(i+1,env);
@@ -162,16 +177,10 @@ export function analyzeLuaEffects(source,{file='<lua>',imported=()=>null,binding
    }
    return out;
   }
-  if(t[p.end]?.value==='or')return new Set([...expand(p.parts,env),...valueAt(p.end+1,env)]);
-  if(t[p.end]?.value==='and') {
-   const rhs=valueAt(p.end+1,env),next=pathAt(p.end+1);let j=next?.end??p.end+2;
-   if(t[j]?.value==='(')j=close(j)+1;
-   if(t[j]?.value==='or')return new Set([...rhs,...valueAt(j+1,env)]);
-   return rhs;
-  }
   return expand(p.parts,env);
  }
- function valueEnd(i) {
+ function valueEnd(i) {return expression(i).end;}
+ function atomEnd(i) {
   if(['string','number'].includes(t[i]?.type))return i+1;
   if(t[i]?.value==='(')return close(i)+1;
   if(t[i]?.type==='keyword'&&t[i].value==='function')return luaBlockEnd(t,i)+1;
