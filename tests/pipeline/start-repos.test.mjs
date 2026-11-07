@@ -43,3 +43,37 @@ test('InterT20_start block stops immediately after private fetch fails', t => {
   assert.notEqual(r.status,0,`expected failure: ${r.stdout} ${r.stderr}`);
   const calls=readFileSync(log,'utf8'); assert.match(calls,/fetch origin/); assert.doesNotMatch(calls,/rev-parse/);
 });
+
+// Scenario: Source-Data is clean, contains only run artifacts, or also has an unrelated change.
+// Purpose: Execute the documented decision in a real temporary repository and verify pull and rejection behavior.
+for (const [number, scenario] of [['30', 'clean'], ['40', 'resume'], ['50', 'unrelated'], ['60', 'rename'], ['70', 'single']]) {
+  test(`InterT${number}_source data ${scenario} selects the correct startup action`, t => {
+    const probe = spawnSync('pwsh', ['-NoProfile', '-Command', '$PSVersionTable.PSVersion.Major'], {encoding:'utf8'});
+    if (probe.error?.code === 'ENOENT') return t.skip('pwsh 7 is not installed');
+    assert.equal(probe.status, 0, probe.stderr);
+    if (Number(probe.stdout.trim()) < 7) return t.skip('pwsh 7 is required');
+    const dir = mkdtempSync(path.join(tmpdir(), 'start-source-'));
+    t.after(() => rmSync(dir, {recursive:true, force:true}));
+    const git = (...args) => execFileSync('git', ['-C', dir, ...args], {encoding:'utf8', stdio:'pipe'});
+    git('init'); mkdirSync(path.join(dir, 'pipeline'));
+    writeFileSync(path.join(dir, 'pipeline', 'state.json'), '{}');
+    writeFileSync(path.join(dir, 'other.txt'), 'original');
+    git('add', '.'); git('-c', 'user.name=test', '-c', 'user.email=test@example.com', 'commit', '-m', 'fixture');
+    if (scenario !== 'clean') {
+      writeFileSync(path.join(dir, 'pipeline', 'state.json'), '{"run":true}');
+      if (scenario !== 'single') {
+        mkdirSync(path.join(dir, 'data', '9.9.9'), {recursive:true});
+        writeFileSync(path.join(dir, 'data', '9.9.9', 'x.json'), '{}');
+      }
+    }
+    if (scenario === 'unrelated') writeFileSync(path.join(dir, 'other.txt'), 'changed');
+    if (scenario === 'rename') git('mv', 'other.txt', 'data/9.9.9/renamed file.json');
+    const doc = readFileSync('docs/pipeline/START.md', 'utf8');
+    const block = doc.split('0. 更新輸入來源')[1].match(/```powershell\s*\n([\s\S]*?)```/)[1];
+    const source = block.slice(block.indexOf('   $status = @(Invoke-Git status'), block.indexOf('   $status = @(Invoke-Git -C $sourceRepo'));
+    const script = `function Invoke-Git {\n if ($args[0] -eq 'pull') { 'PULLED'; return }\n & git.exe @args\n if ($LASTEXITCODE -ne 0) { throw 'git failed' }\n}\n${source}`;
+    const result = spawnSync('pwsh', ['-NoProfile', '-NonInteractive', '-Command', script], {cwd:dir, encoding:'utf8'});
+    if (scenario === 'unrelated' || scenario === 'rename') { assert.notEqual(result.status, 0); assert.match(result.stderr, /Source-Data/); }
+    else { assert.equal(result.status, 0, result.stderr); assert.equal(result.stdout.includes('PULLED'), scenario === 'clean'); }
+  });
+}

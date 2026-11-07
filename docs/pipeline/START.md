@@ -40,9 +40,26 @@
    $sourceRepo = $repos.sourceRepo
    $privateRepo = $repos.privateRepo
 
-   $status = @(Invoke-Git status --short)
-   if ($status.Count -ne 0) { throw 'Source-Data 工作目錄不乾淨' }
-   Invoke-Git pull --ff-only
+   $status = @(Invoke-Git status --porcelain=v1 -z --untracked-files=all)
+   $records = @(($status -join "`n") -split "`0" | Where-Object { $_ -ne '' })
+   if (@($records).Count -eq 0) {
+     Invoke-Git pull --ff-only
+   } else {
+     for ($i = 0; $i -lt $records.Count; $i++) {
+       $entry = $records[$i]
+       $paths = @($entry.Substring(3))
+       if ($entry.Substring(0, 2) -match '[RC]') {
+         $i++
+         if ($i -ge $records.Count) { throw '無法解析 Source-Data 狀態' }
+         $paths += $records[$i]
+       }
+       foreach ($path in $paths) {
+         if ($path -cne 'pipeline/state.json' -and -not $path.StartsWith('data/', [System.StringComparison]::Ordinal)) {
+           throw 'Source-Data 工作目錄不乾淨'
+         }
+       }
+     }
+   }
    $status = @(Invoke-Git -C $sourceRepo status --short)
    if ($status.Count -ne 0) { throw 'Source-Code 工作目錄不乾淨' }
    Invoke-Git -C $sourceRepo fetch origin
@@ -54,6 +71,8 @@
    $privateRef = if ($env:DARKTIDE_PRIVATE_REF) { $env:DARKTIDE_PRIVATE_REF } else { 'origin/master' }
    Invoke-Git -C $privateRepo rev-parse --verify $privateRef
    ```
+
+   接續模式不更新 Source-Data；若要放棄進行中的 run，請使用者自行處理，AI 不執行 reset、stash 或 checkout。
 
    任何一步失敗或 `throw` 後立即整批停止，跳到第 8 步，並在「需要使用者處理的事」列出原因。Private 的工作目錄及目前分支不影響腳本讀取，不檢查也不切換。不得 reset、stash、checkout 或切換分支。
 1. 版本與狀態：執行 `node pipeline/check-version.mjs`。
