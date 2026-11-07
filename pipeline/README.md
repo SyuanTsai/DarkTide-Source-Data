@@ -127,6 +127,12 @@ exit 0 表示完成；exit 1 表示候選檔變動、版本倒退、資料驗證
 
 extract-terms 的 keyword 包含兩種 glossary 前綴；碰到同名時分別加 `:term`／`:glossary`。skill-type 直接掃描 talent 字串，class 讀 archetype_name，weapon-type 讀 UI patterns，並連結同 family 的武器 id。class 的 official 使用 archetype_description，其餘使用該 loc key。所有來源出現位置均記錄 path/line；動態拼接前綴只記 `DYNAMIC_KEY`。skills/weapons extract 缺少或非 ok 時記 `DEPENDENCY_UNAVAILABLE`；武器 refs 為空，不把它當結構不符。
 
+### Lua 靜態解析器前提
+
+技能、祝福與武器共用的 Lua 靜態解析器假設：交給未知函式的 callback 不會改寫跨模組的共用設定表。在此前提下，無法理解的 override、動態值與其他無法證實的結構仍須 fail-closed，標記 unknown 或回報 problems，不猜測數值。
+
+已知限制：刻意透過 callback 改寫共用表的寫法（例如 review17／19 的反例）不在上述保證範圍內；解析器可能仍輸出 known。遊戲更新時依 [START.md](../docs/pipeline/START.md) 的 astra 抽查步驟對照 Source-Code，發現不一致即停止。
+
 ### 技能取數
 
 `extract-skills.mjs` 動態發現職業與 broker stimm 樹，只輸出樹節點引用的天賦，未引用定義列入 `excluded`。技能專用 `skill-*` 模組靜態解析 require、table 路徑、enum/computed key、常值四則運算、merge/clone 與 stimm 資料 DSL，不執行 Lua。百分比保留顯示數值，tier 保留完整陣列；傷害計算、lerp、條件或不支援的函式保留 `DYNAMIC_VALUE` 與問題原因。名稱使用共用官方文字政策，多段說明以換行串接，來源記錄實際讀取檔案與行號。

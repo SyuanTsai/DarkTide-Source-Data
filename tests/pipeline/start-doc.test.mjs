@@ -17,6 +17,8 @@ test('UnitT10_fixed start instructions contain expected steps and report', () =>
   assert.ok(!text.includes('git -C $privateRepo branch --show-current'));
   assert.ok(!text.includes('git -C $privateRepo symbolic-ref'));
   assert.ok(text.includes('- 第 8 步的回報數字由 `node pipeline/check-version.mjs --summary` 重新檢查相同輸入（接續時同樣加上 `--commit $run.sourceCommit --text-batch $run.textBatch`）的版本後產生（不寫入狀態檔）；停止或沒有新版本時項目數皆為 0，其餘引用狀態檔摘要。'));
+  for (const phrase of ['5a. damage profile 抽查', '由 astra', '每個武器家族至少抽一個 profile', '近戰多 target', '遠程 near／far', 'powerLevel 明示與未明示', '不得 write 或 commit', 'Source-Code commit 與 path:line', '來源值、輸出值']) assert.ok(text.includes(phrase), phrase);
+  assert.ok(text.indexOf('5a. damage profile 抽查') < text.indexOf('6. 寫入：'));
   for (let i = 0; i <= 8; i++) assert.match(text, new RegExp(`^${i}\\. `, 'm'));
   for (const word of [
     'pipeline/check-version.mjs',
