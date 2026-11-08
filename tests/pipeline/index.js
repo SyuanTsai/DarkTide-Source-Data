@@ -19,6 +19,7 @@ import './weapon-inventory.test.mjs';
 import './lua-closure.test.mjs';
 import './extract-blessings.real.test.mjs';
 import './extract-blessings.test.mjs';
+import './blessing-text-keys.test.mjs';
 import './extract-skills.real.test.mjs';
 import './extract-weapons.real.test.mjs';
 import './real-smoke.test.mjs';
