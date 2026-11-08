@@ -113,7 +113,7 @@
    - 1.1.0 祝福／技能輸入有 `lockedEffect` 時，`effect` 逐字照抄該全文，只另外撰寫 `conditions`／`calculation`／`notes`／`extra` 四節實際運作機制；candidate 會強制使用鎖定效果並設定 `effectOrigin: "official"`。
    - 有 `effectTask: "translate-official-en"` 時，依 `item.official.en` 與 `item.values` 翻譯效果，再寫四節機制；pipeline 會標示為「非官方翻譯」（`unofficial-translation`）。官方英文、繁中都沒有時，依 values 與 source 撰寫效果，未知值寫明未知，不可猜；pipeline 會標示為「非官方翻譯」。未知值不猜測。AI 輸出不得包含 `effectOrigin`。
 5. 檢查：第一次正式執行 1.13.4 時執行 `node pipeline/verify.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')`，讓 candidate 與檢查使用同一份 baseline；後續版本執行 `node pipeline/verify.mjs`。未通過的單一項目會保留上一版內容並記錄原因；這不算失敗，繼續下一步。若輸出「整批停止」，跳到第 8 步。
-   - `verify.mjs` 預設 `--issues create`，會為譯名衝突在遠端公開的 Mods repo 建立 Issue，屬於對外發布。第一次正式執行或衝突很多時，先加上 `--issues off`，從 verify 報告的 `translationConflicts` 取得衝突清單，在第 8 步回報中列出，由使用者決定是否建立 Issue。
+   - `verify.mjs` 預設 `--issues off`，不建立 Issue。從 verify 報告的 `translationConflicts` 取得衝突清單，在第 8 步回報中列出；使用者決定要建立時，才另外執行 `--issues create`，在遠端公開的 Mods repo 建立 Issue，屬於對外發布。
 5a. damage profile 抽查：由 astra 對照本次固定 Source-Code commit，逐一檢查抽樣的 damage profile 與來源位置、override 後的 attack／impact 端點及 binding 的 powerLevel；每個武器家族至少抽一個 profile，抽樣須涵蓋近戰多 target、遠程 near／far、powerLevel 明示與未明示。若任一類型不存在，記錄原因。記錄每筆的武器家族、武器／profile id、Source-Code commit 與 path:line、抽查欄位、來源值、輸出值及一致／不一致結果。任何不一致或無法完成必要抽查時立即整批停止，跳到第 8 步回報，不得 write 或 commit；回報列出上述明細及原因。接續已 completed 的 run 也須先抽查再 commit。
 6. 寫入：寫入 repo 前先確認第 3 步 diff 使用正確的資料目錄與結果、所有待寫項目均已處理、第 5 步 verify 沒有整批停止，且第 5a 步抽查完成並一致；任何一項不符即停止。第一次正式執行 1.13.4 時執行 `node pipeline/write.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')`，後續版本執行 `node pipeline/write.mjs`；再執行 `node pipeline/validate.mjs`。接續已 completed 的 run 時從 validate 開始。通過後執行以下 pwsh 指令，只加入該 run 的檔案，再 commit（訊息：`data: <遊戲版本> 內容更新`）、`git push`。
 

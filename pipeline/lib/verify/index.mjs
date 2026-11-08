@@ -42,7 +42,7 @@ function updatedState(state, matches, report) {
 
 export async function runVerify(inputOptions) {
   const root = resolve(inputOptions.root ?? fileURLToPath(new URL('../../../', import.meta.url)));
-  const options = { issues: 'create', modsRepo: 'SyuanTsai/Warhammer-40-000-DARKTIDE-Mods', exec: spawnSync,
+  const options = { issues: 'off', modsRepo: 'SyuanTsai/Warhammer-40-000-DARKTIDE-Mods', exec: spawnSync,
     ...inputOptions, root };
   const input = await loadInput(options), { version, loaded } = input;
   const report = makeReport(version);

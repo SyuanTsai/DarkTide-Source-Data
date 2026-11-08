@@ -61,6 +61,6 @@ test('first 1.13.4 run uses the verified migration baseline and gates writes', (
 test('UnitT20_verify documents issue creation and conflict reporting', () => {
   const text = readFileSync('docs/pipeline/START.md', 'utf8');
   const step5 = text.slice(text.indexOf('5. 檢查：'), text.indexOf('5a. damage profile 抽查'));
-  for (const phrase of ['預設 `--issues create`', '公開的 Mods repo', '對外發布', '`--issues off`', '`translationConflicts`', '第 8 步', '使用者決定']) assert.ok(step5.includes(phrase), phrase);
+  for (const phrase of ['預設 `--issues off`', '公開的 Mods repo', '對外發布', '`--issues create`', '`translationConflicts`', '第 8 步', '使用者決定']) assert.ok(step5.includes(phrase), phrase);
   assert.ok(text.includes('譯名衝突：N 組（是否已建立 Issue）'));
 });

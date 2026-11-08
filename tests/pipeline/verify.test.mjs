@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { spawnSync } from './test-env.mjs';
 import { cleanTestEnv } from './test-env.mjs';
 import { createHash } from 'node:crypto';
+import { spawnSync as realSpawnSync } from 'node:child_process';
 import { CATEGORIES, checkDataFile, retainItem } from '../../pipeline/lib/data-files.mjs';
 import { stringifyCanonical, isCanonicalText } from '../../pipeline/lib/canonical-json.mjs';
 import * as stateApi from '../../pipeline/lib/state.mjs';
@@ -14,6 +15,7 @@ import { verifyMerged } from '../../pipeline/lib/verify/output.mjs';
 import { extractNumbers, checkNumbers } from '../../pipeline/lib/verify/numbers.mjs';
 import { handleIssues } from '../../pipeline/lib/verify/issues.mjs';
 import { parseTranslation } from '../../pipeline/lib/verify/translation.mjs';
+import { parse } from '../../pipeline/lib/verify/args.mjs';
 
 const cli = resolve('pipeline/verify.mjs');
 const meta = { gameVersion: '1.2.0', sourceCommit: 'a'.repeat(40), textBatch: 'batch-new' };
@@ -336,10 +338,36 @@ test('UnitT53_測試環境拒絕建立 Issue 且不執行 gh', async (t) => {
   const previous = process.env.DARKTIDE_TEST;
   delete process.env.DARKTIDE_TEST;
   t.after(() => { if (previous === undefined) delete process.env.DARKTIDE_TEST; else process.env.DARKTIDE_TEST = previous; });
+  await assert.rejects(handleIssues([{}], new Map(), {}, { issues: 'create' }), /測試.*Issue/);
+  await assert.rejects(handleIssues([{}], new Map(), {}, { issues: 'create', exec: realSpawnSync }), /測試.*Issue/);
+});
+
+// Scenario: no issue option is supplied and conflicts exist. Purpose: the injected executor is never called by default.
+test('InterT53_預設不建立 Issue', async (t) => {
+  const f = await fixture(t); await writeFile(f.options.translation, '- Example 0 - 私譯\n');
   let calls = 0;
-  await assert.rejects(handleIssues([{}], new Map(), {}, { issues: 'create', exec: () => { calls++; } }), /測試.*Issue/);
+  const r = await f.run({ ...parse([]), exec: () => { calls++; } });
+  assert.equal(r.report.translationConflicts.length, 1);
+  assert.deepEqual(r.report.issues, []);
   assert.equal(calls, 0);
 });
+
+for (const [n, mode] of ['existing', 'created', 'failed'].entries()) {
+  // Scenario: an explicitly injected fake returns an existing issue, success or failure. Purpose: cover issue handling without remote calls.
+  test(`InterT${54 + n}_假 runner 譯名 Issue ${mode}`, async (t) => {
+    const f = await fixture(t); await writeFile(f.options.translation, '- Example 0 - 私譯\n');
+    const calls = [];
+    const r = await f.run({ issues: 'create', exec: (cmd, argv) => {
+      assert.equal(cmd, 'gh'); calls.push(argv);
+      if (argv[1] === 'list') return { status: 0, stdout: JSON.stringify(mode === 'existing' ? [{ title: '譯名衝突：Example 0（既有）', url: 'https://example.test/1' }] : []) };
+      assert.ok(argv.includes('-R') && argv.includes('--title') && argv.includes('--body-file'));
+      return mode === 'failed' ? { status: 1, stderr: '權限不足' } : { status: 0, stdout: 'https://example.test/2\n' };
+    } });
+    assert.equal(r.report.issues[0].mode, mode);
+    assert.equal(calls.length, mode === 'existing' ? 1 : 2);
+    assert.equal(r.exitCode, 0);
+  });
+}
 
 // Scenario: matching run includes described, verified and extracted items. Purpose: protect state transitions and incomplete descriptions.
 test('InterT60_狀態通過失敗尚未說明與類別降級', async (t) => {
