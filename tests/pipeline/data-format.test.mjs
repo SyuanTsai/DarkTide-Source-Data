@@ -49,6 +49,35 @@ test('UnitT46_release files must agree on schemaVersion',t=>{
  const skills=file('skills');skills.schemaVersion='1.1.0';writeFileSync(join(versionDir,'skills.json'),stringifyCanonical(skills));
  assert.ok(checkVersionDir(versionDir).errors.some(e=>e.path.endsWith('/schemaVersion')&&e.message==='Files disagree'));
 });
+// Scenario: current and its selected release use either supported schema version.
+// Purpose: reject both mismatch directions while preserving matching legacy releases.
+test('current schemaVersion matches selected release', (t) => {
+  for (const dataVersion of ['1.0.0', '1.1.0']) {
+    const root = mkdtempSync(join(tmpdir(), 'current-schema-'));
+    t.after(() => rmSync(root, { recursive: true, force: true }));
+    mkdirSync(join(root, 'data'), { recursive: true });
+    cpSync(`${base}/${dataVersion === '1.0.0' ? '0.0.0' : '1.1.0'}-example`, join(root, 'data', '0.0.0'), { recursive: true });
+    // The modern examples carry their own game version; use it for the selected directory.
+    const sample = JSON.parse(readFileSync(join(root, 'data', '0.0.0', 'skills.json'), 'utf8'));
+    if (sample.gameVersion !== '0.0.0') {
+      cpSync(join(root, 'data', '0.0.0'), join(root, 'data', sample.gameVersion), { recursive: true });
+      rmSync(join(root, 'data', '0.0.0'), { recursive: true });
+    }
+    mkdirSync(join(root, 'pipeline'));
+    writeFileSync(join(root, 'pipeline', 'state.json'), stringifyCanonical(emptyState()));
+    const current = { ...read(`${base}/current.json`), gameVersion: sample.gameVersion, path: `data/${sample.gameVersion}`, versions: [sample.gameVersion] };
+    for (const currentVersion of ['1.0.0', '1.1.0']) {
+      current.schemaVersion = currentVersion;
+      writeFileSync(join(root, 'data', 'current.json'), stringifyCanonical(current));
+      const result = spawnSync(process.execPath, ['pipeline/validate.mjs', '--root', root], { encoding: 'utf8' });
+      assert.equal(result.status, currentVersion === dataVersion ? 0 : 1, result.stderr);
+      if (currentVersion !== dataVersion) {
+        assert.match(result.stderr, new RegExp(`Current schemaVersion ${currentVersion} differs from data schemaVersion ${dataVersion}`));
+        assert.equal((result.stderr.match(/differs from data schemaVersion/g) || []).length, 4);
+      }
+    }
+  }
+});
 test('canonical JSON', () => {
   assert.equal(stringifyCanonical({ b: 1, a: 2 }), stringifyCanonical({ a: 2, b: 1 }));
   assert.match(stringifyCanonical({}), /\n$/);

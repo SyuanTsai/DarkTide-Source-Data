@@ -201,7 +201,7 @@ export function checkFileConsistency(values, keys = ['schemaVersion', 'gameVersi
   return errors;
 }
 
-export function checkVersionDir(dir) {
+export function checkVersionDir(dir, currentSchemaVersion) {
   const errors = [],
     values = [];
   for (const category of CATEGORIES) {
@@ -222,6 +222,8 @@ export function checkVersionDir(dir) {
     } catch {}
   }
   for (const { category, value } of values) {
+    if (currentSchemaVersion !== undefined && value?.schemaVersion !== currentSchemaVersion)
+      errors.push({ path: `/${category}.json/schemaVersion`, message: `Current schemaVersion ${currentSchemaVersion} differs from data schemaVersion ${value?.schemaVersion}` });
     if (value?.gameVersion !== basename(dir))
       errors.push({
         path: `/${category}.json/gameVersion`,

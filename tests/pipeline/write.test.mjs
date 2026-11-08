@@ -83,6 +83,30 @@ async function fixture(t, { previous = false, mismatch = false, repeated = false
   return { root, state, cloud, base, ai, previousData, cli, success, verify, write, validate, diffArgs, writeArgs, verifyArgs };
 }
 
+// Scenario: write and replay both supported release schemas.
+// Purpose: the current index follows final data and completed replay stays read-only.
+for (const schemaVersion of ['1.0.0', '1.1.0']) test(`write and replay current schema ${schemaVersion}`, async (t) => {
+  const f = await fixture(t); f.verify();
+  if (schemaVersion === '1.1.0') {
+    const reportPath = join(f.base, 'verify/report.json'), report = await read(reportPath);
+    for (const category of CATEGORIES) {
+      const path = join(f.base, 'candidate', `${category}.json`), candidate = await read(path);
+      candidate.schemaVersion = schemaVersion;
+      if (category === 'weapons') for (const item of candidate.items) {
+        item.values.curves = []; item.values.attackCombos = [];
+      }
+      await writeCanonicalFile(path, candidate);
+      report.categories[category].candidateSha256 = createHash('sha256').update(await readFile(path)).digest('hex');
+    }
+    await writeCanonicalFile(reportPath, report);
+  }
+  f.success(f.write()); f.validate();
+  assert.equal((await read(join(f.root, 'data/current.json'))).schemaVersion, schemaVersion);
+  const before = await snapshot(f.root);
+  f.success(f.write());
+  assert.deepEqual(await snapshot(f.root), before);
+});
+
 // Scenario: a failed description is corrected and verified again. Purpose: publish the new item after clearing the prior fallback.
 test('InterT23_corrected fallback can be verified and published', async (t) => {
   const f = await fixture(t, { previous: true }), id = f.previousData.skills.items[1].id;

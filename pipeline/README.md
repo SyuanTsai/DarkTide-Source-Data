@@ -186,7 +186,7 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 #### schema 1.1.0：曲線與連段
 
-四類 extractor 的資料檔一律寫 `schemaVersion: "1.1.0"`，同次發布四檔必須一致。驗證器仍接受 1.0.0：該版禁止 `values.curves`、`values.attackCombos` 與 `bars[].stats[].curveId`；1.1.0 三者必填。`schema/examples/1.1.0-example/` 提供新版範例，原 1.0.0 範例保留。current 索引 schema 同樣接受 1.0.0／1.1.0，保留舊索引相容；`state.json` 與 text 中間檔有獨立契約，維持 1.0.0。
+四類 extractor 的資料檔一律寫 `schemaVersion: "1.1.0"`，同次發布四檔必須一致。驗證器仍接受 1.0.0：該版禁止 `values.curves`、`values.attackCombos` 與 `bars[].stats[].curveId`；1.1.0 三者必填。`schema/examples/1.1.0-example/` 提供新版範例，原 1.0.0 範例保留。current 索引 schema 同樣接受 1.0.0／1.1.0，保留舊索引相容；current 索引的 `schemaVersion` 必須與其指向的四個資料檔一致。`state.json` 與 text 中間檔有獨立契約，維持 1.0.0。
 
 資料檔的 `explanation.effectOrigin` 為選填，僅 schema 1.1.0 以上的 blessings、skills 可使用；值限 `official` 或 `unofficial-translation`。此欄位由 pipeline 設定，AI output 不得包含；1.0.0、weapons 與 terms 均不得包含。缺少欄位仍為合法資料。
 
