@@ -19,7 +19,7 @@ function setup(t) {
 test('InterT10_weapon rows interpolate actual templates and preserve contracts',t=>{
  const f=setup(t),data=f.run(),w=data.items.find(x=>x.key==='autogun_p1_m1');
  assert.equal(data.status,'ok');assert.equal(data.items.length,3);
- assert.equal(data.schemaVersion,'1.1.0');
+ assert.equal(data.schemaVersion,'1.2.0');
  for(const item of data.items) {
   assert.ok(Array.isArray(item.values.damageProfiles));
   const ids=new Set(item.values.damageProfiles.map(p=>p.id));

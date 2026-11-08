@@ -85,10 +85,11 @@ async function fixture(t, { previous = false, mismatch = false, repeated = false
 
 // Scenario: write and replay both supported release schemas.
 // Purpose: the current index follows final data and completed replay stays read-only.
-for (const schemaVersion of ['1.0.0', '1.1.0']) test(`write and replay current schema ${schemaVersion}`, async (t) => {
+for (const schemaVersion of ['1.0.0', '1.1.0']) test(`InterT08_write and replay current schema ${schemaVersion}`, async (t) => {
   const f = await fixture(t); f.verify();
   if (schemaVersion === '1.1.0') {
     const reportPath = join(f.base, 'verify/report.json'), report = await read(reportPath);
+    report.targetSchemaVersion = schemaVersion;
     for (const category of CATEGORIES) {
       const path = join(f.base, 'candidate', `${category}.json`), candidate = await read(path);
       candidate.schemaVersion = schemaVersion;

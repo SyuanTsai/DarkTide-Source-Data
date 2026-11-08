@@ -9,7 +9,7 @@ import { playerWeaponTemplates, weaponPattern, bespokeTraitsForTemplate } from '
 import { StructureError } from './lib/errors.mjs';
 import { runExtractCli, itemId, nameFromText } from './lib/extract-output.mjs';
 
-const VERSION='pipeline/extract-weapons.mjs@1.1.0';
+const VERSION='pipeline/extract-weapons.mjs@1.2.0';
 const ROOT='scripts/settings/equipment/weapon_templates/';
 const UI='scripts/settings/ui/ui_weapon_pattern_settings.lua';
 const paths={ammo:'scripts/settings/equipment/weapon_handling_templates/weapon_ammo_templates.lua',dodge:'scripts/settings/dodge/weapon_dodge_templates.lua',sprint:'scripts/settings/sprint/weapon_sprint_templates.lua',stamina:'scripts/settings/stamina/weapon_stamina_templates.lua',movement_curve_modifier:'scripts/settings/equipment/weapon_handling_templates/weapon_movement_curve_modifier_templates.lua',charge:'scripts/settings/equipment/weapon_handling_templates/weapon_charge_templates.lua',warp_charge:'scripts/settings/warp_charge/weapon_warp_charge_templates.lua'};

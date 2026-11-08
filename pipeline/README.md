@@ -190,7 +190,9 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 #### schema 1.2.0
 
-支援資料版本為 `1.0.0`、`1.1.0`、`1.2.0`。以下 mechanics、valueSources、codeRefs、citations 僅允許 1.2.0；舊版出現時拒收。skills、blessings extractor 自 scriptVersion 1.2.0 產出機制與程式指紋，使用 schema 1.2.0；weapons、terms 維持 1.1.0。正式資料不會因執行 extractor 自動更新。`schema/examples/1.2.0-example/` 是示意資料，展示兩層 mechanics 與 displayParameter 勘誤錨點。
+支援資料版本為 `1.0.0`、`1.1.0`、`1.2.0`。四類 extractor 一律輸出 `schemaVersion: "1.2.0"`，同次正式發布四檔版本必須一致。以下 mechanics、valueSources、codeRefs、citations 僅允許 1.2.0 的 skills、blessings；weapons、terms 不帶這些新欄位，出現時仍拒收。skills、blessings extractor 自 scriptVersion 1.2.0 產出機制與程式指紋。正式資料不會因執行 extractor 自動更新。`schema/examples/1.2.0-example/` 是示意資料，展示兩層 mechanics 與 displayParameter 勘誤錨點。
+
+跨版本保留僅允許已支援舊版 `1.0.0`／`1.1.0` 單向提升至目前目標 `1.2.0`；相同 schema 的歷史發布仍可重播。verify 從本次 candidate／extract 取得共同發布目標並記入報告；全部缺少時使用目前目標 1.2.0，不沿用前版或已被 diff 標為 missing 的 cloud 舊檔版本。write 使用該目標重建；單項失敗與整類 kept-previous 都採用相同政策。保留項目沿用原 explanation、errata、citations、source 及既有 retainedFrom，沒有 retainedFrom 時依原規則記錄前版來源，不標成重新產生。降版、未知／未來版本、提升到非目前目標或提升後不合法的資料均 fail-closed，不發布。提升不補造欄位：例如合法的 1.0.0 weapons 缺少 1.1 以上必填的 curves、attackCombos、curveId，不能只改封套就發布為 1.2。最終仍須通過 schema、引用及四類版本一致檢查；current 索引格式不變。
 
 - C1：skills 的 `values.mechanics`、blessings 的 `values.mechanics` 與 `values.tiers[].mechanics` 為選填 object。key 符合 `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`；value 完全沿用 param（`value/unit?/unknown?`），null 必須有現有 unknown enum。weapons、terms 不接受 mechanics。
 - C2：僅 skills、blessings 可選填 `source.valueSources`；weapons、terms 出現時拒收，包含空物件。此欄位將相對於 values 的 JSON Pointer 對應至非空 `[{path,line}]`。pointer pattern 為 `^(/([^~/]|~[01])*)+$`；path 非空、line 為正整數，禁止額外 key。每個 mechanics（含 tier）必須有對應來源，每個 pointer 必須可解析；這是 Source-Data 額外驗證。不納入 fingerprint。
@@ -231,7 +233,7 @@ enum／boolean 的辨識條件也寫在 `mechanics*.mjs` 註解：
 
 #### schema 1.1.0：曲線與連段
 
-1.1.0 的四類 extractor 資料檔使用 `schemaVersion: "1.1.0"`；skills、blessings 現在升至 1.2.0，同次正式發布四檔仍必須一致。驗證器仍接受 1.0.0：該版禁止 `values.curves`、`values.attackCombos` 與 `bars[].stats[].curveId`；1.1.0 三者必填。`schema/examples/1.1.0-example/` 提供新版範例，原 1.0.0 範例保留。current 索引 schema 同樣接受 1.0.0／1.1.0，保留舊索引相容；current 索引的 `schemaVersion` 必須與其指向的四個資料檔一致。`state.json` 與 text 中間檔有獨立契約，維持 1.0.0。
+四類 extractor 現在一律輸出 `schemaVersion: "1.2.0"`；weapons、terms 不帶 mechanics、valueSources、codeRefs、citations，同次正式發布四檔仍必須一致。驗證器仍接受 1.0.0：該版禁止 `values.curves`、`values.attackCombos` 與 `bars[].stats[].curveId`；weapons 自 1.1.0 起三者必填。`schema/examples/1.1.0-example/` 提供曲線與連段範例，原 1.0.0 範例保留。current 索引 schema 接受 1.0.0／1.1.0／1.2.0，保留舊索引相容；current 索引的 `schemaVersion` 必須與其指向的四個資料檔一致。`state.json` 與 text 中間檔有獨立契約，維持 1.0.0。
 
 資料檔的 `explanation.effectOrigin` 為選填，僅 schema 1.1.0 以上的 blessings、skills 可使用；值限 `official` 或 `unofficial-translation`。此欄位由 pipeline 設定，AI output 不得包含；1.0.0、weapons 與 terms 均不得包含。缺少欄位仍為合法資料。
 

@@ -5,7 +5,7 @@ import { tokenizeLua, findLuaTableAssignment, getLuaTableFields, parseLuaStatic,
 import { StructureError } from './lib/errors.mjs';
 import { runExtractCli, itemId, nameFromText } from './lib/extract-output.mjs';
 
-const SCRIPT_VERSION = 'pipeline/extract-terms.mjs@1.0.0';
+const SCRIPT_VERSION = 'pipeline/extract-terms.mjs@1.2.0';
 const ARCHETYPES = 'scripts/settings/archetype/archetypes/';
 const PATTERNS = 'scripts/settings/ui/ui_weapon_pattern_settings.lua';
 const compare = (a,b) => a < b ? -1 : a > b ? 1 : 0;

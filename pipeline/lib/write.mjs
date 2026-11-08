@@ -7,6 +7,7 @@ import { readState, writeState, advanceItem, keepPrevious, completeRun } from '.
 import { resolveCloudRoot } from './cloud-dir.mjs';
 import { composeFinal } from './verify/compose.mjs';
 import { InputError, readJson, readCandidateBytes, sha256 } from './verify/input.mjs';
+import { releaseSchemaVersion } from './schema-migration.mjs';
 
 export class WriteError extends Error {}
 export function parseWriteArgs(args) {
@@ -147,10 +148,13 @@ export async function runWrite(inputOptions = {}) {
       : resolve(root, current.value.path);
   }
   const final = {};
+  let targetSchemaVersion;
+  try { targetSchemaVersion = releaseSchemaVersion([report.targetSchemaVersion, ...Object.values(candidates).map(file => file?.schemaVersion)]); }
+  catch (error) { throw new WriteError(error.message); }
   for (const category of CATEGORIES) {
     const previous = previousDir && previousDir !== 'none' ? (await safeJson(join(previousDir, `${category}.json`), `上一版/${category}.json`, true))?.value : null;
     try { final[category] = composeFinal({ category, status: report.categories[category].status,
-      candidate: candidates[category], previous, rows: report.items, version: run }); }
+      candidate: candidates[category], previous, rows: report.items, version: run, targetSchemaVersion }); }
     catch (error) { throw new WriteError(error.message); }
     for (const [id, item] of Object.entries(run.items)) {
       if (report.categories[category].status === 'ok' && item.category === category && item.change === 'removed' && item.stage !== 'written' &&

@@ -68,6 +68,7 @@ import './review42.test.mjs';
 import './schema12.test.mjs';
 import './schema12-category.test.mjs';
 import './schema12-io.test.mjs';
+import './schema-align.test.mjs';
 import './mechanics.test.mjs';
 import './mechanics-cli.test.mjs';
 import './mechanics-coverage.test.mjs';

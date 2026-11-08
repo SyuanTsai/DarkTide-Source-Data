@@ -7,6 +7,7 @@ import { createSourceReader } from './source-reader.mjs';
 import { loadTextIndex } from './official-text.mjs';
 import { readState, writeState, setCategory } from './state.mjs';
 import { StructureError } from './errors.mjs';
+import { RELEASE_SCHEMA_VERSION } from './schema-migration.mjs';
 
 const singular = {skills:'skill', weapons:'weapon', blessings:'blessing', terms:'term'};
 /** Create an ID conforming to the common data schema. */
@@ -17,8 +18,7 @@ export function itemId(category, ...parts) {
 }
 /** Validate extract items against WP1's data schema using envelope metadata. */
 export function validateExtractItems(category, items, envelope = {gameVersion:'0.0',sourceCommit:items[0]?.source?.commit ?? '0'.repeat(40),textBatch:items[0]?.source?.text?.batch ?? '0'}) {
-  const modern=['skills','blessings'].includes(category)&&(envelope.scriptVersion?.endsWith('@1.2.0')||items.some(i=>i.source?.codeRefs||i.values?.mechanics));
-  const value = {schemaVersion:modern?'1.2.0':'1.1.0', category, gameVersion:envelope.gameVersion, sourceCommit:envelope.sourceCommit, textBatch:envelope.textBatch,
+  const value = {schemaVersion:RELEASE_SCHEMA_VERSION, category, gameVersion:envelope.gameVersion, sourceCommit:envelope.sourceCommit, textBatch:envelope.textBatch,
     items:items.map(item => ({...item, explanation:{effect:'-',conditions:'',calculation:'',notes:'',extra:''}, errata:[]}))};
   const errors = checkDataFile(category, stringifyCanonical(value)).errors;
   items.forEach((item, i) => {
@@ -34,8 +34,7 @@ export async function writeExtract({workDir, category, envelope, items = [], pro
   const errors = validateExtractItems(category, sorted, envelope);
   if (errors.length) throw new Error(`extract 驗證失敗：${JSON.stringify(errors)}`);
   const compare = (a,b) => { const x = stringifyCanonical(a), y = stringifyCanonical(b); return x < y ? -1 : x > y ? 1 : 0; };
-  const modern=['skills','blessings'].includes(category)&&(envelope.scriptVersion?.endsWith('@1.2.0')||items.some(i=>i.source?.codeRefs||i.values?.mechanics));
-  await writeCanonicalFile(path.join(workDir,'extract',`${category}.json`), {schemaVersion:modern?'1.2.0':'1.1.0', category, ...envelope, status:envelope.status || 'ok', reason:envelope.reason || null, problems:[...problems].sort(compare), excluded:[...excluded].sort(compare), items:sorted,...(effectFormats?{effectFormats}:{})});
+  await writeCanonicalFile(path.join(workDir,'extract',`${category}.json`), {...envelope, schemaVersion:RELEASE_SCHEMA_VERSION, category, status:envelope.status || 'ok', reason:envelope.reason || null, problems:[...problems].sort(compare), excluded:[...excluded].sort(compare), items:sorted,...(effectFormats?{effectFormats}:{})});
   if(mechanicsStats)console.log(`mechanics：codeRefs ${mechanicsStats.codeRefs}、略過 symbol ${mechanicsStats.skippedSymbols}`);
 }
 /** Execute an extractor with pinned inputs, state updates, and structural fallback. */
