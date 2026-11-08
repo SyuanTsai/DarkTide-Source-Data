@@ -5,6 +5,7 @@ import { luaBlockEnd } from './lua-effects.mjs';
 import { specialMechanics } from './mechanics-special.mjs';
 import { stimmDefinitions } from './skill-structure.mjs';
 import { buffRules } from './mechanics-buff-rules.mjs';
+import { isFinesseStat, statConsumer } from './mechanics-stat-consumers.mjs';
 
 const BUFFS='scripts/settings/buff/buff_templates.lua';
 const TYPES='scripts/settings/buff/buff_settings.lua';
@@ -61,9 +62,9 @@ export function createMechanics(reader) {
   }
   const nodeSource=n=>n?.file?[{path:n.file,line:n.line}]:[];
   function scalar(parts,n,extra=[],target,pointer){const trace=[...extra];const v=r.scalar(n,trace);put(parts,v,trace,v===null||!['number','boolean','string'].includes(typeof v),target,pointer);}
-  function rule(parts,file,pattern,value,scope){if(!reader.exists(file)){problem(keyOf(parts),file,'找不到規則來源');return false;}const tokens=tokenizeLua(scope?.raw??reader.read(file)),expected=tokenizeLua(pattern).filter(t=>t.type!=='eof'),offset=scope?(scope.line??1)-1:0;
+  function rule(parts,file,pattern,value,scope,extra=[],target,pointer){if(!reader.exists(file)){problem(keyOf(parts),file,'找不到規則來源');return false;}const tokens=tokenizeLua(scope?.raw??reader.read(file)),expected=tokenizeLua(pattern).filter(t=>t.type!=='eof'),offset=scope?(scope.line??1)-1:0;
    for(let i=0;i+expected.length<=tokens.length;i++)if(expected.every((t,j)=>t.type===tokens[i+j].type&&t.value===tokens[i+j].value)){
-    put(parts,value,[{path:file,line:tokens[i].line+offset},{path:file,line:tokens[i+expected.length-1].line+offset}]);return true;
+    put(parts,value,[...extra,...tokens.slice(i,i+expected.length).map(t=>({path:file,line:t.line+offset}))],false,target,pointer);return true;
    }
    problem(keyOf(parts),file,'來源不符合固定 token 規則');return false;
   }
@@ -99,10 +100,14 @@ export function createMechanics(reader) {
       // Generated prefixes can collide only with the identical declared type.
       if(String(stat).startsWith('damage_vs_')&&typeResolver.scalar(type)!=='additive_multiplier'||String(stat).startsWith('damage_taken_by_')&&typeResolver.scalar(type)!=='multiplicative_multiplier')type=null;
       if(type)scalar([...base,'aggregation'],type,[],target,pointer);
-      if(/finesse|weakspot|critical.*damage/.test(String(stat))){
+      const consumer=statConsumer(stat);
+      if(consumer&&rule([...base,'consumer_stage'],consumer.file,consumer.pattern,consumer.stage,undefined,sources[(pointer??'/mechanics/')+keyOf([...base,'raw'])]??[],target,pointer)){
+       const trace=sources[(pointer??'/mechanics/')+keyOf([...base,'consumer_stage'])]??[];
+       if(isFinesseStat(stat)){
        scalar(['finesse',name,...path,k,stat,'raw'],value,[],target,pointer);
-       rule(['finesse',name,'scope'],DAMAGE,'local final_finesse_damage = base_finesse_damage * finesse_buff_damage_multiplier','finesse_bonus');
-       rule(['finesse',name,'critical_weakspot_single_bonus'],DAMAGE,'local is_finesse_hit = is_critical_strike or hit_weakspot',true);
+       rule(['finesse',name,'scope'],DAMAGE,'local final_finesse_damage = base_finesse_damage * finesse_buff_damage_multiplier','finesse_bonus',undefined,trace);
+       rule(['finesse',name,'critical_weakspot_single_bonus'],DAMAGE,'local is_finesse_hit = is_critical_strike or hit_weakspot',true,undefined,trace);
+       }
       }
       if(stat==='ammo_reserve_capacity'){
        scalar(['ammo',name,...path,'reserve_bonus'],value,[],target,pointer);
@@ -118,7 +123,7 @@ export function createMechanics(reader) {
   function buff(name){if(seen.has('buff:'+name))return;seen.add('buff:'+name);const n=r.get(buffs(),name);
    if(!n)return;code.node(n);if(n.type!=='table'){scalar(['buff',name,'definition'],n);return;}
    flatten(n,['buff',name]);statRules(n,name);buffRules({r,reader,rule,put,scalar,code},n,name);
-   for(const [stat,value]of r.entries(r.get(n,'stat_buffs')))if(/finesse|weakspot|critical.*damage/.test(String(stat))){const raw=r.scalar(value),capNode=r.get(n,'max_stacks'),cap=r.scalar(capNode);if(typeof raw==='number'&&typeof cap==='number'&&cap>=1)put(['finesse',name,stat,'maximum_raw'],raw*cap,[...nodeSource(value),...nodeSource(capNode)]);}
+   for(const [stat,value]of r.entries(r.get(n,'stat_buffs')))if(isFinesseStat(stat)){const trace=[],raw=r.scalar(value,trace),capNode=r.get(n,'max_stacks'),cap=r.scalar(capNode,trace);if(typeof raw==='number'&&typeof cap==='number'&&cap>=1)put(['finesse',name,stat,'maximum_raw'],raw*cap,trace);}
    const refresh=r.get(n,'refresh_duration_on_stack'),allow=r.get(n,'allow_proc_while_active');
    if(r.scalar(refresh)===true)put(['buff',name,'refresh'],'restart_shared_timer',nodeSource(refresh));
    // Standard ProcBuff updates one active window; it does not create a stack

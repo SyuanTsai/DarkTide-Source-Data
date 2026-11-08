@@ -5,6 +5,17 @@ import { numberRule } from './mechanics-special.mjs';
 export function buffRules(c,n,name) {
  const {r}=c,get=k=>r.get(n,k),cls=r.scalar(get('class_name'));
  const key=x=>['buff',name,x];
+ // A timed stack count is not an interface priority. Require the explicit
+ // expiry/removal/refresh consumers before recording Buff.remove_stack's -1.
+ if(cls==='buff'&&typeof r.scalar(get('duration'))==='number'&&r.scalar(get('max_stacks'))>1&&r.scalar(get('refresh_duration_on_remove_stack'))===true){
+  const file='scripts/extension_systems/buff/buffs/buff.lua',base='scripts/extension_systems/buff/buff_extension_base.lua';
+  const expires=c.rule(key('expiry_requests_removal'),file,'if t > start_time + total_duration then self._finished = true end',true);
+  const removes=c.rule(key('finished_requests_removal'),base,'local finished = buff_instance:finished() local should_remove_stack, last_stack = buff_instance:should_remove_stack() if finished or should_remove_stack then self:_remove_internally_controlled_buff(index) end',true);
+  const refreshes=c.rule(key('removal_restarts_timer'),base,'if current_stack_count > 1 then buff_instance:remove_stack() self:_on_remove_buff_stack(buff_instance, current_stack_count) if buff_instance:refresh_duration_on_remove_stack() then local max_stacks = buff_instance:max_stacks() if current_stack_count <= max_stacks then local t = FixedFrame.get_latest_fixed_time() buff_instance:set_start_time(t) end end',true);
+  if(expires&&removes&&refreshes){const trace=[];for(const field of ['class_name','duration','max_stacks','refresh_duration_on_remove_stack'])r.scalar(get(field),trace);
+   c.rule(key('removed_stacks'),file,'Buff.remove_stack = function (self) local current_stack_count = self:stack_count() local new_stack_count = current_stack_count - 1 self:set_stack_count(new_stack_count) return new_stack_count end',1,undefined,trace);
+  }
+ }
  const update=get('update_func');
  const timerShape='function (template_data, template_context, dt, t) if not template_context.is_server then return end if t > template_data.timer then template_data.timer = template_data.timer + 1 template_data.ability_extension:restore_ability_resource("combat_ability", talent_settings.terminus_warrant.cdr) end end';
  if(update?.type==='function'&&normalizeLua(update.raw)===normalizeLua(timerShape)){
@@ -42,7 +53,8 @@ export function buffRules(c,n,name) {
   const bonus=get('bonus_step_func');
   if(bonus?.type==='function'&&/localsteps=math\.floor\(\(1-current_stamina_fraction\)\/[0-9.]+\)/.test(normalizeLua(bonus.raw))){
    numberRule(c,['stat_rule',name,'stamina_step_fraction'],bonus.file,'local steps = math.floor((1-current_stamina_fraction)/NUMBER)',bonus);
-   c.rule(['stat_rule',name,'stamina_rounding'],bonus.file,normalizeLua(bonus.raw).match(/localsteps=math\.floor\(\(1-current_stamina_fraction\)\/[0-9.]+\)/)[0],'floor',bonus);
+   const fraction=normalizeLua(bonus.raw).match(/localsteps=math\.floor\(\(1-current_stamina_fraction\)\/([0-9.]+)\)/)[1];
+   c.rule(['stat_rule',name,'stamina_rounding'],bonus.file,`local steps = math.floor((1-current_stamina_fraction)/${fraction})`,'floor',bonus);
   }
  }
 }

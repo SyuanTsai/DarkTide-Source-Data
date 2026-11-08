@@ -9,7 +9,6 @@ import { createMechanics } from '../../pipeline/lib/mechanics.mjs';
 import { createSourceReader } from '../../pipeline/lib/source-reader.mjs';
 import { siblingRepo } from '../../pipeline/lib/inputs.mjs';
 import { loadTextIndex } from '../../pipeline/lib/official-text.mjs';
-import { coverage } from '../../scripts/mechanics-coverage.mjs';
 import { spawnSync } from './test-env.mjs';
 
 function files() {
@@ -82,7 +81,7 @@ test('UnitT30_ammo floor and clip isolation require explicit consumers',()=>{
 // Purpose: distinguish extra finesse damage from a fixed final-damage multiplier.
 test('UnitT40_finesse scope requires the named extra damage expression',()=>{
  const map=files();map.set('scripts/settings/buff/test.lua','return {shared={stat_buffs={critical_strike_damage=0.25}}}');
- map.set('scripts/utilities/attack/damage_calculation.lua','local final_finesse_damage = base_finesse_damage * finesse_buff_damage_multiplier');
+ map.set('scripts/utilities/attack/damage_calculation.lua','local critical_damage = stat_buffs.critical_strike_damage or 1\nlocal final_finesse_damage = base_finesse_damage * finesse_buff_damage_multiplier');
  assert.equal(extract(map)[0].values.mechanics['finesse.shared.scope'].value,'finesse_bonus');
 });
 // Scenario: an activated parent consumes an exact successful-sweep predicate.
@@ -95,15 +94,6 @@ test('UnitT50_parent buff lifecycle requires sweep predicate and class branches'
  assert.equal(m['buff.shared.clear_on_missed_sweep']?.value,true);
  assert.equal(m['buff.shared.refresh_on_successful_sweep']?.value,true);
 });
-// Scenario: a coverage record contains a real duration and an editorial example.
-// Purpose: reject absent source numbers and report exclusions without inventing values.
-test('UnitT60_coverage rejects missing constants and records editorial inputs',()=>{
- const id='darktide:skill:test:alpha',inv={items:[{groupId:'B1-skills',category:'skills',recoverableByFixedScript:true,newId:id,missingIndex:0,oldText:'持續 9 秒',proposedValue:{duration:9},linkPath:'BuffTemplates.shared.duration'},{groupId:'A1-skills',category:'skills',recoverableByFixedScript:true,newId:id,missingIndex:1,kind:'example',oldText:'原本101發，乘1.25取整126發',proposedValue:{rounding:'floor'}}]};
- const items=extract(files());items[0].values.mechanics['ammo.shared.rounding']={value:'floor'};
- const result=coverage(inv,{skills:{items},blessings:{items:[]}});
- assert.equal(result.items[0].status,'notCovered');assert.ok(result.items[0].reasons.some(r=>r.includes('9')));
- assert.equal(result.items[1].status,'covered');assert.ok(result.items[1].numericChecks.filter(n=>[101,126].includes(n.value)).every(n=>n.status==='editorial'));
-});
 // Scenario: a callback name is overwritten and a function refers to another helper.
 // Purpose: skip ambiguous names and stop function tracking after one level.
 test('UnitT70_codeRefs skip overwritten names and stop at one function level',()=>{
@@ -115,15 +105,21 @@ test('UnitT70_codeRefs skip overwritten names and stop at one function level',()
 // Scenario: two blessing tiers override the same buff with distinct constants.
 // Purpose: retain tier identity and source pointers even when a base value matches.
 test('UnitT80_blessing tier mechanics retain exact override sources',()=>{
- const map=files();map.set('trait.lua','return {buffs={shared={{duration=5},{duration=9}}}}');
+ const map=files();map.set('trait.lua','return {buffs={shared={{duration=5,stat_buffs={critical_strike_damage=0.1}},{duration=9,stat_buffs={critical_strike_damage=0.2}}}}}');
  map.set('scripts/settings/buff/test.lua',map.get('scripts/settings/buff/test.lua').replace('stat_buffs={damage=0.25}','stat_buffs={damage=0.25,critical_strike_damage=0.5}'));
- map.set('scripts/utilities/attack/damage_calculation.lua','local final_finesse_damage = base_finesse_damage * finesse_buff_damage_multiplier');
+ map.set('scripts/utilities/attack/damage_calculation.lua','local critical_damage = stat_buffs.critical_strike_damage or 1\nlocal final_finesse_damage = base_finesse_damage * finesse_buff_damage_multiplier');
  const engine=createMechanics(reader(map)),item={id:'darktide:blessing:test',key:'test',values:{params:{},tiers:[{tier:1,params:{}},{tier:2,params:{}}]},source:{}};
  engine.blessing(item,engine.r.returned('trait.lua'));
  assert.equal(item.values.tiers[0].mechanics['buff.shared.override.duration'].value,5);assert.equal(item.values.tiers[1].mechanics['buff.shared.override.duration'].value,9);
  assert.equal(item.values.mechanics['stat_rule.shared.stat_buffs.damage.aggregation'].value,'number');
  assert.equal(item.values.mechanics['buff.shared.refresh'].value,'restart_shared_timer');
  assert.equal(item.values.mechanics['finesse.shared.scope'].value,'finesse_bonus');
+ const stage='stat_rule.shared.override.stat_buffs.critical_strike_damage.consumer_stage';
+ assert.equal(item.values.mechanics[stage],undefined);
+ for(let i=0;i<2;i++){
+  assert.equal(item.values.tiers[i].mechanics[stage]?.value,'finesse_bonus');
+  assert.ok(item.source.valueSources[`/tiers/${i}/mechanics/${stage}`]?.some(s=>s.path==='trait.lua'));
+ }
  for(let i=0;i<2;i++)assert.deepEqual(item.source.valueSources[`/tiers/${i}/mechanics/buff.shared.override.duration`],[{path:'trait.lua',line:1}]);
 });
 // Scenario: the same template exposes a lerped stat and per-step stat tables.

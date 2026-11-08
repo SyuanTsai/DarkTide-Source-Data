@@ -207,7 +207,7 @@ mechanics 是扁平 `key → param`，沒有巢狀規則物件。template 名、
 | `buff.<template>.` | BuffTemplates 的純量、duration、max_stacks、child_duration、刷新旗標、talent_overrides | talent 的 passive／buff 名、trait buffs key、明示子 buff 名，以及已連結 callback 的字面 buff 名；保留各覆寫路徑 |
 | `stat_rule.<template>.` | stat_buffs、proc_stat_buffs、conditional_stat_buffs、lerped_stat_buffs、stepped_stat_buffs；BuffSettings.stat_buff_types | 原始值與 stat 類型分別取數；lerped 保留端點，stepped 保留每個 step，不能當作最終值 |
 | `stat_rule.distance.`／`stat_rule.stagger_count.` | DamageSettings 與 damage_calculation | 只有已連結的近／遠距或 stagger_count stat 才收對應消費式與界線 |
-| `finesse.<template>.` | critical／weakspot／finesse stat 與 `_finesse_boost_damage` | 必須辨識額外傷害乘式；scope=`finesse_bonus`，同時爆擊與弱點走同一次 finesse 計算 |
+| `finesse.<template>.` | 明確白名單 stat 與 `_finesse_boost_damage` | 先辨識該 stat 的實際消費式，再辨識額外傷害乘式；scope=`finesse_bonus`，同時爆擊與弱點走同一次 finesse 計算。power／stagger weakspot stat 分別留在 `stat_rule.<template>.<path>.<stat>.consumer_stage` 的 power_level_input／stagger_reduction |
 | `ability.<context>.` | PlayerAbilities、ability template、W1 weapon actions、charge templates | 直接 player_ability 參照、archetype 明示的 base talent，或相同 ability stat 的消費關係；不同 action／鎖定模式分開 |
 | `ammo.<template>.` | ammo_reserve_capacity 與 WeaponExtension 分開的 reserve／clip 指派 | reserve_bonus 為原始比例；floor 和 affects_clip=false 需對應的 reserve 及 clip 消費式證明 |
 | `area_buff.drone.` | area_buff_drone.deployable.relation_init_data 與 ProximityAreaBuffDrone | allied／enemy、improved、兩個升級保留原名；離開與 destroy 的移除呼叫各自辨識 |
@@ -217,14 +217,13 @@ enum／boolean 的辨識條件也寫在 `mechanics*.mjs` 註解：
 
 - aggregation 直接取 `stat_buff_types` 的字串，不能從 stat 名猜加乘。minion 的固定生成 loop 只寫 `damage_vs_`／`damage_taken_by_`；對其他 stat 是 no-op，生成前綴若與明示值碰撞，只接受與該 loop 完全相同的類型。投影保留原行號，其餘程式照常經共用 resolver 的 binding／mutation 檢查。broker stimm 使用與原 extractor 相同的有限 DSL key 集合。
 - `restart_shared_timer` 需明示 refresh_duration_on_stack=true，或已辨識 parent class 的子 buff timer 重設分支。`restart_proc_active_window` 需標準 ProcBuff 與 allow_proc_while_active=true。單一 proc_stat_buffs 貢獻的 boolean 由 ProcBuff 的 `_calculate_stat_buffs` 呼叫判定。
+- `removed_stacks=1` 限定有 duration、max_stacks>1、refresh_duration_on_remove_stack=true 的 buff class；須辨識到期、完成後要求移除、移除後重設時間的分支，以及完整 `Buff.remove_stack` 方法內的 `current_stack_count - 1`。UI 欄位無法提供此計數。
 - activated parent 的 missed-sweep／successful-sweep 規則，要求整個 callback 恰為 `return params.num_hit_units > 0`，並核對 parent 的刪除／刷新分支。target-number parent 的 shared timer 由 last_hit_time 欄位判定。stepped cap 只接受完整的常值 min/max return。
 - floor／ceil、嚴格大於、離開移除、傷害／韌性結算階段等，採固定 token 序列辨識；註解不是證據，數字需是 number token。動態欄位輸出 DYNAMIC_VALUE；來源不存在、形狀不符或規則不匹配回報 MECHANICS_UNKNOWN，不能沿用舊數字。
 
 每一 mechanics 的 values 相對 JSON Pointer 都有 valueSources；數值沿 resolver trace 記實際常數及參照來源。行號只存在來源欄位。codeRefs 每次由原始碼重新建立：使用詞法 symbol 路徑（匿名 return table 為 `return_table`，重複定義以固定序號區分），收錄連結鏈的表及表內明示名稱函式一層；inline function 已在表雜湊中。無法確定的 symbol 略過並在 stdout 統計。正規化先用 Lua tokenizer 排除字串外註解，再去除所有 whitespace（包括字串內的 whitespace），依 C3 計算 UTF-8 SHA-256，不保存行號或時間。
 
-`scripts/mechanics-coverage.mjs <inventory.json> <extract-dir> <output.json>` 只做驗收，盤點值不供 extractor 使用。它列出每筆的 exact pointer、數字匹配／缺少／算例排除與原因。來源比例可用原值、絕對值、×100 呈現；stat 的加成倍率可由 `1+ratio` 表示，減傷倍率可由 `1-ratio`／`abs(1-ratio)×100` 表示。假設的基礎傷害／彈數、其他加成、經過秒數及算例結果不寫入 values。常值規則的來源乘積（如 raw stat × max_stacks）與名目總量保留全部輸入來源；不把這些量當作遊戲最終傷害。沒有足夠證明的項目仍列 notCovered。
-
-`scripts/mechanics-acceptance.mjs` 比對兩次 extract bytes、既有逐筆欄位、schema、mechanics/valueSources/codeRefs 統計，並只在指定暫存 root 建立 validate 輸入。原有 data 不變。
+通用數字驗證 helper `lib/mechanics-coverage.mjs` 只比對呼叫端明確指定的語意欄位（可限制 tier pointer），禁止掃整個模板尋找同值。單位換算也須逐欄位明示：identity、absolute、percent（×100）、absolute_percent、bonus_multiplier（1+ratio）、remaining_multiplier（1-ratio）、reduction_percent（abs(1-ratio)×100）。假設輸入和算例結果不寫入 values。常值規則的來源乘積（如 raw stat × max_stacks）保留所有輸入的 resolver trace；固定多行規則的 valueSources 收錄每個匹配 token 所在行，不能將首尾行視為範圍。
 
 #### schema 1.1.0：曲線與連段
 
