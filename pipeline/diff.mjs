@@ -84,7 +84,12 @@ async function main() {
     const effectTask=Object.hasOwn(input,'lockedEffect')?{lockedEffect:input.lockedEffect}:Object.hasOwn(input,'effectTask')?{effectTask:input.effectTask}:undefined;
     if (input.inputHash !== entry.inputHash || output.inputHash !== entry.inputHash || inputHashFor(entry.category, entry.change, input.item, undefined, effectTask) !== entry.inputHash) throw new Error('inputHash 不符；說明可能已過期，請依新輸入重寫');
     const explanation=effectTask?applyEffectTask(output.explanation,effectTask):output.explanation;
-    checked(checkDataFile(entry.category, stringifyCanonical(dataFile(entry.category, run, [{ ...input.item, explanation, errata: output.errata }], entry.category === 'weapons' && !Object.hasOwn(input.item.values, 'curves') ? '1.0.0' : '1.1.0'))), logical(outputPath));
+    const versionItems = [input.item];
+    for (const category of CATEGORIES) {
+      const text = await optional(join(layout.extract, `${category}.json`));
+      if (text !== null) versionItems.push(...(parse(text, `extract/${category}.json`).items ?? []));
+    }
+    checked(checkDataFile(entry.category, stringifyCanonical(dataFile(entry.category, run, [{ ...input.item, explanation, errata: output.errata, ...(output.citations === undefined ? {} : {citations: output.citations}) }], input.dataSchemaVersion ?? (entry.category === 'weapons' && !Object.hasOwn(input.item.values, 'curves') ? '1.0.0' : '1.1.0'))), versionItems), logical(outputPath));
     if (entry.outcome === 'kept-previous') state = reopenItem(state, id);
     state = advanceItem(state, id, 'described'); await writeState(stateFile, state);
     console.log(`已標記：${id}`); return;
@@ -99,6 +104,11 @@ async function main() {
   const currentPath = join(dataDir, 'current.json'), currentText = await optional(currentPath);
   let previousVersion = null;
   if (currentText !== null) { checked(checkCurrent(currentText), logical(currentPath)); previousVersion = parse(currentText, logical(currentPath)).gameVersion; }
+  const previousItems = [];
+  if (previousVersion !== null) for (const category of CATEGORIES) {
+    const file = join(dataDir, previousVersion, `${category}.json`), text = await optional(file);
+    if (text !== null) previousItems.push(...(parse(text, logical(file)).items ?? []));
+  }
   const report = { schemaVersion: '1.0.0', ...Object.fromEntries(fields.map((k) => [k, run[k]])), previousGameVersion: previousVersion, categories: {} };
   const registrations = [], inputs = [];
   let extractVersion, previousSchemaVersion;
@@ -107,7 +117,7 @@ async function main() {
     const blank = { added: [], changed: [], removed: [], unchanged: [] };
     if (text === null) { report.categories[category] = { status: 'missing', reason: null, ...blank }; console.log(`缺少 extract：${category}（該類別保留上一版）`); continue; }
     const extract = parse(text, logical(file));
-    if (!extract || typeof extract !== 'object' || extract.category !== category || !['1.0.0', '1.1.0'].includes(extract.schemaVersion) || !['ok', 'structure-mismatch'].includes(extract.status) || !Array.isArray(extract.items) || !Array.isArray(extract.problems) || !Array.isArray(extract.excluded) || !(extract.reason === null || typeof extract.reason === 'string') || typeof extract.scriptVersion !== 'string') throw new Error(`extract 格式錯誤：${logical(file)}`);
+    if (!extract || typeof extract !== 'object' || extract.category !== category || !['1.0.0', '1.1.0', '1.2.0'].includes(extract.schemaVersion) || !['ok', 'structure-mismatch'].includes(extract.status) || !Array.isArray(extract.items) || !Array.isArray(extract.problems) || !Array.isArray(extract.excluded) || !(extract.reason === null || typeof extract.reason === 'string') || typeof extract.scriptVersion !== 'string') throw new Error(`extract 格式錯誤：${logical(file)}`);
     if (extractVersion && extractVersion !== extract.schemaVersion) throw new Error('extract schemaVersion 不一致');
     extractVersion = extract.schemaVersion;
     for (const key of fields) if (extract[key] !== run[key]) throw new Error(`${logical(file)} 的 ${key} 與 state 不符`);
@@ -116,10 +126,10 @@ async function main() {
     let previous = [];
     if (previousVersion !== null) {
       const prevFile = join(dataDir, previousVersion, `${category}.json`), prevText = await optional(prevFile);
-      if (prevText !== null) { checked(checkDataFile(category, prevText), logical(prevFile)); const prev = parse(prevText, logical(prevFile)); if (previousSchemaVersion && previousSchemaVersion !== prev.schemaVersion) throw new Error('資料檔 schemaVersion 不一致'); previousSchemaVersion = prev.schemaVersion; if (prev.gameVersion !== previousVersion) throw new Error(`${logical(prevFile)} 的 gameVersion 不符`); previous = prev.items; }
+      if (prevText !== null) { checked(checkDataFile(category, prevText, previousItems), logical(prevFile)); const prev = parse(prevText, logical(prevFile)); if (previousSchemaVersion && previousSchemaVersion !== prev.schemaVersion) throw new Error('資料檔 schemaVersion 不一致'); previousSchemaVersion = prev.schemaVersion; if (prev.gameVersion !== previousVersion) throw new Error(`${logical(prevFile)} 的 gameVersion 不符`); previous = prev.items; }
     }
     const diff = diffCategory(category, previous, extract.items);
-    if (extract.schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)) {
+    if (['1.1.0','1.2.0'].includes(extract.schemaVersion) && ['skills','blessings'].includes(category)) {
       const oldById=new Map(previous.map(item=>[item.id,item])), newById=new Map(extract.items.map(item=>[item.id,item]));
       diff.unchanged=diff.unchanged.filter(id=>{
         const task=effectTaskFor(newById.get(id),textIndex,extract.effectFormats?.[id]);
@@ -132,12 +142,12 @@ async function main() {
     const oldMap = new Map(previous.map((item) => [item.id, item])), newMap = new Map(extract.items.map((item) => [item.id, item]));
     for (const change of ['added', 'changed', 'removed']) for (const id of diff[change]) {
       const item = newMap.get(id), old = oldMap.get(id);
-      const effectTask=change!=='removed' && extract.schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)?effectTaskFor(item,textIndex,extract.effectFormats?.[id]):undefined;
+      const effectTask=change!=='removed' && ['1.1.0','1.2.0'].includes(extract.schemaVersion) && ['skills','blessings'].includes(category)?effectTaskFor(item,textIndex,extract.effectFormats?.[id]):undefined;
       const inputHash = inputHashFor(category, change, item, old, effectTask);
       registrations.push({ id, category, change, inputHash });
       if (change !== 'removed') {
-        const prev = old ? { gameVersion: previousVersion, name: old.name, official: old.official, values: old.values, explanation: old.explanation, errata: old.errata } : null;
-        const input = { schemaVersion: '1.0.0', id, category, change, ...Object.fromEntries(fields.map((k) => [k, run[k]])), inputHash, item, previous: prev, glossary: { source: glossary?.source ?? null, matches: matchGlossary(glossary?.entries ?? [], [item.name.en, item.official.en, prev?.name.en, prev?.official.en]) }, outputFile: `ai/output/${itemFileName(id)}`,...effectTask };
+        const prev = old ? { gameVersion: previousVersion, name: old.name, official: old.official, values: old.values, explanation: old.explanation, errata: old.errata, ...(old.citations === undefined ? {} : {citations: old.citations}) } : null;
+        const input = { schemaVersion: '1.0.0', dataSchemaVersion: extract.schemaVersion, id, category, change, ...Object.fromEntries(fields.map((k) => [k, run[k]])), inputHash, item, previous: prev, glossary: { source: glossary?.source ?? null, matches: matchGlossary(glossary?.entries ?? [], [item.name.en, item.official.en, prev?.name.en, prev?.official.en]) }, outputFile: `ai/output/${itemFileName(id)}`,...effectTask };
         checked(schemas.validate('ai-input.schema.json', input), `AI 輸入 ${id}`); inputs.push(input);
       }
     }

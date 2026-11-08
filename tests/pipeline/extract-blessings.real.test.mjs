@@ -21,12 +21,23 @@ test('InterT90_real blessings pinned smoke', {skip:process.env.PIPELINE_REAL_SMO
     const currentTier=Number.isInteger(value.tier)?value.tier:tier;
     for(const [name, child] of Object.entries(value)) collect(child,key,inParams?name:param,currentTier,name==='params');
   };
-  for(const item of data.items) collect(item,item.key);
+  // Scenario: current finite helpers recover the former eight function values.
+  // Purpose: pin only legacy display-param unknowns; mechanics has separate fail-closed coverage.
+  for(const item of data.items) collect({params:item.values.params,tiers:item.values.tiers.map(({tier,params})=>({tier,params}))},item.key);
+  assert.equal(unknown.length,12);
   const sortUnknown=(a,b)=>a.key.localeCompare(b.key)||(a.param??'').localeCompare(b.param??'')||(a.tier??0)-(b.tier??0);
   // 5a6371b 加入角度轉換靜態求值後，兩個 enhanced_arc_jumps_angle 的 angle 已能求值，unknown 從 20 減為 12。
   const expected=['galvanic_rifle_p1_increases_power_while_aiming','phosphor_pistol_p1_increases_power_while_aiming','shotpistol_shield_p1_windup_increases_power']
     .flatMap(key=>[1,2,3,4].map(tier=>({key:`weapon_trait_bespoke_${key}`,param:'power_level',tier})));
   assert.deepEqual(unknown.sort(sortUnknown),expected.sort(sortUnknown));
+  const unresolved=data.problems.filter(p=>p.code==='UNRESOLVED_VALUE');
+  assert.equal(unresolved.length,12);
+  assert.ok(unresolved.every(p=>p.message.startsWith('[DYNAMIC_MANIPULATION]')));
+  assert.deepEqual([...new Set(unresolved.map(p=>p.id))].sort(),[
+    'darktide:blessing:weapon_trait_bespoke_galvanic_rifle_p1_increases_power_while_aiming',
+    'darktide:blessing:weapon_trait_bespoke_phosphor_pistol_p1_increases_power_while_aiming',
+    'darktide:blessing:weapon_trait_bespoke_shotpistol_shield_p1_windup_increases_power',
+  ]);
   const count=xs=>xs.reduce((a,k)=>(a[k]=(a[k]||0)+1,a),{});
   t.diagnostic(JSON.stringify({items:data.items.length,excluded:data.excluded.length,unknown:unknown.length,official:data.items.filter(x=>x.name.origin==='official').length,problems:count(data.problems.map(p=>p.code)),unresolvedReasons:count(data.problems.filter(p=>p.code==='UNRESOLVED_VALUE').map(p=>/^\[([^\]]+)\]/.exec(p.message)?.[1]??'UNCLASSIFIED'))}));
   const dumdum=data.items.find(x=>x.key==='weapon_trait_bespoke_autogun_p1_consecutive_hits_increases_close_damage');

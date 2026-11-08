@@ -106,7 +106,7 @@ test('UnitT47_append_errata_requires_a_real_anchor_and_passes_existing_gates', (
   const plan = buildMigration(inputs('造成 10 傷害。', item)), task = plan.tasks[0], patch = patchFor(task);
   assert.equal(task.allowedChanges.appendErrata, true);
   assert.deepEqual(task.allowedChanges.ranges, []);
-  const entry = { locale: 'en', official: '20', corrected: '10', valueRef: '/params/damage/value',
+  const entry = { locale: 'en', official: '20', corrected: '10', valueRefs: ['/params/damage/value'], sources: [{ path: 'scripts/example.lua', line: 1 }],
     anchor: { field: 'official', locale: 'en', text: '20', occurrence: 1 } };
   patch.errata = [entry];
   const candidate = applyPatch(task, patch);

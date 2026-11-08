@@ -33,14 +33,14 @@ export function composeCandidate({ category, run, extract, previous, unchanged =
         schemas.validate('ai-output.schema.json', output).valid && output.id === item.id && output.inputHash === entry.inputHash)
         description = output;
     }
-    if (description && !unchangedIds.has(item.id) && extract.schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)) {
+    if (description && !unchangedIds.has(item.id) && ['1.1.0','1.2.0'].includes(extract.schemaVersion) && ['skills','blessings'].includes(category)) {
       const entry=run.items[item.id], task=effectTaskFor(item,textIndex,extract.effectFormats?.[item.id]);
       if (inputHashFor(category,entry.change,item,old.get(item.id),task)!==entry.inputHash) throw new Error(`效果任務 inputHash 不符，請重跑 diff：${item.id}`);
     }
     if (description) {
-      const explanation=!unchangedIds.has(item.id) && extract.schemaVersion==='1.1.0' && ['skills','blessings'].includes(category)
+      const explanation=!unchangedIds.has(item.id) && ['1.1.0','1.2.0'].includes(extract.schemaVersion) && ['skills','blessings'].includes(category)
         ?applyEffectTask(description.explanation,effectTaskFor(item,textIndex,extract.effectFormats?.[item.id])):description.explanation;
-      items.push({ ...item, explanation, errata: description.errata });
+      items.push({ ...item, explanation, errata: description.errata, ...(description.citations === undefined ? {} : { citations: description.citations }) });
     }
   }
   items.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);

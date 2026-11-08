@@ -17,7 +17,8 @@ export function itemId(category, ...parts) {
 }
 /** Validate extract items against WP1's data schema using envelope metadata. */
 export function validateExtractItems(category, items, envelope = {gameVersion:'0.0',sourceCommit:items[0]?.source?.commit ?? '0'.repeat(40),textBatch:items[0]?.source?.text?.batch ?? '0'}) {
-  const value = {schemaVersion:'1.1.0', category, gameVersion:envelope.gameVersion, sourceCommit:envelope.sourceCommit, textBatch:envelope.textBatch,
+  const modern=['skills','blessings'].includes(category)&&(envelope.scriptVersion?.endsWith('@1.2.0')||items.some(i=>i.source?.codeRefs||i.values?.mechanics));
+  const value = {schemaVersion:modern?'1.2.0':'1.1.0', category, gameVersion:envelope.gameVersion, sourceCommit:envelope.sourceCommit, textBatch:envelope.textBatch,
     items:items.map(item => ({...item, explanation:{effect:'-',conditions:'',calculation:'',notes:'',extra:''}, errata:[]}))};
   const errors = checkDataFile(category, stringifyCanonical(value)).errors;
   items.forEach((item, i) => {
@@ -27,13 +28,15 @@ export function validateExtractItems(category, items, envelope = {gameVersion:'0
   return errors;
 }
 /** Write a deterministic extract after schema validation. */
-export async function writeExtract({workDir, category, envelope, items = [], problems = [], excluded = [], effectFormats}) {
+export async function writeExtract({workDir, category, envelope, items = [], problems = [], excluded = [], effectFormats, mechanicsStats}) {
   const sorted = [...items].sort((a,b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   if (sorted.some((x,i) => i > 0 && x.id === sorted[i-1].id)) throw new Error('重複項目 ID');
   const errors = validateExtractItems(category, sorted, envelope);
   if (errors.length) throw new Error(`extract 驗證失敗：${JSON.stringify(errors)}`);
   const compare = (a,b) => { const x = stringifyCanonical(a), y = stringifyCanonical(b); return x < y ? -1 : x > y ? 1 : 0; };
-  await writeCanonicalFile(path.join(workDir,'extract',`${category}.json`), {schemaVersion:'1.1.0', category, ...envelope, status:envelope.status || 'ok', reason:envelope.reason || null, problems:[...problems].sort(compare), excluded:[...excluded].sort(compare), items:sorted,...(effectFormats?{effectFormats}:{})});
+  const modern=['skills','blessings'].includes(category)&&(envelope.scriptVersion?.endsWith('@1.2.0')||items.some(i=>i.source?.codeRefs||i.values?.mechanics));
+  await writeCanonicalFile(path.join(workDir,'extract',`${category}.json`), {schemaVersion:modern?'1.2.0':'1.1.0', category, ...envelope, status:envelope.status || 'ok', reason:envelope.reason || null, problems:[...problems].sort(compare), excluded:[...excluded].sort(compare), items:sorted,...(effectFormats?{effectFormats}:{})});
+  if(mechanicsStats)console.log(`mechanics：codeRefs ${mechanicsStats.codeRefs}、略過 symbol ${mechanicsStats.skippedSymbols}`);
 }
 /** Execute an extractor with pinned inputs, state updates, and structural fallback. */
 export async function runExtractCli({category, scriptVersion, build}) {
@@ -55,9 +58,9 @@ export async function runExtractCli({category, scriptVersion, build}) {
     const reader = createSourceReader({repo:source.repo,commit:source.commit});
     const matches = state.run && ['gameVersion','sourceCommit','textBatch'].every(k => state.run[k] === envelope[k]);
     try {
-      const {items = [], problems = [], excluded = [], effectFormats} = await build({reader,text,envelope,workDir:wd});
+      const {items = [], problems = [], excluded = [], effectFormats, mechanicsStats} = await build({reader,text,envelope,workDir:wd});
       if (!items.length) throw new StructureError(category,'EMPTY','解析後沒有項目');
-      await writeExtract({workDir:wd,category,envelope,items,problems,excluded,effectFormats});
+      await writeExtract({workDir:wd,category,envelope,items,problems,excluded,effectFormats,mechanicsStats});
       if (matches) { state = setCategory(state,category,{status:'ok',reason:null}); await writeState(stateFile,state); }
       const countUnknown = v => !v || typeof v !== 'object' ? 0 : (v.value === null && typeof v.unknown === 'string' ? 1 : 0) + Object.values(v).reduce((n,x) => n + countUnknown(x),0);
       console.log(`${category}：項目 ${items.length}、unknown ${countUnknown(items)}、problems ${problems.length}、excluded ${excluded.length}`);

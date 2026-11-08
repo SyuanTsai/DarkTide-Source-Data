@@ -3,6 +3,7 @@ import { stringifyCanonical, writeCanonicalFile } from '../canonical-json.mjs';
 import { join } from 'node:path';
 import { compare, failure, itemIndex, validationMessage } from './common.mjs';
 import { composeFinal } from './compose.mjs';
+import { checkErrata } from './text.mjs';
 
 export function decide(row, previous) {
   row.decision = row.failures.length ? previous?.items?.some((i) => i?.id === row.id) ? 'kept-previous' : 'excluded' : 'pass';
@@ -21,10 +22,24 @@ export function verifyMerged(loaded, categories, rows, checker = checkDataFile, 
         if (!error.message.includes('schemaVersion')) throw error;
         return { merged, errors: [{ code: 'SCHEMA_VERSION_MISMATCH', category, path: '/schemaVersion', message: error.message }] };
       }
-      const selected = categories[category].status === 'ok'
-        ? categoryRows.filter((row) => row.decision !== 'excluded').sort((a, b) => compare(a.id, b.id)) : [];
       merged[category] = data;
-      for (const error of checker(category, stringifyCanonical(data)).errors) {
+    }
+    const versionItems = Object.values(merged).flatMap(data => data.items ?? []);
+    for (const [category, data] of Object.entries(merged)) {
+      const entry = loaded[category];
+      const selected = categories[category].status === 'ok'
+        ? rows.filter(row => row.category === category && row.decision !== 'excluded').sort((a,b) => compare(a.id,b.id)) : [];
+      for (const [index, item] of data.items.entries()) {
+        if (!Array.isArray(item?.errata) || !item.errata.some(entry => entry?.anchor?.itemId !== undefined)) continue;
+        const row = selected[index];
+        for (const error of checkErrata(item, versionItems)) {
+          if (row?.decision === 'pass') {
+            row.failures.push(failure('output', 'O_MERGED_INVALID', error.path, error.message));
+            decide(row, entry.previous); changed = true;
+          } else errors.push({category, path:`/items/${index}${error.path}`, message:error.message});
+        }
+      }
+      for (const error of checker(category, stringifyCanonical(data), versionItems).errors) {
         const index = itemIndex(error.path), row = index === undefined ? null : selected[Number(index)];
         if (row?.decision === 'pass') {
           row.failures.push(failure('output', 'O_MERGED_INVALID', error.path.replace(/^\/items\/\d+/, ''), validationMessage(error.message)));

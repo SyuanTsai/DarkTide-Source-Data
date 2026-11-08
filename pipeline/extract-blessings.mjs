@@ -6,8 +6,9 @@ import { resolver, str, expression } from './lib/blessing-values.mjs';
 import { verifiedTextKeys, sharedTextCandidates, textKeyMappings } from './lib/blessing-text.mjs';
 import { captureEffectFormat, gameDecimals } from './lib/effect-format.mjs';
 import { pathToFileURL } from 'node:url';
+import { createMechanics } from './lib/mechanics.mjs';
 
-const SCRIPT = 'pipeline/extract-blessings.mjs@1.1.0';
+const SCRIPT = 'pipeline/extract-blessings.mjs@1.2.0';
 export function build({reader,text,envelope}) {
   const root='scripts/settings/equipment/weapon_traits/', parser='scripts/utilities/trait_value_parser.lua';
   if(!reader.list(root).length || !reader.exists(parser)) throw new StructureError('blessings','MISSING_STRUCTURE','缺少祝福定義或 trait_value_parser');
@@ -89,6 +90,8 @@ export function build({reader,text,envelope}) {
     const description=descKey?text.lookup(descKey):null; if(description?.conflict) problems.push({code:'TEXT_CONFLICT',message:`官方文字衝突：${descKey}`,id});
     items.push({id,key,name:named.name,official:{en:description?.conflict?null:description?.en??null,zh:description?.conflict?null:description?.zh??null},values:{weapons:[...ws].sort(),tiers,params},source:{commit:reader.commit,files:[...files.values()].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:a.line-b.line),scriptVersion:SCRIPT,text:{batch:envelope.textBatch,keys:{...(nameKey?{name:nameKey}:{}),...(descKey?{description:descKey}:{})}}}});
   }
-  return {items,problems,excluded,effectFormats};
+  const mechanics=createMechanics(reader);
+  for(const item of items){const def=definitions.find(d=>d.traitKey===item.key);mechanics.blessing(item,mechanics.r.get(mechanics.r.returned(def.file),item.key));}
+  return {items,problems:[...problems,...mechanics.problems],excluded,effectFormats,mechanicsStats:mechanics.stats};
 }
 if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) await runExtractCli({category:'blessings',scriptVersion:SCRIPT,build});

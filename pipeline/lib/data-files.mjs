@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isCanonicalText } from './canonical-json.mjs';
+import { checkSchema12 } from './schema12.mjs';
 import { loadSchemas } from './json-schema.mjs';
 const schemas = loadSchemas(fileURLToPath(new URL('../schema/', import.meta.url)));
 export const CATEGORIES = ['skills', 'weapons', 'blessings', 'terms'];
@@ -22,7 +23,7 @@ function parse(text, schema) {
 }
 const result = (errors) => ({ valid: errors.length === 0, errors });
 
-export function checkDataFile(category, text) {
+export function checkDataFile(category, text, versionItems) {
   if (!CATEGORIES.includes(category)) throw new Error(`Unknown category ${category}`);
   const { errors, value } = parse(text, `${category}.schema.json`);
   if (!value || !Array.isArray(value.items)) return result(errors);
@@ -54,42 +55,7 @@ export function checkDataFile(category, text) {
     }
     if (x.name?.origin === 'internal' && x.name.en !== x.key)
       add(`${p}/name/en`, 'Internal name must match key');
-    if (Array.isArray(x.errata))
-      x.errata.forEach((entry, j) => {
-        const anchor = entry?.anchor;
-        if (anchor && typeof anchor === 'object'
-          && ['official', 'name'].includes(anchor.field) && ['en', 'zh'].includes(anchor.locale)
-          && typeof anchor.text === 'string' && anchor.text.length > 0
-          && Number.isInteger(anchor.occurrence) && anchor.occurrence >= 1) {
-          const path = `${p}/errata/${j}/anchor`;
-          if (anchor.locale !== entry.locale) add(path, 'Anchor locale must match errata locale');
-          else {
-            const target = x[anchor.field]?.[anchor.locale];
-            if (typeof target !== 'string') add(path, 'Anchor target text does not exist');
-            else {
-              let from = 0, count = 0, position;
-              while ((position = target.indexOf(anchor.text, from)) !== -1) {
-                count++;
-                from = position + 1;
-              }
-              if (count < anchor.occurrence) add(path, 'Anchor text not found at occurrence');
-            }
-          }
-        }
-        if (typeof entry?.valueRef !== 'string' || !/^(\/([^~\/]|~[01])*)+$/.test(entry.valueRef))
-          return;
-        let current = x.values;
-        for (const part of entry.valueRef.slice(1).split('/')) {
-          const key = part.replaceAll('~1', '/').replaceAll('~0', '~');
-          if (Array.isArray(current)
-            ? !/^(0|[1-9][0-9]*)$/.test(key) || Number(key) >= current.length
-            : current === null || typeof current !== 'object' || !Object.hasOwn(current, key)) {
-            add(`${p}/errata/${j}/valueRef`, 'Referenced value does not exist');
-            return;
-          }
-          current = current[key];
-        }
-      });
+    checkSchema12(category, value, x, p, versionItems ?? value.items, add);
     if (typeof x.id === 'string') {
       if (prev !== undefined && prev >= x.id) add(`${p}/id`, 'IDs must be sorted and unique');
       prev = x.id;
@@ -113,7 +79,7 @@ export function checkDataFile(category, text) {
         last = t?.tier;
       });
     }
-    if (category === 'weapons' && value.schemaVersion === '1.1.0') {
+    if (category === 'weapons' && ['1.1.0', '1.2.0'].includes(value.schemaVersion)) {
       const curves = x.values?.curves, combos = x.values?.attackCombos;
       if (Array.isArray(curves)) {
         const ids = new Set(), expected = new Set();
@@ -204,6 +170,9 @@ export function checkFileConsistency(values, keys = ['schemaVersion', 'gameVersi
 export function checkVersionDir(dir, currentSchemaVersion) {
   const errors = [],
     values = [];
+  const versionItems = CATEGORIES.flatMap(category => {
+    try { return JSON.parse(readFileSync(join(dir, `${category}.json`), 'utf8')).items ?? []; } catch { return []; }
+  });
   for (const category of CATEGORIES) {
     const file = join(dir, `${category}.json`);
     let text;
@@ -213,7 +182,7 @@ export function checkVersionDir(dir, currentSchemaVersion) {
       errors.push({ path: `/${category}.json`, message: e.message });
       continue;
     }
-    const check = checkDataFile(category, text);
+    const check = checkDataFile(category, text, versionItems);
     errors.push(
       ...check.errors.map((e) => ({ path: `/${category}.json${e.path}`, message: e.message })),
     );

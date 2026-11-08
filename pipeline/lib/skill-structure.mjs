@@ -6,7 +6,7 @@ export const LAYOUT_PARSER='scripts/ui/views/talent_builder_view/utilities/talen
 const TALENTS='scripts/settings/ability/archetype_talents/talents/';
 
 /** Expand only the documented stimm data DSL, without interpreting Lua bodies. */
-function stimmDefinitions(r,reader) {
+export function stimmDefinitions(r,reader) {
   const file='scripts/settings/talent/talent_settings_broker.lua';
   if(!reader.exists(file)) return new Map();
   const chunk=r.load(file), result=new Map(), aliases=chunk.env.get('STAT_NAME_ALIAS');

@@ -110,7 +110,9 @@
 
    確認 diff 中 baseline 項目均為 unchanged，其餘均為 added，且沒有 changed／removed；不符立即停止並查明原因。後續版本正常執行 `node pipeline/diff.mjs`，使用 repo 的 `data/`。diff 會列出新增／變動／移除的項目，並把清單寫進狀態檔。
 4. 說明：對狀態檔中還沒寫好說明的每個項目（`node pipeline/diff.mjs --pending` 會列出），讀取腳本給的該項目輸入，寫出五節說明（效果／條件／計算／補充／額外）與勘誤，存到腳本指定的位置，然後執行 `node pipeline/diff.mjs --mark-described <項目 id>`。一次處理一個項目。
-   - 1.1.0 祝福／技能輸入有 `lockedEffect` 時，`effect` 逐字照抄該全文，只另外撰寫 `conditions`／`calculation`／`notes`／`extra` 四節實際運作機制；candidate 會強制使用鎖定效果並設定 `effectOrigin: "official"`。
+   - 1.1.0／1.2.0 祝福／技能輸入有 `lockedEffect` 時，`effect` 逐字照抄該全文，只另外撰寫 `conditions`／`calculation`／`notes`／`extra` 四節實際運作機制；candidate 會強制使用鎖定效果並設定 `effectOrigin: "official"`。
+   - AI input 的 `dataSchemaVersion` 表示資料版本，AI I/O 外層仍為 1.0.0。1.2.0 技能／祝福輸出選填 `citations: [{section,text,codeRefs,valueRefs}]`；每個本次撰寫的非空機制段落必須有同 section 引用，非官方 effect 也適用。text 須出現在段落中，codeRefs 須來自輸入 source.codeRefs，valueRefs 須可解析並有 source.valueSources。只讀來源位置與雜湊不能當數值。
+   - 所有版本的勘誤使用 `{locale,official,corrected,valueRefs:[...],sources:[{path,line}],anchor?}`，兩個陣列至少一筆，禁止單數 valueRef。anchor 可選 `official/name/displayParameter`；displayParameter 須指定 param，祝福另指定 tier；跨 item 使用 itemId，valueRefs 在該 item.values 解析。詳細形狀與版本限制見 pipeline/README.md 的「schema 1.2.0」。
    - 有 `effectTask: "translate-official-en"` 時，依 `item.official.en` 與 `item.values` 翻譯效果，再寫四節機制；pipeline 會標示為「非官方翻譯」（`unofficial-translation`）。官方英文、繁中都沒有時，依 values 與 source 撰寫效果，未知值寫明未知，不可猜；pipeline 會標示為「非官方翻譯」。未知值不猜測。AI 輸出不得包含 `effectOrigin`。
 5. 檢查：第一次正式執行 1.13.4 時執行 `node pipeline/verify.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')`，讓 candidate 與檢查使用同一份 baseline；後續版本執行 `node pipeline/verify.mjs`。未通過的單一項目會保留上一版內容並記錄原因；這不算失敗，繼續下一步。若輸出「整批停止」，跳到第 8 步。
    - `verify.mjs` 預設 `--issues off`，不建立 Issue。從 verify 報告的 `translationConflicts` 取得衝突清單，在第 8 步回報中列出；使用者決定要建立時，才另外執行 `--issues create`，在遠端公開的 Mods repo 建立 Issue，屬於對外發布。

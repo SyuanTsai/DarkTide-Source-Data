@@ -119,11 +119,11 @@ test('輸出驗證拒絕錯誤及不存在的檔案', async (t) => {
   const input = await read(join(a.base, 'ai/input', itemFileName(id))), dir = join(a.base, 'ai/output'), file = join(dir, itemFileName(id)); await mkdir(dir, { recursive: true });
   const valid = { schemaVersion: '1.0.0', id, inputHash: input.inputHash, explanation: { effect: '效果', conditions: '', calculation: '', notes: '', extra: '' }, errata: [] };
   const missing = a.fail(/ai\/output\/.*找不到檔案/, '--mark-described', id); assert.ok(!missing.stderr.includes(a.dir));
-  for (const [output, error] of [[{ ...valid, id: 'darktide:skill:other' }, /id.*不符/], [{ ...valid, extra: 1 }, /驗證失敗/], [{ ...valid, explanation: { ...valid.explanation, effect: '' } }, /驗證失敗/], [{ ...valid, explanation: {} }, /驗證失敗/], [{ ...valid, errata: [{ locale: 'en', official: '1', corrected: '2', valueRef: '/missing' }] }, /驗證失敗/]]) { await writeFile(file, JSON.stringify(output)); a.fail(error, '--mark-described', id); }
+  for (const [output, error] of [[{ ...valid, id: 'darktide:skill:other' }, /id.*不符/], [{ ...valid, extra: 1 }, /驗證失敗/], [{ ...valid, explanation: { ...valid.explanation, effect: '' } }, /驗證失敗/], [{ ...valid, explanation: {} }, /驗證失敗/], [{ ...valid, errata: [{ locale: 'en', official: '1', corrected: '2', valueRefs: ['/missing'], sources: [{ path: 'scripts/example.lua', line: 1 }] }] }, /驗證失敗/]]) { await writeFile(file, JSON.stringify(output)); a.fail(error, '--mark-described', id); }
   a.fail(/無法標記/, '--mark-described', Object.keys(state.run.items).find((x) => state.run.items[x].change === 'removed'));
   await writeFile(file, JSON.stringify(valid));
   const beforeValueRef = await readFile(a.state);
-  const badValueRef = { ...valid, errata: [{ locale: 'en', official: '1', corrected: '2', valueRef: '/missing', anchor: { field: 'official', locale: 'en', text: input.item.official.en, occurrence: 1 } }] };
+  const badValueRef = { ...valid, errata: [{ locale: 'en', official: '1', corrected: '2', valueRefs: ['/missing'], sources: [{ path: 'scripts/example.lua', line: 1 }], anchor: { field: 'official', locale: 'en', text: input.item.official.en, occurrence: 1 } }] };
   await writeFile(file, JSON.stringify(badValueRef));
   const valueRefFailure = a.fail(/Referenced value does not exist/, '--mark-described', id);
   assert.match(valueRefFailure.stderr, /\/items\/0\/errata\/0\/valueRef/); assert.deepEqual(await readFile(a.state), beforeValueRef);
@@ -165,11 +165,11 @@ test('InterT40_mark described validates errata anchors', async (t) => {
   await writeFile(extractPath, stringifyCanonical(extract)); a.run();
   const id = item.id, input = await read(join(a.base, 'ai/input', itemFileName(id))), dir = join(a.base, 'ai/output');
   await mkdir(dir, { recursive: true }); const outputPath = join(dir, itemFileName(id));
-  const entry = { locale: 'en', official: '10%', corrected: '20%', valueRef: '/params/test/value', anchor: { field: 'official', locale: 'en', text: 'Gain 10% damage', occurrence: 1 } };
+  const entry = { locale: 'en', official: '10%', corrected: '20%', valueRefs: ['/params/test/value'], sources: [{ path: 'scripts/example.lua', line: 1 }], anchor: { field: 'official', locale: 'en', text: 'Gain 10% damage', occurrence: 1 } };
   const output = { schemaVersion: '1.0.0', id, inputHash: input.inputHash, explanation: { effect: '效果', conditions: '', calculation: '', notes: '', extra: '' }, errata: [entry] };
   const before = await readFile(a.state);
   for (const [bad, expected] of [
-    [{ ...entry, anchor: undefined }, /anchor/],
+    [{ ...entry, anchor: { ...entry.anchor, extra: true } }, /anchor/],
     [{ ...entry, anchor: { ...entry.anchor, text: 'missing' } }, /Anchor text not found at occurrence/],
     [{ ...entry, anchor: { ...entry.anchor, occurrence: 3 } }, /Anchor text not found at occurrence/],
     [{ ...entry, anchor: { ...entry.anchor, locale: 'zh' } }, /Anchor locale must match errata locale/],
@@ -178,7 +178,7 @@ test('InterT40_mark described validates errata anchors', async (t) => {
     const result = a.fail(expected, '--mark-described', id);
     assert.match(result.stderr, /ai\/output\/.*驗證失敗/); assert.ok(!result.stderr.includes(a.dir)); assert.deepEqual(await readFile(a.state), before);
   }
-  for (const good of [entry, { ...entry, anchor: { ...entry.anchor, occurrence: 2 } }, { ...entry, locale: 'zh', anchor: { field: 'official', locale: 'zh', text: '提升傷害', occurrence: 1 } }]) {
+  for (const good of [{ ...entry, anchor: undefined }, entry, { ...entry, anchor: { ...entry.anchor, occurrence: 2 } }, { ...entry, locale: 'zh', anchor: { field: 'official', locale: 'zh', text: '提升傷害', occurrence: 1 } }]) {
     await writeFile(outputPath, JSON.stringify({ ...output, errata: [good] }));
     const result = spawnSync(process.execPath, ['pipeline/diff.mjs', ...a.args, '--mark-described', id], { cwd: repo, encoding: 'utf8' });
     assert.equal(result.status, 0, result.stderr); assert.equal((await read(a.state)).run.items[id].stage, 'described');

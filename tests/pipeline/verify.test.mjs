@@ -204,8 +204,8 @@ const cases = [
   ['T_DIRECTION', (f, x) => { x.values.params.bonus.value = -0.25; f.extracts.skills.items[0].values.params.bonus.value = -0.25; x.explanation.effect = '提升+25%'; x.values.maxPoints = 2; f.extracts.skills.items[0].values.maxPoints = 2; }],
   ['T_COVERAGE', (f, x) => { x.explanation.effect = '效果提升'; }],
   ['T_OFFICIAL_CHANGED', (f, x) => { x.name.zh = '變更'; }],
-  ['T_ERRATA_INVALID', (f, x) => { x.errata = [{ locale: 'en', official: '10%', corrected: '25%', valueRef: '/params/bonus/value' }]; }],
-  ['T_ERRATA_UNKNOWN', (f, x) => { x.errata = [{ locale: 'en', official: '10%', corrected: '25%', valueRef: '/params/dynamic' }]; }],
+  ['T_ERRATA_INVALID', (f, x) => { x.errata = [{ locale: 'en', official: '10%', corrected: '25%', valueRefs: ['/params/bonus/value'], sources: [{ path: 'scripts/example.lua', line: 1 }] }]; }],
+  ['T_ERRATA_UNKNOWN', (f, x) => { x.errata = [{ locale: 'en', official: '10%', corrected: '25%', valueRefs: ['/params/dynamic'], sources: [{ path: 'scripts/example.lua', line: 1 }] }]; }],
   ['T_ERRATA_MISSING', (f, x) => { delete x.values.params.dynamic; delete f.extracts.skills.items[0].values.params.dynamic; x.official.en = '987654%'; f.extracts.skills.items[0].official.en = x.official.en; }],
   ['T_NAME_NOT_OFFICIAL', async (f, x) => { await writeFile(f.options.translation, '- Example 0 - 私譯\n'); x.explanation.notes = '私譯'; }],
 ];
@@ -425,12 +425,12 @@ test('InterT74_勘誤數字引用與跨語系數字涵蓋', async (t) => {
   const f = await fixture(t), item = f.data.skills.items[0], extracted = f.extracts.skills.items[0];
   delete item.values.params.dynamic; delete extracted.values.params.dynamic;
   item.official = { en: 'Damage 10%', zh: '傷害10%' }; extracted.official = structuredClone(item.official);
-  item.errata = [{ locale: 'en', official: '10%', corrected: '25%', valueRef: '/params/bonus/value' }];
+  item.errata = [{ locale: 'en', official: '10%', corrected: '25%', valueRefs: ['/params/bonus/value'], sources: [{ path: 'scripts/example.lua', line: 1 }] }];
   assert.equal((await f.run()).report.result, 'pass');
   for (const entry of [
-    { official: '10%', corrected: '10%', valueRef: '/params/bonus' },
-    { official: '10%', corrected: '987654%', valueRef: '/params/bonus/value' },
-    { official: '10%', corrected: '25%', valueRef: '/icon' },
+    { official: '10%', corrected: '10%', valueRefs: ['/params/bonus'], sources: [{ path: 'scripts/example.lua', line: 1 }] },
+    { official: '10%', corrected: '987654%', valueRefs: ['/params/bonus/value'], sources: [{ path: 'scripts/example.lua', line: 1 }] },
+    { official: '10%', corrected: '25%', valueRefs: ['/icon'], sources: [{ path: 'scripts/example.lua', line: 1 }] },
   ]) {
     item.errata = [{ locale: 'en', ...entry }];
     const r = await f.run();
@@ -439,7 +439,7 @@ test('InterT74_勘誤數字引用與跨語系數字涵蓋', async (t) => {
   }
   item.values.params.dynamic = { value: null, unknown: 'DYNAMIC_VALUE' };
   extracted.values.params.dynamic = structuredClone(item.values.params.dynamic);
-  item.errata = [{ locale: 'en', official: '10%', corrected: '25%', valueRef: '/params/dynamic/value' }];
+  item.errata = [{ locale: 'en', official: '10%', corrected: '25%', valueRefs: ['/params/dynamic/value'], sources: [{ path: 'scripts/example.lua', line: 1 }] }];
   assert.equal(failures(await f.run(), 'T_ERRATA_UNKNOWN').length, 1);
 });
 
@@ -461,10 +461,10 @@ test('InterT75_勘誤只能引用合法遊戲數值', async (t) => {
   item.values.curves[0].source.line = 54;
   item.values.curves[0].knots[0].output = 180;
   item.official = { en: null, zh: '備用彈藥140發。' };
-  item.errata = [{ locale: 'zh', official: '140', corrected: '54', valueRef: '/curves/0/source/line' }];
+  item.errata = [{ locale: 'zh', official: '140', corrected: '54', valueRefs: ['/curves/0/source/line'], sources: [{ path: 'scripts/example.lua', line: 1 }] }];
   f.extracts.weapons.items[0] = strip(structuredClone(item));
   assert.equal(failures(await f.run(), 'T_ERRATA_INVALID').length, 1);
-  item.errata[0] = { locale: 'zh', official: '140', corrected: '180', valueRef: '/curves/0/knots/0/output' };
+  item.errata[0] = { locale: 'zh', official: '140', corrected: '180', valueRefs: ['/curves/0/knots/0/output'], sources: [{ path: 'scripts/example.lua', line: 1 }] };
   const result = await f.run(); assert.equal(result.report.result, 'pass', JSON.stringify(result.report));
 });
 

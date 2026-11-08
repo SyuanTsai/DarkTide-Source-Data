@@ -84,7 +84,7 @@ export async function loadInput(options) {
       throw new InputError(`無法讀取資料目錄：${dir}`);
     }
   }
-  const loaded = {};
+  const loaded = {}, candidateTexts = {};
   for (const category of [...CATEGORIES].sort()) {
     const diffCategory = diffReport?.categories?.[category];
     const diffBlocked = diffReport && diffCategory?.status !== 'ok';
@@ -97,10 +97,14 @@ export async function loadInput(options) {
     }
     const extract = diffBlocked ? null : await readJson(join(options.extractDir, `${category}.json`), true);
     const previous = previousDir && previousDir !== 'none' ? await readJson(join(previousDir, `${category}.json`), true) : null;
+    candidateTexts[category] = candidate?.text;
     loaded[category] = { candidate: candidate?.value ?? null, extract: extract?.value ?? null, previous: previous?.value ?? null,
       diffReason: diffBlocked ? (diffCategory?.reason?.trim() || `本輪 diff 缺少或無法使用 extract（${diffCategory?.status ?? 'missing'}）`) : null,
-      candidateSha256: sha256(bytes), schemaErrors: candidate ? checkDataFile(category, candidate.text).errors : [] };
+      candidateSha256: sha256(bytes), schemaErrors: [] };
   }
+  const versionItems = Object.values(loaded).flatMap(entry => entry.candidate?.items ?? []);
+  for (const [category, entry] of Object.entries(loaded)) if (entry.candidate)
+    entry.schemaErrors = checkDataFile(category, candidateTexts[category], versionItems).errors;
   return { version, translation, current, loaded, state };
 }
 export async function readCandidateBytes(file) {
