@@ -1,3 +1,4 @@
+import {resolveSourceRepo,resolvePrivateRepo} from '../../pipeline/lib/inputs.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtempSync,readFileSync} from 'node:fs';
@@ -10,8 +11,8 @@ import {cli} from './helpers.mjs';
 test('InterT80_review3_review4_review5 pinned extraction twice and concrete findings',{skip:process.env.PIPELINE_REAL_SMOKE!=='1'},t=>{
  const dir=mkdtempSync(path.join(tmpdir(),'syp385-review3-')),state=path.join(dir,'state.json');
  const common=['--text-batch','25606770','--work-dir',dir,'--state',state];
- const text=['--private-repo',process.env.DARKTIDE_PRIVATE_REPO,'--private-ref','origin/master',...common];
- const args=['--source-code-repo',process.env.DARKTIDE_SOURCE_CODE_REPO,'--commit','ba6c148f3c2768ca3ce20d846a12e56e2f433f3e',...common];
+ const text=['--private-repo',resolvePrivateRepo(),'--private-ref','origin/master',...common];
+ const args=['--source-code-repo',resolveSourceRepo(),'--commit','ba6c148f3c2768ca3ce20d846a12e56e2f433f3e',...common];
  const categories=['text','skills','weapons','blessings','terms'],first=new Map();
  for(let pass=0;pass<2;pass++)for(const category of categories) {
   const r=cli(`extract-${category}.mjs`,category==='text'?text:args);assert.equal(r.status,0,r.stderr+r.stdout);
@@ -74,7 +75,11 @@ test('InterT80_review3_review4_review5 pinned extraction twice and concrete find
  }
  const angles=stats('arc_rifle_p1_m1').filter(s=>s.key.endsWith('.max_angle'));
  assert.equal(angles.length,2);for(const s of angles)assert.deepEqual([s.min,s.max],[0.436332312999,1.2217304764]);
- assert.ok(!data.weapons.problems.some(p=>p.id?.endsWith(':ogryn_thumper_p1_m2')&&p.reason==='DYNAMIC_VALUE'));
+ // Scenario: inspect/unwield actions have no damage profile, while numeric stats remain resolved.
+ // Purpose: keep the numeric regression guard separate from conservative action diagnostics.
+ assert.ok(!data.weapons.problems.some(p=>p.code==='UNRESOLVED_STAT'&&p.id?.endsWith(':ogryn_thumper_p1_m2')&&p.reason==='DYNAMIC_VALUE'));
+ assert.deepEqual(data.weapons.problems.filter(p=>p.id?.endsWith(':ogryn_thumper_p1_m2')&&p.reason==='DYNAMIC_VALUE')
+   .map(p=>[p.code,p.action]).sort(),[['DAMAGE_ACTION_UNKNOWN','action_inspect'],['DAMAGE_ACTION_UNKNOWN','action_inspect_3p'],['DAMAGE_ACTION_UNKNOWN','action_unwield']]);
  // Review4 concrete registry, projectile, finite-generator and action-copy cases.
  endpoint('ogryn_rippergun_p1_m1','damage.action_shoot_hip.default_rippergun_assault.armor_damage_modifier_ranged.near.attack.unarmored',[0.835,1.165]);
  endpoint('forcestaff_p4_m1','explosion.action_shoot_charged.radius',[2,4]);

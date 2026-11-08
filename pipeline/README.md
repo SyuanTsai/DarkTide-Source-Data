@@ -58,7 +58,7 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 | `--mods-commit` | 未指定時從譯名表所在 repo 解析 commit；dry-run 不執行外部指令 |
 | `--build-cmd` | 預設不執行；指定時設定 `DARKTIDE_DATA_ROOT` 為 out-dir 後執行 |
 
-候選檔只包含沿用說明的 unchanged 項目，及通過 AI schema、id、最新 inputHash 的新增／變動輸出；缺少或過期輸出由 verify 記錄 `V_NOT_DESCRIBED`。errata 與 anchor 不做轉換。自動組裝只會清除本輪無效類別的四個固定候選檔，不刪其他檔。
+候選檔只包含沿用說明的 unchanged 項目，及通過 AI schema、id、最新 inputHash 的新增／變動輸出；缺少或過期輸出由 verify 記錄 `V_NOT_DESCRIBED`。errata、anchor 與選填 citations 原樣傳遞，沒有 citations 時不寫該 key。自動組裝只會清除本輪無效類別的四個固定候選檔，不刪其他檔。
 
 報告的 `categories.<category>.candidateSha256` 記錄實際候選檔原始 bytes 的 SHA-256，無檔為 null；`previousGameVersion` 記錄合併所用的上一版，供寫入中斷或完成後重跑。exit 0 表示通過或部分降級；exit 2 表示參數、狀態或 IO 錯誤；exit 3 表示整批停止，不應執行 write。
 
@@ -83,7 +83,7 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 依 skills、weapons、blessings、terms 順序原子寫入 `<root>/data/<ver>/<category>.json`，每類完成後更新 state checkpoint。removed 項目逐步推進至 written；整類降級的未完成項目記錄 kept-previous 與原因。最後原子寫入 current.json（versions 合集按版本排序），再 completeRun。相同 bytes 不重寫；中斷後可接續。已 completed 的相同輸入僅允許輸出完全相符的唯讀重跑，避免第二次改寫任何檔案。
 
-`retainedFrom: { gameVersion, sourceCommit, textBatch }` 記錄保留項目最早的來源，連續保留不更新此欄位。validate 對這些項目的 source.commit／source.text.batch 比對 retainedFrom，而其 gameVersion 必須早於檔頭；普通項目仍須符合檔頭的 commit／batch。排序、id、anchor、valueRef 等其餘檢查完全相同。此為選填欄位，既有 1.0.0 資料不需遷移。
+`retainedFrom: { gameVersion, sourceCommit, textBatch }` 記錄保留項目最早的來源，連續保留不更新此欄位。validate 對這些項目的 source.commit／source.text.batch 比對 retainedFrom，而其 gameVersion 必須早於檔頭；普通項目仍須符合檔頭的 commit／batch。排序、id、anchor、valueRefs 等其餘檢查完全相同。此為選填欄位，既有 1.0.0 資料不需遷移。
 
 exit 0 表示完成；exit 1 表示候選檔變動、版本倒退、資料驗證或寫入錯誤；exit 2 表示參數、狀態、報告版本或輸入錯誤；halted 報告 exit 3 並印「檢查結果為整批停止，不寫入」。完成後執行 `node pipeline/validate.mjs`。輸出摘要不含時間戳，列出每類項目數、保留項目及原因、保留類別與空檔類別。
 
@@ -183,6 +183,20 @@ node --test tests/pipeline/real-smoke.test.mjs
 `blessing-text.mjs` 只採用 text index 確有 hash 的候選 key，涵蓋 family 前綴、parent／child／數字尾碼與跨武器同 stem 共用。固定來源 `ba6c148` 與文字批次 `25606770` 實測官方英文名稱為 511；合法候選無額外命中，因此 real smoke 的名稱門檻依 spec2b 改為 511。UI 從 master data 的 `trait_item.display_name` 取名稱，缺少 trait→loc key 對照時保留內部名稱，不由英文文字反猜。以 `PIPELINE_REAL_SMOKE=1 node --test tests/pipeline/extract-blessings.real.test.mjs` 驗證真實資料與兩次輸出 byte 一致。
 
 ### 武器取數
+
+#### schema 1.2.0
+
+支援資料版本為 `1.0.0`、`1.1.0`、`1.2.0`。以下 mechanics、valueSources、codeRefs、citations 僅允許 1.2.0；舊版出現時拒收。extractor 目前仍產出 1.1.0，本次只提供格式層，不產生新機制或重產正式資料。`schema/examples/1.2.0-example/` 是示意資料，展示兩層 mechanics 與 displayParameter 勘誤錨點。
+
+- C1：skills 的 `values.mechanics`、blessings 的 `values.mechanics` 與 `values.tiers[].mechanics` 為選填 object。key 符合 `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`；value 完全沿用 param（`value/unit?/unknown?`），null 必須有現有 unknown enum。weapons、terms 不接受 mechanics。
+- C2：選填 `source.valueSources` 將相對於 values 的 JSON Pointer 對應至非空 `[{path,line}]`。pointer pattern 為 `^(/([^~/]|~[01])*)+$`；path 非空、line 為正整數，禁止額外 key。每個 mechanics（含 tier）必須有對應來源，每個 pointer 必須可解析；這是 Source-Data 額外驗證。不納入 fingerprint。
+- C3：選填 `source.codeRefs` 的 key 為 `<path>#<symbol>`，pattern 為 `^[A-Za-z0-9_./-]+#[A-Za-z0-9_.:\[\]-]+$`。value 僅含必填 `path/symbol/sha256`；path、symbol 必須與 key 一致，sha256 為 64 個小寫 hex，不含行號。後續 extractor 取完整 Lua symbol 定義（table constructor 或 function 本體），去除字串外的行註解與各種長括號註解，再去除所有 `\s`，以 UTF-8 算 sha256；本包不實作取數。
+- C4：skills、blessings 可選填 item 層 `citations`，每筆僅含 `section/text/codeRefs/valueRefs`。section 為 `effect/conditions/calculation/notes/extra`，text 非空，兩種 refs 都是唯一元素陣列，合計至少一筆。verify 要求 text 為對應 explanation 段落的子字串、codeRef 存在於 source.codeRefs、valueRef 可解析且在 source.valueSources 有 key。Web、Extension 不顯示 citations。
+- V-CITE：1.2.0 skills／blessings 本次由 AI 撰寫的 `conditions/calculation/notes/extra` 每個非空段落都須至少一筆同 section citation；非 `official` 的 effect 也適用。違反沿既有單項目降級流程，保留上一版；新項目沒有上一版則排除。未重新產生的舊說明不追補覆蓋。
+- C5：**所有版本**的 errata 一律使用 `{locale,official,corrected,valueRefs,sources,anchor?}`；禁止單數 `valueRef` 與額外 key。valueRefs 為至少一筆 values JSON Pointer，sources 為至少一筆 `{path,line}`；來源針對固定 Source-Code e46b892。anchor 僅含 `field/locale/text/occurrence/itemId?/param?/tier?`，locale 須相同、text 非空、occurrence 為正整數。field 限 `official/name/displayParameter`；displayParameter 必須有 param，指向目標 values.params key，blessings 還須有 1..4 的 tier。其他 field 禁止 param、tier。itemId 須符合 item id pattern，目標存在於同版本任一類別；valueRefs 改在該目標的 values 解析。displayParameter 的 text 以指定 param（祝福為該 tier）的顯示值定位。verify 仍拒絕未知參數、無官方數字差異或無法由引用值推導的勘誤。舊 examples 的單數 valueRef 已遷移，正式資料無 errata，未變動。
+- C6：沿原 key/name/official/values/aliases fingerprint，只有存在 source.codeRefs 時才額外加入 `{codeRefs:{refId:sha256}}`，使用 canonical JSON。沒有 codeRefs 的 item 雜湊保持逐位元相同；source.files、valueSources 與其行號不納入。
+
+AI I/O 的外層 schemaVersion 仍為 `1.0.0`；AI input 增加選填 `dataSchemaVersion`，新輸入明示資料版本，並保留 item 的 values/source 與 previous 的 citations。AI output 新增同形狀選填 citations，errata 使用 C5，effectOrigin 仍由 pipeline 決定。candidate/write 原樣傳遞 citations 與 errata；state 仍只記錄階段、結果與 inputHash。數字掃描及 T_COVERAGE 包含兩層 mechanics，來源行號與 sha256 不可供說明引用。
 
 #### schema 1.1.0：曲線與連段
 

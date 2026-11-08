@@ -1,3 +1,4 @@
+import { checkCitations } from './citations.mjs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -82,9 +83,13 @@ export async function runVerify(inputOptions) {
           entry.schemaErrors.filter((e) => itemIndex(e.path) === String(index))), notes: [] };
         if (stateMatches && input.state.run.items[id]?.stage === 'extracted')
           row.failures.push(failure('values', 'V_NOT_DESCRIBED', '/explanation', '項目仍在取數階段，尚未完成說明'));
-        const task = extracted && entry.extract.schemaVersion === '1.1.0' && ['skills', 'blessings'].includes(category)
+        const task = extracted && ['1.1.0', '1.2.0'].includes(entry.extract.schemaVersion) && ['skills', 'blessings'].includes(category)
           ? effectTaskFor(extracted, textIndex, entry.extract.effectFormats?.[id]) : undefined;
-        const text = checkText(item, extracted, allowedNames, report.translationConflicts, table, task?.lockedEffect);
+        const text = checkText(item, extracted, allowedNames, report.translationConflicts, table, task?.lockedEffect, candidateItems);
+        const stateItem = stateMatches ? input.state.run.items[id] : undefined;
+        const generated = stateItem ? ['added','changed'].includes(stateItem.change) :
+          !previous || JSON.stringify(item.explanation) !== JSON.stringify(previous.explanation) || JSON.stringify(item.citations) !== JSON.stringify(previous.citations);
+        row.failures.push(...checkCitations(item, { schemaVersion: entry.candidate.schemaVersion, category, generated }));
         row.failures.push(...text.failures); row.notes.push(...text.notes); row.warnings = text.warnings;
         decide(row, entry.previous); report.items.push(row);
       }

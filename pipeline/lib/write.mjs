@@ -158,8 +158,10 @@ export async function runWrite(inputOptions = {}) {
       if (item.category === category && item.stage === 'written' && item.outcome === 'removed' &&
         final[category].items.some((entry) => entry.id === id)) throw writtenConflict(id);
     }
-    checked(checkDataFile(category, stringifyCanonical(final[category])), `${category} 最終資料`);
   }
+  const versionItems = Object.values(final).flatMap(file => file.items ?? []);
+  for (const category of CATEGORIES)
+    checked(checkDataFile(category, stringifyCanonical(final[category]), versionItems), `${category} 最終資料`);
   if (checkFileConsistency(Object.entries(final).map(([category, value]) => ({ category, value })), ['schemaVersion']).length)
     throw new WriteError('最終資料的 schemaVersion 不一致');
   const index = { schemaVersion: final[CATEGORIES[0]].schemaVersion, gameVersion: run.gameVersion, path: `data/${run.gameVersion}`,

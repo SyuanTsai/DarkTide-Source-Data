@@ -1,3 +1,4 @@
+import {resolveSourceRepo,resolvePrivateRepo} from '../../pipeline/lib/inputs.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtempSync,readFileSync} from 'node:fs';
@@ -10,8 +11,8 @@ import {cli} from './helpers.mjs';
 test('InterT90_review2 pinned text → skills → weapons → blessings → terms twice and concrete findings',{skip:process.env.PIPELINE_REAL_SMOKE!=='1'},t=>{
  const dir=mkdtempSync(path.join(tmpdir(),'syp385-review2-')),state=path.join(dir,'state.json');
  const common=['--text-batch','25606770','--work-dir',dir,'--state',state];
- const text=['--private-repo',process.env.DARKTIDE_PRIVATE_REPO,'--private-ref','origin/master',...common];
- const args=['--source-code-repo',process.env.DARKTIDE_SOURCE_CODE_REPO,'--commit','ba6c148f3c2768ca3ce20d846a12e56e2f433f3e',...common];
+ const text=['--private-repo',resolvePrivateRepo(),'--private-ref','origin/master',...common];
+ const args=['--source-code-repo',resolveSourceRepo(),'--commit','ba6c148f3c2768ca3ce20d846a12e56e2f433f3e',...common];
  const categories=['text','skills','weapons','blessings','terms'],first=new Map();
  for(let pass=0;pass<2;pass++)for(const category of categories) {
   const r=cli(`extract-${category}.mjs`,category==='text'?text:args);assert.equal(r.status,0,r.stderr+r.stdout);
@@ -37,7 +38,7 @@ test('InterT90_review2 pinned text → skills → weapons → blessings → term
  endpoint('autogun_p1_m1','spread.base.still.immediate_spread.shooting.1.pitch',[0.55,0.325]);
  // Scenario: a write to the imported damage_settings table revokes all member dependencies.
  // Purpose: require exactly the four review7 conservative downgrades, retaining other known values.
- assert.equal(unknown(data.skills.items),56);
+ assert.equal(unknown(data.skills.items),8);
  for(const [key,params]of [
   ['veteran_increased_damage_based_on_range',['ranged_close','ranged_far']],
   ['veteran_ranged_power_out_of_melee',['radius']],

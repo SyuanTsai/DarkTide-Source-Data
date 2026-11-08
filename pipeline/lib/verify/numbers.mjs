@@ -134,8 +134,11 @@ export function checkNumbers(values, text, lockedEffect, sections) {
   }
   if (wrong.length) failures.push(failure('text', 'T_NUMBER', '/explanation', `說明數字無法由資料推導：${[...new Set(wrong)].sort().join('、')}`));
   if (direction.length) failures.push(failure('text', 'T_DIRECTION', '/explanation', `說明數字方向相反：${[...new Set(direction)].sort().join('、')}`));
-  const uncovered = params(values).filter(({ path, param }) =>
-    /^(\/params\/[^/]+|\/tiers\/\d+\/params\/[^/]+)$/.test(path) &&
+  const coverageParams = params(values).flatMap(({path,param}) =>
+    /(?:^|\/)mechanics\//.test(path) && Array.isArray(param.value)
+      ? param.value.map(value => ({path,param:{...param,value}})) : [{path,param}]);
+  const uncovered = coverageParams.filter(({ path, param }) =>
+    /^(\/(?:params|mechanics)\/[^/]+|\/tiers\/\d+\/(?:params|mechanics)\/[^/]+)$/.test(path) &&
     typeof param.value === 'number' && Number.isFinite(param.value) && param.value !== 0 &&
     !tokens.some((token) => unitName(token.suffix) !== null && matches({ ...token, signed: false, value: Math.abs(token.value) }, derived(param.value))));
   if (uncovered.length) failures.push(failure('text', 'T_COVERAGE', '/values', `說明未涵蓋參數：${uncovered.map(({ path }) => `/values${path}`).sort().join('、')}`));

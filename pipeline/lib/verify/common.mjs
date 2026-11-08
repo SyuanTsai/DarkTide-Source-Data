@@ -18,14 +18,7 @@ export function params(values) {
   });
   return found;
 }
-export function atPointer(value, pointer) {
-  if (typeof pointer !== 'string' || !/^(\/([^~\/]|~[01])*)+$/.test(pointer)) return undefined;
-  for (const key of pointer.slice(1).split('/').map((s) => s.replaceAll('~1', '/').replaceAll('~0', '~'))) {
-    if (!value || typeof value !== 'object' || !Object.hasOwn(value, key)) return undefined;
-    value = value[key];
-  }
-  return value;
-}
+export { atPointer } from '../json-pointer.mjs';
 export function firstDifference(a, b, path = '') {
   if (equal(a, b)) return null;
   if (!a || !b || typeof a !== 'object' || typeof b !== 'object' || Array.isArray(a) !== Array.isArray(b)) return path;

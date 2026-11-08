@@ -2,7 +2,7 @@ import { atPointer, failure, firstDifference, params, validationMessage } from '
 
 const extractedFields = (item) => {
   if (!item || typeof item !== 'object') return item;
-  const { explanation, errata, name, official, ...rest } = item;
+  const { explanation, errata, citations, name, official, ...rest } = item;
   return rest;
 };
 export function checkValues(item, extracted, previous, schemaErrors) {

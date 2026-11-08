@@ -5,6 +5,8 @@ export const COMPARED_FIELDS = ['key', 'name', 'official', 'values', 'aliases'];
 export function contentHash(category, item) {
   const value = { category };
   for (const field of COMPARED_FIELDS) if (Object.hasOwn(item, field)) value[field] = item[field];
+  if (item.source?.codeRefs !== undefined)
+    value.codeRefs = Object.fromEntries(Object.entries(item.source.codeRefs).map(([id, ref]) => [id, ref.sha256]));
   return createHash('sha256').update(stringifyCanonical(value)).digest('hex');
 }
 export function diffCategory(category, previousItems, currentItems) {

@@ -168,7 +168,8 @@ test('UnitT30_missing current is allowed', (t) => {
   assert.match(r.stdout, /尚無正式版本/);
 });
 
-test('review data invariants', async () => {
+// Scenario: malformed metadata and errata pointers are validated. Purpose: preserve path-specific diagnostics.
+test('UnitT35_review data invariants', async () => {
   await readState(`${base}/state.json`);
   const text = stringifyCanonical({});
   assert.ok(text.endsWith('\n') && !text.endsWith('\n\n'));
@@ -199,10 +200,10 @@ test('review data invariants', async () => {
   );
   for (const pointer of ['/params/~2/value', '/params/missing/value']) {
     const blessing = file('blessings');
-    blessing.items[0].errata[0].valueRef = pointer;
+    blessing.items[0].errata[0].valueRefs = [pointer];
     assert.ok(
       checkDataFile('blessings', stringifyCanonical(blessing)).errors.some(
-        (e) => e.path === '/items/0/errata/0/valueRef',
+        (e) => e.path === '/items/0/errata/0/valueRefs/0',
       ),
     );
   }
@@ -233,9 +234,9 @@ test('attributes and files use LF and no BOM', async () => {
 test('UnitT40_errata references reject invalid array indexes', () => {
   for (const pointer of ['/tiers/length', '/tiers/01', '/tiers/99']) {
     const blessing = file('blessings');
-    blessing.items[0].errata[0].valueRef = pointer;
+    blessing.items[0].errata[0].valueRefs = [pointer];
     assert.ok(checkDataFile('blessings', stringifyCanonical(blessing)).errors.some(
-      (e) => e.path === '/items/0/errata/0/valueRef',
+      (e) => e.path === '/items/0/errata/0/valueRefs/0',
     ), pointer);
   }
 });

@@ -15,7 +15,7 @@ const repo = resolve('.'), meta = { gameVersion: '1.2.0', sourceCommit: 'a'.repe
 const old = { gameVersion: '1.1.0', sourceCommit: 'b'.repeat(40), textBatch: 'old' };
 const read = async (file) => JSON.parse(await readFile(file, 'utf8'));
 const explanation = (value) => ({ effect: `提升${value * 100}%`, conditions: '', calculation: '', notes: '', extra: '' });
-const errata = (value) => [{ locale: 'en', official: '10%', corrected: `${value * 100}%`, valueRef: '/params/bonus/value',
+const errata = (value) => [{ locale: 'en', official: '10%', corrected: `${value * 100}%`, valueRefs: ['/params/bonus/value'], sources: [{ path: 'scripts/example.lua', line: 1 }],
   anchor: { field: 'official', locale: 'en', text: 'Damage 10%', occurrence: 1 } }];
 async function snapshot(dir) {
   const result = {};

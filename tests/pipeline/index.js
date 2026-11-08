@@ -63,3 +63,5 @@ import './spec56.test.mjs';
 import './review40.test.mjs';
 import './review41.test.mjs';
 import './review42.test.mjs';
+import './schema12.test.mjs';
+import './schema12-io.test.mjs';

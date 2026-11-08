@@ -1,3 +1,4 @@
+import { anchorTarget } from '../schema12.mjs';
 import { atPointer, equal, failure, firstDifference, params } from './common.mjs';
 import { checkNumbers, derived, extractNumbers, isGameValuePath, matches } from './numbers.mjs';
 
@@ -5,7 +6,7 @@ export const ALLOWED_WORDS = Object.freeze(['LV', 'Lv']);
 export const EXPLANATION_SECTIONS = Object.freeze(['effect', 'conditions', 'calculation', 'notes', 'extra']);
 const officialNumbers = (text) => extractNumbers(typeof text === 'string' ? text.replace(/\{[a-zA-Z_][a-zA-Z0-9_]*(?=:)/g, '{') : text);
 const numberSet = (text) => [...new Set(extractNumbers(text).map((n) => n.value))].sort((a, b) => a - b);
-export function checkText(item, extracted, allowedNames, conflicts, table, lockedEffect) {
+export function checkText(item, extracted, allowedNames, conflicts, table, lockedEffect, versionItems = [item]) {
   const failures = [], notes = [], warnings = [], exp = item?.explanation;
   if (EXPLANATION_SECTIONS.some((k) => typeof exp?.[k] !== 'string') || !exp.effect.trim())
     failures.push(failure('text', 'T_FORMAT', '/explanation', '說明五節必須是字串，效果不得空白'));
@@ -28,21 +29,7 @@ export function checkText(item, extracted, allowedNames, conflicts, table, locke
     if (path !== null) failures.push(failure('text', 'T_OFFICIAL_CHANGED', path, '候選名稱或官方原文與 extract 不同'));
   }
   const errata = Array.isArray(item?.errata) ? item.errata : [];
-  for (const [i, entry] of errata.entries()) {
-    const path = `/errata/${i}`;
-    const ref = atPointer(item?.values, entry?.valueRef);
-    const parent = typeof entry?.valueRef === 'string' && entry.valueRef.endsWith('/value')
-      ? atPointer(item?.values, entry.valueRef.slice(0, -6)) : undefined;
-    if ((ref === null && parent?.value === null) || (ref && typeof ref === 'object' && ref.value === null)) {
-      failures.push(failure('text', 'T_ERRATA_UNKNOWN', path, '勘誤引用未知參數，無法確認更正數字'));
-      continue;
-    }
-    const value = ref && typeof ref === 'object' ? ref.value : ref;
-    if (typeof entry?.official !== 'string' || !entry.official.length || typeof item?.official?.[entry.locale] !== 'string' ||
-      !item.official[entry.locale].includes(entry.official) || equal(numberSet(entry.official), numberSet(entry.corrected)) ||
-      !isGameValuePath(item?.values, entry?.valueRef) || typeof value !== 'number' || !Number.isFinite(value) || !extractNumbers(entry.corrected).some((n) => matches(n, derived(value))))
-      failures.push(failure('text', 'T_ERRATA_INVALID', path, '勘誤原文不符、未更正數字，或更正數字無法由引用值推導'));
-  }
+  failures.push(...checkErrata(item, versionItems));
   if (params(item?.values).some(({ param }) => param.value === null))
     notes.push({ code: 'ERRATA_CHECK_SKIPPED_UNKNOWN', message: '項目含未知參數，略過官方數字勘誤完整性檢查' });
   else {
@@ -61,4 +48,30 @@ export function checkText(item, extracted, allowedNames, conflicts, table, locke
     if (officialWrong.length) warnings.push({ code: 'W_OFFICIAL_TEXT_NAME_MISMATCH', path: '/explanation/effect', message: `官方原文用字：${officialWrong.join('、')}；官方中文：${conflict.officialZh}` });
   }
   return { failures, notes, warnings };
+}
+
+export function checkErrata(item, versionItems = [item]) {
+  const failures = [], errata = Array.isArray(item?.errata) ? item.errata : [];
+  for (const [i, entry] of errata.entries()) {
+    const path = `/errata/${i}`;
+    const target = entry?.anchor?.itemId === undefined ? item : versionItems.find(x => x?.id === entry.anchor.itemId);
+    const pointers = Array.isArray(entry?.valueRefs) ? entry.valueRefs : [];
+    const refs = pointers.map(pointer => {
+      const ref = atPointer(target?.values, pointer);
+      const parent = typeof pointer === 'string' && pointer.endsWith('/value') ? atPointer(target?.values, pointer.slice(0,-6)) : undefined;
+      return {pointer, ref, parent, value: ref && typeof ref === 'object' ? ref.value : ref};
+    });
+    if (refs.some(({ref,parent}) => (ref === null && parent?.value === null) || (ref && typeof ref === 'object' && ref.value === null))) {
+      failures.push(failure('text', 'T_ERRATA_UNKNOWN', path, '勘誤引用未知參數，無法確認更正數字'));
+      continue;
+    }
+    const official = entry?.anchor ? anchorTarget(target, entry.anchor) : target?.official?.[entry?.locale];
+    const numbers = refs.filter(({pointer,value}) => isGameValuePath(target?.values,pointer) && typeof value === 'number' && Number.isFinite(value)).flatMap(({value}) => derived(value));
+    if (typeof entry?.official !== 'string' || !extractNumbers(entry.official).length || typeof official !== 'string' ||
+      !official.includes(entry.official) || equal(numberSet(entry.official), numberSet(entry.corrected)) ||
+      refs.length === 0 || refs.some(({ref}) => ref === undefined) || !extractNumbers(entry.corrected).length ||
+      !extractNumbers(entry.corrected).every(n => matches(n,numbers)))
+      failures.push(failure('text', 'T_ERRATA_INVALID', path, '勘誤原文不符、未更正數字，或更正數字無法由引用值推導'));
+  }
+  return failures;
 }
