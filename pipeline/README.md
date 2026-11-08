@@ -180,7 +180,11 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 祝福專用 `blessing-buff-index.mjs` 依 BuffTemplates registry 的載入／合併順序建立靜態索引，支援跨 require 的 clone、merge、add_missing、local 常數、enum key 與後續欄位覆寫，保留實際數值來源；不執行 Lua。`UNRESOLVED_VALUE` 的 message 以 `[原因代碼]` 開頭，區分函式產生、條件／執行期運算、動態 manipulation、缺少模組／模板／路徑等情況。
 
-`blessing-text.mjs` 只採用 text index 確有 hash 的候選 key，涵蓋 family 前綴、parent／child／數字尾碼與跨武器同 stem 共用。固定來源 `ba6c148` 與文字批次 `25606770` 實測官方英文名稱為 511；合法候選無額外命中，因此 real smoke 的名稱門檻依 spec2b 改為 511。UI 從 master data 的 `trait_item.display_name` 取名稱，缺少 trait→loc key 對照時保留內部名稱，不由英文文字反猜。以 `PIPELINE_REAL_SMOKE=1 node --test tests/pipeline/extract-blessings.real.test.mjs` 驗證真實資料與兩次輸出 byte 一致。
+祝福的 Lua trait 定義沒有 master-data 的 display_name／description 綁定，不能僅憑文字相似推導改名或不同武器的對應。`pipeline/data/blessing-text-keys.json` 以完整 trait key 區分武器，每筆包含 trait、name、description 和非空 evidence（repo 相對路徑與行號）；只收有逐 trait 既有對照的證據，不收僅依效果或 stem 推定的鍵。遊戲更新時，核對逐 trait 的 legacy 對照或其他可靠 master-data 證據及當次文字批次，再新增或更新對照和驗收 fixture；來源沒有綁定時保留待確認。
+
+五組原因分別處理：改名／詞序及依武器分 key 使用明確對照；命名空間（loc_trait_、loc_）、continous／continuous 與 description 的 _new_desc／_and_bonus_stats_desc 以通用候選處理，獨立 stem 仍需對照。優先使用對照表；已解析的既有候選保留以維持相容，缺值才使用新增通用候選。新增候選多個命中則保留 null 並回報 AMBIGUOUS_TEXT_KEY。對照的 key 若缺 en、zh 或衝突回報 MAPPING_TEXT_MISSING；來源不存在 trait 回報 MAPPING_TRAIT_MISSING。舊版候選維持原有順序以保護已發布結果。
+
+以 `PIPELINE_REAL_SMOKE=1 node --test tests/pipeline/extract-blessings.real.test.mjs` 驗證固定真實資料與輸出 byte 一致。
 
 ### 武器取數
 
