@@ -21,10 +21,10 @@ function extractSuffix(after) {
   const separated = /^\s/u.test(after);
   const rest = after.trimStart();
   if (/^[+\-−]?\d|^[/／]\s*[+\-−]?\d/u.test(rest)) return undefined;
-  if (/^[/／]/u.test(rest)) return rest.match(/^[/／]\s*[%\p{L}\p{N}\p{M}\p{S}_]*/u)[0];
+  if (/^[/／]/u.test(rest)) return /^[/／]\s*[%\p{L}][%\p{L}²³_]*/u.exec(rest)?.[0];
   const first = [...segmenter.segment(rest)][0]?.segment ?? '';
   const hanPrefix = /^[\p{Script=Han}]/u.test(first);
-  const prefix = hanPrefix ? first : /^(?:%|[a-z]+|[\p{N}\p{M}\p{S}_]+)/iu.exec(rest)?.[0];
+  const prefix = hanPrefix ? first : /^(?:%|[a-z]+|[²³]+)/iu.exec(rest)?.[0];
   if (!prefix) return undefined;
   const normalizedPrefix = prefix.toLowerCase();
   if (/^[a-z]/iu.test(prefix) && separated && !units.has(normalizedPrefix) &&
@@ -39,7 +39,7 @@ function extractSuffix(after) {
     const compound = /^\s*[/／]\s*[%\p{L}]+/iu.exec(tail.slice(modifier.length))?.[0] ?? '';
     return prefix + modifier + compound;
   }
-  return prefix + (/^(?:(?:\s*[/／]\s*[%\p{L}]+)|[\p{N}\p{M}\p{S}a-z_])+/iu.exec(tail)?.[0] ?? '');
+  return prefix + (/^(?:(?:\s*[/／]\s*[%\p{L}]+)|[²³a-z_])+/iu.exec(tail)?.[0] ?? '');
 }
 export const derived = (n) => [n, n * 100, (n - 1) * 100, (1 - n) * 100].filter(Number.isFinite);
 export const near = (token, n) => Math.abs(token.value - n) <= 0.5 * 10 ** -token.decimals + 1e-9;
