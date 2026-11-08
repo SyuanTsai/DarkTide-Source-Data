@@ -64,7 +64,7 @@ for(const item of actual.items) {
   const effect=expandOfficialEffect(item,text,actual.effectFormats[item.id]);assert.equal(effect.status,'complete');
   const candidate={...structuredClone(item),explanation:{effect:effect.text,effectOrigin:'official',conditions:'',calculation:'',notes:'',extra:''},errata:[]};
   const ct=checkText(candidate,item,[],[],new Map()),cv=checkValues(candidate,item,undefined,[]);
-  assert.deepEqual(ct,{failures:[],notes:[]});assert.deepEqual(cv,[]);
+  assert.deepEqual(ct,{failures:[],notes:[],warnings:[]});assert.deepEqual(cv,[]);
   const schema=checkDataFile('skills',stringifyCanonical({schemaVersion:'1.1.0',category:'skills',gameVersion:envelope.gameVersion,sourceCommit:commit,textBatch:text.batch,items:[candidate]})).errors;
   assert.deepEqual(schema,[]);
   const original={...structuredClone(candidate),values:before.values};
