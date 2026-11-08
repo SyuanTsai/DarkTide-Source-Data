@@ -28,6 +28,7 @@ test('UnitT20_完整比對單位並拒絕複合單位', () => {
 test('UnitT30_percent-per-second units match only percent values', () => {
   const check = (text, value) => checkNumbers({ params: { x: value } }, text);
   assert.deepEqual(check('1%/秒', { value: 1, unit: 'percent' }).failures, []);
+  assert.deepEqual(check('1%/秒韌性', { value: 1, unit: 'percent' }).failures, []);
   assert.deepEqual(check('1%/s', { value: 1, unit: 'percent' }).failures, []);
   assert.ok(check('2%/秒', { value: 1, unit: 'percent' }).failures.some((failure) => failure.code === 'T_NUMBER'));
   assert.ok(check('1%/秒', { value: 1, unit: 'seconds' }).failures.some((failure) => failure.code === 'T_NUMBER'));

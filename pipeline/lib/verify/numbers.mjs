@@ -30,6 +30,10 @@ function extractSuffix(after) {
   if (/^[a-z]/iu.test(prefix) && separated && !units.has(normalizedPrefix) &&
       !multiplierSuffixes.has(normalizedPrefix) && !unsupportedLatinUnits.has(normalizedPrefix)) return undefined;
   const tail = rest.slice(prefix.length);
+  if (prefix === '%') {
+    const perSecond = /^[/／]\s*(?:秒|s)(?=$|[\p{Script=Han}])/iu.exec(tail)?.[0];
+    if (perSecond) return prefix + perSecond.replace(/\s+/gu, '');
+  }
   if (hanPrefix) {
     const modifier = /^[²³]+/u.exec(tail)?.[0] ?? '';
     const compound = /^\s*[/／]\s*[%\p{L}]+/iu.exec(tail.slice(modifier.length))?.[0] ?? '';
