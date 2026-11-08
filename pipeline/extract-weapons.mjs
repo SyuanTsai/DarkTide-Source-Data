@@ -80,7 +80,7 @@ export async function buildWeapons({reader,text,envelope}) {
   statReader.finish(contributions);
   curves.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
   const damageActions=statReader.actions(t.file)??readTable('weapon_template.actions');
-  const attackCombos=weaponCombos({actions:damageActions,displayed:attacks,file:t.file,profiles:statReader.profiles,textValue:key=>textValue(text,key)});
+  const attackCombos=weaponCombos({actions:damageActions,displayed:attacks,file:t.file,profiles:statReader.profiles,textValue:key=>textValue(text,key),onOrdinaryStart:({kind,start,excluded})=>problems.push({code:'COMBO_START_EXCLUDED',message:`普通／素質計算用入口 ${start}；排除替代入口：${excluded.join('、')}`,id,kind,reason:'INVALID_START_ACTION_FOR_STAT_CALCULATION'})});
   const damageProfiles=statReader.damageProfiles({actions:damageActions,file:t.file,id,problems,files,attackCombos});
   for(const combo of attackCombos)if(combo.unknown)problems.push({code:'COMBO_UNKNOWN',message:`連段未確認：${combo.kind}`,id,kind:combo.kind,reason:combo.unknown});
   if(notApplicable)problems.push({code:'NOT_APPLICABLE_STAT',id,message:`遊戲不讀取的 stat 路徑：${notApplicable} 筆`});

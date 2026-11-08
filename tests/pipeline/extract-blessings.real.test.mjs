@@ -14,10 +14,22 @@ test('InterT90_real blessings pinned smoke', {skip:process.env.PIPELINE_REAL_SMO
   const args=['--source-code-repo',source,'--commit','ba6c148f3c2768ca3ce20d846a12e56e2f433f3e','--text-batch','25606770','--work-dir',dir,'--state',path.join(dir,'state.json')];
   run('extract-blessings.mjs',args); const first=readFileSync(path.join(dir,'extract/blessings.json')), data=JSON.parse(first);
   assert.equal(data.status,'ok'); assert.equal(data.items.length+data.excluded.length,693);
-  const unknown=x=>!x||typeof x!=='object'?0:(x.value===null&&x.unknown?1:0)+Object.values(x).reduce((n,v)=>n+unknown(v),0);
+  const unknown=[];
+  const collect=(value, key, param=null, tier=null, inParams=false)=>{
+    if(!value||typeof value!=='object') return;
+    if(value.value===null&&value.unknown) unknown.push({key,param,tier});
+    const currentTier=Number.isInteger(value.tier)?value.tier:tier;
+    for(const [name, child] of Object.entries(value)) collect(child,key,inParams?name:param,currentTier,name==='params');
+  };
   // Scenario: current finite helpers recover the former eight function values.
-  // Purpose: pin the twelve legacy display-param unknowns; mechanics has its own fail-closed coverage.
-  assert.equal(unknown(data.items.map(i=>[i.values.params,...i.values.tiers.map(t=>t.params)])),12);
+  // Purpose: pin only legacy display-param unknowns; mechanics has separate fail-closed coverage.
+  for(const item of data.items) collect({params:item.values.params,tiers:item.values.tiers.map(({tier,params})=>({tier,params}))},item.key);
+  assert.equal(unknown.length,12);
+  const sortUnknown=(a,b)=>a.key.localeCompare(b.key)||(a.param??'').localeCompare(b.param??'')||(a.tier??0)-(b.tier??0);
+  // 5a6371b 加入角度轉換靜態求值後，兩個 enhanced_arc_jumps_angle 的 angle 已能求值，unknown 從 20 減為 12。
+  const expected=['galvanic_rifle_p1_increases_power_while_aiming','phosphor_pistol_p1_increases_power_while_aiming','shotpistol_shield_p1_windup_increases_power']
+    .flatMap(key=>[1,2,3,4].map(tier=>({key:`weapon_trait_bespoke_${key}`,param:'power_level',tier})));
+  assert.deepEqual(unknown.sort(sortUnknown),expected.sort(sortUnknown));
   const unresolved=data.problems.filter(p=>p.code==='UNRESOLVED_VALUE');
   assert.equal(unresolved.length,12);
   assert.ok(unresolved.every(p=>p.message.startsWith('[DYNAMIC_MANIPULATION]')));
@@ -27,7 +39,7 @@ test('InterT90_real blessings pinned smoke', {skip:process.env.PIPELINE_REAL_SMO
     'darktide:blessing:weapon_trait_bespoke_shotpistol_shield_p1_windup_increases_power',
   ]);
   const count=xs=>xs.reduce((a,k)=>(a[k]=(a[k]||0)+1,a),{});
-  t.diagnostic(JSON.stringify({items:data.items.length,excluded:data.excluded.length,unknown:unknown(data.items),official:data.items.filter(x=>x.name.origin==='official').length,problems:count(data.problems.map(p=>p.code)),unresolvedReasons:count(data.problems.filter(p=>p.code==='UNRESOLVED_VALUE').map(p=>/^\[([^\]]+)\]/.exec(p.message)?.[1]??'UNCLASSIFIED'))}));
+  t.diagnostic(JSON.stringify({items:data.items.length,excluded:data.excluded.length,unknown:unknown.length,official:data.items.filter(x=>x.name.origin==='official').length,problems:count(data.problems.map(p=>p.code)),unresolvedReasons:count(data.problems.filter(p=>p.code==='UNRESOLVED_VALUE').map(p=>/^\[([^\]]+)\]/.exec(p.message)?.[1]??'UNCLASSIFIED'))}));
   const dumdum=data.items.find(x=>x.key==='weapon_trait_bespoke_autogun_p1_consecutive_hits_increases_close_damage');
   assert.equal(dumdum.name.en,'Dumdum'); assert.equal(dumdum.values.params.stacks.value,5);
   assert.ok(dumdum.source.files.some(f=>f.path.endsWith('/base_weapon_trait_buff_templates.lua')));

@@ -3,7 +3,7 @@ import { bespokeTraitDefinitions, playerWeaponTemplates, bespokeTraitsForTemplat
 import { runExtractCli, itemId, nameFromText } from './lib/extract-output.mjs';
 import { StructureError } from './lib/errors.mjs';
 import { resolver, str, expression } from './lib/blessing-values.mjs';
-import { verifiedTextKeys, sharedTextCandidates } from './lib/blessing-text.mjs';
+import { verifiedTextKeys, sharedTextCandidates, textKeyMappings } from './lib/blessing-text.mjs';
 import { captureEffectFormat, gameDecimals } from './lib/effect-format.mjs';
 import { pathToFileURL } from 'node:url';
 import { createMechanics } from './lib/mechanics.mjs';
@@ -20,6 +20,13 @@ export function build({reader,text,envelope}) {
   const definitions=bespokeTraitDefinitions(reader), weapons=new Map();
   for(const template of playerWeaponTemplates(reader)) for(const trait of bespokeTraitsForTemplate(reader,template)) { if(!weapons.has(trait.traitKey)) weapons.set(trait.traitKey,new Set()); weapons.get(trait.traitKey).add(itemId('weapons',template.name)); }
   const r=resolver(reader), shared=sharedTextCandidates(definitions), items=[], problems=[], excluded=[],effectFormats={};
+  const definitionKeys=new Set(definitions.map(def=>def.traitKey));
+  for(const row of textKeyMappings) {
+    const id=itemId('blessings',row.trait);
+    if(!definitionKeys.has(row.trait)) problems.push({code:'MAPPING_TRAIT_MISSING',message:`對照表 trait 不存在：${row.trait}`,id});
+    // Validate even stale or excluded mappings, which will not enter the item loop.
+    if(!definitionKeys.has(row.trait) || !weapons.get(row.trait)?.size) verifiedTextKeys(text,row.trait,'',[],problem=>problems.push({...problem,id}));
+  }
   for(const def of definitions) {
     const key=def.traitKey, id=itemId('blessings',key), ws=weapons.get(key);
     if(!ws?.size) { excluded.push({key,reason:'no-player-weapon'}); continue; }
@@ -78,7 +85,7 @@ export function build({reader,text,envelope}) {
       };
       if(varying) for(const tier of tiers) tier.params[name]=run(tier.tier); else params[name]=run(1);
     }
-    const keys=verifiedTextKeys(text,key,def.file,shared.get(key)), nameKey=keys.name, descKey=keys.description;
+    const keys=verifiedTextKeys(text,key,def.file,shared.get(key),problem=>problems.push({...problem,id})), nameKey=keys.name, descKey=keys.description;
     const named=nameFromText(text,nameKey,key); if(named.problem) problems.push({...named.problem,id});
     const description=descKey?text.lookup(descKey):null; if(description?.conflict) problems.push({code:'TEXT_CONFLICT',message:`官方文字衝突：${descKey}`,id});
     items.push({id,key,name:named.name,official:{en:description?.conflict?null:description?.en??null,zh:description?.conflict?null:description?.zh??null},values:{weapons:[...ws].sort(),tiers,params},source:{commit:reader.commit,files:[...files.values()].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:a.line-b.line),scriptVersion:SCRIPT,text:{batch:envelope.textBatch,keys:{...(nameKey?{name:nameKey}:{}),...(descKey?{description:descKey}:{})}}}});
