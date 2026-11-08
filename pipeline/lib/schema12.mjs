@@ -19,6 +19,10 @@ export function checkSchema12(category, file, item, path, items, add) {
     if (!modern && value !== undefined) add(path + field, 'Field requires schema 1.2.0');
   if (!['skills','blessings'].includes(category) && item.values && Object.hasOwn(item.values,'mechanics'))
     add(path + '/values/mechanics', 'mechanics requires skills or blessings');
+  if (!['skills','blessings'].includes(category))
+    for (const field of ['valueSources', 'codeRefs'])
+      if (Object.hasOwn(item.source ?? {}, field))
+        add(`${path}/source/${field}`, `${field} requires skills or blessings`);
   const sources = item.source?.valueSources;
   for (const [pointer] of Object.entries(sources ?? {}))
     if (atPointer(item.values, pointer) === undefined)

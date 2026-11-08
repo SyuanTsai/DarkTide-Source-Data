@@ -15,10 +15,14 @@ import { verifyMerged } from '../../pipeline/lib/verify/output.mjs';
 
 const refId = 'scripts/example.lua#templates.example';
 const location = { path: 'scripts/example.lua', line: 7 };
-const sample = (category = 'skills') => {
+const oldSample = (category = 'skills') => {
   const file = JSON.parse(readFileSync(`pipeline/schema/examples/1.1.0-example/${category}.json`, 'utf8'));
-  file.schemaVersion = '1.2.0';
   const item = file.items[0]; file.items = [item]; item.errata = [];
+  return file;
+};
+const sample = (category = 'skills') => {
+  const file = oldSample(category), item = file.items[0];
+  file.schemaVersion = '1.2.0';
   if (['skills', 'blessings'].includes(category)) {
     item.values.mechanics = { 'buff.duration': { value: 7, unit: 'seconds' } };
     item.source.valueSources = { '/mechanics/buff.duration': [location] };
@@ -35,19 +39,44 @@ test('UnitT40_schema12 accepts mechanics sources codeRefs citations in both cate
   for (const category of ['skills', 'blessings']) assert.deepEqual(check(sample(category)).errors, []);
 });
 
+// Scenario: add exactly one 1.2.0 field to a valid 1.1.0 envelope; all fields are valid in 1.2.0.
+// Purpose: isolate C0 version gating and report only the field's path.
+for (const [name, path, mutate] of [
+  ['mechanics', '/values/mechanics', x => { x.values.mechanics = {}; }],
+  ['valueSources', '/source/valueSources', x => { x.source.valueSources = { '/params': [location] }; }],
+  ['codeRefs', '/source/codeRefs', x => { x.source.codeRefs = { [refId]: { path: location.path, symbol: 'templates.example', sha256: 'a'.repeat(64) } }; }],
+  ['citations', '/citations', x => { x.citations = []; }],
+]) test(`UnitT41_C0 old ${name}`, () => {
+  const file = oldSample();
+  assert.deepEqual(check(file).errors, []);
+  mutate(file.items[0]);
+  assert.deepEqual(check(file).errors, [
+    { path: `/items/0${path}`, message: 'Schema rejects value' },
+    { path: `/items/0${path}`, message: 'Field requires schema 1.2.0' },
+  ]);
+  file.schemaVersion = '1.2.0';
+  assert.deepEqual(check(file).errors, []);
+});
+
+// Scenario: a malformed pointer key has valid location content in an otherwise valid file.
+// Purpose: isolate the pattern error at the schema layer; atPointer rejects malformed syntax before resolution.
+test('UnitT41_C2 pointer syntax', () => {
+  const schemas = loadSchemas('pipeline/schema'), file = sample();
+  assert.deepEqual(schemas.validate('skills.schema.json', file).errors, []);
+  file.items[0].source.valueSources.bad = [location];
+  assert.deepEqual(schemas.validate('skills.schema.json', file).errors, [
+    { path: '/items/0/source/valueSources/bad', message: 'String does not match pattern' },
+  ]);
+});
+
 // Scenario: mutate one valid field at a time. Purpose: reject only the named contract violation.
 for (const [name, mutate] of [
   ['C0 unsupported version', f => { f.schemaVersion = '1.3.0'; }],
-  ['C0 old mechanics', f => { f.schemaVersion = '1.1.0'; }],
-  ['C0 old valueSources', f => { f.schemaVersion = '1.1.0'; delete f.items[0].values.mechanics; delete f.items[0].citations; delete f.items[0].source.codeRefs; f.items[0].source.valueSources = { '/params': [location] }; }],
-  ['C0 old codeRefs', f => { f.schemaVersion = '1.0.0'; delete f.items[0].citations; delete f.items[0].values.mechanics; delete f.items[0].source.valueSources; delete f.items[0].explanation.effectOrigin; }],
-  ['C0 old citations', f => { f.schemaVersion = '1.1.0'; }],
   ['C1 key pattern', f => { const x=f.items[0]; x.values.mechanics = { 'Bad': { value: 7 } }; x.source.valueSources = { '/mechanics/Bad': [location] }; }],
   ['C1 null requires unknown', f => { f.items[0].values.mechanics['buff.duration'].value=null; }],
   ['C1 param rejects extra', f => { f.items[0].values.mechanics['buff.duration'].extra=true; }],
   ['C2 mechanics requires source', f => { delete f.items[0].source.valueSources; f.items[0].citations[0].valueRefs=[]; }],
   ['C2 pointer must resolve', f => { f.items[0].source.valueSources['/missing']=[location]; }],
-  ['C2 pointer syntax', f => { f.items[0].source.valueSources['bad']=[location]; }],
   ['C2 nonempty locations', f => { f.items[0].source.valueSources['/params']=[]; }],
   ['C2 line positive', f => { f.items[0].source.valueSources['/params']=[{...location,line:0}]; }],
   ['C2 location rejects extra', f => { f.items[0].source.valueSources['/params']=[{...location,extra:true}]; }],
@@ -55,14 +84,18 @@ for (const [name, mutate] of [
   ['C3 symbol equality', f => { f.items[0].source.codeRefs[refId].symbol='other'; }],
   ['C3 sha256 lowercase', f => { f.items[0].source.codeRefs[refId].sha256='A'.repeat(64); }],
   ['C3 no line', f => { f.items[0].source.codeRefs[refId].line=1; }],
-  ['C3 ref id pattern', f => { f.items[0].source.codeRefs['invalid']={...f.items[0].source.codeRefs[refId]}; }],
+  ['C3 ref id pattern', f => { f.items[0].source.codeRefs['x.lua#bad!']={path:'x.lua',symbol:'bad!',sha256:'a'.repeat(64)}; }],
   ['C4 section enum', f => { f.items[0].citations[0].section='invalid'; }],
   ['C4 text nonempty', f => { f.items[0].citations[0].text=''; }],
   ['C4 refs nonempty', f => { f.items[0].citations[0].codeRefs=[]; f.items[0].citations[0].valueRefs=[]; }],
   ['C4 refs unique', f => { f.items[0].citations[0].codeRefs=[refId,refId]; }],
   ['C4 no extra', f => { f.items[0].citations[0].extra=true; }],
 ]) test(`UnitT41_${name}`, () => {
-  const file=sample(); assert.equal(check(file).valid,true); mutate(file); assert.equal(check(file).valid,false,name);
+  const file=name==='C0 unsupported version'?oldSample():sample();
+  assert.equal(check(file).valid,true); mutate(file); assert.equal(check(file).valid,false,name);
+  if(name==='C3 ref id pattern') assert.deepEqual(check(file).errors,[
+    {path:'/items/0/source/codeRefs/x.lua#bad!',message:'String does not match pattern'},
+  ]);
 });
 
 // Scenario: mechanics supply numbers and must be explained. Purpose: include both mechanics levels in coverage.
