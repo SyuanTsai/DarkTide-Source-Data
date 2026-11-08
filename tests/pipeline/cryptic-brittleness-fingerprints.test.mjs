@@ -62,7 +62,7 @@ test('InterT10_pinned sources supplement both ratios and account for every read'
     assert.deepEqual(problems,[]);
     assert.deepEqual(params.brittleness_per_stack,{value:0.025,unit:'ratio'});
     assert.ok(trace.some(p=>p.path===WEAPON&&p.line===expectedLine));
-    assert.deepEqual(numericCheck(id,stacks,params),{failures:[],notes:[]});
+    assert.deepEqual(numericCheck(id,stacks,params),{failures:[],notes:[],warnings:[]});
   }
   assert.deepEqual(supplement.filesRead(),Object.keys(BRITTLENESS_SOURCE_PINS).sort());
   assert.deepEqual(supplement.directoriesRead(),BRITTLENESS_DIRECTORY_PINS);
