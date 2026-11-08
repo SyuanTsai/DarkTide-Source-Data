@@ -198,7 +198,9 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 無法證實線性的曲線以 `interpolation: "unknown"`、兩個 output 都為 null 並記原因；原有 stat min／max 保留。`LERP_T_OUT_OF_RANGE` 表示單筆 tweak 權重超出 [0,1]；`NONLINEAR_COMBINATION` 表示多筆累積在區間內發生 clamp，無法以兩端點重建；未觸發 clamp 的逐筆線性相加保持 linear；damage profile 使用相同判定；`NONLINEAR_LERP` 保留供無法以 tweak 線性表示的 lerp 來源使用，目前沒有輸出此原因。曲線仍沿用 WP2「相關 bar 同時變動」語意，不足以重建各 bar 獨立變動的完整傷害公式，缺口見 [公式盤點](../docs/pipeline/weapon-damage-formula-gaps.md)。未解析而進 params 的 stat 不建立曲線。
 
-`values.attackCombos[]` 依 light、heavy 輸入追蹤 action 圖。起點採 `start_input = start_attack`，沒有時才使用有 light/heavy 邊的其他明確 start_input。多起點時 steps 為空、unknown 為 `CHAIN_START_AMBIGUOUS`；受 start 必須為字串的結構限制，start/source 指向來源順序第一個候選，不能視為已確認的唯一入口。連段從已進入 start action 的狀態開始；後續轉入 action（含返回 start）才檢查 action condition。windup 不列入 steps，沿 `start_attack` 推進；只有 kind 可靜態確認的 sweep 或具有靜態 damage profile 的傷害 action 列入。`loopsTo` 是 steps 的零起算索引；無循環為 null。純遠程無此結構則為空陣列。時間不影響順序，未使用時間選分支。原始碼語意依 `scripts/settings/equipment/weapon_templates/default_melee_action_input_setup.lua`、`melee_action_input_setup_mid.lua` 與 `scripts/utilities/action/action_handler.lua` 的 `_valid_action_from_action_input`、`_validate_single_chain_action` 核對；`_anim_end_event` 的 callback 僅控制動畫收尾，不是連段條件。
+`values.attackCombos[]` 依 light、heavy 輸入追蹤 action 圖。起點採 `start_input = start_attack`，沒有時才使用有 light/heavy 邊的其他明確 start_input。只有原本會得到 `CHAIN_START_AMBIGUOUS` 的多候選連段，才嘗試依 `invalid_start_action_for_stat_calculation` 排除替代入口；候選 action 表必須是封閉、靜態可證明的表，候選的 `start_input` 與排除旗標也必須可靜態判定。旗標只接受缺省、`nil`、`false` 或 literal `true`；只有明示 `true` 的 action 會排除。排除後恰剩一個候選才從它執行原 walker；剩 0 個、超過 1 個、表有未知 key／動態內容或旗標值不明時，仍輸出空 steps 與 `CHAIN_START_AMBIGUOUS`。抽取問題中的 `COMBO_START_EXCLUDED` note 會列出選用的普通／素質計算用入口及排除的 action 名稱，不增加 `attackCombos` schema 欄位。這描述普通、已就緒情境下的連段語意（`special_active=false`、非衝刺、非滑行，相關時間門檻已滿足），不表示執行期所有狀態都只有一個可用入口。
+
+連段從已進入 start action 的狀態開始；後續轉入 action（含返回 start）才檢查 action condition。windup 不列入 steps，沿 `start_attack` 推進；只有 kind 可靜態確認的 sweep 或具有靜態 damage profile 的傷害 action 列入。`loopsTo` 是 steps 的零起算索引；無循環為 null。純遠程無此結構則為空陣列。時間不影響順序，未使用時間選分支。原始碼語意依 `scripts/settings/equipment/weapon_templates/default_melee_action_input_setup.lua`、`melee_action_input_setup_mid.lua` 與 `scripts/utilities/action/action_handler.lua` 的 `_valid_action_from_action_input`、`_validate_single_chain_action` 核對；`_anim_end_event` 的 callback 僅控制動畫收尾，不是連段條件。
 
 1.1.0 武器可選填 `values.damageProfiles[]`，保存來源明示的 attack／impact 原始數值與動作或模板綁定；hitScan／projectile 的明示 powerLevel 保存在各自的 binding。數值附來源位置，缺值以 unknown 原因表示；這些是原始數值，不是最終傷害。
 
@@ -208,7 +210,7 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 step 的 profile 綁定重用 WP2 require/catalog 邏輯，唯一靜態 profile 才填值，否則 `damageProfile: null` 及 `DAMAGE_PROFILE_BINDING_NOT_FOUND`。displayed_attacks 必須能以明確 action_name 對應 display_name 才填名稱；群組 gestalt 名稱不推定為每個 action 的名稱。
 
-連段原因碼：`CONDITIONAL_CHAIN`（chain validation／action condition／running action state requirement）、`CHAIN_TARGET_NOT_FOUND`（缺目標）、`CHAIN_START_AMBIGUOUS`（多起點）、`CHAIN_CYCLE_WITHOUT_ATTACK`（無攻擊循環）、`DYNAMIC_VALUE`（函式／動態邊或 kind），另保留既有 `REFERENCE_NOT_FOUND`。遇不確定分支保留已證實的 steps 前綴。`CURVE_UNKNOWN`、`COMBO_UNKNOWN` problems 均帶 reason，可直接彙總；profile unknown 由 steps 的 `damageProfileUnknown` 統計。
+連段原因碼：`CONDITIONAL_CHAIN`（chain validation／action condition／running action state requirement）、`CHAIN_TARGET_NOT_FOUND`（缺目標）、`CHAIN_START_AMBIGUOUS`（多起點）、`CHAIN_CYCLE_WITHOUT_ATTACK`（無攻擊循環）、`DYNAMIC_VALUE`（函式／動態邊或 kind），另保留既有 `REFERENCE_NOT_FOUND`。遇不確定分支保留已證實的 steps 前綴。`COMBO_START_EXCLUDED` 是抽取診斷 note，記錄採用普通起點時排除的替代 action；`CURVE_UNKNOWN`、`COMBO_UNKNOWN` problems 均帶 reason，可直接彙總；profile unknown 由 steps 的 `damageProfileUnknown` 統計。
 
 `PIPELINE_REAL_SMOKE=1 node --test tests/pipeline/extract-weapons.real.test.mjs` 驗證 schema、curve 一一對應、近戰輕重擊覆蓋及兩次 byte 相同，並只印彙總及少量抽樣。
 

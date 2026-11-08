@@ -2,11 +2,51 @@ import {getTableField as field} from './lua-static-reader.mjs';
 
 const string=n=>n?.type==='string'?n.value:null;
 const entries=n=>n?.type==='table'?n.entries.filter(e=>e.key?.type==='string').map(e=>[e.key.value,e.value]):[];
+const keyNode=e=>e.resolvedKey??e.key;
+function staticallyClosedTable(node,{stringKeysOnly=false}={}) {
+ return node?.type==='table'&&!node.dynamic&&!node.hasUnknownKeys&&node.entries.every(e=>{
+  const key=keyNode(e);
+  return key==null?!stringKeysOnly:key.type==='string'||(!stringKeysOnly&&['number','boolean'].includes(key.type));
+ });
+}
+function hasUniqueField(node,name) {
+ return node.entries.filter(e=>keyNode(e)?.type==='string'&&keyNode(e).value===name).length<=1;
+}
+function proveCandidateFlags(actions,all,candidates,hasStartAttack) {
+ if(!staticallyClosedTable(actions,{stringKeysOnly:true})||actions.entries.length!==all.length)return null;
+ const names=new Set(),records=[];
+ for(const entry of actions.entries) {
+  const key=keyNode(entry);
+  if(names.has(key.value))return null;
+  names.add(key.value);
+  records.push([key.value,entry.value]);
+ }
+ if(!hasStartAttack&&records.some(([,node])=>{
+  if(!staticallyClosedTable(node))return true;
+  const input=field(node,'start_input'),chains=field(node,'allowed_chain_actions');
+  return input&&input.type!=='nil'&&input.type!=='string'||chains&&chains.type!=='nil'&&!staticallyClosedTable(chains);
+ }))return null;
+ const provenStarts=records.filter(([,node])=>node?.type==='table'&&string(field(node,'start_input'))==='start_attack');
+ const provenFallback=records.filter(([,node])=>node?.type==='table'&&string(field(node,'start_input'))&&['light_attack','heavy_attack'].some(k=>field(field(node,'allowed_chain_actions'),k)));
+ const provenCandidates=provenStarts.length?provenStarts:provenFallback;
+ if(provenCandidates.length!==candidates.length||provenCandidates.some(([name,node],i)=>name!==candidates[i][0]||node!==candidates[i][1]))return null;
+ const included=[],excluded=[];
+ for(const candidate of candidates) {
+  if(!staticallyClosedTable(candidate[1])||!hasUniqueField(candidate[1],'start_input')||!hasUniqueField(candidate[1],'invalid_start_action_for_stat_calculation'))return null;
+  const input=field(candidate[1],'start_input');
+  if(input&&input.type!=='nil'&&input.type!=='string')return null;
+  const marker=field(candidate[1],'invalid_start_action_for_stat_calculation');
+  if(marker&&marker.type!=='nil'&&!(marker.type==='boolean'&&(marker.value===true||marker.value===false)))return null;
+  if(marker?.type==='boolean'&&marker.value===true)excluded.push(candidate);
+  else included.push(candidate);
+ }
+ return {included,excluded};
+}
 // Animation end-event callbacks affect animation cleanup, not action selection.
 const conditional=n=>entries(n).some(([key,value])=>(/^(?:chain_validation|action_condition|condition_func)/.test(key)||key==='running_action_state_requirement')&&!(value.type==='boolean'&&value.value===true));
 
 /** Follow only explicit input edges. Never execute conditions or choose branches. */
-export function weaponCombos({actions,displayed,file,profiles,textValue}) {
+export function weaponCombos({actions,displayed,file,profiles,textValue,onOrdinaryStart}) {
  const all=entries(actions),result=[];
  const starters=all.filter(([,node])=>string(field(node,'start_input'))==='start_attack');
  const alternatives=all.filter(([,node])=>string(field(node,'start_input'))&&['light_attack','heavy_attack'].some(k=>field(field(node,'allowed_chain_actions'),k)));
@@ -18,9 +58,15 @@ export function weaponCombos({actions,displayed,file,profiles,textValue}) {
  for(const kind of ['light','heavy']) {
   const input=kind+'_attack';
   if(!candidates.some(([,n])=>field(field(n,'allowed_chain_actions'),input)))continue;
-  const [start,first]=candidates[0],combo={id:kind,kind,start,steps:[],loopsTo:null,unknown:null,source:{path:file,line:first.startLine??1}};
+  let selected=candidates,excluded=[];
+  if(candidates.length>1) {
+   const proof=proveCandidateFlags(actions,all,candidates,starters.length>0);
+   if(proof?.included.length===1){selected=proof.included;excluded=proof.excluded;}
+  }
+  const [start,first]=selected[0],combo={id:kind,kind,start,steps:[],loopsTo:null,unknown:null,source:{path:file,line:first.startLine??1}};
   result.push(combo);
-  if(candidates.length!==1){combo.unknown='CHAIN_START_AMBIGUOUS';continue;}
+  if(selected.length!==1){combo.unknown='CHAIN_START_AMBIGUOUS';continue;}
+  if(excluded.length)onOrdinaryStart?.({kind,start,excluded:excluded.map(([name])=>name)});
   let current=start,via=string(field(first,'start_input')),atStart=true;const seen=new Map(),pending=new Set();
   for(;;) {
    const node=field(actions,current);
