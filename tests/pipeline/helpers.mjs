@@ -2,7 +2,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSyn
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawnSync, execFileSync } from 'node:child_process';
+import { spawnSync, execFileSync } from './test-env.mjs';
 import { createHash } from 'node:crypto';
 import { locHash } from '../../pipeline/lib/official-text.mjs';
 export const root = fileURLToPath(new URL('../../',import.meta.url));

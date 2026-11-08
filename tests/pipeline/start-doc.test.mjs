@@ -55,3 +55,12 @@ test('first 1.13.4 run uses the verified migration baseline and gates writes', (
   const text = readFileSync('docs/pipeline/START.md', 'utf8');
   for (const phrase of ['syp-391-v3/baseline/data', 'node pipeline/diff.mjs --data-dir $migrationBaselineData', 'baseline 項目均為 unchanged', '其餘均為 added', '後續版本正常執行', '寫入 repo 前先確認', '第 5a 步抽查完成並一致', "node pipeline/verify.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')", "node pipeline/write.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')"]) assert.ok(text.includes(phrase), phrase);
 });
+
+// Scenario: The operator prepares verify and reports translation conflicts.
+// Purpose: Prevent unintended public issue creation and preserve the reporting decision.
+test('UnitT20_verify documents issue creation and conflict reporting', () => {
+  const text = readFileSync('docs/pipeline/START.md', 'utf8');
+  const step5 = text.slice(text.indexOf('5. 檢查：'), text.indexOf('5a. damage profile 抽查'));
+  for (const phrase of ['預設 `--issues off`', '公開的 Mods repo', '對外發布', '`--issues create`', '`translationConflicts`', '第 8 步', '使用者決定']) assert.ok(step5.includes(phrase), phrase);
+  assert.ok(text.includes('譯名衝突：N 組（是否已建立 Issue）'));
+});

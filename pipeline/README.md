@@ -53,7 +53,7 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 | `--translation` | `DARKTIDE_GLOSSARY_FILE`，再用 `<root>/../Warhammer-40-000-DARKTIDE-Mods/Referneces/Translation.md` |
 | `--report` | `<cloud>/<ver>/verify/report.json` |
 | `--out-dir` | `<cloud>/<ver>/verify/out`，其內 `data/<ver>/<category>.json` 是與 write 相同的正式資料預覽 |
-| `--issues` | `create`；可用 `off` 或 `dry-run` |
+| `--issues` | `off`；可用 `create`（必須明確指定，會在公開的 Mods repo 建立 Issue，屬於對外發布，需要使用者同意）或 `dry-run` |
 | `--mods-repo` | `SyuanTsai/Warhammer-40-000-DARKTIDE-Mods`，譯名衝突 Issue 目的地 |
 | `--mods-commit` | 未指定時從譯名表所在 repo 解析 commit；dry-run 不執行外部指令 |
 | `--build-cmd` | 預設不執行；指定時設定 `DARKTIDE_DATA_ROOT` 為 out-dir 後執行 |

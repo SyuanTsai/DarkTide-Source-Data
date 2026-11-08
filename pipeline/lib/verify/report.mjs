@@ -35,6 +35,7 @@ export function finishReport(report) {
   for (const item of report.items) {
     item.failures.sort((a, b) => compare(a.gate, b.gate) || compare(a.code, b.code) || compare(a.path, b.path) || compare(a.message, b.message));
     item.notes.sort((a, b) => compare(a.code, b.code));
+    item.warnings?.sort((a, b) => compare(a.code, b.code) || compare(a.message, b.message));
   }
   for (const entry of Object.values(report.categories)) entry.anomalies.sort((a, b) => compare(a.code, b.code));
   for (const gate of ['values', 'text']) report.gates[gate].failedItems = report.items.filter((i) => i.failures.some((f) => f.gate === gate)).length;
@@ -52,5 +53,7 @@ export function summary(report, issueMode) {
   lines.push(`排除項目（無上一版）：${report.items.filter((i) => i.decision === 'excluded').length}`);
   lines.push(`保留上一版類別：${Object.entries(report.categories).filter(([, c]) => c.status === 'kept-previous').map(([c]) => c).sort().join(',') || '無'}`);
   lines.push(`譯名衝突：${report.translationConflicts.length}（Issue 模式 ${issueMode}）`);
+  const warnings = report.items.flatMap((item) => (item.warnings ?? []).map((warning) => `${item.id}：${warning.message}`));
+  lines.push(`官方原文 warning：${warnings.length ? warnings.join('；') : '無'}`);
   return `${lines.join('\n')}\n`;
 }

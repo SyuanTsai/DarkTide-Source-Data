@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync, execFileSync } from 'node:child_process';
+import { spawnSync, execFileSync, cleanTestEnv } from './test-env.mjs';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -16,7 +16,7 @@ test('UnitT10_repo paths use overrides then adjacent then parent', t => {
   mkdirSync(path.join(dir,'worktrees','Darktide-Source-Code'));
   assert.equal(resolveRepoPaths({root,env:{}}).sourceRepo,path.join(dir,'worktrees','Darktide-Source-Code'));
   assert.equal(resolveRepoPaths({root,env:{DARKTIDE_SOURCE_CODE_REPO:dir}}).sourceRepo,dir);
-  const r=spawnSync(process.execPath,['pipeline/print-repos.mjs'],{encoding:'utf8',env:{...process.env,DARKTIDE_SOURCE_CODE_REPO:dir,DARKTIDE_PRIVATE_REPO:root}});
+  const r=spawnSync(process.execPath,['pipeline/print-repos.mjs'],{encoding:'utf8',env:{...cleanTestEnv(),DARKTIDE_SOURCE_CODE_REPO:dir,DARKTIDE_PRIVATE_REPO:root}});
   assert.equal(r.status,0,r.stderr); assert.deepEqual(JSON.parse(r.stdout),{sourceRepo:dir,privateRepo:root});
 });
 
@@ -39,7 +39,7 @@ test('InterT20_start block stops immediately after private fetch fails', t => {
   const log=path.join(dir,'calls.txt');
   const prelude=`$script:RealGit = (Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source\nfunction git {\n  Add-Content -LiteralPath $env:TEST_CALLS -Value ($args -join ' ')\n  if ($args[0] -eq '-C' -and $args[1] -eq $env:DARKTIDE_PRIVATE_REPO) { & $script:RealGit @args; return }\n  $global:LASTEXITCODE = 0\n  if ($args -contains 'branch') { 'master' }\n  if ($args -contains 'symbolic-ref') { 'origin/master' }\n}\n`;
   const script=path.join(dir,'test.ps1'); writeFileSync(script,prelude+block+'\n');
-  const r=spawnSync('pwsh',['-NoProfile','-NonInteractive','-File',script],{encoding:'utf8',env:{...process.env,TEST_CALLS:log,DARKTIDE_SOURCE_CODE_REPO:dir,DARKTIDE_PRIVATE_REPO:priv}});
+  const r=spawnSync('pwsh',['-NoProfile','-NonInteractive','-File',script],{encoding:'utf8',env:{...cleanTestEnv(),TEST_CALLS:log,DARKTIDE_SOURCE_CODE_REPO:dir,DARKTIDE_PRIVATE_REPO:priv}});
   assert.notEqual(r.status,0,`expected failure: ${r.stdout} ${r.stderr}`);
   const calls=readFileSync(log,'utf8'); assert.match(calls,/fetch origin/); assert.doesNotMatch(calls,/rev-parse/);
 });

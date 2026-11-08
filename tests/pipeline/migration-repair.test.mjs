@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, writeFile, mkdir, readdir, lstat, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync } from './test-env.mjs';
 import { buildMigration, applyPatch, checkCandidate } from '../../scripts/migration/lib/repair-tasks.mjs';
 import { writePrepared, applyPrepared, assertExternalOutput, loadLegacyCache, exists } from '../../scripts/migration/lib/migration-io.mjs';
 import { itemFileName } from '../../pipeline/lib/cloud-dir.mjs';

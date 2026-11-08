@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import { readFileSync, mkdtempSync, mkdirSync, cpSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawnSync } from './test-env.mjs';
 import { loadSchemas } from '../../pipeline/lib/json-schema.mjs';
 import { checkDataFile } from '../../pipeline/lib/data-files.mjs';
 import { stringifyCanonical } from '../../pipeline/lib/canonical-json.mjs';
+import { emptyState } from '../../pipeline/lib/state.mjs';
 import { contentHash } from '../../pipeline/lib/diff-core.mjs';
 import { composeCandidate } from '../../pipeline/lib/candidate.mjs';
 import { checkText } from '../../pipeline/lib/verify/text.mjs';
@@ -68,7 +69,7 @@ test('validate CLI accepts legal origins and rejects disallowed category', t => 
   cpSync('pipeline/schema/examples/1.1.0-example', join(root, 'data', '0.0.0'), { recursive: true });
   const current = JSON.parse(readFileSync('pipeline/schema/examples/current.json', 'utf8')); current.schemaVersion = '1.1.0';
   writeFileSync(join(root, 'data', 'current.json'), stringifyCanonical(current));
-  cpSync('pipeline/state.json', join(root, 'pipeline', 'state.json'));
+  writeFileSync(join(root, 'pipeline', 'state.json'), stringifyCanonical(emptyState()));
   const run = () => spawnSync(process.execPath, ['pipeline/validate.mjs', '--root', root], { encoding: 'utf8' });
   for (const origin of ['official', 'unofficial-translation']) {
     for (const c of ['blessings', 'skills']) {

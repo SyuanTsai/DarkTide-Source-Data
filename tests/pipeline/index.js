@@ -56,3 +56,10 @@ import './review31.test.mjs';
 import './review33.real.test.mjs';
 
 import './migration-official-effect.test.mjs';
+import './locked-name.test.mjs';
+import './locked-direction.test.mjs';
+import './locked-direction-units.test.mjs';
+import './spec56.test.mjs';
+import './review40.test.mjs';
+import './review41.test.mjs';
+import './review42.test.mjs';
