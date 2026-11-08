@@ -62,7 +62,7 @@ export function derivable(values) {
   });
   return numbers;
 }
-const units = new Map(Object.entries({ '%':'percent', 秒:'seconds', s:'seconds', sec:'seconds', second:'seconds', seconds:'seconds', 公尺:'meters', 米:'meters', m:'meters', meter:'meters', meters:'meters', metre:'meters', metres:'meters', 次:'次', 層:'層' }));
+const units = new Map(Object.entries({ '%':'percent', '%/秒':'percent', '%/s':'percent', 秒:'seconds', s:'seconds', sec:'seconds', second:'seconds', seconds:'seconds', 公尺:'meters', 米:'meters', m:'meters', meter:'meters', meters:'meters', metre:'meters', metres:'meters', 次:'次', 層:'層' }));
 const unsupportedChineseUnits = ['公斤', '公克', '克', '公分', '釐米', '厘米', '毫米', '公里', '平方', '立方', '小時', '分鐘', '毫秒', '度'];
 const unsupportedLatinUnits = new Set([
   'kg', 'kgs', 'kilogram', 'kilograms', 'g', 'gram', 'grams', 'cm', 'centimeter', 'centimeters', 'centimetre', 'centimetres',

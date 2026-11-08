@@ -23,3 +23,13 @@ test('UnitT20_完整比對單位並拒絕複合單位', () => {
   for (const text of ['5公尺', '5米', '5m']) assert.deepEqual(check(text).failures, [], text);
   assert.ok(checkNumbers({params:{x:{value:5,unit:'meters'}}}, '-5公尺/秒', '-5公尺/秒').failures.length);
 });
+
+// Scenario: percentage rates use percent-per-second suffixes. Purpose: accept only matching percent values while keeping other unit mismatches strict.
+test('UnitT30_percent-per-second units match only percent values', () => {
+  const check = (text, value) => checkNumbers({ params: { x: value } }, text);
+  assert.deepEqual(check('1%/秒', { value: 1, unit: 'percent' }).failures, []);
+  assert.deepEqual(check('1%/s', { value: 1, unit: 'percent' }).failures, []);
+  assert.ok(check('2%/秒', { value: 1, unit: 'percent' }).failures.some((failure) => failure.code === 'T_NUMBER'));
+  assert.ok(check('1%/秒', { value: 1, unit: 'seconds' }).failures.some((failure) => failure.code === 'T_NUMBER'));
+  assert.ok(check('5公尺/秒', { value: '5m' }).failures.some((failure) => failure.code === 'T_NUMBER'));
+});
