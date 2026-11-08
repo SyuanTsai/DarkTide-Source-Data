@@ -24,12 +24,13 @@ test('InterT80_review3_review4_review5 pinned extraction twice and concrete find
  const data=Object.fromEntries([...first].map(([k,v])=>[k,JSON.parse(v)]));
  const weapons=data.weapons.items;
  // Scenario: the caller supplies extracts produced by the unchanged baseline pipeline.
- // Purpose: compare every values object in all four categories, including unknowns.
+ // Purpose: compare all pre-existing values, including unknowns; schema 1.2 mechanics are independently verified.
  if(process.env.PIPELINE_VALUES_BASELINE) {
   for(const category of ['skills','weapons','blessings','terms']) {
    const baseline=JSON.parse(readFileSync(path.join(process.env.PIPELINE_VALUES_BASELINE,category+'.json')));
-   const current=new Map(data[category].items.map(x=>[x.id,x.values]));
-   const changes=baseline.items.filter(x=>JSON.stringify(x.values)!==JSON.stringify(current.get(x.id))).map(x=>x.id);
+   const legacy=value=>{const v=structuredClone(value);delete v.mechanics;for(const tier of v.tiers??[])delete tier.mechanics;return v;};
+   const current=new Map(data[category].items.map(x=>[x.id,legacy(x.values)]));
+   const changes=baseline.items.filter(x=>JSON.stringify(legacy(x.values))!==JSON.stringify(current.get(x.id))).map(x=>x.id);
    assert.deepEqual(changes,[],category+' baseline values regressions');
    assert.equal(current.size,baseline.items.length,category+' item coverage');
   }

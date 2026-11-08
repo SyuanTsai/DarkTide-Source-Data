@@ -16,8 +16,8 @@ test('InterT90_real blessings pinned smoke', {skip:process.env.PIPELINE_REAL_SMO
   assert.equal(data.status,'ok'); assert.equal(data.items.length+data.excluded.length,693);
   const unknown=x=>!x||typeof x!=='object'?0:(x.value===null&&x.unknown?1:0)+Object.values(x).reduce((n,v)=>n+unknown(v),0);
   // Scenario: current finite helpers recover the former eight function values.
-  // Purpose: pin the twelve remaining dynamic manipulations, without accepting new unknowns.
-  assert.equal(unknown(data.items),12);
+  // Purpose: pin the twelve legacy display-param unknowns; mechanics has its own fail-closed coverage.
+  assert.equal(unknown(data.items.map(i=>[i.values.params,...i.values.tiers.map(t=>t.params)])),12);
   const unresolved=data.problems.filter(p=>p.code==='UNRESOLVED_VALUE');
   assert.equal(unresolved.length,12);
   assert.ok(unresolved.every(p=>p.message.startsWith('[DYNAMIC_MANIPULATION]')));

@@ -139,7 +139,7 @@ Table constructor 的計算 key 必須有字面值或靜態常數證明；可解
 
 ### 技能取數
 
-cryptic 的電弧手榴彈／電擊每層脆弱值補收，須同時通過既有靜態證明與 e46b892 全文 SHA-256 釘選（完整 **478 檔、3 個目錄清單及兩個技能名稱／描述的雙語文字 hash**見 `lib/cryptic-brittleness-sources.json`）。範圍是這次 **extract-skills 整體實際讀取集合**：主抽取器、所有技能樹及其 require 閉包、獨立 proof resolver，以及任何經由 reader 的檔案讀取與 `reader.list()` 掃描；不是只有兩條 proof 的引用鏈。主抽取器與 proof 共用 reader 快照，直到全部讀取結束才比對內容與完整集合並提交補值／來源 trace；預檢讀取不計入實際集合。任一釘選檔內容改變或缺失、多讀或少讀檔案／目錄、目錄清單成員或順序變動，實際定義不符，或實際文字鍵／內容變更，都回報 `BRITTLENESS_SOURCE_CHANGED`（引用鏈來源已變更，需重新核實）及 `files`／`directories`，兩筆回到原本的 `T_NUMBER`。主抽取器與獨立 proof 仍共用最後定義優先的選取邏輯，並核對實際定義的檔案、位置與原文；完整集合檢查額外涵蓋來源位置相同但有效 AST 或綁定已被其他模組改寫的情況。值與行號仍由解析取得，指紋不提供保底值。清單擴大表示**技能相關來源一有變動就需要重新核實**，即使只改 BOM、空白或註解亦同。
+cryptic 的電弧手榴彈／電擊每層脆弱值補收，須同時通過既有靜態證明與 e46b892 全文 SHA-256 釘選（完整 **478 檔、3 個目錄清單及兩個技能名稱／描述的雙語文字 hash**見 `lib/cryptic-brittleness-sources.json`）。範圍是 **原始 display-param 取數與 brittleness proof 的完整實際讀取集合**：主抽取器、所有技能樹及其 require 閉包、獨立 proof resolver，以及任何經由 reader 的檔案讀取與 `reader.list()` 掃描；不是只有兩條 proof 的引用鏈。主抽取器與 proof 共用 reader 快照，直到全部讀取結束才比對內容與完整集合並提交補值／來源 trace；預檢讀取不計入實際集合。任一釘選檔內容改變或缺失、多讀或少讀檔案／目錄、目錄清單成員或順序變動，實際定義不符，或實際文字鍵／內容變更，都回報 `BRITTLENESS_SOURCE_CHANGED`（引用鏈來源已變更，需重新核實）及 `files`／`directories`，兩筆回到原本的 `T_NUMBER`。主抽取器與獨立 proof 仍共用最後定義優先的選取邏輯，並核對實際定義的檔案、位置與原文；完整集合檢查額外涵蓋來源位置相同但有效 AST 或綁定已被其他模組改寫的情況。值與行號仍由解析取得，指紋不提供保底值。SYP-403 的 mechanics／codeRefs 在這份 proof 完成後另行遍歷，不納入上述 pins；其依據由 valueSources／codeRefs 每次重新產生，proof 拒收的兩筆不經 mechanics 補回被拒數字。清單擴大表示**原取數鏈相關來源一有變動就需要重新核實**，即使只改 BOM、空白或註解亦同。
 
 遊戲更新後，於 repository 根目錄以 pwsh 7／Node 24 執行以下流程：
 
@@ -186,11 +186,11 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 #### schema 1.2.0
 
-支援資料版本為 `1.0.0`、`1.1.0`、`1.2.0`。以下 mechanics、valueSources、codeRefs、citations 僅允許 1.2.0；舊版出現時拒收。extractor 目前仍產出 1.1.0，本次只提供格式層，不產生新機制或重產正式資料。`schema/examples/1.2.0-example/` 是示意資料，展示兩層 mechanics 與 displayParameter 勘誤錨點。
+支援資料版本為 `1.0.0`、`1.1.0`、`1.2.0`。以下 mechanics、valueSources、codeRefs、citations 僅允許 1.2.0；舊版出現時拒收。skills、blessings extractor 自 scriptVersion 1.2.0 產出機制與程式指紋，使用 schema 1.2.0；weapons、terms 維持 1.1.0。正式資料不會因執行 extractor 自動更新。`schema/examples/1.2.0-example/` 是示意資料，展示兩層 mechanics 與 displayParameter 勘誤錨點。
 
 - C1：skills 的 `values.mechanics`、blessings 的 `values.mechanics` 與 `values.tiers[].mechanics` 為選填 object。key 符合 `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`；value 完全沿用 param（`value/unit?/unknown?`），null 必須有現有 unknown enum。weapons、terms 不接受 mechanics。
 - C2：僅 skills、blessings 可選填 `source.valueSources`；weapons、terms 出現時拒收，包含空物件。此欄位將相對於 values 的 JSON Pointer 對應至非空 `[{path,line}]`。pointer pattern 為 `^(/([^~/]|~[01])*)+$`；path 非空、line 為正整數，禁止額外 key。每個 mechanics（含 tier）必須有對應來源，每個 pointer 必須可解析；這是 Source-Data 額外驗證。不納入 fingerprint。
-- C3：僅 skills、blessings 可選填 `source.codeRefs`；weapons、terms 出現時拒收，包含空物件。key 為 `<path>#<symbol>`，pattern 為 `^[A-Za-z0-9_./-]+#[A-Za-z0-9_.:\[\]-]+$`。value 僅含必填 `path/symbol/sha256`；path、symbol 必須與 key 一致，sha256 為 64 個小寫 hex，不含行號。後續 extractor 取完整 Lua symbol 定義（table constructor 或 function 本體），去除字串外的行註解與各種長括號註解，再去除所有 `\s`，以 UTF-8 算 sha256；本包不實作取數。
+- C3：僅 skills、blessings 可選填 `source.codeRefs`；weapons、terms 出現時拒收，包含空物件。key 為 `<path>#<symbol>`，pattern 為 `^[A-Za-z0-9_./-]+#[A-Za-z0-9_.:\[\]-]+$`。value 僅含必填 `path/symbol/sha256`；path、symbol 必須與 key 一致，sha256 為 64 個小寫 hex，不含行號。extractor 取完整 Lua symbol 定義（table constructor 或 function 本體），去除字串外的行註解與各種長括號註解，再去除所有 `\s`，以 UTF-8 算 sha256。
 - C4：skills、blessings 可選填 item 層 `citations`，每筆僅含 `section/text/codeRefs/valueRefs`。section 為 `effect/conditions/calculation/notes/extra`，text 非空，兩種 refs 都是唯一元素陣列，合計至少一筆。verify 要求 text 為對應 explanation 段落的子字串、codeRef 存在於 source.codeRefs、valueRef 可解析且在 source.valueSources 有 key。Web、Extension 不顯示 citations。
 - V-CITE：1.2.0 skills／blessings 本次由 AI 撰寫的 `conditions/calculation/notes/extra` 每個非空段落都須至少一筆同 section citation；非 `official` 的 effect 也適用。違反沿既有單項目降級流程，保留上一版；新項目沒有上一版則排除。未重新產生的舊說明不追補覆蓋。
 - C5：**所有版本**的 errata 一律使用 `{locale,official,corrected,valueRefs,sources,anchor?}`；禁止單數 `valueRef` 與額外 key。valueRefs 為至少一筆 values JSON Pointer，sources 為至少一筆 `{path,line}`；來源針對固定 Source-Code e46b892。anchor 僅含 `field/locale/text/occurrence/itemId?/param?/tier?`，locale 須相同、text 非空、occurrence 為正整數。field 限 `official/name/displayParameter`；displayParameter 必須有 param，指向目標 values.params key，blessings 還須有 1..4 的 tier。其他 field 禁止 param、tier。itemId 須符合 item id pattern，目標存在於同版本任一類別；valueRefs 改在該目標的 values 解析。displayParameter 的 text 以指定 param（祝福為該 tier）的顯示值定位。verify 仍拒絕未知參數、無官方數字差異或無法由引用值推導的勘誤。舊 examples 的單數 valueRef 已遷移，正式資料無 errata，未變動。
@@ -198,9 +198,37 @@ node --test tests/pipeline/real-smoke.test.mjs
 
 AI I/O 的外層 schemaVersion 仍為 `1.0.0`；AI input 增加選填 `dataSchemaVersion`，新輸入明示資料版本，並保留 item 的 values/source 與 previous 的 citations。AI output 新增同形狀選填 citations，errata 使用 C5，effectOrigin 仍由 pipeline 決定。candidate/write 原樣傳遞 citations 與 errata；state 仍只記錄階段、結果與 inputHash。數字掃描及 T_COVERAGE 包含兩層 mechanics，來源行號與 sha256 不可供說明引用。
 
+#### 固定 mechanics 取數（SYP-403）
+
+mechanics 是扁平 `key → param`，沒有巢狀規則物件。template 名、talent override 索引、條件欄位與 blessing tier 都保留；相同數值不去重。前綴外的段落沿用來源欄位名稱，最多八段；更深的尾段以底線連接並檢查碰撞。blessing tier override 放在該 tier 的 mechanics（key 含 `override`），預設模板仍留在 item 層。
+
+| key 前綴 | 來源結構 | 連結規則 |
+| --- | --- | --- |
+| `buff.<template>.` | BuffTemplates 的純量、duration、max_stacks、child_duration、刷新旗標、talent_overrides | talent 的 passive／buff 名、trait buffs key、明示子 buff 名，以及已連結 callback 的字面 buff 名；保留各覆寫路徑 |
+| `stat_rule.<template>.` | stat_buffs、proc_stat_buffs、conditional_stat_buffs、lerped_stat_buffs、stepped_stat_buffs；BuffSettings.stat_buff_types | 原始值與 stat 類型分別取數；lerped 保留端點，stepped 保留每個 step，不能當作最終值 |
+| `stat_rule.distance.`／`stat_rule.stagger_count.` | DamageSettings 與 damage_calculation | 只有已連結的近／遠距或 stagger_count stat 才收對應消費式與界線 |
+| `finesse.<template>.` | critical／weakspot／finesse stat 與 `_finesse_boost_damage` | 必須辨識額外傷害乘式；scope=`finesse_bonus`，同時爆擊與弱點走同一次 finesse 計算 |
+| `ability.<context>.` | PlayerAbilities、ability template、W1 weapon actions、charge templates | 直接 player_ability 參照、archetype 明示的 base talent，或相同 ability stat 的消費關係；不同 action／鎖定模式分開 |
+| `ammo.<template>.` | ammo_reserve_capacity 與 WeaponExtension 分開的 reserve／clip 指派 | reserve_bonus 為原始比例；floor 和 affects_clip=false 需對應的 reserve 及 clip 消費式證明 |
+| `area_buff.drone.` | area_buff_drone.deployable.relation_init_data 與 ProximityAreaBuffDrone | allied／enemy、improved、兩個升級保留原名；離開與 destroy 的移除呼叫各自辨識 |
+| `area_buff.stimm_field.` | broker stimm_field life_time、interval、corruption_heal_amount | 名目上限由這三個來源作固定四則運算，不保證實際 tick 數 |
+
+enum／boolean 的辨識條件也寫在 `mechanics*.mjs` 註解：
+
+- aggregation 直接取 `stat_buff_types` 的字串，不能從 stat 名猜加乘。minion 的固定生成 loop 只寫 `damage_vs_`／`damage_taken_by_`；對其他 stat 是 no-op，生成前綴若與明示值碰撞，只接受與該 loop 完全相同的類型。投影保留原行號，其餘程式照常經共用 resolver 的 binding／mutation 檢查。broker stimm 使用與原 extractor 相同的有限 DSL key 集合。
+- `restart_shared_timer` 需明示 refresh_duration_on_stack=true，或已辨識 parent class 的子 buff timer 重設分支。`restart_proc_active_window` 需標準 ProcBuff 與 allow_proc_while_active=true。單一 proc_stat_buffs 貢獻的 boolean 由 ProcBuff 的 `_calculate_stat_buffs` 呼叫判定。
+- activated parent 的 missed-sweep／successful-sweep 規則，要求整個 callback 恰為 `return params.num_hit_units > 0`，並核對 parent 的刪除／刷新分支。target-number parent 的 shared timer 由 last_hit_time 欄位判定。stepped cap 只接受完整的常值 min/max return。
+- floor／ceil、嚴格大於、離開移除、傷害／韌性結算階段等，採固定 token 序列辨識；註解不是證據，數字需是 number token。動態欄位輸出 DYNAMIC_VALUE；來源不存在、形狀不符或規則不匹配回報 MECHANICS_UNKNOWN，不能沿用舊數字。
+
+每一 mechanics 的 values 相對 JSON Pointer 都有 valueSources；數值沿 resolver trace 記實際常數及參照來源。行號只存在來源欄位。codeRefs 每次由原始碼重新建立：使用詞法 symbol 路徑（匿名 return table 為 `return_table`，重複定義以固定序號區分），收錄連結鏈的表及表內明示名稱函式一層；inline function 已在表雜湊中。無法確定的 symbol 略過並在 stdout 統計。正規化先用 Lua tokenizer 排除字串外註解，再去除所有 whitespace（包括字串內的 whitespace），依 C3 計算 UTF-8 SHA-256，不保存行號或時間。
+
+`scripts/mechanics-coverage.mjs <inventory.json> <extract-dir> <output.json>` 只做驗收，盤點值不供 extractor 使用。它列出每筆的 exact pointer、數字匹配／缺少／算例排除與原因。來源比例可用原值、絕對值、×100 呈現；stat 的加成倍率可由 `1+ratio` 表示，減傷倍率可由 `1-ratio`／`abs(1-ratio)×100` 表示。假設的基礎傷害／彈數、其他加成、經過秒數及算例結果不寫入 values。常值規則的來源乘積（如 raw stat × max_stacks）與名目總量保留全部輸入來源；不把這些量當作遊戲最終傷害。沒有足夠證明的項目仍列 notCovered。
+
+`scripts/mechanics-acceptance.mjs` 比對兩次 extract bytes、既有逐筆欄位、schema、mechanics/valueSources/codeRefs 統計，並只在指定暫存 root 建立 validate 輸入。原有 data 不變。
+
 #### schema 1.1.0：曲線與連段
 
-四類 extractor 的資料檔一律寫 `schemaVersion: "1.1.0"`，同次發布四檔必須一致。驗證器仍接受 1.0.0：該版禁止 `values.curves`、`values.attackCombos` 與 `bars[].stats[].curveId`；1.1.0 三者必填。`schema/examples/1.1.0-example/` 提供新版範例，原 1.0.0 範例保留。current 索引 schema 同樣接受 1.0.0／1.1.0，保留舊索引相容；current 索引的 `schemaVersion` 必須與其指向的四個資料檔一致。`state.json` 與 text 中間檔有獨立契約，維持 1.0.0。
+1.1.0 的四類 extractor 資料檔使用 `schemaVersion: "1.1.0"`；skills、blessings 現在升至 1.2.0，同次正式發布四檔仍必須一致。驗證器仍接受 1.0.0：該版禁止 `values.curves`、`values.attackCombos` 與 `bars[].stats[].curveId`；1.1.0 三者必填。`schema/examples/1.1.0-example/` 提供新版範例，原 1.0.0 範例保留。current 索引 schema 同樣接受 1.0.0／1.1.0，保留舊索引相容；current 索引的 `schemaVersion` 必須與其指向的四個資料檔一致。`state.json` 與 text 中間檔有獨立契約，維持 1.0.0。
 
 資料檔的 `explanation.effectOrigin` 為選填，僅 schema 1.1.0 以上的 blessings、skills 可使用；值限 `official` 或 `unofficial-translation`。此欄位由 pipeline 設定，AI output 不得包含；1.0.0、weapons 與 terms 均不得包含。缺少欄位仍為合法資料。
 

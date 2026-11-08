@@ -37,8 +37,8 @@ test('InterT90_review2 pinned text → skills → weapons → blessings → term
  endpoint('forcestaff_p1_m1','force_staff_ball.power_distribution.attack',[90,150]);
  endpoint('autogun_p1_m1','spread.base.still.immediate_spread.shooting.1.pitch',[0.55,0.325]);
  // Scenario: a write to the imported damage_settings table revokes all member dependencies.
- // Purpose: require exactly the four review7 conservative downgrades, retaining other known values.
- assert.equal(unknown(data.skills.items),8);
+ // Purpose: require exactly the four review7 display-param downgrades, retaining other known values; mechanics unknowns are independent.
+ assert.equal(unknown(data.skills.items.map(i=>i.values.params)),8);
  for(const [key,params]of [
   ['veteran_increased_damage_based_on_range',['ranged_close','ranged_far']],
   ['veteran_ranged_power_out_of_melee',['radius']],

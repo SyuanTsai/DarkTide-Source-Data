@@ -3,8 +3,9 @@ import { itemId, nameFromText, runExtractCli } from './lib/extract-output.mjs';
 import { skillStructure } from './lib/skill-structure.mjs';
 import { skillParams } from './lib/skill-values.mjs';
 import { createBrittlenessSupplement } from './lib/skill-brittleness.mjs';
+import { createMechanics } from './lib/mechanics.mjs';
 
-export const SCRIPT_VERSION='pipeline/extract-skills.mjs@1.1.0';
+export const SCRIPT_VERSION='pipeline/extract-skills.mjs@1.2.0';
 const NODE_TYPES=new Set(['ability','ability_modifier','aura','keystone','keystone_modifier','tactical','tactical_modifier','stat','start','default','broker_stimm']);
 
 export function validateSkillParents(items) {
@@ -20,6 +21,10 @@ export function buildSkills({reader,text,envelope}) {
   for(const {item,definition,trace,textKeys,textSnapshot} of skills)supplementBrittleness(item.id,item.values.params,data.problems,trace,definition,textKeys,textSnapshot);
   supplementBrittleness.finish();
   for(const {item,trace} of skills)item.source.files=sourceFiles(trace);
+  const mechanics=createMechanics(reader);
+  for(const {item,definition} of skills)mechanics.skill(item,definition,{sourceRejected:data.problems.some(p=>p.id===item.id&&/^BRITTLENESS_SOURCE_/.test(p.code))});
+  data.mechanicsStats=mechanics.stats;
+  data.problems.push(...mechanics.problems);
   return data;
 }
 
