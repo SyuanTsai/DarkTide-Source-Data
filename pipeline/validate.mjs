@@ -18,19 +18,20 @@ const report = (file, errors) => {
 };
 const data = join(root, 'data'),
   current = join(data, 'current.json');
-let versions = [];
+let versions = [], currentValue;
 if (existsSync(current)) {
   const text = readFileSync(current, 'utf8'),
     check = checkCurrent(text);
   report(current, check.errors);
   try {
-    const v = JSON.parse(text).versions;
+    currentValue = JSON.parse(text);
+    const v = currentValue.versions;
     if (Array.isArray(v))
       versions = v.filter((x) => typeof x === 'string' && /^[0-9]+(\.[0-9]+){1,3}$/.test(x));
   } catch {}
   for (const version of versions) {
     const dir = join(data, version);
-    for (const error of checkVersionDir(dir).errors) {
+    for (const error of checkVersionDir(dir, version === currentValue?.gameVersion ? currentValue.schemaVersion : undefined).errors) {
       const [, file, ...pointer] = error.path.split('/');
       report(join(dir, file), [{ ...error, path: pointer.length ? `/${pointer.join('/')}` : '' }]);
     }

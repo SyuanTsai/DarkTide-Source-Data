@@ -162,7 +162,7 @@ export async function runWrite(inputOptions = {}) {
   }
   if (checkFileConsistency(Object.entries(final).map(([category, value]) => ({ category, value })), ['schemaVersion']).length)
     throw new WriteError('最終資料的 schemaVersion 不一致');
-  const index = { schemaVersion: '1.0.0', gameVersion: run.gameVersion, path: `data/${run.gameVersion}`,
+  const index = { schemaVersion: final[CATEGORIES[0]].schemaVersion, gameVersion: run.gameVersion, path: `data/${run.gameVersion}`,
     sourceCommit: run.sourceCommit, textBatch: run.textBatch,
     versions: [...new Set([...(current?.value.versions ?? []), run.gameVersion])].sort(compareVersions) };
   checked(checkCurrent(stringifyCanonical(index)), '新版本索引');
