@@ -7,7 +7,6 @@ import { readState, writeState, advanceItem, keepPrevious, completeRun } from '.
 import { resolveCloudRoot } from './cloud-dir.mjs';
 import { composeFinal } from './verify/compose.mjs';
 import { InputError, readJson, readCandidateBytes, sha256 } from './verify/input.mjs';
-import { releaseSchemaVersion } from './schema-migration.mjs';
 
 export class WriteError extends Error {}
 export function parseWriteArgs(args) {
@@ -148,13 +147,23 @@ export async function runWrite(inputOptions = {}) {
       : resolve(root, current.value.path);
   }
   const final = {};
-  let targetSchemaVersion;
-  try { targetSchemaVersion = releaseSchemaVersion([report.targetSchemaVersion, ...Object.values(candidates).map(file => file?.schemaVersion)]); }
-  catch (error) { throw new WriteError(error.message); }
+  const legacyReport = !Object.hasOwn(report, 'targetSchemaVersion');
   for (const category of CATEGORIES) {
     const previous = previousDir && previousDir !== 'none' ? (await safeJson(join(previousDir, `${category}.json`), `上一版/${category}.json`, true))?.value : null;
-    try { final[category] = composeFinal({ category, status: report.categories[category].status,
-      candidate: candidates[category], previous, rows: report.items, version: run, targetSchemaVersion }); }
+    try {
+      // Legacy verify approved each category's original schema, never a promotion.
+      // Only a new verify report can authorize the current release target.
+      const targetSchemaVersion = legacyReport
+        ? report.categories[category].status === 'kept-previous' ? previous?.schemaVersion : candidates[category]?.schemaVersion
+        : report.targetSchemaVersion;
+      if (typeof targetSchemaVersion !== 'string') throw new Error('缺少已核准的發布目標 schemaVersion，請重跑 node pipeline/verify.mjs');
+      if (legacyReport && report.categories[category].status === 'ok' &&
+        report.items.some(row => row.category === category && row.decision === 'kept-previous') &&
+        candidates[category]?.schemaVersion !== previous?.schemaVersion)
+        throw new Error('保留項目的 schemaVersion 與候選資料不一致');
+      final[category] = composeFinal({ category, status: report.categories[category].status,
+        candidate: candidates[category], previous, rows: report.items, version: run, targetSchemaVersion });
+    }
     catch (error) { throw new WriteError(error.message); }
     for (const [id, item] of Object.entries(run.items)) {
       if (report.categories[category].status === 'ok' && item.category === category && item.change === 'removed' && item.stage !== 'written' &&
