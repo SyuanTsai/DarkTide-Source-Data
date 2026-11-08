@@ -18,12 +18,23 @@ export function extractNumbers(text) {
 }
 const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
 function extractSuffix(after) {
+  const separated = /^\s/u.test(after);
   const rest = after.trimStart();
-  if (/^[/／](?!\s*\d)/u.test(rest)) return rest.match(/^[/／]\s*[%\p{L}\p{N}\p{M}\p{S}_]*/u)[0];
+  if (/^[+\-−]?\d|^[/／]\s*[+\-−]?\d/u.test(rest)) return undefined;
+  if (/^[/／]/u.test(rest)) return rest.match(/^[/／]\s*[%\p{L}\p{N}\p{M}\p{S}_]*/u)[0];
   const first = [...segmenter.segment(rest)][0]?.segment ?? '';
-  const prefix = /^[\p{Script=Han}]/u.test(first) ? first : /^(?:%|[a-z]+|[\p{N}\p{M}\p{S}_]+)/iu.exec(rest)?.[0];
+  const hanPrefix = /^[\p{Script=Han}]/u.test(first);
+  const prefix = hanPrefix ? first : /^(?:%|[a-z]+|[\p{N}\p{M}\p{S}_]+)/iu.exec(rest)?.[0];
   if (!prefix) return undefined;
+  const normalizedPrefix = prefix.toLowerCase();
+  if (/^[a-z]/iu.test(prefix) && separated && !units.has(normalizedPrefix) &&
+      !multiplierSuffixes.has(normalizedPrefix) && !unsupportedLatinUnits.has(normalizedPrefix)) return undefined;
   const tail = rest.slice(prefix.length);
+  if (hanPrefix) {
+    const modifier = /^[²³]+/u.exec(tail)?.[0] ?? '';
+    const compound = /^\s*[/／]\s*[%\p{L}]+/iu.exec(tail.slice(modifier.length))?.[0] ?? '';
+    return prefix + modifier + compound;
+  }
   return prefix + (/^(?:(?:\s*[/／]\s*[%\p{L}]+)|[\p{N}\p{M}\p{S}a-z_])+/iu.exec(tail)?.[0] ?? '');
 }
 export const derived = (n) => [n, n * 100, (n - 1) * 100, (1 - n) * 100].filter(Number.isFinite);
@@ -52,10 +63,20 @@ export function derivable(values) {
   return numbers;
 }
 const units = new Map(Object.entries({ '%':'percent', 秒:'seconds', s:'seconds', sec:'seconds', second:'seconds', seconds:'seconds', 公尺:'meters', 米:'meters', m:'meters', meter:'meters', meters:'meters', metre:'meters', metres:'meters', 次:'次', 層:'層' }));
-const unsupportedChineseUnits = ['公斤', '公克', '克', '公分', '釐米', '厘米', '毫米', '公里', '平方', '立方', '小時', '分鐘', '毫秒', '度', '倍'];
+const unsupportedChineseUnits = ['公斤', '公克', '克', '公分', '釐米', '厘米', '毫米', '公里', '平方', '立方', '小時', '分鐘', '毫秒', '度'];
+const unsupportedLatinUnits = new Set([
+  'kg', 'kgs', 'kilogram', 'kilograms', 'g', 'gram', 'grams', 'cm', 'centimeter', 'centimeters', 'centimetre', 'centimetres',
+  'mm', 'millimeter', 'millimeters', 'millimetre', 'millimetres', 'km', 'kilometer', 'kilometers', 'kilometre', 'kilometres',
+  'h', 'hr', 'hrs', 'hour', 'hours', 'min', 'mins', 'minute', 'minutes', 'ms', 'millisecond', 'milliseconds',
+  'deg', 'degree', 'degrees', 'lb', 'lbs', 'pound', 'pounds', 'oz', 'ounce', 'ounces', 'mi', 'mile', 'miles',
+  'in', 'inch', 'inches', 'ft', 'foot', 'feet', 'yd', 'yard', 'yards', 'percent', 'percentage'
+]);
+const multiplierSuffixes = new Set(['倍', 'x', '×']);
 const unitName = suffix => {
   if (!suffix) return undefined;
-  const supported = units.get(suffix.toLowerCase());
+  const normalized = suffix.toLowerCase();
+  if (multiplierSuffixes.has(normalized)) return 'multiplier';
+  const supported = units.get(normalized);
   if (supported !== undefined) return supported;
   if (/[/／²³]/u.test(suffix) || /^[a-z]/i.test(suffix) || unsupportedChineseUnits.some(unit => suffix.startsWith(unit))) return null;
   return /^[\p{Script=Han}]+$/u.test(suffix) ? undefined : null;
@@ -72,9 +93,12 @@ function normalizedValue(value, parentUnit) {
   return {value:number, unit:parentUnit ?? unit};
 }
 function directionCandidates(token, value, unit) {
-  if (unitName(token.suffix) === null) return [];
+  const tokenUnit = unitName(token.suffix);
+  if (tokenUnit === null) return [];
+  if (tokenUnit === 'multiplier') return unit === undefined ? derived(value) : [];
   if (unit === undefined) return derived(value);
   if (unit === 'ratio' && token.suffix === '%') return derived(value);
+  if (unit === 'ratio' && token.suffix === undefined) return [value];
   if (unit === unitName(token.suffix)) return [value];
   return [];
 }

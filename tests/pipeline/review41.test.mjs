@@ -26,10 +26,11 @@ test('UnitT30_未知中文單位不得被截斷或忽略', () => {
   assert.deepEqual(checkNumbers({params:{x:{value:'5秒'}}}, '5秒內').failures, []);
 });
 
-// Scenario: numeric text precedes a noun or a blacklisted Chinese unit. Purpose: distinguish nouns from unsupported units.
-test('UnitT40_中文名詞無單位但黑名單單位失敗', () => {
+// Scenario: numeric text uses a Chinese noun, multiplier, or unsupported unit. Purpose: accept unitless multipliers without weakening unit compatibility.
+test('UnitT40_中文名詞倍率與黑名單單位相容性', () => {
   const check = text => checkNumbers({params:{x:{value:2}}}, text);
   assert.deepEqual(check('+2耐力').failures, []);
-  assert.ok(checkNumbers({params:{x:{value:5}}}, '5倍').failures.length);
-  for (const text of ['2公斤','2公克','2克','2公分','2釐米','2厘米','2毫米','2公里','2平方','2立方','2小時','2分鐘','2毫秒','2度','2倍']) assert.ok(check(text).failures.length, text);
+  assert.deepEqual(check('2倍').failures, []);
+  assert.ok(checkNumbers({params:{x:{value:2,unit:'percent'}}}, '2倍').failures.length);
+  for (const text of ['2公斤','2公克','2克','2公分','2釐米','2厘米','2毫米','2公里','2平方','2立方','2小時','2分鐘','2毫秒','2度']) assert.ok(check(text).failures.length, text);
 });
