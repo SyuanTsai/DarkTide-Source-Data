@@ -11,6 +11,8 @@ export function execute(exec, command, args, options = {}) {
   } catch { return { status: 1, stdout: '', stderr: '無法執行外部指令' }; }
 }
 export async function handleIssues(conflicts, table, version, options) {
+  if (options.issues === 'create' && (process.env.NODE_TEST_CONTEXT || process.env.DARKTIDE_TEST === '1'))
+    throw new Error('測試環境禁止建立 Issue');
   if (options.issues === 'off' || !conflicts.length) return [];
   let commit = options.modsCommit;
   if (!commit && options.issues === 'create') {

@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, writeFile, readdir, rm, rmdir, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawnSync } from './test-env.mjs';
+import { cleanTestEnv } from './test-env.mjs';
 import { createHash } from 'node:crypto';
 import { CATEGORIES, checkDataFile } from '../../pipeline/lib/data-files.mjs';
 import { stringifyCanonical, writeCanonicalFile } from '../../pipeline/lib/canonical-json.mjs';
@@ -62,7 +63,7 @@ async function fixture(t, { previous = false, mismatch = false, repeated = false
       reason: mismatch && category === 'terms' ? '測試結構不符' : null, problems: [], excluded: [], items: mismatch && category === 'terms' ? [] : items });
   }
   if (previous) await writeCanonicalFile(join(root, 'data/current.json'), { schemaVersion: '1.0.0', ...old, path: `data/${old.gameVersion}`, versions: [old.gameVersion] });
-  const env = { ...process.env }; delete env.NODE_OPTIONS; delete env.DARKTIDE_PIPELINE_CLOUD_DIR;
+  const env = cleanTestEnv();
   const cli = (script, args = []) => spawnSync(process.execPath, [join(repo, 'pipeline', `${script}.mjs`), ...args], { cwd: repo, env, encoding: 'utf8' });
   const success = (result) => { assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`); return result; };
   const diffArgs = ['--state', state, '--cloud-dir', cloud, '--work-dir', work, '--data-dir', join(root, 'data'), '--glossary', join(root, 'missing.md')];

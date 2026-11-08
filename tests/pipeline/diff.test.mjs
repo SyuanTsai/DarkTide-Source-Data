@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, cp, mkdir, readFile, writeFile, rm, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync, cleanTestEnv } from './test-env.mjs';
 import { stringifyCanonical } from '../../pipeline/lib/canonical-json.mjs';
 import { checkCurrent, checkDataFile, CATEGORIES } from '../../pipeline/lib/data-files.mjs';
 import { emptyState, startRun, writeState } from '../../pipeline/lib/state.mjs';
@@ -21,7 +21,7 @@ async function setup(t) {
   const state = join(dir, 'state.json'), work = join(dir, 'work'), data = join(dir, 'data'), cloud = join(dir, 'cloud'), glossary = join(dir, 'glossary');
   await mkdir(join(work, 'extract'), { recursive: true }); await mkdir(cloud); await mkdir(glossary);
   await cp(join(fixture, 'data'), data, { recursive: true }); await cp(join(fixture, 'extract-1.1'), join(work, 'extract'), { recursive: true }); await cp(join(fixture, 'glossary.md'), join(glossary, 'Translation.md'));
-  execFileSync('git', ['init', '-q', glossary]); execFileSync('git', ['-C', glossary, 'add', 'Translation.md']); execFileSync('git', ['-C', glossary, '-c', 'user.name=test', '-c', 'user.email=test@example.com', 'commit', '-qm', 'fixture'], { env: { ...process.env, GIT_AUTHOR_DATE: '2001-01-01T00:00:00Z', GIT_COMMITTER_DATE: '2001-01-01T00:00:00Z' } });
+  execFileSync('git', ['init', '-q', glossary]); execFileSync('git', ['-C', glossary, 'add', 'Translation.md']); execFileSync('git', ['-C', glossary, '-c', 'user.name=test', '-c', 'user.email=test@example.com', 'commit', '-qm', 'fixture'], { env: { ...cleanTestEnv(), GIT_AUTHOR_DATE: '2001-01-01T00:00:00Z', GIT_COMMITTER_DATE: '2001-01-01T00:00:00Z' } });
   await writeState(state, startRun(emptyState(), meta));
   const args = ['--state', state, '--work-dir', work, '--data-dir', data, '--cloud-dir', cloud, '--glossary', join(glossary, 'Translation.md')];
   const run = (...extra) => execFileSync(process.execPath, ['pipeline/diff.mjs', ...args, ...extra], { cwd: repo, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
@@ -140,7 +140,7 @@ test('缺少、結構不符、首次執行及版本錯誤', async (t) => {
 });
 test('雲端目錄未設定或不存在時不寫狀態或暫存目錄', async (t) => {
   const a = await setup(t), before = await readFile(a.state), workBefore = await snapshot(a.work);
-  const args = ['pipeline/diff.mjs', '--state', a.state, '--work-dir', a.work, '--data-dir', a.data]; const env = { ...process.env }; delete env.DARKTIDE_PIPELINE_CLOUD_DIR;
+  const args = ['pipeline/diff.mjs', '--state', a.state, '--work-dir', a.work, '--data-dir', a.data]; const env = { ...cleanTestEnv() }; delete env.DARKTIDE_PIPELINE_CLOUD_DIR;
   for (const [extra, missingSetting] of [[[], true], [['--cloud-dir', join(a.dir, 'absent')], false]]) { const result = spawnSync(process.execPath, [...args, ...extra], { cwd: repo, env, encoding: 'utf8' }); assert.equal(result.status, 1); assert.match(result.stderr, /中間檔目錄/); if (missingSetting) { assert.ok(result.stderr.includes('請設定 DARKTIDE_PIPELINE_CLOUD_DIR 或 --cloud-dir 為已存在、不在任何 Git repo 內的本機絕對目錄')); assert.ok(!result.stderr.includes('Google Drive')); } assert.deepEqual(await readFile(a.state), before); assert.deepEqual(await snapshot(a.work), workBefore); }
   await assert.rejects(readdir(join(a.dir, 'absent')), { code: 'ENOENT' });
 });

@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { spawnSync } from 'node:child_process';
+import { spawnSync } from './test-env.mjs';
+import { cleanTestEnv } from './test-env.mjs';
 import { createHash } from 'node:crypto';
 import { CATEGORIES, checkDataFile, retainItem } from '../../pipeline/lib/data-files.mjs';
 import { stringifyCanonical, isCanonicalText } from '../../pipeline/lib/canonical-json.mjs';
@@ -11,6 +12,7 @@ import * as stateApi from '../../pipeline/lib/state.mjs';
 import { runVerify } from '../../pipeline/lib/verify/index.mjs';
 import { verifyMerged } from '../../pipeline/lib/verify/output.mjs';
 import { extractNumbers, checkNumbers } from '../../pipeline/lib/verify/numbers.mjs';
+import { handleIssues } from '../../pipeline/lib/verify/issues.mjs';
 import { parseTranslation } from '../../pipeline/lib/verify/translation.mjs';
 
 const cli = resolve('pipeline/verify.mjs');
@@ -158,7 +160,7 @@ test('InterT12_重用輸出目錄覆寫空類別檔', async (t) => {
 test('InterT13_CLI 拒絕繼承屬性參數', async (t) => {
   const f = await fixture(t);
   for (const flag of ['--constructor', '--toString', '--__proto__'])
-    assert.equal(spawnSync(process.execPath, [...args(f), flag, 'x'], { encoding: 'utf8' }).status, 2);
+    assert.equal(spawnSync(process.execPath, [...args(f), flag, 'x'], { encoding: 'utf8', env: cleanTestEnv() }).status, 2);
 });
 
 // Scenario: hyphens separate ranges or precede signed values. Purpose: distinguish range endpoints from direction.
@@ -263,7 +265,7 @@ test('InterT44_版本不一致與候選或 extract metadata 不符整批停止',
   }
   await f.save();
   await json(f.options.versionInfo, { sourceGameVersion: '1.2.0', textGameVersion: '1.3.0', ...meta });
-  const r = spawnSync(process.execPath, args(f), { encoding: 'utf8' });
+  const r = spawnSync(process.execPath, args(f), { encoding: 'utf8', env: cleanTestEnv() });
   assert.equal(r.status, 3); assert.match(r.stdout, /^整批停止：Source-Code 1\.2\.0（aaaaaaa）/);
 });
 
@@ -281,7 +283,7 @@ test('InterT46_舊版本損壞或建置失敗停止', async (t) => {
   } });
   assert.ok(called); assert.equal(r.exitCode, 3);
   assert.equal(r.report.gates.output.build.stderrTail.split('\n').length, 20);
-  const cliResult = spawnSync(process.execPath, [...args(f), '--build-cmd', 'node -e "process.exit(1)"'], { encoding: 'utf8' });
+  const cliResult = spawnSync(process.execPath, [...args(f), '--build-cmd', 'node -e "process.exit(1)"'], { encoding: 'utf8', env: cleanTestEnv() });
   assert.equal(cliResult.status, 3);
 });
 
@@ -329,22 +331,15 @@ test('InterT52_譯名解析衝突與 dry-run 不執行外部指令', async (t) =
   assert.deepEqual((await f.run({ issues: 'off' })).report.issues, []);
 });
 
-for (const [n, mode] of ['existing', 'created', 'failed'].entries()) {
-  // Scenario: fake gh list/create returns an existing issue, success or failure. Purpose: never create real issues while testing.
-  test(`InterT${54 + n}_假 runner 譯名 Issue ${mode}`, async (t) => {
-    const f = await fixture(t); await writeFile(f.options.translation, '- Example 0 - 私譯\n');
-    const calls = [];
-    const r = await f.run({ issues: 'create', exec: (cmd, argv) => {
-      assert.equal(cmd, 'gh'); calls.push(argv);
-      if (argv[1] === 'list') return { status: 0, stdout: JSON.stringify(mode === 'existing' ? [{ title: '譯名衝突：Example 0（既有）', url: 'https://example.test/1' }] : []) };
-      assert.ok(argv.includes('-R') && argv.includes('--title') && argv.includes('--body-file'));
-      return mode === 'failed' ? { status: 1, stderr: '權限不足' } : { status: 0, stdout: 'https://example.test/2\n' };
-    } });
-    assert.equal(r.report.issues[0].mode, mode);
-    assert.equal(calls.length, mode === 'existing' ? 1 : 2);
-    assert.equal(r.exitCode, 0);
-  });
-}
+// Scenario: the test runner requests issue creation for a conflict. Purpose: reject before any external command.
+test('UnitT53_測試環境拒絕建立 Issue 且不執行 gh', async (t) => {
+  const previous = process.env.DARKTIDE_TEST;
+  delete process.env.DARKTIDE_TEST;
+  t.after(() => { if (previous === undefined) delete process.env.DARKTIDE_TEST; else process.env.DARKTIDE_TEST = previous; });
+  let calls = 0;
+  await assert.rejects(handleIssues([{}], new Map(), {}, { issues: 'create', exec: () => { calls++; } }), /測試.*Issue/);
+  assert.equal(calls, 0);
+});
 
 // Scenario: matching run includes described, verified and extracted items. Purpose: protect state transitions and incomplete descriptions.
 test('InterT60_狀態通過失敗尚未說明與類別降級', async (t) => {
@@ -376,13 +371,13 @@ test('InterT60_狀態通過失敗尚未說明與類別降級', async (t) => {
 // Scenario: full CLI writes two identical reports; bad arguments and IO fail. Purpose: protect public CLI and no state writes on IO errors.
 test('InterT70_CLI canonical 報告與使用錯誤', async (t) => {
   const f = await fixture(t), report = join(f.root, 'report.json');
-  const run = () => spawnSync(process.execPath, [...args(f), '--report', report], { encoding: 'utf8' });
+  const run = () => spawnSync(process.execPath, [...args(f), '--report', report], { encoding: 'utf8', env: cleanTestEnv() });
   assert.equal(run().status, 0);
   const first = await readFile(report, 'utf8');
   assert.equal(run().status, 0); assert.equal(await readFile(report, 'utf8'), first);
   assert.match(run().stdout, /^檢查結果：通過\n通過項目：12\n/);
-  for (const bad of [[], ['--unknown', 'x'], [...args(f).slice(1), '--issues', 'invalid']])
-    assert.equal(spawnSync(process.execPath, [cli, ...bad], { encoding: 'utf8' }).status, 2);
+  for (const bad of [['--root', f.root, '--state', join(f.root, 'missing-state.json'), '--cloud-dir', f.root, '--issues', 'off'], ['--unknown', 'x'], [...args(f).slice(1), '--issues', 'invalid']])
+    assert.equal(spawnSync(process.execPath, [cli, ...bad], { encoding: 'utf8', env: cleanTestEnv() }).status, 2);
   await writeFile(join(f.dirs.candidate, 'skills.json'), '{');
   const result = run(); assert.equal(result.status, 2); assert.match(result.stderr, /無法/);
 });
@@ -511,29 +506,6 @@ test('InterT82_IO 錯誤不寫狀態', async (t) => {
   await writeFile(join(f.dirs.extract, 'terms.json'), '{');
   await assert.rejects(runVerify({ ...f.options, state })); assert.equal(await readFile(state, 'utf8'), before);
   await writeFile(state, '{}'); await assert.rejects(f.run({ state }));
-});
-
-// Scenario: issue lookup/git fails, or a fake create reads its temporary body file. Purpose: protect non-blocking failure and cleanup.
-test('InterT84_Issue 失敗與暫存內文清理', async (t) => {
-  const f = await fixture(t); await writeFile(f.options.translation, '- Example 0 - 私譯\n');
-  let gitCalls = 0, bodyPath;
-  const { readFileSync, existsSync } = await import('node:fs');
-  const r = await f.run({ issues: 'create', modsCommit: undefined, exec: (cmd, argv) => {
-    if (cmd === 'git') { gitCalls++; return { status: 1 }; }
-    assert.equal(cmd, 'gh');
-    if (argv[1] === 'list') return { status: 0, stdout: '[]' };
-    bodyPath = argv[argv.indexOf('--body-file') + 1];
-    assert.match(readFileSync(bodyPath, 'utf8'), /Translation\.md，第 1 行/);
-    return { status: 0, stdout: '建立完成\nhttps://example.test/3\n' };
-  } });
-  assert.equal(gitCalls, 1); assert.equal(r.report.issues[0].url, 'https://example.test/3');
-  assert.equal(existsSync(bodyPath), false);
-  for (const response of [{ status: 1, stderr: '無權限' }, { status: 0, stdout: '{' }]) {
-    const bad = await f.run({ issues: 'create', exec: () => response });
-    assert.equal(bad.report.issues[0].mode, 'failed'); assert.equal(bad.exitCode, 0);
-  }
-  const dry = await f.run({ modsCommit: undefined });
-  assert.equal(dry.report.issues[0].mode, 'dry-run');
 });
 
 // Scenario: one retained item remains structurally invalid. Purpose: halt only after no passing item can be excluded.

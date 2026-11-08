@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, writeFileSync, cpSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { spawnSync } from 'node:child_process';
+import { spawnSync } from './test-env.mjs';
 import {
   checkDataFile,
   checkCurrent,
@@ -11,7 +11,7 @@ import {
   compareVersions,
 } from '../../pipeline/lib/data-files.mjs';
 import { stringifyCanonical, isCanonicalText } from '../../pipeline/lib/canonical-json.mjs';
-import { readState } from '../../pipeline/lib/state.mjs';
+import { emptyState, readState } from '../../pipeline/lib/state.mjs';
 const base = 'pipeline/schema/examples',
   read = (p) => JSON.parse(readFileSync(p, 'utf8'));
 const file = (c) => read(`${base}/0.0.0-example/${c}.json`);
@@ -56,6 +56,7 @@ test('canonical JSON', () => {
   assert.throws(() => stringifyCanonical({ a: undefined }), TypeError);
 });
 // Scenario: exercise the CLI fixture. Purpose: protect data validation.
+// Scenario: validate schema examples in an isolated tree. Purpose: avoid reading production state and data.
 test('UnitT10_examples and CLI', async (t) => {
   const root = mkdtempSync(join(tmpdir(), 'data-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
@@ -63,7 +64,7 @@ test('UnitT10_examples and CLI', async (t) => {
   cpSync(`${base}/0.0.0-example`, join(root, 'data', '0.0.0'), { recursive: true });
   cpSync(`${base}/current.json`, join(root, 'data', 'current.json'));
   mkdirSync(join(root, 'pipeline'));
-  cpSync('pipeline/state.json', join(root, 'pipeline', 'state.json'));
+  writeFileSync(join(root, 'pipeline', 'state.json'), stringifyCanonical(emptyState()));
   for (const c of ['skills', 'weapons', 'blessings', 'terms'])
     assert.equal(
       checkDataFile(c, readFileSync(`${base}/0.0.0-example/${c}.json`, 'utf8')).valid,
@@ -73,9 +74,9 @@ test('UnitT10_examples and CLI', async (t) => {
   assert.equal(checkCurrent(readFileSync(`${base}/current.json`, 'utf8')).valid, true);
   assert.equal(checkVersionDir(join(root, 'data', '0.0.0')).valid, true);
   assert.equal(spawnSync(process.execPath, ['pipeline/validate.mjs', '--root', root]).status, 0);
-  assert.equal(isCanonicalText(readFileSync('pipeline/state.json', 'utf8')), true);
-  await readState('pipeline/state.json');
-  assert.equal(spawnSync(process.execPath, ['pipeline/validate.mjs']).status, 0);
+  assert.equal(isCanonicalText(readFileSync(join(root, 'pipeline', 'state.json'), 'utf8')), true);
+  await readState(join(root, 'pipeline', 'state.json'));
+  assert.equal(spawnSync(process.execPath, ['pipeline/validate.mjs', '--root', root]).status, 0);
 });
 test('invalid data are rejected', () => {
   const mutate = (c, fn) => {
@@ -109,7 +110,7 @@ test('UnitT20_current and directory consistency failures', (t) => {
   mkdirSync(join(root, 'data'));
   cpSync(`${base}/0.0.0-example`, join(root, 'data', '0.0.0'), { recursive: true });
   mkdirSync(join(root, 'pipeline'));
-  cpSync('pipeline/state.json', join(root, 'pipeline', 'state.json'));
+  writeFileSync(join(root, 'pipeline', 'state.json'), stringifyCanonical(emptyState()));
   let current = read(`${base}/current.json`);
   current.versions = ['1.10.0', '1.9.0'];
   assert.equal(checkCurrent(stringifyCanonical(current)).valid, false);

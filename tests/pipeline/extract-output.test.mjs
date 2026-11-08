@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { spawnSync } from 'node:child_process';
+import { spawnSync } from './test-env.mjs';
 import { itemId,validateExtractItems,writeExtract,nameFromText } from '../../pipeline/lib/extract-output.mjs';
 import { emptyState,startRun,writeState,readState } from '../../pipeline/lib/state.mjs';
 import { fixture,put,cli,root } from './helpers.mjs';
