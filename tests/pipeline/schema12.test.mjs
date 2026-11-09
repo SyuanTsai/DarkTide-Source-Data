@@ -98,15 +98,15 @@ for (const [name, mutate] of [
   ]);
 });
 
-// Scenario: mechanics supply numbers and must be explained. Purpose: include both mechanics levels in coverage.
-test('UnitT50_mechanics numbers and tier coverage', () => {
+// Scenario: mechanics may supply explanation numbers. Purpose: keep T_NUMBER derivation but exclude mechanics from coverage (SYP-403 12696).
+test('UnitT50_mechanics numbers derive but are not required for coverage', () => {
   for (const values of [{mechanics:{x:{value:7}}},{tiers:[{mechanics:{x:{value:7}}}]}]) {
     assert.deepEqual(checkNumbers(values,'7').failures,[]);
-    assert.ok(checkNumbers(values,'').failures.some(f=>f.code==='T_COVERAGE'));
+    assert.ok(!checkNumbers(values,'').failures.some(f=>f.code==='T_COVERAGE'));
   }
   const values={mechanics:{x:{value:[7,11]}}};
   assert.deepEqual(checkNumbers(values,'7和11').failures,[]);
-  assert.ok(checkNumbers(values,'7').failures.some(f=>f.code==='T_COVERAGE'));
+  assert.ok(!checkNumbers(values,'7').failures.some(f=>f.code==='T_COVERAGE'));
 });
 
 // Scenario: source metadata is outside values. Purpose: never derive explanation numbers from locations or hashes.
