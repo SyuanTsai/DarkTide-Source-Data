@@ -73,4 +73,5 @@ import './mechanics.test.mjs';
 import './mechanics-cli.test.mjs';
 import './mechanics-coverage.test.mjs';
 import './mechanics-fix1.test.mjs';
+import './coverage-scope.test.mjs';
 import './schema12-anchor.test.mjs';
