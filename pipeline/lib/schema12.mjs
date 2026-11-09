@@ -1,10 +1,18 @@
 import { atPointer, escapePointer } from './json-pointer.mjs';
 
+function displayParameter(item, anchor) {
+  const root = item?.values?.params;
+  if (typeof item?.id === 'string' && item.id.startsWith('darktide:blessing:')) {
+    const tier = Array.isArray(item.values?.tiers) ? item.values.tiers.find(t => t?.tier === anchor.tier) : undefined;
+    if (!tier) return { exists: false };
+    if (Object.hasOwn(tier.params ?? {}, anchor.param)) return { exists: true, param: tier.params[anchor.param] };
+  }
+  return Object.hasOwn(root ?? {}, anchor.param) ? { exists: true, param: root[anchor.param] } : { exists: false };
+}
+
 export function anchorTarget(item, anchor) {
   if (anchor?.field !== 'displayParameter') return item?.[anchor?.field]?.[anchor?.locale];
-  const values = typeof item?.id === 'string' && item.id.startsWith('darktide:blessing:')
-    ? (Array.isArray(item.values?.tiers) ? item.values.tiers.find(t => t?.tier === anchor.tier) : undefined) : item?.values;
-  const param = values?.params?.[anchor.param];
+  const { param } = displayParameter(item, anchor);
   return param && Object.hasOwn(param, 'value') ? String(param.value) : undefined;
 }
 
@@ -50,8 +58,8 @@ export function checkSchema12(category, file, item, path, items, add) {
     if (anchor.field === 'displayParameter') {
       if (typeof target?.id === 'string' && target.id.startsWith('darktide:blessing:') && !Number.isInteger(anchor.tier))
         add(`${p}/anchor/tier`, 'Blessing displayParameter requires tier');
-      if (!Object.hasOwn(target?.values?.params ?? {}, anchor.param))
-        add(`${p}/anchor/param`, 'Display parameter must refer to values.params');
+      if (!displayParameter(target, anchor).exists)
+        add(`${p}/anchor/param`, 'Display parameter must refer to the target params');
     }
     if (!target || typeof anchor.text !== 'string' || !anchor.text.length || !Number.isInteger(anchor.occurrence)) return;
     const text = anchorTarget(target, anchor);
