@@ -76,7 +76,7 @@ async function fixture(t) {
 const failures = (r, code) => r.report.items.filter((i) => i.failures.some((f) => f.code === code));
 const args = (f) => [cli, '--root', f.root, '--candidate-dir', f.dirs.candidate, '--extract-dir', f.dirs.extract,
   '--previous-dir', f.dirs.previous, '--version-info', f.options.versionInfo, '--translation', f.options.translation,
-  '--issues', 'off', '--mods-commit', 'c'.repeat(40), '--out-dir', f.dirs.out];
+  '--issues', 'dry-run', '--mods-commit', 'c'.repeat(40), '--out-dir', f.dirs.out];
 
 // Scenario: candidate or retained category has a different schema version. Purpose: halt before writing mixed output.
 test('InterT09_合併後 schema 版本不一致停止寫入', async (t) => {
@@ -404,7 +404,7 @@ test('InterT70_CLI canonical 報告與使用錯誤', async (t) => {
   const first = await readFile(report, 'utf8');
   assert.equal(run().status, 0); assert.equal(await readFile(report, 'utf8'), first);
   assert.match(run().stdout, /^檢查結果：通過\n通過項目：12\n/);
-  for (const bad of [['--root', f.root, '--state', join(f.root, 'missing-state.json'), '--cloud-dir', f.root, '--issues', 'off'], ['--unknown', 'x'], [...args(f).slice(1), '--issues', 'off']])
+  for (const bad of [['--root', f.root, '--state', join(f.root, 'missing-state.json'), '--cloud-dir', f.root, '--issues', 'off'], ['--unknown', 'x'], [...args(f).slice(1), '--issues', 'invalid']])
     assert.equal(spawnSync(process.execPath, [cli, ...bad], { encoding: 'utf8', env: cleanTestEnv() }).status, 2);
   await writeFile(join(f.dirs.candidate, 'skills.json'), '{');
   const result = run(); assert.equal(result.status, 2); assert.match(result.stderr, /無法/);
