@@ -95,10 +95,14 @@ export async function loadInput(options) {
       try { candidate = { value: JSON.parse(text), text }; }
       catch { throw new InputError(`無法解析 JSON：${join(options.candidateDir, `${category}.json`)}`); }
     }
-    const extract = diffBlocked ? null : await readJson(join(options.extractDir, `${category}.json`), true);
+    // A missing diff input can leave a stale cloud file. Only this run's
+    // structural fallback envelope may supply a target when diff blocks items.
+    const extract = !diffBlocked || diffCategory?.status === 'structure-mismatch'
+      ? await readJson(join(options.extractDir, `${category}.json`), true) : null;
     const previous = previousDir && previousDir !== 'none' ? await readJson(join(previousDir, `${category}.json`), true) : null;
     candidateTexts[category] = candidate?.text;
-    loaded[category] = { candidate: candidate?.value ?? null, extract: extract?.value ?? null, previous: previous?.value ?? null,
+    loaded[category] = { candidate: candidate?.value ?? null, extract: diffBlocked ? null : extract?.value ?? null, previous: previous?.value ?? null,
+      releaseSchemaVersion: extract?.value?.schemaVersion,
       diffReason: diffBlocked ? (diffCategory?.reason?.trim() || `本輪 diff 缺少或無法使用 extract（${diffCategory?.status ?? 'missing'}）`) : null,
       candidateSha256: sha256(bytes), schemaErrors: [] };
   }

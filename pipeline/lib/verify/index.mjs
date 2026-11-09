@@ -101,6 +101,7 @@ export async function runVerify(inputOptions) {
       }
     }
     const output = verifyMerged(loaded, report.categories, report.items, undefined, version);
+    if (output.targetSchemaVersion) report.targetSchemaVersion = output.targetSchemaVersion;
     merged = output.merged;
     report.gates.output.errors = [...output.errors, ...checkOldVersions(root, input.current)];
     for (const [category, data] of Object.entries(merged)) report.categories[category].counts.merged = data.items?.length ?? 0;

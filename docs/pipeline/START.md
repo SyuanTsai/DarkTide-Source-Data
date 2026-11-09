@@ -150,3 +150,152 @@
 - 環境變數與路徑設定請見「第 0 步之前：環境設定」。
 
 開 PR 或驗收前必須執行真實來源完整測試：在 PowerShell 設定 `$env:PIPELINE_REAL_SMOKE='1'`，再執行 `node --test tests/pipeline/cryptic-brittleness-fingerprints.test.mjs tests/pipeline/cryptic-brittleness-reads.test.mjs`，並執行 `node --test tests/pipeline/review33.real.test.mjs` 核對固定來源 binding 行號。預設未設定時 fingerprint／reads 的真實來源案例不會執行，小型 fixture 仍會執行。
+
+## 同版本重產（獨立路徑）
+
+同一遊戲版本已 completed，但取數腳本更新時，check-version 會回報「沒有新版本」。只有使用者要求同版本重產時才走本段；不修改 check-version，也不執行上面的第 0、1 步。原提示詞規則、第 4 步撰寫要求、第 5a 步抽查及第 8 步回報格式照用。以下指令在 repo 根目錄的同一個 pwsh 7 子程序執行；任何非零退出碼或 PowerShell 錯誤立即停止，依原第 8 步回報交給使用者。全程不 pull、fetch、push，不自動更新來源或切換分支。
+
+### 重產 A：隔離、固定輸入與不可變 baseline
+
+下列路徑與固定輸入是 1.13.4 範例。先核對使用者要求的版本、來源 commit、文字批次及 manifest；新任務換一個尚未使用的外部目錄。重產進行中只使用外部 state，repo 的 data/state 在最後驗證通過前不寫入。
+
+```powershell
+$ErrorActionPreference = 'Stop'
+function Invoke-RegenNode {
+  & node @args
+  if ($LASTEXITCODE -ne 0) { throw "node 失敗（exit $LASTEXITCODE）" }
+}
+function Invoke-RegenGit {
+  & git @args
+  if ($LASTEXITCODE -ne 0) { throw "git 失敗（exit $LASTEXITCODE）" }
+}
+Get-ChildItem Env: | Where-Object {
+  $_.Name -in @('GH_TOKEN','GITHUB_TOKEN','GH_ENTERPRISE_TOKEN') -or $_.Name -like 'DARKTIDE_*'
+} | ForEach-Object { Remove-Item -LiteralPath "Env:$($_.Name)" }
+$repo = (Get-Location).Path
+$cloud = 'F:/GitFile/Persion - Games/DarkTide-Pipeline-Work/1.13.4-syp403-align-rehearsal'
+$stage = Join-Path $cloud 'staging-root'
+$work = Join-Path $cloud 'extract-work'
+$state = Join-Path $stage 'pipeline/state.json'
+$prev = Join-Path $cloud 'immutable-baseline/1.13.4'
+$sourceRepo = 'F:/GitFile/Persion - Games/Darktide-Source-Code'
+$privateRepo = 'F:/GitFile/Persion - Games/DARKTIDE User Setting'
+$glossary = 'F:/GitFile/Persion - Games/Warhammer-40-000-DARKTIDE-Mods/Referneces/Translation.md'
+$gameVersion = '1.13.4'
+$sourceCommit = 'e46b8926cfa3fa35503e4b80b15aab7a804314e4'
+$textBatch = '26101089'
+$privateRef = (Invoke-RegenGit -C $privateRepo rev-parse --verify 'origin/master^{commit}').Trim()
+if (-not (Test-Path -LiteralPath $cloud -PathType Container)) { throw '外部工作根目錄不存在，需要使用者處理' }
+$ancestor = Get-Item -LiteralPath $cloud
+while ($null -ne $ancestor) {
+  if (Test-Path -LiteralPath (Join-Path $ancestor.FullName '.git')) { throw '外部工作根目錄不可在 Git repo 內' }
+  $ancestor = $ancestor.Parent
+}
+foreach ($path in @($stage, $work, (Split-Path $prev))) {
+  if (Test-Path -LiteralPath $path) { throw "目錄已存在，不可覆寫或重建 baseline：$path；接續時沿用既有 state/baseline，勿重跑初始化" }
+}
+$isolation = Join-Path $cloud ('isolation-' + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path (Join-Path $isolation 'bin'), (Join-Path $isolation 'gh-config') -Force | Out-Null
+Copy-Item -LiteralPath 'C:/Windows/System32/whoami.exe' -Destination (Join-Path $isolation 'bin/gh.exe')
+Set-Content -LiteralPath (Join-Path $isolation 'bin/gh.cmd') -Value '@exit /b 1' -Encoding ascii
+$env:GH_CONFIG_DIR = Join-Path $isolation 'gh-config'
+$env:PATH = "$(Join-Path $isolation 'bin');$env:PATH"
+if ([IO.Path]::GetFullPath((Get-Command gh).Source) -ne [IO.Path]::GetFullPath((Join-Path $isolation 'bin/gh.exe'))) { throw 'gh 未解析至隔離 shim' }
+$repoState = Get-Content -Raw -LiteralPath (Join-Path $repo 'pipeline/state.json') | ConvertFrom-Json
+if ($repoState.run.status -ne 'completed' -or $repoState.lastProcessed.gameVersion -ne $gameVersion) { throw '不是已完成的同版本，交給使用者確認' }
+# 核對本機 Git 固定輸入及 manifest，不更新任何來源。
+Invoke-RegenNode --input-type=module -e 'import {resolveSourceCode,resolvePrivate} from "./pipeline/lib/inputs.mjs"; const [repo,commit,priv,ref,batch,game]=process.argv.slice(1); const s=resolveSourceCode({repo,ref:commit}),p=resolvePrivate({repo:priv,ref,batch}); if(s.commit!==commit||s.gameVersion!==game||p.gameVersion!==game)throw Error("固定來源版本不一致");' $sourceRepo $sourceCommit $privateRepo $privateRef $textBatch $gameVersion
+$repoPaths = @('pipeline/state.json','data/current.json') + @('skills','weapons','blessings','terms' | ForEach-Object { "data/$gameVersion/$_.json" })
+$repoHashes = @($repoPaths | ForEach-Object { [pscustomobject]@{Path=$_;Hash=(Get-FileHash -LiteralPath (Join-Path $repo $_)).Hash} })
+New-Item -ItemType Directory -Path $stage, (Split-Path $prev) | Out-Null
+Copy-Item -LiteralPath (Join-Path $repo 'data') -Destination (Join-Path $stage 'data') -Recurse
+Copy-Item -LiteralPath (Join-Path $repo "data/$gameVersion") -Destination $prev -Recurse
+Invoke-RegenNode --input-type=module -e 'import {readState,startRun,writeState} from "./pipeline/lib/state.mjs"; const [repo,state,gameVersion,sourceCommit,textBatch]=process.argv.slice(1); const old=await readState(repo+"/pipeline/state.json"); await writeState(state,startRun({schemaVersion:"1.0.0",lastProcessed:old.lastProcessed,run:null},{gameVersion,sourceCommit,textBatch}));' $repo $state $gameVersion $sourceCommit $textBatch
+# baseline 必須逐檔吻合複製前的 repo；最後搬回前再核對兩邊是否有並行改寫。
+foreach ($entry in $repoHashes) {
+  if ((Get-FileHash -LiteralPath (Join-Path $repo $entry.Path)).Hash -ne $entry.Hash) { throw '初始化期間 repo 已變更，停止' }
+  if ($entry.Path.StartsWith("data/$gameVersion/")) {
+    if ((Get-FileHash -LiteralPath (Join-Path $prev (Split-Path $entry.Path -Leaf))).Hash -ne $entry.Hash) { throw 'baseline 與複製前來源不符，停止' }
+  }
+}
+$repoHashes | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $cloud 'repo-before.json') -Encoding utf8
+$baselineHashes = @('skills','weapons','blessings','terms' | ForEach-Object { [pscustomobject]@{Path="$_.json";Hash=(Get-FileHash -LiteralPath (Join-Path $prev "$_.json")).Hash} })
+$baselineHashes | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $cloud 'baseline-before.json') -Encoding utf8
+```
+
+baseline 是重產前的固定快照，後續 verify／write 必須一直使用 `$prev`；不可拿已經覆寫的 repo 或 staging `data/<版本>` 當回退基準。中斷接續時重新設定以上路徑、固定 ref 與隔離環境，載入既有 `$state` 及雜湊紀錄；不可重新初始化或覆寫 baseline。baseline 遺失、雜湊不同、state 固定輸入不符時停止交給使用者。
+
+### 重產 B：extract → diff → pending
+
+```powershell
+Invoke-RegenNode pipeline/extract-text.mjs --state $state --work-dir $work --private-repo $privateRepo --private-ref $privateRef --text-batch $textBatch
+foreach ($category in @('skills','weapons','blessings','terms')) {
+  Invoke-RegenNode "pipeline/extract-$category.mjs" --state $state --work-dir $work --source-code-repo $sourceRepo
+}
+Invoke-RegenNode pipeline/diff.mjs --state $state --work-dir $work --data-dir (Join-Path $repo 'data') --cloud-dir $cloud --glossary $glossary
+$pending = @(Invoke-RegenNode pipeline/diff.mjs --state $state --cloud-dir $cloud --pending --json | ConvertFrom-Json)
+$pending | Select-Object id,input,output
+```
+
+diff 的前版指向 repo `data/`；後續所有 candidate／verify／write 的回退則使用未變的 `$prev`。檢查四類 extract 版本一致、來源 metadata、added/changed/removed/unchanged 與預期相符；結果出乎預期、來源不一致或腳本失敗時停止交給使用者。
+
+### 重產 C：沿原第 4 步寫說明
+
+逐項讀 `$pending` 提供的 input，嚴格照原第 4 步寫入它指定的 output，不能用佔位說明跳過。每完成一個就立即標記，然後重新讀 pending：
+
+```powershell
+foreach ($entry in $pending) {
+  # 先讀取此 input、完成原第 4 步說明並存入 output；本區塊不會自動生成說明。
+  if (-not (Test-Path -LiteralPath $entry.output -PathType Leaf)) { throw "尚未完成說明：$($entry.id)" }
+  Invoke-RegenNode pipeline/diff.mjs --state $state --cloud-dir $cloud --mark-described $entry.id
+}
+$pending = @(Invoke-RegenNode pipeline/diff.mjs --state $state --cloud-dir $cloud --pending --json | ConvertFrom-Json)
+if ($pending.Count -ne 0) { throw '仍有待寫說明，不可 verify/write' }
+```
+
+### 重產 D：verify → 原第 5a 步 → write → validate
+
+```powershell
+foreach ($entry in (Get-Content -Raw -LiteralPath (Join-Path $cloud 'baseline-before.json') | ConvertFrom-Json)) {
+  if ((Get-FileHash -LiteralPath (Join-Path $prev $entry.Path)).Hash -ne $entry.Hash) { throw 'baseline 已變更，停止' }
+}
+Invoke-RegenNode pipeline/verify.mjs --root $stage --state $state --cloud-dir $cloud --previous-dir $prev --translation $glossary --issues off
+$report = Get-Content -Raw -LiteralPath (Join-Path $cloud "$gameVersion/verify/report.json") | ConvertFrom-Json
+if ($report.result -eq 'halted') { throw 'verify 整批停止，需要使用者處理' }
+$report.items | Where-Object decision -ne 'pass' | Select-Object id,decision,failures
+$report.categories | ConvertTo-Json -Depth 6
+```
+
+此時必須依原第 5a 步由 astra 完成 damage profile 抽查、記錄逐筆證據並確認一致，才可執行下一區塊。抽查不足／不一致、保留或排除項目需要人工決策、譯名衝突未能確定，均停止交給使用者。單項保留仍須通過最終 schema；同版本 baseline 的新 retainedFrom 若不符合既有「必須早於發布遊戲版本」規則，verify 會整批停止，不能改來源或 provenance 來繞過。
+
+```powershell
+# 僅在原第 5a 步抽查完成且一致後執行。
+Invoke-RegenNode pipeline/write.mjs --root $stage --state $state --cloud-dir $cloud --previous-dir $prev
+Invoke-RegenNode pipeline/validate.mjs --root $stage
+```
+
+### 重產 E：帶回 repo、驗證與 commit
+
+先檢查 staging 已 completed，並確定 repo 與不可變 baseline 都未遭並行改寫；任一檢查失敗停止交給使用者。搬回只包含這次版本的四個檔、current 與 state；舊版本不搬回。
+
+```powershell
+$done = Get-Content -Raw -LiteralPath $state | ConvertFrom-Json
+if ($done.run.status -ne 'completed' -or $done.run.gameVersion -ne $gameVersion) { throw 'staging run 未完成' }
+foreach ($entry in (Get-Content -Raw -LiteralPath (Join-Path $cloud 'repo-before.json') | ConvertFrom-Json)) {
+  if ((Get-FileHash -LiteralPath (Join-Path $repo $entry.Path)).Hash -ne $entry.Hash) { throw 'repo 產物已變更，停止搬回' }
+}
+foreach ($entry in (Get-Content -Raw -LiteralPath (Join-Path $cloud 'baseline-before.json') | ConvertFrom-Json)) {
+  if ((Get-FileHash -LiteralPath (Join-Path $prev $entry.Path)).Hash -ne $entry.Hash) { throw 'baseline 已變更，停止搬回' }
+}
+foreach ($category in @('skills','weapons','blessings','terms')) {
+  Copy-Item -LiteralPath (Join-Path $stage "data/$gameVersion/$category.json") -Destination (Join-Path $repo "data/$gameVersion/$category.json")
+}
+Copy-Item -LiteralPath (Join-Path $stage 'data/current.json') -Destination (Join-Path $repo 'data/current.json')
+Copy-Item -LiteralPath $state -Destination (Join-Path $repo 'pipeline/state.json')
+Invoke-RegenNode pipeline/validate.mjs
+Invoke-RegenGit diff --stat -- @repoPaths
+Invoke-RegenGit add -- @repoPaths
+Invoke-RegenGit commit -m 'SYP-403' -m 'fix(data): regenerate the same game version with updated extractors' -m 'zh-TW:' -m '修正(data)：使用更新後的取數腳本重產相同遊戲版本'
+```
+
+依當次分支／任務更換 commit 的 ticket 與描述，SYP 不記錄工時。hook 失敗立即停止，保留現場交給使用者，不繞過。若搬回中斷，不可重做 baseline 或盲目重試初始化；交由使用者依外部完整 staging 與原始雜湊確認恢復。最後沿原第 8 步格式回報；本獨立路徑不 push。

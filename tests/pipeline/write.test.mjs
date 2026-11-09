@@ -6,10 +6,11 @@ import { join, resolve } from 'node:path';
 import { spawnSync } from './test-env.mjs';
 import { cleanTestEnv } from './test-env.mjs';
 import { createHash } from 'node:crypto';
-import { CATEGORIES, checkDataFile } from '../../pipeline/lib/data-files.mjs';
+import { CATEGORIES, checkDataFile, retainItem } from '../../pipeline/lib/data-files.mjs';
 import { stringifyCanonical, writeCanonicalFile } from '../../pipeline/lib/canonical-json.mjs';
-import { emptyState, startRun, writeState } from '../../pipeline/lib/state.mjs';
+import { emptyState, startRun, completeRun, writeState } from '../../pipeline/lib/state.mjs';
 import { itemFileName } from '../../pipeline/lib/cloud-dir.mjs';
+import { runWrite } from '../../pipeline/lib/write.mjs';
 
 const repo = resolve('.'), meta = { gameVersion: '1.2.0', sourceCommit: 'a'.repeat(40), textBatch: 'new' };
 const old = { gameVersion: '1.1.0', sourceCommit: 'b'.repeat(40), textBatch: 'old' };
@@ -83,12 +84,131 @@ async function fixture(t, { previous = false, mismatch = false, repeated = false
   return { root, state, cloud, base, ai, previousData, cli, success, verify, write, validate, diffArgs, writeArgs, verifyArgs };
 }
 
+// Freeze 7078074's report/compose contract independently of today's verify/write:
+// no targetSchemaVersion; candidates select their own schema, retained categories
+// select the predecessor's schema. Checkpoints below do not call runWrite.
+async function legacyReportFixture(t, candidateCategories = []) {
+  const root = await mkdtemp(join(tmpdir(), 'darktide-write-legacy-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const state = join(root, 'pipeline/state.json'), candidateDir = join(root, 'candidate');
+  const previousDir = join(root, 'data', old.gameVersion), reportPath = join(root, 'report.json');
+  const report = { schemaVersion: '1.0.0', scriptVersion: 'pipeline/verify.mjs@1.0.0', ...meta,
+    previousGameVersion: old.gameVersion, result: 'degraded', categories: {}, items: [] };
+  const current = { schemaVersion: '1.1.0', ...old, path: `data/${old.gameVersion}`, versions: [old.gameVersion] };
+  const next = startRun(emptyState(), meta), expected = {};
+  await mkdir(candidateDir);
+  for (const category of CATEGORIES) {
+    const previous = { ...await read(join(repo, 'pipeline/schema/examples/1.1.0-example', `${category}.json`)), ...old };
+    for (const item of previous.items) { item.source.commit = old.sourceCommit; item.source.text.batch = old.textBatch; }
+    await writeCanonicalFile(join(previousDir, `${category}.json`), previous);
+    const candidate = candidateCategories.includes(category) ? { ...structuredClone(previous), ...meta } : null;
+    if (candidate) {
+      for (const item of candidate.items) { item.source.commit = meta.sourceCommit; item.source.text.batch = meta.textBatch; }
+      await writeCanonicalFile(join(candidateDir, `${category}.json`), candidate);
+      report.items.push(...candidate.items.map(item => ({ category, id: item.id, decision: 'pass' })));
+    }
+    const info = { status: candidate ? 'ok' : 'kept-previous', reason: candidate ? null : '缺少 extract 輸出' };
+    next.run.categories[category] = info;
+    report.categories[category] = { ...info, candidateSha256: candidate
+      ? createHash('sha256').update(await readFile(join(candidateDir, `${category}.json`))).digest('hex') : null };
+    expected[category] = candidate ?? { ...previous, ...meta, items: previous.items.map(item => retainItem(item, previous)) };
+  }
+  await writeCanonicalFile(reportPath, report);
+  await writeCanonicalFile(join(root, 'data/current.json'), current);
+  await writeState(state, next);
+  return { root, state, reportPath, candidateDir, previousDir, expected,
+    options: { root, state, report: reportPath, candidateDir },
+    async checkpoint(categories, completed = false) {
+      for (const category of categories) await writeCanonicalFile(join(root, 'data', meta.gameVersion, `${category}.json`), expected[category]);
+      if (completed) {
+        await writeCanonicalFile(join(root, 'data/current.json'), { ...current, ...meta, path: `data/${meta.gameVersion}`, versions: [old.gameVersion, meta.gameVersion] });
+        await writeState(state, completeRun(next));
+      }
+    } };
+}
+
+// Scenario: a 7078074 all-retained 1.1 release has already completed.
+// Purpose: completed replay must succeed without relabeling approved data or changing bytes.
+test('InterT01_legacy completed replay preserves approved 1.1 output', async t => {
+  const f = await legacyReportFixture(t);
+  await f.checkpoint(CATEGORIES, true);
+  const before = await snapshot(f.root);
+  assert.equal((await runWrite(f.options)).exitCode, 0);
+  assert.deepEqual(await snapshot(f.root), before);
+  assert.equal((await read(join(f.root, 'data/current.json'))).schemaVersion, '1.1.0');
+});
+
+// Scenario: the same legacy release stopped after writing only skills, before current publication.
+// Purpose: resumption preserves that checkpoint and publishes all four files/current as 1.1.
+test('InterT02_legacy interrupted category write resumes with schema 1.1', async t => {
+  const f = await legacyReportFixture(t);
+  await f.checkpoint(['skills']);
+  const first = await readFile(join(f.root, 'data', meta.gameVersion, 'skills.json'));
+  assert.equal((await runWrite(f.options)).exitCode, 0);
+  for (const category of CATEGORIES) assert.deepEqual(await read(join(f.root, 'data', meta.gameVersion, `${category}.json`)), f.expected[category]);
+  assert.deepEqual(await readFile(join(f.root, 'data', meta.gameVersion, 'skills.json')), first);
+  assert.equal((await read(join(f.root, 'data/current.json'))).schemaVersion, '1.1.0');
+  assert.equal((await read(f.state)).run.status, 'completed');
+  const before = await snapshot(f.root);
+  assert.equal((await runWrite(f.options)).exitCode, 0);
+  assert.deepEqual(await snapshot(f.root), before);
+});
+
+// Scenario: a legacy all-retained report has 1.1 predecessors except for 1.2 terms.
+// Purpose: reject inconsistent approved category schemas before publishing any file/state.
+test('InterT03_legacy inconsistent previous schemas fail closed', async t => {
+  const f = await legacyReportFixture(t), path = join(f.previousDir, 'terms.json');
+  await writeCanonicalFile(path, { ...await read(path), schemaVersion: '1.2.0' });
+  const before = await snapshot(f.root);
+  await assert.rejects(runWrite(f.options), /schemaVersion.*不一致/);
+  assert.deepEqual(await snapshot(f.root), before);
+});
+
+// Scenario: a legacy report mixes 1.1 candidates with whole-category retained 1.1 data.
+// Purpose: infer each approved schema from its original source, retaining historical candidate support.
+test('InterT04_legacy candidates and retained categories publish their approved 1.1 schema', async t => {
+  const f = await legacyReportFixture(t, ['skills', 'weapons']);
+  assert.equal((await runWrite(f.options)).exitCode, 0);
+  for (const category of CATEGORIES) assert.deepEqual(await read(join(f.root, 'data', meta.gameVersion, `${category}.json`)), f.expected[category]);
+  assert.equal((await read(join(f.root, 'data/current.json'))).schemaVersion, '1.1.0');
+});
+
+// Scenario: an old-format report asks to retain a 1.1 item inside otherwise consistent 1.2 candidates.
+// Purpose: legacy reports cannot authorize the promotion reserved for explicit new-format targets.
+test('InterT05_legacy item retention rejects cross-schema promotion', async t => {
+  const f = await legacyReportFixture(t, CATEGORIES), report = await read(f.reportPath);
+  for (const category of CATEGORIES) {
+    const path = join(f.candidateDir, `${category}.json`);
+    await writeCanonicalFile(path, { ...await read(path), schemaVersion: '1.2.0' });
+    report.categories[category].candidateSha256 = createHash('sha256').update(await readFile(path)).digest('hex');
+  }
+  report.items.find(row => row.category === 'skills').decision = 'kept-previous';
+  await writeCanonicalFile(f.reportPath, report);
+  const before = await snapshot(f.root);
+  await assert.rejects(runWrite(f.options), /schemaVersion/);
+  assert.deepEqual(await snapshot(f.root), before);
+});
+
+// Scenario: a retained predecessor is absent, or an explicit new-format target is null.
+// Purpose: write must fail closed rather than supply its own current schema default.
+test('InterT06_write rejects missing approved schema sources and null report targets', async t => {
+  for (const mode of ['missing-previous', 'null-target']) {
+    const f = await legacyReportFixture(t);
+    if (mode === 'missing-previous') f.options.previousDir = 'none';
+    else await writeCanonicalFile(f.reportPath, { ...await read(f.reportPath), targetSchemaVersion: null });
+    const before = await snapshot(f.root);
+    await assert.rejects(runWrite(f.options), /schemaVersion/);
+    assert.deepEqual(await snapshot(f.root), before);
+  }
+});
+
 // Scenario: write and replay both supported release schemas.
 // Purpose: the current index follows final data and completed replay stays read-only.
-for (const schemaVersion of ['1.0.0', '1.1.0']) test(`write and replay current schema ${schemaVersion}`, async (t) => {
+for (const schemaVersion of ['1.0.0', '1.1.0']) test(`InterT08_write and replay current schema ${schemaVersion}`, async (t) => {
   const f = await fixture(t); f.verify();
   if (schemaVersion === '1.1.0') {
     const reportPath = join(f.base, 'verify/report.json'), report = await read(reportPath);
+    report.targetSchemaVersion = schemaVersion;
     for (const category of CATEGORIES) {
       const path = join(f.base, 'candidate', `${category}.json`), candidate = await read(path);
       candidate.schemaVersion = schemaVersion;

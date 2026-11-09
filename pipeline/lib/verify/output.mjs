@@ -4,11 +4,19 @@ import { join } from 'node:path';
 import { compare, failure, itemIndex, validationMessage } from './common.mjs';
 import { composeFinal } from './compose.mjs';
 import { checkErrata } from './text.mjs';
+import { releaseSchemaVersion } from '../schema-migration.mjs';
 
 export function decide(row, previous) {
   row.decision = row.failures.length ? previous?.items?.some((i) => i?.id === row.id) ? 'kept-previous' : 'excluded' : 'pass';
 }
-export function verifyMerged(loaded, categories, rows, checker = checkDataFile, version) {
+export function verifyMerged(loaded, categories, rows, checker = checkDataFile, version, targetSchemaVersion) {
+  try {
+    targetSchemaVersion = releaseSchemaVersion([
+      targetSchemaVersion, ...Object.values(loaded).map(entry => entry.candidate?.schemaVersion ?? entry.releaseSchemaVersion ?? entry.extract?.schemaVersion),
+    ]);
+  } catch (error) {
+    return { merged: {}, errors: [{ code: 'SCHEMA_VERSION_MISMATCH', path: '/schemaVersion', message: error.message }] };
+  }
   // Each retry must reject at least one previously passing row; termination is bounded by rows.length.
   for (let attempt = 0; attempt <= rows.length; attempt++) {
     const merged = {}, errors = [];
@@ -17,7 +25,7 @@ export function verifyMerged(loaded, categories, rows, checker = checkDataFile, 
       const categoryRows = rows.filter((r) => r.category === category);
       let data;
       try { data = composeFinal({ category, status: categories[category].status, candidate: entry.candidate,
-        previous: entry.previous, rows: categoryRows, version: version ?? entry.candidate }); }
+        previous: entry.previous, rows: categoryRows, version: version ?? entry.candidate, targetSchemaVersion }); }
       catch (error) {
         if (!error.message.includes('schemaVersion')) throw error;
         return { merged, errors: [{ code: 'SCHEMA_VERSION_MISMATCH', category, path: '/schemaVersion', message: error.message }] };
@@ -51,7 +59,7 @@ export function verifyMerged(loaded, categories, rows, checker = checkDataFile, 
     errors.push(...checkFileConsistency(Object.entries(merged).map(([category, value]) => ({ category, value })), ['schemaVersion'])
       .map((e) => ({ code: 'SCHEMA_VERSION_MISMATCH', path: e.path, message: '合併後類別的 schemaVersion 不一致，包含保留上一版時須人工處理' })));
     errors.sort((a, b) => compare(a.category ?? '', b.category ?? '') || compare(a.path, b.path) || compare(a.message, b.message));
-    return { merged, errors };
+    return { merged, errors, targetSchemaVersion };
   }
   throw new Error('合併資料重試超過項目數');
 }

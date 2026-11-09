@@ -39,12 +39,15 @@ test('UnitT10_fixed start instructions contain expected steps and report', () =>
 });
 
 function slashCommands(text) {
-  return [...text.matchAll(/(?:^|\s)(\/[a-zA-Z][^\s]*)/gm)]
+  return [...text.replaceAll('@exit /b 1', '').matchAll(/(?:^|\s)(\/[a-zA-Z][^\s]*)/gm)]
     .map((match) => match[1])
     .filter((token) => !/[/.]/.test(token.slice(1)));
 }
-test('slash command detection excludes paths', () => {
+// Scenario: executable documentation includes paths and a Windows gh.cmd exit switch.
+// Purpose: distinguish shell syntax from unsupported assistant slash commands.
+test('UnitT15_slash command detection excludes paths and the Windows exit switch', () => {
   assert.deepEqual(slashCommands('/commit'), ['/commit']);
+  assert.deepEqual(slashCommands('@exit /b 1'), []);
   for (const path of ['pipeline/check-version.mjs', 'docs/pipeline/START.md', 'data/1.13.4']) {
     assert.deepEqual(slashCommands(path), []);
   }
