@@ -157,7 +157,7 @@
 
 ### 重產 A：隔離、固定輸入與不可變 baseline
 
-下列路徑與固定輸入是 1.13.4 範例。先核對使用者要求的版本、來源 commit、文字批次及 manifest；新任務換一個尚未使用的外部目錄。重產進行中只使用外部 state，repo 的 data/state 在最後驗證通過前不寫入。
+下列路徑與固定輸入是 1.13.4 範例。先核對使用者要求的版本、來源 commit、文字批次及 manifest；新任務換一個尚未使用的外部目錄。工作目錄範例格式為 `F:/GitFile/DarkTide-Pipeline-Regen/<版本>-<工單>`。工作目錄不可位於任何含 `.git` 的上層資料夾下（包含空的 `.git` 資料夾），否則下方檢查會停止。重產進行中只使用外部 state，repo 的 data/state 在最後驗證通過前不寫入。
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -173,7 +173,7 @@ Get-ChildItem Env: | Where-Object {
   $_.Name -in @('GH_TOKEN','GITHUB_TOKEN','GH_ENTERPRISE_TOKEN') -or $_.Name -like 'DARKTIDE_*'
 } | ForEach-Object { Remove-Item -LiteralPath "Env:$($_.Name)" }
 $repo = (Get-Location).Path
-$cloud = 'F:/GitFile/Persion - Games/DarkTide-Pipeline-Work/1.13.4-syp403-align-rehearsal'
+$cloud = 'F:/GitFile/DarkTide-Pipeline-Regen/1.13.4-syp403'
 $stage = Join-Path $cloud 'staging-root'
 $work = Join-Path $cloud 'extract-work'
 $state = Join-Path $stage 'pipeline/state.json'
