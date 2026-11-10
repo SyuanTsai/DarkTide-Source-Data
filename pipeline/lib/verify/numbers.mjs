@@ -106,8 +106,9 @@ function directionCandidates(token, value, unit) {
   if (unit === unitName(token.suffix)) return [value];
   return [];
 }
-export function checkNumbers(values, text, lockedEffect, sections) {
-  const tokens = sections ? sections.flatMap(extractNumbers) : extractNumbers(text), failures = [];
+export function checkNumbers(values, text, lockedEffect, sections, evidence = {}) {
+  const sectionNames = ['effect', 'conditions', 'calculation', 'notes', 'extra'];
+  const tokens = sections ? sections.flatMap((s, i) => extractNumbers(s).map(t => ({ ...t, section: sectionNames[i] }))) : extractNumbers(text), failures = [];
   const wrong = [], direction = [], warnings = [], normalizedValues = [], numericValues = [];
   walk(values, (v, path) => {
     if (!isGameValuePath(values, path)) return;
@@ -130,7 +131,7 @@ export function checkNumbers(values, text, lockedEffect, sections) {
       if (matching.length) warnings.push({ code: 'W_OFFICIAL_TEXT_DIRECTION', path: '/explanation/effect', message: `官方原文數字 ${token.raw}；values：${[...new Set(matching.map(({ value }) => value))].join('、')}` });
       else direction.push(token.raw);
     }
-    else wrong.push(token.raw);
+    else if (!matchesEvidence(token, values, evidence)) wrong.push(token.raw);
   }
   if (wrong.length) failures.push(failure('text', 'T_NUMBER', '/explanation', `說明數字無法由資料推導：${[...new Set(wrong)].sort().join('、')}`));
   if (direction.length) failures.push(failure('text', 'T_DIRECTION', '/explanation', `說明數字方向相反：${[...new Set(direction)].sort().join('、')}`));
@@ -141,4 +142,29 @@ export function checkNumbers(values, text, lockedEffect, sections) {
     !tokens.some((token) => unitName(token.suffix) !== null && matches({ ...token, signed: false, value: Math.abs(token.value) }, derived(param.value))));
   if (uncovered.length) failures.push(failure('text', 'T_COVERAGE', '/values', `說明未涵蓋參數：${uncovered.map(({ path }) => `/values${path}`).sort().join('、')}`));
   return { failures, tokens, numbers, warnings };
+}
+
+function matchesEvidence(token, values, { citations = [], codeNumbers } = {}) {
+  const cited = citations.filter(c => c?.section === token.section);
+  const operands = cited.flatMap(c => Array.isArray(c.valueRefs) ? c.valueRefs : []).map(pointer => {
+    const value = atPointer(values, pointer);
+    return value && typeof value === 'object' ? value.value : value;
+  }).filter(n => typeof n === 'number' && Number.isFinite(n));
+  const results = [];
+  for (const a of operands) {
+    results.push(1 + a, 1 - a);
+    for (const b of operands) {
+      results.push(a + b, a * b);
+      if (Number.isInteger(b) && b >= 2 && b <= 20) results.push((1 + a) ** b, a ** b);
+    }
+  }
+  if (matches(token, results.flatMap(derived))) return true;
+  if (typeof codeNumbers !== 'function') return false;
+  for (const citation of cited) for (const id of citation.codeRefs ?? []) {
+    try {
+      const literals = codeNumbers(id) ?? [];
+      if (matches(token, literals.flatMap(n => [n, n * 100]))) return true;
+    } catch { /* Missing or invalid source is not evidence. */ }
+  }
+  return false;
 }
