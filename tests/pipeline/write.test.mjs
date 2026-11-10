@@ -371,7 +371,7 @@ test('InterT43_written item conflict blocks resume until description is correcte
   assert.ok(!result.stderr.includes(f.root)); assert.deepEqual(await snapshot(f.root), data); assert.deepEqual(await readFile(f.state), state);
   await writeCanonicalFile(path, good); f.verify(); f.success(f.write()); f.validate();
   const resumed = await snapshot(join(f.root, 'data')), completed = await readFile(f.state);
-  const reset = JSON.parse(state); for (const item of Object.values(reset.run.items)) { if (item.stage === 'written') { item.stage = item.change === 'removed' ? 'described' : 'verified'; item.outcome = null; } }
+  const reset = JSON.parse(state); reset.run.reportIntegrity = (await read(f.state)).run.reportIntegrity; for (const item of Object.values(reset.run.items)) { if (item.stage === 'written') { item.stage = item.change === 'removed' ? 'described' : 'verified'; item.outcome = null; } }
   await writeState(f.state, reset); f.success(f.write());
   assert.deepEqual(await snapshot(join(f.root, 'data')), resumed); assert.deepEqual(await readFile(f.state), completed);
 });
@@ -401,7 +401,7 @@ test('InterT45_written removal cannot reappear in final data', async (t) => {
   report.categories.skills.candidateSha256 = createHash('sha256').update(await readFile(candidatePath)).digest('hex');
   report.items.push({ id, category: 'skills', decision: 'pass', failures: [], notes: [] }); await writeCanonicalFile(reportPath, report);
   const before = await snapshot(join(f.root, 'data')), stateBytes = await readFile(f.state), result = f.write();
-  assert.equal(result.status, 1); assert.ok(result.stderr.includes(`已寫入的項目 ${id} 與新的檢查報告衝突`));
+  assert.equal(result.status, 1); assert.match(result.stderr, /檢查報告與狀態檔不一致/);
   assert.deepEqual(await snapshot(join(f.root, 'data')), before); assert.deepEqual(await readFile(f.state), stateBytes);
 });
 

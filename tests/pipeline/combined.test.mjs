@@ -438,6 +438,55 @@ test('InterT92_write rejects incomplete combined report', async t => {
   }
 });
 
+// Scenario: a verified combined decision or its output digest is altered in the report.
+// Purpose: reject report-only downgrades before writing state or release data.
+test('InterT92_write rejects altered verified decisions and missing state-bound digest', async t => {
+  for (const mode of ['pass-without-digest', 'kept-previous', 'missing-digest']) {
+    const f = await fixture(t), prev = f.previous.skills.items[0], fresh = f.extract.skills.items[0];
+    f.candidate.skills.items = [{ ...fresh, explanation: { ...prev.explanation, notes: '新說明' }, errata: [], citations: [] }];
+    const result = await f.run(); assert.equal(rowFor(result, f.id).decision, 'combined');
+    const report = await read(f.options.report), row = report.items.find(x => x.id === f.id);
+    if (mode === 'pass-without-digest') row.decision = 'pass';
+    if (mode === 'kept-previous') row.decision = 'kept-previous';
+    if (mode !== 'kept-previous') delete report.categories.skills.mergedSha256;
+    await writeCanonicalFile(f.options.report, report);
+    const before = await readFile(f.state);
+    await assert.rejects(runWrite({ root: f.root, state: f.state, report: f.options.report, candidateDir: f.options.candidateDir,
+      extractDir: f.options.extractDir, previousDir: f.options.previousDir }), /重跑.*verify/, mode);
+    assert.deepEqual(await readFile(f.state), before);
+    await assert.rejects(readFile(join(f.root, 'data/current.json')), { code: 'ENOENT' });
+  }
+});
+
+// Scenario: an excluded row is added to a report after verify.
+// Purpose: bind every decision even when the extra row would not change output.
+test('InterT92_write rejects an added excluded decision', async t => {
+  const f = await fixture(t); await f.run();
+  const report = await read(f.options.report);
+  report.items.push({ id: 'darktide:skill:extra', category: 'skills', decision: 'excluded', failures: [], notes: [] });
+  await writeCanonicalFile(f.options.report, report);
+  await assert.rejects(runWrite({ root: f.root, state: f.state, report: f.options.report, candidateDir: f.options.candidateDir,
+    extractDir: f.options.extractDir, previousDir: f.options.previousDir }), /重跑.*verify/);
+});
+
+// Scenario: state records an output digest even when its decision binding has no combined row.
+// Purpose: independently require the state-bound digest in the report.
+test('InterT92_write requires a state-bound digest without combined rows', async t => {
+  const f = await fixture(t), prev = f.previous.skills.items[0], fresh = f.extract.skills.items[0];
+  f.candidate.skills.items = [{ ...fresh, explanation: { ...prev.explanation, notes: '新說明' }, errata: [], citations: [] }];
+  await f.run();
+  const report = await read(f.options.report);
+  report.items.find(x => x.id === f.id).decision = 'pass';
+  delete report.categories.skills.mergedSha256;
+  await writeCanonicalFile(f.options.report, report);
+  const state = await stateApi.readState(f.state);
+  const decisions = report.items.filter(x => x.category === 'skills').map(x => [x.id, x.decision]).sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]));
+  state.run.reportIntegrity.skills.decisionSha256 = createHash('sha256').update(stringifyCanonical(decisions)).digest('hex');
+  await stateApi.writeState(f.state, state);
+  await assert.rejects(runWrite({ root: f.root, state: f.state, report: f.options.report, candidateDir: f.options.candidateDir,
+    extractDir: f.options.extractDir, previousDir: f.options.previousDir }), /重跑.*verify/);
+});
+
 // Scenario: no locked effect is available, or changed values invalidate a replacement.
 // Purpose: preserve the old effect without a lock and fall back with the numeric failure code.
 test('InterT93_missing lock preserves effect and invalid numbers reject replacement', async t => {

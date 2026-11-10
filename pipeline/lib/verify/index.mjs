@@ -17,7 +17,7 @@ import { readJson, sha256 } from './input.mjs';
 import { parseTranslation, translationConflicts } from './translation.mjs';
 import { decide, verifyMerged, checkOldVersions, writeMerged } from './output.mjs';
 import { execute, handleIssues, stderrTail } from './issues.mjs';
-import { categoryReport, finishReport, makeReport } from './report.mjs';
+import { categoryReport, decisionSha256, finishReport, makeReport } from './report.mjs';
 import { combineItem } from './compose.mjs';
 import { dataFile } from '../candidate.mjs';
 import { checkDataFile } from '../data-files.mjs';
@@ -165,7 +165,12 @@ export async function runVerify(inputOptions) {
     }
     finishReport(report);
     let state = updatedState(input.state, stateMatches, report);
-    if (stateMatches && report.result !== 'halted') state = trackExplanations(state, loaded, report, merged);
+    if (stateMatches && report.result !== 'halted') {
+      state = trackExplanations(state, loaded, report, merged);
+      state.run.reportIntegrity = Object.fromEntries(Object.entries(report.categories).map(([category, info]) =>
+        [category, { decisionSha256: decisionSha256(report.items, category),
+          ...(info.mergedSha256 ? { mergedSha256: info.mergedSha256 } : {}) }]));
+    }
     if (options.report) await writeCanonicalFile(options.report, report);
     if (options.state && stateMatches) await writeState(options.state, state);
     const writtenWarnings = stateMatches ? report.items.filter((row) => !['pass', 'combined'].includes(row.decision) &&

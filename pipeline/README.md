@@ -278,4 +278,6 @@ step 的 profile 綁定重用 WP2 require/catalog 邏輯，唯一靜態 profile 
 
 開 PR 或驗收前必須執行真實來源完整測試：在 PowerShell 設定 `$env:PIPELINE_REAL_SMOKE='1'`，再執行 `node --test tests/pipeline/cryptic-brittleness-fingerprints.test.mjs tests/pipeline/cryptic-brittleness-reads.test.mjs`，並執行 `node --test tests/pipeline/review33.real.test.mjs` 核對固定來源 binding 行號。預設未設定時 fingerprint／reads 的真實來源案例不會執行，小型 fixture 仍會執行。
 
+verify 會將每個類別的 id／decision 正規化摘要及組合輸出摘要記錄在 state 的 run.reportIntegrity；write 會比對 report 的決策摘要，並要求 state 中存在的 mergedSha256 也存在於 report 且一致。舊 state 無此欄位時維持相容處理。
+
 含有 combined decision 的 report 視為新組合格式：每個含 combined 的類別必須有有效的 mergedSha256 並在 write 比對；officialChanged 為 true 的 row 必須有字串 lockedEffect。缺少或不合法時須重跑 verify。完全沒有 combined decision 的舊 report 保持既有相容處理。

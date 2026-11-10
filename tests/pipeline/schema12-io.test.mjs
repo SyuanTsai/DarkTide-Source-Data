@@ -150,6 +150,8 @@ test('InterT94_verify and write reject invalid cross-schema retention in both pa
     report.categories.weapons.candidateSha256=createHash('sha256').update(readFileSync(candidatePath)).digest('hex');
    }
    write(reportPath,report);
+   // Exercise the independent schema guard with a legacy state lacking the report binding.
+   const legacy=read(f.state);delete legacy.run.reportIntegrity;write(f.state,legacy);
   } else write(path,oldFile);
   const before=readFileSync(join(root,'data/current.json'));
   await assert.rejects(runWrite(f.writeOptions),/schemaVersion|驗證失敗/);

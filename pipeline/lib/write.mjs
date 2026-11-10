@@ -6,6 +6,7 @@ import { stringifyCanonical, writeCanonicalFile } from './canonical-json.mjs';
 import { readState, writeState, advanceItem, keepPrevious, completeRun } from './state.mjs';
 import { resolveCloudRoot } from './cloud-dir.mjs';
 import { composeFinal } from './verify/compose.mjs';
+import { decisionSha256 } from './verify/report.mjs';
 import { InputError, readJson, readCandidateBytes, sha256 } from './verify/input.mjs';
 
 export class WriteError extends Error {}
@@ -57,6 +58,14 @@ function checkReportState(run, report) {
       (['kept-previous', 'excluded'].includes(rows[0].decision) && item.outcome === 'kept-previous'))) throw inconsistent();
     if (rows[0].decision === 'combined' && (!item.explanationFrom || typeof item.valuesChanged !== 'boolean' || typeof item.officialChanged !== 'boolean' ||
       (rows[0].officialChanged === true && !item.officialChanged))) throw inconsistent();
+  }
+  for (const category of CATEGORIES) {
+    if (run.reportIntegrity) {
+      const binding = run.reportIntegrity[category];
+      if (!binding || binding.decisionSha256 !== decisionSha256(report.items, category)) throw inconsistent();
+      if (binding.mergedSha256 && (typeof report.categories[category].mergedSha256 !== 'string' ||
+        binding.mergedSha256 !== report.categories[category].mergedSha256.toLowerCase())) throw inconsistent();
+    }
   }
 }
 async function safeJson(path, label, optional = false) {
