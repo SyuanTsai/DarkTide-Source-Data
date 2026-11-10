@@ -111,7 +111,7 @@
    ```
 
    確認 diff 中 baseline 項目均為 unchanged，其餘均為 added，且沒有 changed／removed；不符立即停止並查明原因。後續版本正常執行 `node pipeline/diff.mjs`，使用 repo 的 `data/`。diff 會列出新增／變動／移除的項目，並把清單寫進狀態檔。
-4. 說明：對狀態檔中還沒寫好說明的每個項目（`node pipeline/diff.mjs --pending` 會列出），讀取腳本給的該項目輸入，寫出五節說明（效果／條件／計算／補充／額外）與勘誤，存到腳本指定的位置，然後執行 `node pipeline/diff.mjs --mark-described <項目 id>`。一次處理一個項目。沒有新說明而上一版有同 id 時，verify 會先嘗試組合：非說明欄位取新 extract，explanation／citations／errata 取上一版；official effect 有本次 lockedEffect 時改用新官方文字。組合不強制每段有 citation，但既有 citation 仍須檢查；通過逐項與合併後檢查才採用，否則退回整筆沿用。`V_NOT_DESCRIBED` 本身不阻擋組合；首次新增且沒有上一版仍會排除。
+4. 說明：對狀態檔中還沒寫好說明的每個項目（`node pipeline/diff.mjs --pending` 會列出），讀取腳本給的該項目輸入，寫出五節說明（效果／條件／計算／補充／額外）與勘誤，存到腳本指定的位置，然後執行 `node pipeline/diff.mjs --mark-described <項目 id>`。一次處理一個項目。沒有新說明而上一版有同 id 時，verify 會先嘗試組合：非說明欄位取新 extract，explanation／citations／errata 取上一版；有本次 lockedEffect 時 effect 改用新官方文字並將 effectOrigin 設為 official；沒有時保留原值。組合不強制每段有 citation，但既有 citation 仍須檢查；通過逐項與合併後檢查才採用，否則退回整筆沿用。`V_NOT_DESCRIBED` 本身不阻擋組合；首次新增且沒有上一版仍會排除。
    - 1.1.0／1.2.0 祝福／技能輸入有 `lockedEffect` 時，`effect` 逐字照抄該全文，只另外撰寫 `conditions`／`calculation`／`notes`／`extra` 四節實際運作機制；candidate 會強制使用鎖定效果並設定 `effectOrigin: "official"`。
    - AI input 的 `dataSchemaVersion` 表示資料版本，AI I/O 外層仍為 1.0.0。1.2.0 技能／祝福輸出選填 `citations: [{section,text,codeRefs,valueRefs}]`；每個本次撰寫的非空機制段落必須有同 section 引用，非官方 effect 也適用。text 須出現在段落中，codeRefs 須來自輸入 source.codeRefs，valueRefs 須可解析並有 source.valueSources。只讀來源位置與雜湊不能當數值。
    - 所有版本的勘誤使用 `{locale,official,corrected,valueRefs:[...],sources:[{path,line}],anchor?}`，兩個陣列至少一筆，禁止單數 valueRef。anchor 可選 `official/name/displayParameter`；displayParameter 須指定 param，祝福另指定 tier；跨 item 使用 itemId，valueRefs 在該 item.values 解析。詳細形狀與版本限制見 pipeline/README.md 的「schema 1.2.0」。

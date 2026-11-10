@@ -102,7 +102,7 @@ export async function runVerify(inputOptions) {
       if (!extracted || !previous) return;
       const task = ['skills', 'blessings'].includes(row.category)
         ? effectTaskFor(extracted, textIndex, entry.extract.effectFormats?.[row.id]) : undefined;
-      const lockedEffect = previous.explanation?.effectOrigin === 'official' && typeof task?.lockedEffect === 'string'
+      const lockedEffect = typeof task?.lockedEffect === 'string'
         ? task.lockedEffect : undefined;
       const combined = combineItem(extracted, previous, lockedEffect);
       const schemaErrors = checkDataFile(row.category, stringifyCanonical(dataFile(row.category, version,

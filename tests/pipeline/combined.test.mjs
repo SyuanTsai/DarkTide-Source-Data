@@ -1,4 +1,5 @@
 import { test } from 'node:test';
+import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, writeFile, rm, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -9,7 +10,7 @@ import { CATEGORIES, checkDataFile, retainItem } from '../../pipeline/lib/data-f
 import * as stateApi from '../../pipeline/lib/state.mjs';
 import { runVerify } from '../../pipeline/lib/verify/index.mjs';
 import { verifyMerged } from '../../pipeline/lib/verify/output.mjs';
-import { combineItem } from '../../pipeline/lib/verify/compose.mjs';
+import { combineItem, composeFinal } from '../../pipeline/lib/verify/compose.mjs';
 import { runWrite } from '../../pipeline/lib/write.mjs';
 import { diffCategory } from '../../pipeline/lib/diff-core.mjs';
 
@@ -134,7 +135,7 @@ test('InterT20_combination failures fall back with existing reason codes', async
 });
 
 // Scenario: official Chinese changes while the previous locked effect still contains valid numeric evidence.
-// Purpose: reject a stale locked effect independently of numbers, citations and schema.
+// Purpose: replace a stale locked effect independently of numbers, citations and schema.
 test('InterT25_combination checks the current locked effect', async t => {
   const f = await fixture(t), prev = f.previous.skills.items[0], fresh = f.extract.skills.items[0];
   prev.official.zh = '提升25%'; prev.explanation.effectOrigin = 'official';
@@ -320,7 +321,9 @@ test('InterT70_retained explanations query sorts changed first and never writes'
 });
 
 
-test('SYP391 citation coverage and invalid existing citations', async t => {
+// Scenario: missing and invalid citations in retained or newly written explanations.
+// Purpose: relax coverage only for combinations while validating every existing citation.
+test('InterT80_citation coverage and invalid existing citations', async t => {
   for (const mode of ['missing', 'text', 'code', 'value', 'candidate']) {
     const f = await fixture(t), prev = f.previous.skills.items[0], fresh = f.extract.skills.items[0];
     if (mode === 'missing') delete prev.citations;
@@ -342,7 +345,9 @@ test('SYP391 citation coverage and invalid existing citations', async t => {
   }
 });
 
-test('SYP391 official replacement persists across runs, writes identically and clears on rewrite', async t => {
+// Scenario: official text changes across runs, followed by a rewrite.
+// Purpose: preserve the change marker and ensure verified and published output match.
+test('InterT90_official replacement persists across runs, writes identically and clears on rewrite', async t => {
   const f = await fixture(t), prev = f.previous.blessings.items[0], fresh = f.extract.blessings.items[0], id = prev.id;
   prev.official.zh = '提升25%'; prev.explanation.effectOrigin = 'official';
   fresh.official.zh = '增加25%'; fresh.name.zh = '新名稱'; f.candidate.blessings.items = [];
@@ -359,8 +364,10 @@ test('SYP391 official replacement persists across runs, writes identically and c
   const altered = JSON.parse(savedReport); altered.items.find(x => x.id === id).lockedEffect = '修改25%';
   await writeCanonicalFile(f.options.report, altered);
   await assert.rejects(runWrite(args), /不一致/);
-  await writeFile(f.options.report, savedReport);
+  const uppercase = JSON.parse(savedReport); uppercase.categories.blessings.mergedSha256 = uppercase.categories.blessings.mergedSha256.toUpperCase();
+  await writeCanonicalFile(f.options.report, uppercase);
   assert.equal((await runWrite(args)).exitCode, 0);
+  await writeFile(f.options.report, savedReport);
   const path = join(f.root, 'data', meta.gameVersion, 'blessings.json'), bytes = await readFile(path);
   assert.deepEqual(bytes, await readFile(join(f.options.outDir, 'data', meta.gameVersion, 'blessings.json')));
   assert.equal((await runWrite(args)).exitCode, 0); assert.deepEqual(await readFile(path), bytes);
@@ -384,15 +391,66 @@ test('SYP391 official replacement persists across runs, writes identically and c
   state = await stateApi.readState(f.state); assert.ok(!state.retainedExplanations[id]); assert.ok(!Object.hasOwn(state.run.items[id], 'officialChanged'));
 });
 
-test('SYP391 non-official effect is not replaced and updated numbers can reject replacement', async t => {
-  for (const mode of ['nonofficial', 'number']) {
-    const f = await fixture(t), prev = f.previous.skills.items[0], fresh = f.extract.skills.items[0];
-    delete prev.citations; prev.official.zh = '提升25%'; fresh.official.zh = '增加25%';
-    if (mode === 'nonofficial') assert.equal(combineItem(fresh, prev, '增加25%').explanation.effect, prev.explanation.effect);
-    if (mode === 'number') { prev.explanation.effectOrigin = 'official'; prev.explanation.notes = '提升50%'; prev.values.params.other = { value: 0.5 }; fresh.values.params.other = { value: 0.25 }; }
-    const r = await f.run(), row = rowFor(r, f.id);
-    assert.equal(row.decision, 'kept-previous', JSON.stringify(row));
-    assert.ok(row.combinationFailures.some(x => x.code === (mode === 'number' ? 'T_NUMBER' : 'T_OFFICIAL_CHANGED')), JSON.stringify(row));
-    assert.deepEqual(r.merged.skills.items[0], retainItem(prev, f.previous.skills));
+// Scenario: a blessing with an unofficial translation receives locked official text.
+// Purpose: replace only effect and origin, preserve the other explanation data, and mark text changes.
+test('InterT91_unofficial blessing adopts locked effect', async t => {
+  for (const same of [false, true]) {
+    const f = await fixture(t), prev = f.previous.blessings.items[0], fresh = f.extract.blessings.items[0], id = prev.id;
+    prev.explanation.effectOrigin = 'unofficial-translation';
+    prev.explanation.notes = '補充'; prev.explanation.extra = '額外';
+    fresh.official.zh = same ? prev.explanation.effect : '增加25%';
+    f.candidate.blessings.items = [];
+    let state = await stateApi.readState(f.state);
+    state = stateApi.registerItem(state, id, { category: 'blessings', change: 'changed', inputHash: '4'.repeat(64) });
+    await stateApi.writeState(f.state, state);
+    const result = await f.run(), row = rowFor(result, id), item = result.merged.blessings.items[0];
+    assert.equal(row.decision, 'combined', JSON.stringify(row));
+    assert.deepEqual(item.explanation, { ...prev.explanation, effect: fresh.official.zh, effectOrigin: 'official' });
+    assert.deepEqual(item.citations, prev.citations); assert.deepEqual(item.errata, prev.errata);
+    assert.equal(row.officialChanged, !same);
+    assert.equal((await stateApi.readState(f.state)).retainedExplanations[id].officialChanged, !same);
   }
+});
+
+// Scenario: a valid combined report loses reconstruction fields individually or together.
+// Purpose: reject incomplete reports before any state or published data is written.
+test('InterT92_write rejects incomplete combined report', async t => {
+  for (const missing of ['lockedEffect', 'mergedSha256', 'both', 'invalidHash']) {
+    const f = await fixture(t), prev = f.previous.skills.items[0], fresh = f.extract.skills.items[0];
+    prev.explanation.effectOrigin = 'official'; prev.official.zh = '提升25%'; fresh.official.zh = '增加25%'; delete prev.citations;
+    const result = await f.run(); assert.equal(rowFor(result, f.id).decision, 'combined');
+    const report = await read(f.options.report);
+    if (missing === 'lockedEffect' || missing === 'both') delete report.items.find(x => x.id === f.id).lockedEffect;
+    if (missing === 'mergedSha256' || missing === 'both') delete report.categories.skills.mergedSha256;
+    if (missing === 'invalidHash') report.categories.skills.mergedSha256 = 'bad';
+    if (missing === 'lockedEffect') {
+      const reconstructed = composeFinal({ category: 'skills', status: 'ok', candidate: f.candidate.skills,
+        extract: f.extract.skills, previous: f.previous.skills, rows: report.items, version: meta,
+        targetSchemaVersion: report.targetSchemaVersion });
+      report.categories.skills.mergedSha256 = createHash('sha256').update(stringifyCanonical(reconstructed)).digest('hex');
+    }
+    await writeCanonicalFile(f.options.report, report);
+    const before = await readFile(f.state);
+    await assert.rejects(runWrite({ root: f.root, state: f.state, report: f.options.report, candidateDir: f.options.candidateDir,
+      extractDir: f.options.extractDir, previousDir: f.options.previousDir }), /重跑.*verify/);
+    assert.deepEqual(await readFile(f.state), before);
+    await assert.rejects(readFile(join(f.root, 'data/current.json')), { code: 'ENOENT' });
+  }
+});
+
+// Scenario: no locked effect is available, or changed values invalidate a replacement.
+// Purpose: preserve the old effect without a lock and fall back with the numeric failure code.
+test('InterT93_missing lock preserves effect and invalid numbers reject replacement', async t => {
+  const noLock = await fixture(t), original = noLock.previous.skills.items[0];
+  assert.deepEqual(combineItem(noLock.extract.skills.items[0], original).explanation, original.explanation);
+  const unchanged = await noLock.run();
+  assert.equal(rowFor(unchanged, noLock.id).decision, 'combined');
+  assert.deepEqual(unchanged.merged.skills.items[0].explanation, original.explanation);
+  const f = await fixture(t), prev = f.previous.skills.items[0], fresh = f.extract.skills.items[0];
+  delete prev.citations; prev.official.zh = '提升25%'; fresh.official.zh = '增加25%';
+  prev.explanation.notes = '提升50%'; prev.values.params.other = { value: 0.5 }; fresh.values.params.other = { value: 0.25 };
+  const r = await f.run(), row = rowFor(r, f.id);
+  assert.equal(row.decision, 'kept-previous', JSON.stringify(row));
+  assert.deepEqual([...new Set(row.combinationFailures.map(x => x.code))], ['T_NUMBER']);
+  assert.deepEqual(r.merged.skills.items[0], retainItem(prev, f.previous.skills));
 });

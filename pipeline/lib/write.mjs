@@ -35,6 +35,11 @@ function checked(check, label) {
 const inconsistent = () => new WriteError('檢查報告與狀態檔不一致，請重跑 node pipeline/verify.mjs');
 const writtenConflict = (id) => new WriteError(`已寫入的項目 ${id} 與新的檢查報告衝突：請把該項目的說明改回能通過檢查的內容後重跑 verify`);
 function checkReportState(run, report) {
+  for (const row of report.items.filter(row => row.decision === 'combined')) {
+    if ((row.officialChanged === true && typeof row.lockedEffect !== 'string') ||
+      typeof report.categories[row.category]?.mergedSha256 !== 'string' ||
+      !/^[0-9a-f]{64}$/i.test(report.categories[row.category].mergedSha256)) throw inconsistent();
+  }
   for (const category of CATEGORIES) {
     if (run.categories[category]?.status !== report.categories[category].status ||
       run.categories[category]?.reason !== report.categories[category].reason) throw inconsistent();
@@ -187,7 +192,7 @@ export async function runWrite(inputOptions = {}) {
   for (const category of CATEGORIES)
     checked(checkDataFile(category, stringifyCanonical(final[category]), versionItems), `${category} 最終資料`);
   for (const category of CATEGORIES)
-    if (report.categories[category].mergedSha256 && sha256(Buffer.from(stringifyCanonical(final[category]))) !== report.categories[category].mergedSha256) throw inconsistent();
+    if (report.categories[category].mergedSha256 && sha256(Buffer.from(stringifyCanonical(final[category]))) !== String(report.categories[category].mergedSha256).toLowerCase()) throw inconsistent();
   if (checkFileConsistency(Object.entries(final).map(([category, value]) => ({ category, value })), ['schemaVersion']).length)
     throw new WriteError('最終資料的 schemaVersion 不一致');
   const index = { schemaVersion: final[CATEGORIES[0]].schemaVersion, gameVersion: run.gameVersion, path: `data/${run.gameVersion}`,

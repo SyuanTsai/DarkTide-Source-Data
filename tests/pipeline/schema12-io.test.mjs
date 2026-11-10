@@ -77,20 +77,22 @@ for(const fail of [false,true]) test(`InterT90_schema12 CLI citation ${fail?'fai
 });
 
 // Scenario: real 1.1 predecessors meet 1.2 candidates through diff, mark, verify, write and validate.
-// Purpose: retain only the failing skill, exclude a new failure, and promote whole-category fallbacks.
-for(const whole of [false,true]) test(`InterT91_1.1 predecessor to 1.2 CLI ${whole?'whole category and item':'item'} retention`,async t=>{
+// Purpose: combine the existing skill, exclude a new failure, and promote whole-category fallbacks.
+for(const whole of [false,true]) test(`InterT91_1.1 predecessor to 1.2 CLI ${whole?'whole category retention and item':'item'} combination`,async t=>{
  const root=mkdtempSync(join(tmpdir(),'schema-align-io-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
  const f=await schemaAlignFixture(root,{whole});const r=f.verify();assert.equal(r.status,0,r.stdout+r.stderr);
  const report=read(join(f.base,'verify/report.json'));assert.equal(report.result,'degraded');assert.equal(report.targetSchemaVersion,'1.2.0');
  const retained=report.items.find(row=>row.id.endsWith(':second')),excluded=report.items.find(row=>row.id.endsWith(':new'));
- assert.equal(retained.decision,'kept-previous');assert.ok(retained.failures.some(x=>x.code==='V-CITE'));
+ assert.equal(retained.decision,'combined');assert.ok(retained.failures.some(x=>x.code==='V-CITE'));
  assert.equal(excluded.decision,'excluded');
  f.success('write',f.writeArgs);f.success('validate',['--root',root]);
  for(const category of CATEGORIES) {
   const file=read(join(root,'data',f.meta.gameVersion,`${category}.json`));assert.equal(file.schemaVersion,'1.2.0');
   const merged=read(join(f.base,'verify/out/data',f.meta.gameVersion,`${category}.json`));assert.deepEqual(file,merged);
   if(category==='skills') {
-   assert.equal(file.items.length,2);assert.deepEqual(file.items.find(x=>x.id===retained.id),{...f.previous.skills.items[1],retainedFrom:f.old});
+   assert.equal(file.items.length,2);const item=file.items.find(x=>x.id===retained.id);
+   assert.ok(!Object.hasOwn(item,'retainedFrom'));assert.equal(item.explanation.effect,retained.lockedEffect);
+   assert.equal(item.explanation.effectOrigin,'official');
   }
   if(whole&&category==='terms')assert.deepEqual(file.items,f.previous.terms.items.map(x=>({...x,retainedFrom:f.old})));
  }

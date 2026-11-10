@@ -10,7 +10,7 @@ export function combineItem(extracted, previous, lockedEffect) {
     delete item[field];
     if (Object.hasOwn(previous, field)) item[field] = structuredClone(previous[field]);
   }
-  if (typeof lockedEffect === 'string' && item.explanation?.effectOrigin === 'official') item.explanation.effect = lockedEffect;
+  if (typeof lockedEffect === 'string') { item.explanation.effect = lockedEffect; item.explanation.effectOrigin = 'official'; }
   return item;
 }
 

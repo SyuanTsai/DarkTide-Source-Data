@@ -68,13 +68,13 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 ## 拆開沿用說明（WP8）
 
-項目原本會 `kept-previous`，且 extract 與上一版都有同 id 時，先組合為 `combined`：key、name、official、values、source（含 codeRefs／valueSources）與 aliases 等所有非說明欄位取新 extract；explanation、citations、errata 取上一版；若 effectOrigin 為 official 且本次有 lockedEffect，effect 換成本次官方文字。組合項不帶 retainedFrom，發布資料看起來和一般項目一樣，schema 與 key 集合完全不變；標記只存在 state。
+項目原本會 `kept-previous`，且 extract 與上一版都有同 id 時，先組合為 `combined`：key、name、official、values、source（含 codeRefs／valueSources）與 aliases 等所有非說明欄位取新 extract；explanation、citations、errata 取上一版；若本次有字串 lockedEffect，effect 換成本次官方文字並將 effectOrigin 設為 official；沒有 lockedEffect 時兩者均保留。組合項不帶 retainedFrom，發布資料看起來和一般項目一樣，schema 與 key 集合完全不變；標記只存在 state。
 
 組合項和一般候選項共用 checkValues、checkText（鎖定效果、數字推導、譯名與 errata）、checkCitations，以及 schema／verifyMerged 輸出檢查。組合路徑不要求每個非空段落都有 citation，但既有 citation 的 text、codeRefs／valueRefs 仍須通過檢查，refs 必須能在新 source／values 找到，errata anchor 也必須仍存在於新官方文字。V_NOT_DESCRIBED 本身不使組合失敗。任何檢查失敗便退回整筆 kept-previous；報告的 combinationFailures 保存既有 failure code，包含合併後才發現的 O_MERGED_INVALID。整類 kept-previous 維持整類沿用，不嘗試組合。摘要列出「組合採用 N／退回 N」。
 
 `pipeline/state.json` 的選填頂層 `retainedExplanations[id]` 形狀為 `{category, explanationFrom:{gameVersion,sourceCommit,textBatch}, valuesFingerprint, valuesChanged, officialChanged}`；run.items[id] 同步選填 explanationFrom、valuesChanged 與 officialChanged。最早說明來源依序取既有標記、上一版 retainedFrom、上一版檔頭；valuesFingerprint 用 diff 現有 contentHash 演算法僅對 values 計算，保存寫說明時的 values 基準。valuesChanged 比較實際發布 values 與此基準，所以整筆退回時不會錯用未發布的 extract。
 
-頂層 map 跨 startRun、新版本、registerItem 因 inputHash 改變而重建、移除過期登記仍保留；再次組合或整筆沿用時維持最早來源與原 values 基準。officialChanged 表示說明寫成後官方 effect 曾被替換，一旦為 true 持續保留直到說明改寫並通過 verify；舊標記預設 false。unchanged 候選項通過不清除；只有 explanation 真正改寫且以一般候選項通過 verify 才清除兩層標記。首次使用新 state schema 不需改寫既有 state，舊檔仍可讀；必須沿用同一份 state，另建外部 state 時也須攜帶既有 map。
+頂層 map 跨 startRun、新版本、registerItem 因 inputHash 改變而重建、移除過期登記仍保留；再次組合或整筆沿用時維持最早來源與原 values 基準。officialChanged 表示說明寫成後 effect 文字曾因官方文字而變更（僅 origin 改變不計），一旦為 true 持續保留直到說明改寫並通過 verify；舊標記預設 false。unchanged 候選項通過不清除；只有 explanation 真正改寫且以一般候選項通過 verify 才清除兩層標記。首次使用新 state schema 不需改寫既有 state，舊檔仍可讀；必須沿用同一份 state，另建外部 state 時也須攜帶既有 map。
 
 後續 diff／fingerprint 照發布資料中的新 values 與既有 key／name／official／aliases／codeRefs 雜湊判斷變動；沿用說明或 state 標記本身不會造成 changed。valuesChanged 僅表示 values 與該份說明基準有差異，不代表本輪 diff 的 changed。
 
@@ -277,3 +277,5 @@ step 的 profile 綁定重用 WP2 require/catalog 邏輯，唯一靜態 profile 
 `extract-weapons.mjs` 讀取玩家武器模板、官方文字與靜態 trait 列，先建立整把武器的貢獻表；min／max 為所有相關屬性條同時 0%／100% 時的遊戲實際值；同一路徑多條會累加後 clamp 到 0～1，再對實際基礎模板內插，固定數字列也參與累加。保留固定值與陣列的各元素。`lib/weapon-stats.mjs` 處理 registry、require、movement state 繼承及 damage profile parent/overrides；damage key 包含實際 profile／override 名稱；profile 專屬 lerp override 整份優先於通用 action 貢獻，只有被選用的來源參與累加；相同語意來源只輸出一次，所有有貢獻的 bar 都保留該 stat。無法靜態解析的數值記為 unknown，`UNRESOLVED_STAT.reason` 區分缺參照、函式與條件算式；movement sentinel 依遊戲設定展開並套用繼承。不存在且遊戲不讀取的路徑略過，每把武器以一筆 `NOT_APPLICABLE_STAT` 彙總數量，未註冊模板仍會輸出。
 
 開 PR 或驗收前必須執行真實來源完整測試：在 PowerShell 設定 `$env:PIPELINE_REAL_SMOKE='1'`，再執行 `node --test tests/pipeline/cryptic-brittleness-fingerprints.test.mjs tests/pipeline/cryptic-brittleness-reads.test.mjs`，並執行 `node --test tests/pipeline/review33.real.test.mjs` 核對固定來源 binding 行號。預設未設定時 fingerprint／reads 的真實來源案例不會執行，小型 fixture 仍會執行。
+
+含有 combined decision 的 report 視為新組合格式：每個含 combined 的類別必須有有效的 mergedSha256 並在 write 比對；officialChanged 為 true 的 row 必須有字串 lockedEffect。缺少或不合法時須重跑 verify。完全沒有 combined decision 的舊 report 保持既有相容處理。
