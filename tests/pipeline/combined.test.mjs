@@ -503,3 +503,23 @@ test('InterT93_missing lock preserves effect and invalid numbers reject replacem
   assert.deepEqual([...new Set(row.combinationFailures.map(x => x.code))], ['T_NUMBER']);
   assert.deepEqual(r.merged.skills.items[0], retainItem(prev, f.previous.skills));
 });
+// Scenario: an active legacy state has either an untouched or tampered combined report.
+// Purpose: reject both before any write, then allow the same inputs after a fresh verify.
+for (const mode of ['tampered', 'untouched']) test(`InterT94_legacy active ${mode} report requires verify`, async t => {
+  const f = await fixture(t), prev = f.previous.skills.items[0], fresh = f.extract.skills.items[0];
+  f.candidate.skills.items = [{ ...fresh, explanation: { ...prev.explanation, notes: '新說明' }, errata: [], citations: [] }];
+  const result = await f.run(); assert.equal(rowFor(result, f.id).decision, 'combined');
+  const state = await stateApi.readState(f.state); delete state.run.reportIntegrity; await stateApi.writeState(f.state, state);
+  if (mode === 'tampered') {
+    const report = await read(f.options.report); report.items.find(x => x.id === f.id).decision = 'pass';
+    delete report.categories.skills.mergedSha256; await writeCanonicalFile(f.options.report, report);
+  }
+  const args = { root: f.root, state: f.state, report: f.options.report, candidateDir: f.options.candidateDir,
+    extractDir: f.options.extractDir, previousDir: f.options.previousDir };
+  const before = await readFile(f.state);
+  await assert.rejects(runWrite(args), /重跑.*verify/);
+  assert.deepEqual(await readFile(f.state), before);
+  await assert.rejects(readFile(join(f.root, 'data/current.json')), { code: 'ENOENT' });
+  assert.equal((await f.run()).exitCode, 0);
+  assert.equal((await runWrite(args)).exitCode, 0);
+});

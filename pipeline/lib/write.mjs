@@ -120,6 +120,7 @@ export async function runWrite(inputOptions = {}) {
   const run = state.run;
   // A completed run is accepted only as an exact, read-only replay below.
   if (!run || !['running', 'completed', 'halted'].includes(run.status)) throw new InputError('尚無執行中的工作，請先跑 node pipeline/check-version.mjs');
+  if (run.status !== 'completed' && !run.reportIntegrity) throw new InputError('舊狀態缺少檢查報告完整性資料，請用目前版本重跑 verify');
   let base;
   if (!inputOptions.report || !inputOptions.candidateDir) {
     try { base = join(resolveCloudRoot({ override: inputOptions.cloudDir }), run.gameVersion); }

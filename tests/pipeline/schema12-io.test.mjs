@@ -1,3 +1,4 @@
+import { decisionSha256 } from '../../pipeline/lib/verify/report.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, readdirSync, rmSync } from 'node:fs';
@@ -150,8 +151,8 @@ test('InterT94_verify and write reject invalid cross-schema retention in both pa
     report.categories.weapons.candidateSha256=createHash('sha256').update(readFileSync(candidatePath)).digest('hex');
    }
    write(reportPath,report);
-   // Exercise the independent schema guard with a legacy state lacking the report binding.
-   const legacy=read(f.state);delete legacy.run.reportIntegrity;write(f.state,legacy);
+   // Bind the deliberately altered decision so the independent schema guard remains exercised.
+   const bound=read(f.state);bound.run.reportIntegrity.weapons.decisionSha256=decisionSha256(report.items,'weapons');write(f.state,bound);
   } else write(path,oldFile);
   const before=readFileSync(join(root,'data/current.json'));
   await assert.rejects(runWrite(f.writeOptions),/schemaVersion|驗證失敗/);

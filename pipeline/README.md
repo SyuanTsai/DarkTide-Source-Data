@@ -84,7 +84,7 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 `node pipeline/write.mjs` 先核對 state.run 與報告版本、候選檔雜湊、組合所用 extract 雜湊及 current 版本，再用與 verify 相同的 composeFinal 組出四類並全部驗證。任何最終資料驗證錯誤均在寫入前停止。
 
-中斷後接續時，已寫入項目必須與新的檢查報告一致；若衝突，請將說明改回能通過檢查的內容後重跑 verify。
+中斷後接續時，已寫入項目必須與新的檢查報告一致；若衝突，請將說明改回能通過檢查的內容後重跑 verify。進行中的舊 state 若沒有 `run.reportIntegrity`，執行 write 前必須用目前版本重跑 verify。
 
 | 參數 | 預設值／作用 |
 | --- | --- |
@@ -278,6 +278,6 @@ step 的 profile 綁定重用 WP2 require/catalog 邏輯，唯一靜態 profile 
 
 開 PR 或驗收前必須執行真實來源完整測試：在 PowerShell 設定 `$env:PIPELINE_REAL_SMOKE='1'`，再執行 `node --test tests/pipeline/cryptic-brittleness-fingerprints.test.mjs tests/pipeline/cryptic-brittleness-reads.test.mjs`，並執行 `node --test tests/pipeline/review33.real.test.mjs` 核對固定來源 binding 行號。預設未設定時 fingerprint／reads 的真實來源案例不會執行，小型 fixture 仍會執行。
 
-verify 會將每個類別的 id／decision 正規化摘要及組合輸出摘要記錄在 state 的 run.reportIntegrity；write 會比對 report 的決策摘要，並要求 state 中存在的 mergedSha256 也存在於 report 且一致。舊 state 無此欄位時維持相容處理。
+verify 會將每個類別的 id／decision 正規化摘要及組合輸出摘要記錄在 state 的 run.reportIntegrity；write 會比對 report 的決策摘要，並要求 state 中存在的 mergedSha256 也存在於 report 且一致。進行中的舊 state 無此欄位時，必須先用目前版本重跑 verify；已完成的精確唯讀重跑仍可使用舊 state。
 
-含有 combined decision 的 report 視為新組合格式：每個含 combined 的類別必須有有效的 mergedSha256 並在 write 比對；officialChanged 為 true 的 row 必須有字串 lockedEffect。缺少或不合法時須重跑 verify。完全沒有 combined decision 的舊 report 保持既有相容處理。
+含有 combined decision 的 report 視為新組合格式：每個含 combined 的類別必須有有效的 mergedSha256 並在 write 比對；officialChanged 為 true 的 row 必須有字串 lockedEffect。缺少或不合法時須重跑 verify。舊 report 的相容處理仍受上述 state 規則限制。
