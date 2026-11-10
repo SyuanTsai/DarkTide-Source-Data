@@ -2,7 +2,7 @@ import { InputError } from './input.mjs';
 
 const names = { 'candidate-dir': 'candidateDir', 'extract-dir': 'extractDir', 'version-info': 'versionInfo',
   'previous-dir': 'previousDir', root: 'root', translation: 'translation', state: 'state', report: 'report',
-  'out-dir': 'outDir', 'cloud-dir': 'cloudDir', issues: 'issues', 'mods-repo': 'modsRepo', 'mods-commit': 'modsCommit', 'build-cmd': 'buildCmd' };
+  'out-dir': 'outDir', 'cloud-dir': 'cloudDir', issues: 'issues', 'mods-repo': 'modsRepo', 'mods-commit': 'modsCommit', 'build-cmd': 'buildCmd', 'source-code-repo': 'sourceCodeRepo' };
 export function parse(args) {
   const options = { issues: 'off' };
   const seen = new Set();

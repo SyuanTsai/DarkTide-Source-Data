@@ -75,5 +75,5 @@ import './mechanics-coverage.test.mjs';
 import './mechanics-fix1.test.mjs';
 import './coverage-scope.test.mjs';
 import './schema12-anchor.test.mjs';
-
 import './retained-same-version.test.mjs';
+import './tnumber-rules.test.mjs';

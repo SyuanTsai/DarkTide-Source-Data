@@ -6,7 +6,7 @@ export const ALLOWED_WORDS = Object.freeze(['LV', 'Lv']);
 export const EXPLANATION_SECTIONS = Object.freeze(['effect', 'conditions', 'calculation', 'notes', 'extra']);
 const officialNumbers = (text) => extractNumbers(typeof text === 'string' ? text.replace(/\{[a-zA-Z_][a-zA-Z0-9_]*(?=:)/g, '{') : text);
 const numberSet = (text) => [...new Set(extractNumbers(text).map((n) => n.value))].sort((a, b) => a - b);
-export function checkText(item, extracted, allowedNames, conflicts, table, lockedEffect, versionItems = [item]) {
+export function checkText(item, extracted, allowedNames, conflicts, table, lockedEffect, versionItems = [item], codeNumbers) {
   const failures = [], notes = [], warnings = [], exp = item?.explanation;
   if (EXPLANATION_SECTIONS.some((k) => typeof exp?.[k] !== 'string') || !exp.effect.trim())
     failures.push(failure('text', 'T_FORMAT', '/explanation', '說明五節必須是字串，效果不得空白'));
@@ -21,7 +21,9 @@ export function checkText(item, extracted, allowedNames, conflicts, table, locke
   const english = [...new Set(residual.match(/[A-Za-z]{2,}/g) ?? [])].sort();
   if (english.length) failures.push(failure('text', 'T_ENGLISH', '/explanation', `說明殘留英文：${english.join('、')}`));
   const locked = exp?.effectOrigin === 'official' && typeof lockedEffect === 'string' && exp.effect === lockedEffect;
-  const numeric = checkNumbers(item?.values, text, locked ? exp.effect : undefined, sections);
+  const numeric = checkNumbers(item?.values, text, locked ? exp.effect : undefined, sections, {
+    citations: item?.citations, codeNumbers: codeNumbers && (id => codeNumbers(item, id)),
+  });
   failures.push(...numeric.failures);
   warnings.push(...numeric.warnings);
   if (extracted) {
