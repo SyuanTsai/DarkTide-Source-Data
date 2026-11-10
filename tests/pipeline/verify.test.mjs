@@ -145,7 +145,9 @@ test('InterT11_未說明項目依上一版保留或排除', async (t) => {
       const saved = await stateApi.readState(state);
       assert.equal(saved.run.items[id].outcome, null);
       assert.equal(saved.run.items[id].stage, 'verified');
+      assert.equal(saved.run.items[id].reason, null);
       assert.deepEqual(saved.run.items[id].explanationFrom, old);
+      assert.equal(saved.run.items[id].valuesChanged, false);
     }
   }
 });
@@ -226,6 +228,7 @@ for (const [n, [code, mutate]] of cases.entries()) {
     assert.equal(r.report.items.find(x => x.id === f.previous.skills.items[0].id).decision, whole ? 'kept-previous' : 'combined');
     assert.deepEqual(r.merged.skills.items[0], whole ? retainItem(f.previous.skills.items[0], f.previous.skills) :
       combinedExpected(f.extracts.skills.items[0], f.previous.skills.items[0]));
+    if (!whole) assert.deepEqual(r.report.items.find(x => x.id === f.previous.skills.items[0].id).combinationFailures, []);
     assert.deepEqual(r.merged.skills.items.slice(1), f.data.skills.items.slice(1));
     assert.deepEqual(r.merged.terms, f.data.terms);
     assert.equal(Object.hasOwn(r.report.gates.output, 'knownExceptions'), false);
@@ -392,7 +395,13 @@ test('InterT60_狀態通過失敗尚未說明與類別降級', async (t) => {
   assert.equal(result.run.items[ids[0]].stage, 'verified');
   assert.equal(result.run.items[ids[1]].outcome, null);
   assert.equal(result.run.items[ids[1]].stage, 'verified');
+  assert.equal(result.run.items[ids[1]].reason, null);
   assert.deepEqual(result.run.items[ids[1]].explanationFrom, old);
+  assert.equal(result.run.items[ids[1]].valuesChanged, false);
+  const combined = r.report.items.find(row => row.id === ids[1]);
+  assert.equal(combined.decision, 'combined');
+  assert.deepEqual(combined.failures.map(failure => failure.code), ['T_ENGLISH', 'T_PLACEHOLDER']);
+  assert.deepEqual(combined.combinationFailures, []);
   assert.equal(failures(r, 'V_NOT_DESCRIBED').length, 1);
   assert.equal(result.run.categories.terms.status, 'kept-previous');
   const before = await readFile(state, 'utf8');
@@ -544,15 +553,25 @@ test('InterT82_IO 錯誤不寫狀態', async (t) => {
   await writeFile(state, '{}'); await assert.rejects(f.run({ state }));
 });
 
-// Scenario: one retained item remains structurally invalid. Purpose: halt only after no passing item can be excluded.
+// Scenario: extraction is absent or combination also fails, and whole-item retention remains invalid.
+// Purpose: halt after either fallback path exhausts the usable item shapes.
 test('InterT86_保留上一版仍無法讀取整批停止', async (t) => {
-  const f = await fixture(t);
-  f.previous.skills.items[0].key = '';
-  f.extracts.skills.items.shift(); // No extract match: whole-item fallback remains invalid.
-  f.data.skills.items[0].explanation.notes = 'TODO';
-  const r = await f.run();
-  assert.equal(r.exitCode, 3); assert.equal(r.report.gates.output.status, 'halted');
-  assert.ok(r.report.gates.output.errors.length > 0);
+  for (const mode of ['missing-extract', 'invalid-explanation']) {
+    const f = await fixture(t);
+    if (mode === 'missing-extract') {
+      f.previous.skills.items[0].key = '';
+      f.extracts.skills.items.shift();
+    } else f.previous.skills.items[0].explanation.effect = '';
+    f.data.skills.items[0].explanation.notes = 'TODO';
+    const r = await f.run();
+    assert.equal(r.exitCode, 3); assert.equal(r.report.gates.output.status, 'halted');
+    assert.ok(r.report.gates.output.errors.length > 0);
+    if (mode === 'invalid-explanation') {
+      const row = r.report.items.find(item => item.id === f.previous.skills.items[0].id);
+      assert.equal(row.decision, 'kept-previous');
+      assert.ok(row.combinationFailures.some(failure => failure.code === 'T_FORMAT'));
+    }
+  }
 });
 
 // Scenario: each placeholder syntax appears, and unexplained numeric paths include tiers and bars. Purpose: protect the full text rule surface.

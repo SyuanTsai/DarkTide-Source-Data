@@ -143,6 +143,48 @@ test('InterT25_combination checks the current locked effect', async t => {
   assert.deepEqual(row.combinationFailures.map(x => x.code), ['T_OFFICIAL_CHANGED']);
 });
 
+// Scenario: the predecessor has an older supported schema and already satisfies the target shape.
+// Purpose: keep legal cross-schema combinations available while rejecting invalid migrations.
+test('InterT27_combined accepts a supported predecessor with a valid promoted shape', async t => {
+  const f = await fixture(t);
+  f.previous.weapons.schemaVersion = '1.1.0';
+  f.candidate.weapons.items = [];
+  assert.deepEqual(checkDataFile('weapons', stringifyCanonical(f.previous.weapons)).errors, []);
+  const result = await f.run();
+  assert.equal(result.exitCode, 0);
+  assert.equal(rowFor(result, f.previous.weapons.items[0].id).decision, 'combined');
+  assert.deepEqual(result.report.gates.output.errors, []);
+});
+
+// Scenario: a valid combination changes only its predecessor's schema to an unsupported future version.
+// Purpose: verify and write must independently halt instead of bypassing the retention migration check.
+for (const path of ['verify', 'write']) test(`InterT28_combined rejects unmigratable previous schema in ${path}`, async t => {
+  const f = await fixture(t), good = await f.run();
+  assert.equal(good.exitCode, 0);
+  assert.equal(rowFor(good, f.id).decision, 'combined');
+  assert.deepEqual(rowFor(good, f.id).combinationFailures, []);
+  assert.deepEqual(good.report.gates.output.errors, []);
+  f.previous.skills.schemaVersion = '1.3.0';
+  await f.save();
+  const before = await readFile(f.state);
+  if (path === 'verify') {
+    const result = await runVerify(f.options), row = rowFor(result, f.id);
+    assert.equal(result.exitCode, 3);
+    assert.equal(result.report.result, 'halted');
+    assert.equal(result.report.gates.output.status, 'halted');
+    assert.deepEqual(row.combinationFailures, []);
+    assert.deepEqual(result.report.gates.output.errors, [{ code: 'SCHEMA_VERSION_MISMATCH', category: 'skills',
+      path: '/schemaVersion', message: 'schemaVersion 不允許保留提升：1.3.0 → 1.2.0' }]);
+    assert.equal((await stateApi.readState(f.state)).run.status, 'halted');
+  } else {
+    await assert.rejects(runWrite({ root: f.root, state: f.state, report: f.options.report,
+      candidateDir: f.options.candidateDir, extractDir: f.options.extractDir, previousDir: f.options.previousDir }),
+    /schemaVersion 不允許保留提升：1\.3\.0 → 1\.2\.0/);
+    assert.deepEqual(await readFile(f.state), before);
+  }
+  await assert.rejects(readFile(join(f.root, 'data/current.json')), { code: 'ENOENT' });
+});
+
 // Scenario: the assembled category fails a final checker after a combined item passed item verification.
 // Purpose: downgrade that row and retry rather than halt the batch.
 test('UnitT30_combined merged failure retries whole-item retention', async t => {
