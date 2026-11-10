@@ -40,12 +40,11 @@ for (const [name, values, text, citations, expected] of cases) {
   // Scenario: check a number against values and section citations. Purpose: enforce the permitted calculation boundary.
   test(name, () => assert.equal(hasNumberFailure(check(values, text, citations)), expected));
 }
-function fixture(t) {
+function fixture(t, raw = '{ range = 12.5, chance = 0.4 }') {
   const dir = mkdtempSync(join(tmpdir(), 'syp420-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   const git = (...args) => execFileSync('git', ['-C', dir, ...args], {stdio:'pipe'}).toString().trim();
   git('init');
-  const raw = '{ range = 12.5, chance = 0.4 }';
   writeFileSync(join(dir, 'fixture.lua'), `fixture = ${raw} -- 99\n`);
   git('add', 'fixture.lua');
   git('-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'fixture');
@@ -101,3 +100,18 @@ test('InterT70_雜湊不符不停止整批驗證', async t => {
   assert.ok(result.report.items.find(row => row.id === targetId)?.failures.some(f => f.code === 'T_NUMBER'));
   assert.ok(result.report.items.length > 1);
 });
+
+for (const [name, raw, text, expected] of [
+  ['InterT80_負字面量接受負數', '{ x = -12.5 }', '-12.5', false],
+  ['InterT81_負字面量接受負百分比', '{ x = -0.125 }', '-12.5%', false],
+  ['InterT82_負字面量拒絕明確正數', '{ x = -12.5 }', '+12.5', true],
+  ['InterT83_負字面量接受無符號數', '{ x = -12.5 }', '12.5', false],
+  ['InterT84_二元減法不產生負字面量', '{ a = 5 - 2 }', '-2', true],
+]) {
+  // Scenario: verify a number against a pinned Lua literal. Purpose: preserve unary signs without treating subtraction as a negative literal.
+  test(name, t => {
+    const {dir, item} = fixture(t, raw);
+    const lookup = createCodeNumbers({repo: dir});
+    assert.equal(hasNumberFailure(check({}, text, codeCitation, id => lookup(item, id))), expected);
+  });
+}
