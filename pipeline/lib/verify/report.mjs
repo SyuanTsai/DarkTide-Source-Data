@@ -27,13 +27,14 @@ export function categoryReport(entry, reason) {
     .filter((id) => typeof id === 'string' && !currentIds.has(id)).sort(compare);
   if (undescribed.length) anomalies.push({ code: 'NOT_DESCRIBED', ids: undescribed, message: 'extract 有但候選沒有，尚未寫說明' });
   if (reason && !entry.previous) anomalies.push({ code: 'missing-no-previous', message: '沒有上一版可保留，此類別輸出空檔' });
-  return { status: reason ? 'kept-previous' : 'ok', reason, candidateSha256: entry.candidateSha256, counts: { candidate: candidate.length, previous: previous.length,
+  return { status: reason ? 'kept-previous' : 'ok', reason, candidateSha256: entry.candidateSha256, extractSha256: entry.extractSha256, counts: { candidate: candidate.length, previous: previous.length,
     merged: 0, added: added.length, removed: removed.length, unknownParams, previousUnknownParams }, anomalies };
 }
 export function finishReport(report) {
   report.items.sort((a, b) => compare(a.id, b.id) || compare(a.category, b.category));
   for (const item of report.items) {
     item.failures.sort((a, b) => compare(a.gate, b.gate) || compare(a.code, b.code) || compare(a.path, b.path) || compare(a.message, b.message));
+    item.combinationFailures?.sort((a, b) => compare(a.gate, b.gate) || compare(a.code, b.code) || compare(a.path, b.path) || compare(a.message, b.message));
     item.notes.sort((a, b) => compare(a.code, b.code));
     item.warnings?.sort((a, b) => compare(a.code, b.code) || compare(a.message, b.message));
   }
@@ -49,6 +50,7 @@ export function summary(report, issueMode) {
   const names = { pass: '通過', degraded: '部分降級', halted: '整批停止' };
   lines.push(`檢查結果：${names[report.result]}`);
   lines.push(`通過項目：${report.items.filter((i) => i.decision === 'pass').length}`);
+  lines.push(`組合採用 ${report.items.filter(i => i.decision === 'combined').length}／退回 ${report.items.filter(i => i.decision === 'kept-previous' && i.combinationFailures?.length).length}`);
   lines.push(`保留上一版項目：${report.items.filter((i) => i.decision === 'kept-previous').length}`);
   lines.push(`排除項目（無上一版）：${report.items.filter((i) => i.decision === 'excluded').length}`);
   lines.push(`保留上一版類別：${Object.entries(report.categories).filter(([, c]) => c.status === 'kept-previous').map(([c]) => c).sort().join(',') || '無'}`);

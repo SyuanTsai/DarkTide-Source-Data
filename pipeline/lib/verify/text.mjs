@@ -21,6 +21,8 @@ export function checkText(item, extracted, allowedNames, conflicts, table, locke
   const english = [...new Set(residual.match(/[A-Za-z]{2,}/g) ?? [])].sort();
   if (english.length) failures.push(failure('text', 'T_ENGLISH', '/explanation', `說明殘留英文：${english.join('、')}`));
   const locked = exp?.effectOrigin === 'official' && typeof lockedEffect === 'string' && exp.effect === lockedEffect;
+  if (typeof lockedEffect === 'string' && !locked)
+    failures.push(failure('text', 'T_OFFICIAL_CHANGED', '/explanation/effect', '鎖定效果必須與本次官方文字一致'));
   const numeric = checkNumbers(item?.values, text, locked ? exp.effect : undefined, sections, {
     citations: item?.citations, codeNumbers: codeNumbers && (id => codeNumbers(item, id)),
   });

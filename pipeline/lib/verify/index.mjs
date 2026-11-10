@@ -18,6 +18,11 @@ import { parseTranslation, translationConflicts } from './translation.mjs';
 import { decide, verifyMerged, checkOldVersions, writeMerged } from './output.mjs';
 import { execute, handleIssues, stderrTail } from './issues.mjs';
 import { categoryReport, finishReport, makeReport } from './report.mjs';
+import { combineItem } from './compose.mjs';
+import { dataFile } from '../candidate.mjs';
+import { checkDataFile } from '../data-files.mjs';
+import { stringifyCanonical } from '../canonical-json.mjs';
+import { trackExplanations } from '../retained-explanations.mjs';
 
 export { SCRIPT_VERSION } from './common.mjs';
 
@@ -35,7 +40,11 @@ function updatedState(state, matches, report) {
       if (item.stage === 'extracted') next = keepPrevious(next, id, 'V_NOT_DESCRIBED：項目仍在取數階段，尚未完成說明');
       continue;
     }
-    if (row.decision !== 'pass') next = keepPrevious(next, id,
+    if (row.decision === 'combined') {
+      // Reused prose still completes verification of the newly extracted item.
+      if (next.run.items[id].stage === 'extracted') next = advanceItem(next, id, 'described');
+      if (next.run.items[id].stage === 'described') next = advanceItem(next, id, 'verified');
+    } else if (row.decision !== 'pass') next = keepPrevious(next, id,
       `${[...new Set(row.failures.map((f) => f.code))].sort(compare).join('、')}：${row.failures[0].message}`);
     else if (item.stage === 'described') next = advanceItem(next, id, 'verified');
   }
@@ -66,40 +75,59 @@ export async function runVerify(inputOptions) {
   else {
     for (const [category, entry] of Object.entries(loaded)) report.categories[category] = categoryReport(entry, categoryReason(entry));
     const checked = Object.entries(loaded).filter(([category]) => report.categories[category].status === 'ok');
-    const allItems = checked.flatMap(([, entry]) => entry.candidate.items);
     const candidateItems = Object.values(loaded).flatMap((entry) => Array.isArray(entry.candidate?.items) ? entry.candidate.items : []);
-    const allowedNames = candidateItems.filter((i) => i?.name?.zh === null && typeof i.name.en === 'string').map((i) => i.name.en);
+    const contextItems = [...candidateItems, ...checked.flatMap(([, entry]) => entry.extract.items)
+      .filter(item => !candidateItems.some(candidate => candidate?.id === item?.id))];
+    const allowedNames = contextItems.filter((i) => i?.name?.zh === null && typeof i.name.en === 'string').map((i) => i.name.en);
     const table = parseTranslation(input.translation);
-    report.translationConflicts = translationConflicts(allItems, table);
+    report.translationConflicts = translationConflicts(contextItems, table);
     const textFile = join(options.extractDir, 'text.json');
     const textCurrent = await readJson(join(options.extractDir, '..', 'diff', 'text-current.json'), true);
     let textIndex;
     if (textCurrent?.value?.available !== false && await readJson(textFile, true))
       textIndex = loadTextIndex(textFile);
+    const verifyItem = (category, entry, item, extracted, previous, schemaErrors, generated) => {
+      const failures = checkValues(item, extracted, previous, schemaErrors);
+      const task = extracted && ['1.1.0', '1.2.0'].includes(entry.extract.schemaVersion) && ['skills', 'blessings'].includes(category)
+        ? effectTaskFor(extracted, textIndex, entry.extract.effectFormats?.[item.id]) : undefined;
+      const text = checkText(item, extracted, allowedNames, report.translationConflicts, table, task?.lockedEffect, contextItems, codeNumbers);
+      failures.push(...checkCitations(item, { schemaVersion: entry.candidate.schemaVersion, category, generated }));
+      failures.push(...text.failures);
+      return { failures, notes: text.notes, warnings: text.warnings };
+    };
+    const tryCombination = (row, entry) => {
+      if (row.decision !== 'kept-previous') return;
+      const extracted = entry.extract.items.find(x => x.id === row.id);
+      const previous = entry.previous?.items?.find(x => x.id === row.id);
+      if (!extracted || !previous) return;
+      const combined = combineItem(extracted, previous);
+      const schemaErrors = checkDataFile(row.category, stringifyCanonical(dataFile(row.category, version,
+        [combined], entry.candidate.schemaVersion)), contextItems.map(item => item?.id === row.id ? combined : item)).errors;
+      const checked = verifyItem(row.category, entry, combined, extracted, previous, schemaErrors, true);
+      row.combinationFailures = checked.failures;
+      if (!checked.failures.length) {
+        row.decision = 'combined'; row.notes = checked.notes; row.warnings = checked.warnings;
+      } else row.failures.push(...checked.failures);
+    };
     for (const [category, entry] of checked) {
       for (const [index, item] of entry.candidate.items.entries()) {
         const id = typeof item?.id === 'string' ? item.id : `${category}/items/${index}`;
         const extracted = entry.extract.items.find((x) => x?.id === item?.id);
         const previous = entry.previous?.items?.find((x) => x?.id === item?.id);
-        const row = { id, category, decision: 'pass', failures: checkValues(item, extracted, previous,
-          entry.schemaErrors.filter((e) => itemIndex(e.path) === String(index))), notes: [] };
-        if (stateMatches && input.state.run.items[id]?.stage === 'extracted')
-          row.failures.push(failure('values', 'V_NOT_DESCRIBED', '/explanation', '項目仍在取數階段，尚未完成說明'));
-        const task = extracted && ['1.1.0', '1.2.0'].includes(entry.extract.schemaVersion) && ['skills', 'blessings'].includes(category)
-          ? effectTaskFor(extracted, textIndex, entry.extract.effectFormats?.[id]) : undefined;
-        const text = checkText(item, extracted, allowedNames, report.translationConflicts, table, task?.lockedEffect, candidateItems, codeNumbers);
         const stateItem = stateMatches ? input.state.run.items[id] : undefined;
         const generated = stateItem ? ['added','changed'].includes(stateItem.change) :
           !previous || JSON.stringify(item.explanation) !== JSON.stringify(previous.explanation) || JSON.stringify(item.citations) !== JSON.stringify(previous.citations);
-        row.failures.push(...checkCitations(item, { schemaVersion: entry.candidate.schemaVersion, category, generated }));
-        row.failures.push(...text.failures); row.notes.push(...text.notes); row.warnings = text.warnings;
-        decide(row, entry.previous); report.items.push(row);
+        const row = { id, category, decision: 'pass', ...verifyItem(category, entry, item, extracted, previous,
+          entry.schemaErrors.filter(e => itemIndex(e.path) === String(index)), generated) };
+        if (stateMatches && input.state.run.items[id]?.stage === 'extracted')
+          row.failures.push(failure('values', 'V_NOT_DESCRIBED', '/explanation', '項目仍在取數階段，尚未完成說明'));
+        decide(row, entry.previous); tryCombination(row, entry); report.items.push(row);
       }
       for (const item of entry.extract.items) {
         if (entry.candidate.items.some((candidate) => candidate?.id === item?.id)) continue;
         const row = { id: item.id, category, decision: 'pass', failures: [failure('values', 'V_NOT_DESCRIBED',
           '/explanation', '候選資料缺少此項目，尚未完成說明')], notes: [] };
-        decide(row, entry.previous); report.items.push(row);
+        decide(row, entry.previous); tryCombination(row, entry); report.items.push(row);
       }
     }
     const output = verifyMerged(loaded, report.categories, report.items, undefined, version);
@@ -126,10 +154,11 @@ export async function runVerify(inputOptions) {
       }
     }
     finishReport(report);
-    const state = updatedState(input.state, stateMatches, report);
+    let state = updatedState(input.state, stateMatches, report);
+    if (stateMatches && report.result !== 'halted') state = trackExplanations(state, loaded, report, merged);
     if (options.report) await writeCanonicalFile(options.report, report);
     if (options.state && stateMatches) await writeState(options.state, state);
-    const writtenWarnings = stateMatches ? report.items.filter((row) => row.decision !== 'pass' &&
+    const writtenWarnings = stateMatches ? report.items.filter((row) => !['pass', 'combined'].includes(row.decision) &&
       input.state.run.items[row.id]?.category === row.category && input.state.run.items[row.id]?.stage === 'written').map((row) => row.id) : [];
     return { exitCode: report.result === 'halted' ? 3 : 0, report, merged, state, writtenWarnings };
   } catch (error) {
