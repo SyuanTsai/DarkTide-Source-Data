@@ -68,17 +68,17 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 ## 拆開沿用說明（WP8）
 
-項目原本會 `kept-previous`，且 extract 與上一版都有同 id 時，先組合為 `combined`：key、name、official、values、source（含 codeRefs／valueSources）與 aliases 等所有非說明欄位取新 extract；explanation、citations、errata 取上一版。組合項不帶 retainedFrom，發布資料看起來和一般項目一樣，schema 與 key 集合完全不變；標記只存在 state。
+項目原本會 `kept-previous`，且 extract 與上一版都有同 id 時，先組合為 `combined`：key、name、official、values、source（含 codeRefs／valueSources）與 aliases 等所有非說明欄位取新 extract；explanation、citations、errata 取上一版；若 effectOrigin 為 official 且本次有 lockedEffect，effect 換成本次官方文字。組合項不帶 retainedFrom，發布資料看起來和一般項目一樣，schema 與 key 集合完全不變；標記只存在 state。
 
-組合項和一般候選項共用 checkValues、checkText（鎖定效果、數字推導、譯名與 errata）、checkCitations，以及 schema／verifyMerged 輸出檢查。citations 的 codeRefs／valueRefs 必須能在新 source／values 找到，errata anchor 也必須仍存在於新官方文字。V_NOT_DESCRIBED 本身不使組合失敗。任何檢查失敗便退回整筆 kept-previous；報告的 combinationFailures 保存既有 failure code，包含合併後才發現的 O_MERGED_INVALID。整類 kept-previous 維持整類沿用，不嘗試組合。摘要列出「組合採用 N／退回 N」。
+組合項和一般候選項共用 checkValues、checkText（鎖定效果、數字推導、譯名與 errata）、checkCitations，以及 schema／verifyMerged 輸出檢查。組合路徑不要求每個非空段落都有 citation，但既有 citation 的 text、codeRefs／valueRefs 仍須通過檢查，refs 必須能在新 source／values 找到，errata anchor 也必須仍存在於新官方文字。V_NOT_DESCRIBED 本身不使組合失敗。任何檢查失敗便退回整筆 kept-previous；報告的 combinationFailures 保存既有 failure code，包含合併後才發現的 O_MERGED_INVALID。整類 kept-previous 維持整類沿用，不嘗試組合。摘要列出「組合採用 N／退回 N」。
 
-`pipeline/state.json` 的選填頂層 `retainedExplanations[id]` 形狀為 `{category, explanationFrom:{gameVersion,sourceCommit,textBatch}, valuesFingerprint, valuesChanged}`；run.items[id] 同步選填 explanationFrom 與 valuesChanged。最早說明來源依序取既有標記、上一版 retainedFrom、上一版檔頭；valuesFingerprint 用 diff 現有 contentHash 演算法僅對 values 計算，保存寫說明時的 values 基準。valuesChanged 比較實際發布 values 與此基準，所以整筆退回時不會錯用未發布的 extract。
+`pipeline/state.json` 的選填頂層 `retainedExplanations[id]` 形狀為 `{category, explanationFrom:{gameVersion,sourceCommit,textBatch}, valuesFingerprint, valuesChanged, officialChanged}`；run.items[id] 同步選填 explanationFrom、valuesChanged 與 officialChanged。最早說明來源依序取既有標記、上一版 retainedFrom、上一版檔頭；valuesFingerprint 用 diff 現有 contentHash 演算法僅對 values 計算，保存寫說明時的 values 基準。valuesChanged 比較實際發布 values 與此基準，所以整筆退回時不會錯用未發布的 extract。
 
-頂層 map 跨 startRun、新版本、registerItem 因 inputHash 改變而重建、移除過期登記仍保留；再次組合或整筆沿用時維持最早來源與原 values 基準。unchanged 候選項通過不清除；只有 explanation 真正改寫且以一般候選項通過 verify 才清除兩層標記。首次使用新 state schema 不需改寫既有 state，舊檔仍可讀；必須沿用同一份 state，另建外部 state 時也須攜帶既有 map。
+頂層 map 跨 startRun、新版本、registerItem 因 inputHash 改變而重建、移除過期登記仍保留；再次組合或整筆沿用時維持最早來源與原 values 基準。officialChanged 表示說明寫成後官方 effect 曾被替換，一旦為 true 持續保留直到說明改寫並通過 verify；舊標記預設 false。unchanged 候選項通過不清除；只有 explanation 真正改寫且以一般候選項通過 verify 才清除兩層標記。首次使用新 state schema 不需改寫既有 state，舊檔仍可讀；必須沿用同一份 state，另建外部 state 時也須攜帶既有 map。
 
 後續 diff／fingerprint 照發布資料中的新 values 與既有 key／name／official／aliases／codeRefs 雜湊判斷變動；沿用說明或 state 標記本身不會造成 changed。valuesChanged 僅表示 values 與該份說明基準有差異，不代表本輪 diff 的 changed。
 
-唯讀查詢：`node pipeline/retained-explanations.mjs`，或 `node pipeline/retained-explanations.mjs --state <外部 state.json>`。輸出所有說明沿用中的 id、類別、explanationFrom、valuesChanged（JSON）；valuesChanged=true 在前，其次依 id，無需 cloud 或執行中的 run，也不寫入任何檔案。SYP-420 完成時，要一併確認這份清單已經清空。
+唯讀查詢：`node pipeline/retained-explanations.mjs`，或 `node pipeline/retained-explanations.mjs --state <外部 state.json>`。輸出所有說明沿用中的 id、類別、explanationFrom、valuesChanged、officialChanged（JSON）；兩者皆 true 最前，任一 true 次之，再依 id，無需 cloud 或執行中的 run，也不寫入任何檔案。SYP-420 時優先處理 valuesChanged 或 officialChanged 的項目，並確認這份清單已經清空。
 
 ## 寫入（WP4b）
 

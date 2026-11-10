@@ -50,7 +50,8 @@ function checkReportState(run, report) {
     const rows = report.items.filter((row) => row.category === item.category && row.id === id);
     if (rows.length !== 1 || !((['pass', 'combined'].includes(rows[0].decision) && item.outcome === null && item.stage === 'verified') ||
       (['kept-previous', 'excluded'].includes(rows[0].decision) && item.outcome === 'kept-previous'))) throw inconsistent();
-    if (rows[0].decision === 'combined' && (!item.explanationFrom || typeof item.valuesChanged !== 'boolean')) throw inconsistent();
+    if (rows[0].decision === 'combined' && (!item.explanationFrom || typeof item.valuesChanged !== 'boolean' || typeof item.officialChanged !== 'boolean' ||
+      (rows[0].officialChanged === true && !item.officialChanged))) throw inconsistent();
   }
 }
 async function safeJson(path, label, optional = false) {
@@ -185,6 +186,8 @@ export async function runWrite(inputOptions = {}) {
   const versionItems = Object.values(final).flatMap(file => file.items ?? []);
   for (const category of CATEGORIES)
     checked(checkDataFile(category, stringifyCanonical(final[category]), versionItems), `${category} 最終資料`);
+  for (const category of CATEGORIES)
+    if (report.categories[category].mergedSha256 && sha256(Buffer.from(stringifyCanonical(final[category]))) !== report.categories[category].mergedSha256) throw inconsistent();
   if (checkFileConsistency(Object.entries(final).map(([category, value]) => ({ category, value })), ['schemaVersion']).length)
     throw new WriteError('最終資料的 schemaVersion 不一致');
   const index = { schemaVersion: final[CATEGORIES[0]].schemaVersion, gameVersion: run.gameVersion, path: `data/${run.gameVersion}`,

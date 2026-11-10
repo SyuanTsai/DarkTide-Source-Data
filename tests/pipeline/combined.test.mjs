@@ -9,6 +9,7 @@ import { CATEGORIES, checkDataFile, retainItem } from '../../pipeline/lib/data-f
 import * as stateApi from '../../pipeline/lib/state.mjs';
 import { runVerify } from '../../pipeline/lib/verify/index.mjs';
 import { verifyMerged } from '../../pipeline/lib/verify/output.mjs';
+import { combineItem } from '../../pipeline/lib/verify/compose.mjs';
 import { runWrite } from '../../pipeline/lib/write.mjs';
 import { diffCategory } from '../../pipeline/lib/diff-core.mjs';
 
@@ -138,9 +139,12 @@ test('InterT25_combination checks the current locked effect', async t => {
   const f = await fixture(t), prev = f.previous.skills.items[0], fresh = f.extract.skills.items[0];
   prev.official.zh = '提升25%'; prev.explanation.effectOrigin = 'official';
   fresh.official.zh = '增加25%';
+  delete prev.citations;
   const r = await f.run(), row = rowFor(r, f.id);
-  assert.equal(row.decision, 'kept-previous');
-  assert.deepEqual(row.combinationFailures.map(x => x.code), ['T_OFFICIAL_CHANGED']);
+  assert.equal(row.decision, 'combined', JSON.stringify(row));
+  assert.equal(r.merged.skills.items[0].explanation.effect, '增加25%');
+  assert.equal(row.officialChanged, true);
+  assert.equal((await stateApi.readState(f.state)).retainedExplanations[f.id].officialChanged, true);
 });
 
 // Scenario: the predecessor has an older supported schema and already satisfies the target shape.
@@ -299,16 +303,96 @@ test('InterT60_retainedFrom priority and whole category retention remain intact'
 test('InterT70_retained explanations query sorts changed first and never writes', async t => {
   const f = await fixture(t); await f.run();
   const state = await stateApi.readState(f.state), marker = state.retainedExplanations[f.id];
-  state.retainedExplanations['darktide:weapon:z'] = { ...marker, category: 'weapons', valuesChanged: true };
+  state.retainedExplanations['darktide:weapon:z'] = { ...marker, category: 'weapons', valuesChanged: true, officialChanged: true };
+  state.retainedExplanations['darktide:skill:b'] = { ...marker, officialChanged: true };
   state.retainedExplanations['darktide:skill:a'] = { ...marker, valuesChanged: true };
   state.run = null; await stateApi.writeState(f.state, state);
   const before = await readFile(f.state), files = await readdir(f.root);
   const result = spawnSync(process.execPath, [resolve('pipeline/retained-explanations.mjs'), '--state', f.state], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(JSON.parse(result.stdout), [
-    { id: 'darktide:skill:a', category: 'skills', explanationFrom: old, valuesChanged: true },
-    { id: 'darktide:weapon:z', category: 'weapons', explanationFrom: old, valuesChanged: true },
-    { id: f.id, category: 'skills', explanationFrom: old, valuesChanged: false },
+    { id: 'darktide:weapon:z', category: 'weapons', explanationFrom: old, valuesChanged: true, officialChanged: true },
+    { id: 'darktide:skill:a', category: 'skills', explanationFrom: old, valuesChanged: true, officialChanged: false },
+    { id: 'darktide:skill:b', category: 'skills', explanationFrom: old, valuesChanged: false, officialChanged: true },
+    { id: f.id, category: 'skills', explanationFrom: old, valuesChanged: false, officialChanged: false },
   ]);
   assert.deepEqual(await readFile(f.state), before); assert.deepEqual(await readdir(f.root), files);
+});
+
+
+test('SYP391 citation coverage and invalid existing citations', async t => {
+  for (const mode of ['missing', 'text', 'code', 'value', 'candidate']) {
+    const f = await fixture(t), prev = f.previous.skills.items[0], fresh = f.extract.skills.items[0];
+    if (mode === 'missing') delete prev.citations;
+    if (mode === 'text') prev.citations[0].text = '錯誤';
+    if (mode === 'code') fresh.source.codeRefs = {};
+    if (mode === 'value') fresh.source.valueSources = {};
+    if (mode === 'candidate') {
+      f.candidate.skills.items = [{ ...fresh, explanation: { ...prev.explanation, notes: '新說明' }, errata: [] }];
+      let state = await stateApi.readState(f.state);
+      state = stateApi.advanceItem(state, f.id, 'described'); await stateApi.writeState(f.state, state);
+    }
+    const r = await f.run(), row = rowFor(r, f.id);
+    if (mode === 'missing') assert.equal(row.decision, 'combined', JSON.stringify(row));
+    else if (mode === 'candidate') assert.ok(row.failures.some(x => x.code === 'V-CITE'), JSON.stringify(row));
+    else {
+      assert.equal(row.decision, 'kept-previous');
+      assert.deepEqual([...new Set(row.combinationFailures.map(x => x.code))], [{ text: 'V_CITATION_TEXT', code: 'V_CITATION_CODE', value: 'V_CITATION_VALUE' }[mode]]);
+    }
+  }
+});
+
+test('SYP391 official replacement persists across runs, writes identically and clears on rewrite', async t => {
+  const f = await fixture(t), prev = f.previous.blessings.items[0], fresh = f.extract.blessings.items[0], id = prev.id;
+  prev.official.zh = '提升25%'; prev.explanation.effectOrigin = 'official';
+  fresh.official.zh = '增加25%'; fresh.name.zh = '新名稱'; f.candidate.blessings.items = [];
+  let state = await stateApi.readState(f.state);
+  state = stateApi.registerItem(state, id, { category: 'blessings', change: 'changed', inputHash: '4'.repeat(64) });
+  await stateApi.writeState(f.state, state);
+  const first = await f.run(), row = rowFor(first, id), item = first.merged.blessings.items[0];
+  assert.equal(row.decision, 'combined', JSON.stringify(row)); assert.equal(row.officialChanged, true);
+  assert.equal(item.explanation.effect, '增加25%'); assert.deepEqual(item.name, fresh.name); assert.deepEqual(item.official, fresh.official);
+  assert.deepEqual(Object.keys(item).sort(), Object.keys(prev).sort());
+  assert.ok(!Object.hasOwn(item, 'officialChanged') && !Object.hasOwn(item, 'retainedFrom'));
+  const args = { root: f.root, state: f.state, candidateDir: f.options.candidateDir, extractDir: f.options.extractDir, previousDir: f.options.previousDir, report: f.options.report };
+  const savedReport = await readFile(f.options.report);
+  const altered = JSON.parse(savedReport); altered.items.find(x => x.id === id).lockedEffect = '修改25%';
+  await writeCanonicalFile(f.options.report, altered);
+  await assert.rejects(runWrite(args), /不一致/);
+  await writeFile(f.options.report, savedReport);
+  assert.equal((await runWrite(args)).exitCode, 0);
+  const path = join(f.root, 'data', meta.gameVersion, 'blessings.json'), bytes = await readFile(path);
+  assert.deepEqual(bytes, await readFile(join(f.options.outDir, 'data', meta.gameVersion, 'blessings.json')));
+  assert.equal((await runWrite(args)).exitCode, 0); assert.deepEqual(await readFile(path), bytes);
+  const next = { gameVersion: '1.3.0', sourceCommit: 'd'.repeat(40), textBatch: 'next' };
+  for (const c of CATEGORIES) {
+    f.previous[c] = structuredClone(first.merged[c]);
+    f.extract[c] = { ...f.extract[c], ...next, items: first.merged[c].items.map(strip) };
+    for (const x of f.extract[c].items) { x.source.commit = next.sourceCommit; x.source.text.batch = next.textBatch; }
+    f.candidate[c] = { ...f.previous[c], ...next, items: [] };
+  }
+  state = stateApi.startRun(await stateApi.readState(f.state), next);
+  state = stateApi.registerItem(state, id, { category: 'blessings', change: 'changed', inputHash: '5'.repeat(64) });
+  await stateApi.writeState(f.state, state);
+  const second = await f.run(); assert.equal(rowFor(second, id).decision, 'combined');
+  state = await stateApi.readState(f.state); assert.equal(state.retainedExplanations[id].officialChanged, true);
+  assert.equal(state.run.items[id].officialChanged, true); assert.deepEqual(state.retainedExplanations[id].explanationFrom, old);
+  f.candidate.blessings.items = [{ ...f.extract.blessings.items[0], explanation: { ...item.explanation, notes: '重新撰寫' }, errata: [], citations: [{ section: 'notes', text: '重新撰寫', codeRefs: [], valueRefs: ['/params/bonus/value'] }] }];
+  f.extract.blessings.items[0].source.valueSources = { '/params/bonus/value': [{ path: 'scripts/example.lua', line: 1 }] };
+  f.candidate.blessings.items[0].source = structuredClone(f.extract.blessings.items[0].source);
+  const rewritten = await f.run(); assert.equal(rowFor(rewritten, id).decision, 'pass', JSON.stringify(rowFor(rewritten, id)));
+  state = await stateApi.readState(f.state); assert.ok(!state.retainedExplanations[id]); assert.ok(!Object.hasOwn(state.run.items[id], 'officialChanged'));
+});
+
+test('SYP391 non-official effect is not replaced and updated numbers can reject replacement', async t => {
+  for (const mode of ['nonofficial', 'number']) {
+    const f = await fixture(t), prev = f.previous.skills.items[0], fresh = f.extract.skills.items[0];
+    delete prev.citations; prev.official.zh = '提升25%'; fresh.official.zh = '增加25%';
+    if (mode === 'nonofficial') assert.equal(combineItem(fresh, prev, '增加25%').explanation.effect, prev.explanation.effect);
+    if (mode === 'number') { prev.explanation.effectOrigin = 'official'; prev.explanation.notes = '提升50%'; prev.values.params.other = { value: 0.5 }; fresh.values.params.other = { value: 0.25 }; }
+    const r = await f.run(), row = rowFor(r, f.id);
+    assert.equal(row.decision, 'kept-previous', JSON.stringify(row));
+    assert.ok(row.combinationFailures.some(x => x.code === (mode === 'number' ? 'T_NUMBER' : 'T_OFFICIAL_CHANGED')), JSON.stringify(row));
+    assert.deepEqual(r.merged.skills.items[0], retainItem(prev, f.previous.skills));
+  }
 });
