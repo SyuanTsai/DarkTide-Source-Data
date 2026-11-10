@@ -10,6 +10,7 @@ import './damage-profiles-extract.test.mjs';
 import './diff.test.mjs';
 import './candidate.test.mjs';
 import './verify.test.mjs';
+import './combined.test.mjs';
 import './write.test.mjs';
 import './state.test.mjs';
 import './start-doc.test.mjs';

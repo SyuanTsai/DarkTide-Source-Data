@@ -105,6 +105,7 @@ export async function loadInput(options) {
       releaseSchemaVersion: extract?.value?.schemaVersion,
       diffReason: diffBlocked ? (diffCategory?.reason?.trim() || `本輪 diff 缺少或無法使用 extract（${diffCategory?.status ?? 'missing'}）`) : null,
       candidateSha256: sha256(bytes), schemaErrors: [] };
+    loaded[category].extractSha256 = extract ? sha256(Buffer.from(extract.text)) : null;
   }
   const versionItems = Object.values(loaded).flatMap(entry => entry.candidate?.items ?? []);
   for (const [category, entry] of Object.entries(loaded)) if (entry.candidate)

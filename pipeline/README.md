@@ -39,7 +39,7 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 ## 檢查（WP4）
 
-`node pipeline/verify.mjs` 由 state.run 推出版本，組裝候選檔，再逐項檢查數值、文字、勘誤與最終資料。未通過的項目保留上一版；沒有上一版則排除。類別缺檔或結構不符時整類保留，首版則輸出空檔。四類皆會產生新版本檔頭。
+`node pipeline/verify.mjs` 由 state.run 推出版本，組裝候選檔，再逐項檢查數值、文字、勘誤與最終資料。未通過或沒有新說明的項目先嘗試組合；組合失敗才整筆保留上一版，沒有上一版則排除。類別缺檔或結構不符時整類保留，首版則輸出空檔。四類皆會產生新版本檔頭。
 
 | 參數 | 預設值／作用 |
 | --- | --- |
@@ -66,9 +66,23 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 在 `*-worktrees/` 的 worktree 中執行時，請用 `--translation <Translation.md>`（或 `DARKTIDE_GLOSSARY_FILE`）指定譯名表；相鄰 Mods repo 的預設位置通常不同。diff 對應的覆寫參數是 `--glossary`。
 
+## 拆開沿用說明（WP8）
+
+項目原本會 `kept-previous`，且 extract 與上一版都有同 id 時，先組合為 `combined`：key、name、official、values、source（含 codeRefs／valueSources）與 aliases 等所有非說明欄位取新 extract；explanation、citations、errata 取上一版。組合項不帶 retainedFrom，發布資料看起來和一般項目一樣，schema 與 key 集合完全不變；標記只存在 state。
+
+組合項和一般候選項共用 checkValues、checkText（鎖定效果、數字推導、譯名與 errata）、checkCitations，以及 schema／verifyMerged 輸出檢查。citations 的 codeRefs／valueRefs 必須能在新 source／values 找到，errata anchor 也必須仍存在於新官方文字。V_NOT_DESCRIBED 本身不使組合失敗。任何檢查失敗便退回整筆 kept-previous；報告的 combinationFailures 保存既有 failure code，包含合併後才發現的 O_MERGED_INVALID。整類 kept-previous 維持整類沿用，不嘗試組合。摘要列出「組合採用 N／退回 N」。
+
+`pipeline/state.json` 的選填頂層 `retainedExplanations[id]` 形狀為 `{category, explanationFrom:{gameVersion,sourceCommit,textBatch}, valuesFingerprint, valuesChanged}`；run.items[id] 同步選填 explanationFrom 與 valuesChanged。最早說明來源依序取既有標記、上一版 retainedFrom、上一版檔頭；valuesFingerprint 用 diff 現有 contentHash 演算法僅對 values 計算，保存寫說明時的 values 基準。valuesChanged 比較實際發布 values 與此基準，所以整筆退回時不會錯用未發布的 extract。
+
+頂層 map 跨 startRun、新版本、registerItem 因 inputHash 改變而重建、移除過期登記仍保留；再次組合或整筆沿用時維持最早來源與原 values 基準。unchanged 候選項通過不清除；只有 explanation 真正改寫且以一般候選項通過 verify 才清除兩層標記。首次使用新 state schema 不需改寫既有 state，舊檔仍可讀；必須沿用同一份 state，另建外部 state 時也須攜帶既有 map。
+
+後續 diff／fingerprint 照發布資料中的新 values 與既有 key／name／official／aliases／codeRefs 雜湊判斷變動；沿用說明或 state 標記本身不會造成 changed。valuesChanged 僅表示 values 與該份說明基準有差異，不代表本輪 diff 的 changed。
+
+唯讀查詢：`node pipeline/retained-explanations.mjs`，或 `node pipeline/retained-explanations.mjs --state <外部 state.json>`。輸出所有說明沿用中的 id、類別、explanationFrom、valuesChanged（JSON）；valuesChanged=true 在前，其次依 id，無需 cloud 或執行中的 run，也不寫入任何檔案。SYP-420 完成時，要一併確認這份清單已經清空。
+
 ## 寫入（WP4b）
 
-`node pipeline/write.mjs` 先核對 state.run 與報告版本、候選檔雜湊及 current 版本，再用與 verify 相同的 composeFinal 組出四類並全部驗證。任何最終資料驗證錯誤均在寫入前停止。
+`node pipeline/write.mjs` 先核對 state.run 與報告版本、候選檔雜湊、組合所用 extract 雜湊及 current 版本，再用與 verify 相同的 composeFinal 組出四類並全部驗證。任何最終資料驗證錯誤均在寫入前停止。
 
 中斷後接續時，已寫入項目必須與新的檢查報告一致；若衝突，請將說明改回能通過檢查的內容後重跑 verify。
 
@@ -79,11 +93,12 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 | `--cloud-dir` | `DARKTIDE_PIPELINE_CLOUD_DIR`；report 與 candidate-dir 均指定時不需要 |
 | `--report` | `<cloud>/<ver>/verify/report.json` |
 | `--candidate-dir` | `<cloud>/<ver>/candidate` |
+| `--extract-dir` | candidate-dir 的相鄰 `extract`；有 combined 決策才讀取，SHA-256 必須與 verify 報告相同 |
 | `--previous-dir` | current.json 的 path；current 已是本輪版本時使用報告的 previousGameVersion；`none` 表示沒有上一版 |
 
 依 skills、weapons、blessings、terms 順序原子寫入 `<root>/data/<ver>/<category>.json`，每類完成後更新 state checkpoint。removed 項目逐步推進至 written；整類降級的未完成項目記錄 kept-previous 與原因。最後原子寫入 current.json（versions 合集按版本排序），再 completeRun。相同 bytes 不重寫；中斷後可接續。已 completed 的相同輸入僅允許輸出完全相符的唯讀重跑，避免第二次改寫任何檔案。
 
-`retainedFrom: { gameVersion, sourceCommit, textBatch }` 記錄保留項目最早的來源，連續保留不更新此欄位。validate 對這些項目的 source.commit／source.text.batch 比對 retainedFrom，而其 gameVersion 暫時允許等於檔頭（同版本重產），仍不可比檔頭新；恢復條件：SYP-420 完成，或改用正式的同版本機制。普通項目仍須符合檔頭的 commit／batch。排序、id、anchor、valueRefs 等其餘檢查完全相同。此為選填欄位，既有 1.0.0 資料不需遷移。
+`retainedFrom: { gameVersion, sourceCommit, textBatch }` 記錄保留項目最早的來源，連續保留不更新此欄位。validate 對這些項目的 source.commit／source.text.batch 比對 retainedFrom，而其 gameVersion 暫時允許等於檔頭（同版本重產），仍不可比檔頭新；恢復條件：SYP-420 完成（留言 12724）。普通項目仍須符合檔頭的 commit／batch。排序、id、anchor、valueRefs 等其餘檢查完全相同。此為選填欄位，既有 1.0.0 資料不需遷移。
 
 exit 0 表示完成；exit 1 表示候選檔變動、版本倒退、資料驗證或寫入錯誤；exit 2 表示參數、狀態、報告版本或輸入錯誤；halted 報告 exit 3 並印「檢查結果為整批停止，不寫入」。完成後執行 `node pipeline/validate.mjs`。輸出摘要不含時間戳，列出每類項目數、保留項目及原因、保留類別與空檔類別。
 

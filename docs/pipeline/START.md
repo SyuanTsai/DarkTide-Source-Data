@@ -8,11 +8,13 @@
 
 ### 規則
 
-1. 數值只能來自腳本輸出，你不可以自己推算或改數字。第 4 步研究邏輯、寫說明；第 5a 步由 astra 對照來源抽查數值。
+1. 數值只能來自腳本輸出，你不可以自己推算或改數字。第 4 步研究邏輯、寫說明；第 5a 步由獨立審查者（也就是和撰寫說明不同的 AI 執行環境）對照來源抽查數值。
 2. 每完成一個項目就更新狀態檔，中斷後重跑本提示詞會從狀態檔接續，不重做已完成的項目。
 3. 不修改 `pipeline/` 下的腳本。腳本回報找不到預期結構時，照第 5 步的降級規則處理並在回報中列出。
 4. 不把大型 JSON 整個讀進對話；需要時用指令只輸出要看的項目。
 5. 官方原文逐字照抄；譯名用官方中文；沒有官方中文時才用 Mods repo 的 `Referneces/Translation.md`。
+
+獨立審查者的工具不限。例如在 Codex 用 astra，在 Claude Code 另開子代理；這些只是範例，不是必要條件。
 
 ### 第 0 步之前：環境設定
 
@@ -109,15 +111,15 @@
    ```
 
    確認 diff 中 baseline 項目均為 unchanged，其餘均為 added，且沒有 changed／removed；不符立即停止並查明原因。後續版本正常執行 `node pipeline/diff.mjs`，使用 repo 的 `data/`。diff 會列出新增／變動／移除的項目，並把清單寫進狀態檔。
-4. 說明：對狀態檔中還沒寫好說明的每個項目（`node pipeline/diff.mjs --pending` 會列出），讀取腳本給的該項目輸入，寫出五節說明（效果／條件／計算／補充／額外）與勘誤，存到腳本指定的位置，然後執行 `node pipeline/diff.mjs --mark-described <項目 id>`。一次處理一個項目。
+4. 說明：對狀態檔中還沒寫好說明的每個項目（`node pipeline/diff.mjs --pending` 會列出），讀取腳本給的該項目輸入，寫出五節說明（效果／條件／計算／補充／額外）與勘誤，存到腳本指定的位置，然後執行 `node pipeline/diff.mjs --mark-described <項目 id>`。一次處理一個項目。沒有新說明而上一版有同 id 時，verify 會先嘗試組合：非說明欄位取新 extract，explanation／citations／errata 取上一版；通過相同的逐項與合併後檢查才採用，否則退回整筆沿用。`V_NOT_DESCRIBED` 本身不阻擋組合；首次新增且沒有上一版仍會排除。
    - 1.1.0／1.2.0 祝福／技能輸入有 `lockedEffect` 時，`effect` 逐字照抄該全文，只另外撰寫 `conditions`／`calculation`／`notes`／`extra` 四節實際運作機制；candidate 會強制使用鎖定效果並設定 `effectOrigin: "official"`。
    - AI input 的 `dataSchemaVersion` 表示資料版本，AI I/O 外層仍為 1.0.0。1.2.0 技能／祝福輸出選填 `citations: [{section,text,codeRefs,valueRefs}]`；每個本次撰寫的非空機制段落必須有同 section 引用，非官方 effect 也適用。text 須出現在段落中，codeRefs 須來自輸入 source.codeRefs，valueRefs 須可解析並有 source.valueSources。只讀來源位置與雜湊不能當數值。
    - 所有版本的勘誤使用 `{locale,official,corrected,valueRefs:[...],sources:[{path,line}],anchor?}`，兩個陣列至少一筆，禁止單數 valueRef。anchor 可選 `official/name/displayParameter`；displayParameter 須指定 param，祝福另指定 tier；跨 item 使用 itemId，valueRefs 在該 item.values 解析。詳細形狀與版本限制見 pipeline/README.md 的「schema 1.2.0」。
    - 有 `effectTask: "translate-official-en"` 時，依 `item.official.en` 與 `item.values` 翻譯效果，再寫四節機制；pipeline 會標示為「非官方翻譯」（`unofficial-translation`）。官方英文、繁中都沒有時，依 values 與 source 撰寫效果，未知值寫明未知，不可猜；pipeline 會標示為「非官方翻譯」。未知值不猜測。AI 輸出不得包含 `effectOrigin`。
-5. 檢查：第一次正式執行 1.13.4 時執行 `node pipeline/verify.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')`，讓 candidate 與檢查使用同一份 baseline；後續版本執行 `node pipeline/verify.mjs`。未通過的單一項目會保留上一版內容並記錄原因；這不算失敗，繼續下一步。若輸出「整批停止」，跳到第 8 步。
+5. 檢查：第一次正式執行 1.13.4 時執行 `node pipeline/verify.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')`，讓 candidate 與檢查使用同一份 baseline；後續版本執行 `node pipeline/verify.mjs`。未通過或沒有新說明的單一項目會先嘗試上述組合，組合失敗才保留上一版整筆內容並記錄原因；這不算失敗，繼續下一步。若輸出「整批停止」，跳到第 8 步。
    - `verify.mjs` 預設 `--issues off`，不建立 Issue。從 verify 報告的 `translationConflicts` 取得衝突清單，在第 8 步回報中列出；使用者決定要建立時，才另外執行 `--issues create`，在遠端公開的 Mods repo 建立 Issue，屬於對外發布。
-5a. damage profile 抽查：由 astra 對照本次固定 Source-Code commit，逐一檢查抽樣的 damage profile 與來源位置、override 後的 attack／impact 端點及 binding 的 powerLevel；每個武器家族至少抽一個 profile，抽樣須涵蓋近戰多 target、遠程 near／far、powerLevel 明示與未明示。若任一類型不存在，記錄原因。記錄每筆的武器家族、武器／profile id、Source-Code commit 與 path:line、抽查欄位、來源值、輸出值及一致／不一致結果。任何不一致或無法完成必要抽查時立即整批停止，跳到第 8 步回報，不得 write 或 commit；回報列出上述明細及原因。接續已 completed 的 run 也須先抽查再 commit。
-6. 寫入：寫入 repo 前先確認第 3 步 diff 使用正確的資料目錄與結果、所有待寫項目均已處理、第 5 步 verify 沒有整批停止，且第 5a 步抽查完成並一致；任何一項不符即停止。第一次正式執行 1.13.4 時執行 `node pipeline/write.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')`，後續版本執行 `node pipeline/write.mjs`；再執行 `node pipeline/validate.mjs`。接續已 completed 的 run 時從 validate 開始。通過後執行以下 pwsh 指令，只加入該 run 的檔案，再 commit（訊息：`data: <遊戲版本> 內容更新`）、`git push`。
+5a. damage profile 抽查：由獨立審查者（也就是和撰寫說明不同的 AI 執行環境）對照本次固定 Source-Code commit，逐一檢查抽樣的 damage profile 與來源位置、override 後的 attack／impact 端點及 binding 的 powerLevel；每個武器家族至少抽一個 profile，抽樣須涵蓋近戰多 target、遠程 near／far、powerLevel 明示與未明示。若任一類型不存在，記錄原因。記錄每筆的武器家族、武器／profile id、Source-Code commit 與 path:line、抽查欄位、來源值、輸出值及一致／不一致結果。任何不一致或無法完成必要抽查時立即整批停止，跳到第 8 步回報，不得 write 或 commit；回報列出上述明細及原因。接續已 completed 的 run 也須先抽查再 commit。
+6. 寫入：寫入 repo 前先確認第 3 步 diff 使用正確的資料目錄與結果、所有待寫項目均已撰寫或由 verify 完成組合／整筆沿用／排除決策，並已檢視組合失敗原因、第 5 步 verify 沒有整批停止，且第 5a 步抽查完成並一致；任何一項不符即停止。第一次正式執行 1.13.4 時執行 `node pipeline/write.mjs --previous-dir (Join-Path $migrationBaselineData '1.13.4')`，後續版本執行 `node pipeline/write.mjs`；再執行 `node pipeline/validate.mjs`。接續已 completed 的 run 時從 validate 開始。通過後執行以下 pwsh 指令，只加入該 run 的檔案，再 commit（訊息：`data: <遊戲版本> 內容更新`）、`git push`。
 
    ```powershell
    $run = (Get-Content -Raw -LiteralPath pipeline/state.json | ConvertFrom-Json -ErrorAction Stop).run
@@ -134,11 +136,12 @@
 - 遊戲版本：<版本>（Source-Code <commit 前 7 碼>，解包批次 <批次>）
 - 結果：完成／沒有新版本／整批停止（原因）
 - 更新項目數：技能 N、武器 N、祝福 N、術語 N
+- 組合採用 N／退回 N（由 verify 報告的 combined 與組合失敗後 kept-previous 計數）
 - 保留上一版的項目：<id>：<原因>（逐項列出；沒有寫「無」）
 - 保留上一版的類別：<類別>：<原因>（沒有寫「無」）
 - 官方原文 warning：<id>：<原文用字與官方名稱，或原文方向數字與 values>（逐項列出；沒有寫「無」）
 - 譯名衝突：N 組（是否已建立 Issue）
-- damage profile 抽查：<astra 抽樣範圍與逐筆家族、武器／profile id、commit、path:line、欄位、來源值、輸出值及結果；未執行或不足時列原因>
+- damage profile 抽查：<獨立審查者抽樣範圍與逐筆家族、武器／profile id、commit、path:line、欄位、來源值、輸出值及結果；未執行或不足時列原因>
 - 需要使用者處理的事：<逐項列出；沒有寫「無」>
 - commit：<hash 或「未 commit」>
 ```
@@ -210,7 +213,7 @@ $repoHashes = @($repoPaths | ForEach-Object { [pscustomobject]@{Path=$_;Hash=(Ge
 New-Item -ItemType Directory -Path $stage, (Split-Path $prev) | Out-Null
 Copy-Item -LiteralPath (Join-Path $repo 'data') -Destination (Join-Path $stage 'data') -Recurse
 Copy-Item -LiteralPath (Join-Path $repo "data/$gameVersion") -Destination $prev -Recurse
-Invoke-RegenNode --input-type=module -e 'import {readState,startRun,writeState} from "./pipeline/lib/state.mjs"; const [repo,state,gameVersion,sourceCommit,textBatch]=process.argv.slice(1); const old=await readState(repo+"/pipeline/state.json"); await writeState(state,startRun({schemaVersion:"1.0.0",lastProcessed:old.lastProcessed,run:null},{gameVersion,sourceCommit,textBatch}));' $repo $state $gameVersion $sourceCommit $textBatch
+Invoke-RegenNode --input-type=module -e 'import {readState,startRun,writeState} from "./pipeline/lib/state.mjs"; const [repo,state,gameVersion,sourceCommit,textBatch]=process.argv.slice(1); const old=await readState(repo+"/pipeline/state.json"); await writeState(state,startRun({...old,run:null},{gameVersion,sourceCommit,textBatch}));' $repo $state $gameVersion $sourceCommit $textBatch
 # baseline 必須逐檔吻合複製前的 repo；最後搬回前再核對兩邊是否有並行改寫。
 foreach ($entry in $repoHashes) {
   if ((Get-FileHash -LiteralPath (Join-Path $repo $entry.Path)).Hash -ne $entry.Hash) { throw '初始化期間 repo 已變更，停止' }
@@ -241,16 +244,19 @@ diff 的前版指向 repo `data/`；後續所有 candidate／verify／write 的�
 
 ### 重產 C：沿原第 4 步寫說明
 
-逐項讀 `$pending` 提供的 input，嚴格照原第 4 步寫入它指定的 output，不能用佔位說明跳過。每完成一個就立即標記，然後重新讀 pending：
+逐項讀 `$pending` 提供的 input，嚴格照原第 4 步寫入它指定的 output，不能用佔位說明跳過。每完成一個就立即標記；沒有新說明的項目交由 verify 嘗試組合，再依原第 6 步檢視最終決策。然後重新讀 pending：
 
 ```powershell
 foreach ($entry in $pending) {
   # 先讀取此 input、完成原第 4 步說明並存入 output；本區塊不會自動生成說明。
-  if (-not (Test-Path -LiteralPath $entry.output -PathType Leaf)) { throw "尚未完成說明：$($entry.id)" }
+  if (-not (Test-Path -LiteralPath $entry.output -PathType Leaf)) {
+    Write-Output "尚無新說明，交由 verify 組合／整筆沿用／排除：$($entry.id)"
+    continue
+  }
   Invoke-RegenNode pipeline/diff.mjs --state $state --cloud-dir $cloud --mark-described $entry.id
 }
 $pending = @(Invoke-RegenNode pipeline/diff.mjs --state $state --cloud-dir $cloud --pending --json | ConvertFrom-Json)
-if ($pending.Count -ne 0) { throw '仍有待寫說明，不可 verify/write' }
+if ($pending.Count -ne 0) { Write-Output "尚無新說明 $($pending.Count) 項；verify 決策後，寫入前依原第 6 步檢視" }
 ```
 
 ### 重產 D：verify → 原第 5a 步 → write → validate
@@ -266,7 +272,7 @@ $report.items | Where-Object decision -ne 'pass' | Select-Object id,decision,fai
 $report.categories | ConvertTo-Json -Depth 6
 ```
 
-此時必須依原第 5a 步由 astra 完成 damage profile 抽查、記錄逐筆證據並確認一致，才可執行下一區塊。抽查不足／不一致、保留或排除項目需要人工決策、譯名衝突未能確定，均停止交給使用者。單項保留仍須通過最終 schema；同版本 baseline 的新 retainedFrom 若不符合既有「必須早於發布遊戲版本」規則，verify 會整批停止，不能改來源或 provenance 來繞過。
+此時必須依原第 5a 步由獨立審查者（也就是和撰寫說明不同的 AI 執行環境）完成 damage profile 抽查、記錄逐筆證據並確認一致，才可執行下一區塊。抽查不足／不一致、保留或排除項目需要人工決策、譯名衝突未能確定，均停止交給使用者。單項保留仍須通過最終 schema；目前暫時允許 retainedFrom 與發布檔頭為同版本，只禁止比檔頭新；SYP-420 完成時恢復必須早於發布遊戲版本的規則。
 
 ```powershell
 # 僅在原第 5a 步抽查完成且一致後執行。
@@ -298,4 +304,4 @@ Invoke-RegenGit add -- @repoPaths
 Invoke-RegenGit commit -m 'SYP-403' -m 'fix(data): regenerate the same game version with updated extractors' -m 'zh-TW:' -m '修正(data)：使用更新後的取數腳本重產相同遊戲版本'
 ```
 
-依當次分支／任務更換 commit 的 ticket 與描述，SYP 不記錄工時。hook 失敗立即停止，保留現場交給使用者，不繞過。若搬回中斷，不可重做 baseline 或盲目重試初始化；交由使用者依外部完整 staging 與原始雜湊確認恢復。最後沿原第 8 步格式回報；本獨立路徑不 push。
+依當次分支／任務更換 commit 的 ticket 與描述，SYP 不記錄工時。hook 失敗立即停止，保留現場交給使用者，不繞過。若搬回中斷，不可重做 baseline 或盲目重試初始化；交由使用者依外部完整 staging 與原始雜湊確認恢復。確認第 5a 步已由獨立審查者抽查並通過，最後沿原第 8 步格式回報；本獨立路徑不 push。

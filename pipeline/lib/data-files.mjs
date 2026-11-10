@@ -23,6 +23,11 @@ function parse(text, schema) {
 }
 const result = (errors) => ({ valid: errors.length === 0, errors });
 
+export function checkDataFileShape(category, value) {
+  if (!CATEGORIES.includes(category)) throw new Error(`Unknown category ${category}`);
+  return result(schemas.validate(`${category}.schema.json`, value).errors);
+}
+
 export function checkDataFile(category, text, versionItems) {
   if (!CATEGORIES.includes(category)) throw new Error(`Unknown category ${category}`);
   const { errors, value } = parse(text, `${category}.schema.json`);

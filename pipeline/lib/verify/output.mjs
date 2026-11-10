@@ -25,7 +25,7 @@ export function verifyMerged(loaded, categories, rows, checker = checkDataFile, 
       const categoryRows = rows.filter((r) => r.category === category);
       let data;
       try { data = composeFinal({ category, status: categories[category].status, candidate: entry.candidate,
-        previous: entry.previous, rows: categoryRows, version: version ?? entry.candidate, targetSchemaVersion }); }
+        extract: entry.extract, previous: entry.previous, rows: categoryRows, version: version ?? entry.candidate, targetSchemaVersion }); }
       catch (error) {
         if (!error.message.includes('schemaVersion')) throw error;
         return { merged, errors: [{ code: 'SCHEMA_VERSION_MISMATCH', category, path: '/schemaVersion', message: error.message }] };
@@ -41,16 +41,20 @@ export function verifyMerged(loaded, categories, rows, checker = checkDataFile, 
         if (!Array.isArray(item?.errata) || !item.errata.some(entry => entry?.anchor?.itemId !== undefined)) continue;
         const row = selected[index];
         for (const error of checkErrata(item, versionItems)) {
-          if (row?.decision === 'pass') {
-            row.failures.push(failure('output', 'O_MERGED_INVALID', error.path, error.message));
+          if (['pass', 'combined'].includes(row?.decision)) {
+            const issue = failure('output', 'O_MERGED_INVALID', error.path, error.message);
+            if (row.decision === 'combined') row.combinationFailures.push(issue);
+            row.failures.push(issue);
             decide(row, entry.previous); changed = true;
           } else errors.push({category, path:`/items/${index}${error.path}`, message:error.message});
         }
       }
       for (const error of checker(category, stringifyCanonical(data), versionItems).errors) {
         const index = itemIndex(error.path), row = index === undefined ? null : selected[Number(index)];
-        if (row?.decision === 'pass') {
-          row.failures.push(failure('output', 'O_MERGED_INVALID', error.path.replace(/^\/items\/\d+/, ''), validationMessage(error.message)));
+        if (['pass', 'combined'].includes(row?.decision)) {
+          const issue = failure('output', 'O_MERGED_INVALID', error.path.replace(/^\/items\/\d+/, ''), validationMessage(error.message));
+          if (row.decision === 'combined') row.combinationFailures.push(issue);
+          row.failures.push(issue);
           decide(row, entry.previous); changed = true;
         } else errors.push({ category, path: error.path, message: validationMessage(error.message) });
       }

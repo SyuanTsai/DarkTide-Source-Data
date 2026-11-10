@@ -23,6 +23,8 @@ const old = { gameVersion: '1.1.0', sourceCommit: 'b'.repeat(40), textBatch: 'ba
 const json = async (path, value) => writeFile(path, stringifyCanonical(value));
 const retainedFile = (file) => ({ ...file, ...meta, items: file.items.map((item) => retainItem(item, file)) });
 const strip = ({ explanation, errata, ...item }) => item;
+const combinedExpected = (fresh, previous) => ({ ...structuredClone(fresh), explanation: previous.explanation,
+  errata: previous.errata, ...(previous.citations === undefined ? {} : { citations: previous.citations }) });
 const fakeExec = () => { throw new Error('測試禁止執行外部指令'); };
 
 async function fixture(t) {
@@ -76,7 +78,7 @@ async function fixture(t) {
 const failures = (r, code) => r.report.items.filter((i) => i.failures.some((f) => f.code === code));
 const args = (f) => [cli, '--root', f.root, '--candidate-dir', f.dirs.candidate, '--extract-dir', f.dirs.extract,
   '--previous-dir', f.dirs.previous, '--version-info', f.options.versionInfo, '--translation', f.options.translation,
-  '--issues', 'dry-run', '--mods-commit', 'c'.repeat(40), '--out-dir', f.dirs.out];
+  '--issues', 'off', '--mods-commit', 'c'.repeat(40), '--out-dir', f.dirs.out];
 
 // Scenario: candidate or retained category has a different schema version. Purpose: halt before writing mixed output.
 test('InterT09_合併後 schema 版本不一致停止寫入', async (t) => {
@@ -132,16 +134,20 @@ test('InterT11_未說明項目依上一版保留或排除', async (t) => {
       await stateApi.writeState(state, s);
     }
     const r = await f.run(state ? { state } : {}), row = failures(r, 'V_NOT_DESCRIBED').find((x) => x.id === id);
-    assert.equal(row?.decision, mode === 'new' ? 'excluded' : 'kept-previous');
+    assert.equal(row?.decision, mode === 'new' ? 'excluded' : 'combined');
     assert.deepEqual(row.failures[0], { gate: 'values', code: 'V_NOT_DESCRIBED', path: '/explanation', message: '候選資料缺少此項目，尚未完成說明' });
     assert.equal(r.report.result, 'degraded');
-    assert.deepEqual(r.merged.skills.items.find((x) => x.id === id), mode === 'new' ? undefined : retainItem(f.previous.skills.items.find((x) => x.id === id), f.previous.skills));
+    assert.deepEqual(r.merged.skills.items.find((x) => x.id === id), mode === 'new' ? undefined : combinedExpected(
+      f.extracts.skills.items.find(x => x.id === id), f.previous.skills.items.find(x => x.id === id)));
     assert.equal(Object.hasOwn(r.report.gates.output, 'knownExceptions'), false);
     assert.deepEqual(r.report.gates.output.errors, []);
     if (state) {
       const saved = await stateApi.readState(state);
-      assert.equal(saved.run.items[id].outcome, 'kept-previous');
-      assert.match(saved.run.items[id].reason, /V_NOT_DESCRIBED/);
+      assert.equal(saved.run.items[id].outcome, null);
+      assert.equal(saved.run.items[id].stage, 'verified');
+      assert.equal(saved.run.items[id].reason, null);
+      assert.deepEqual(saved.run.items[id].explanationFrom, old);
+      assert.equal(saved.run.items[id].valuesChanged, false);
     }
   }
 });
@@ -218,7 +224,11 @@ for (const [n, [code, mutate]] of cases.entries()) {
     assert.equal(r.exitCode, 0);
     assert.equal(r.report.result, 'degraded');
     assert.equal(failures(r, code).length, 1, stringifyCanonical(r.report.items));
-    assert.deepEqual(r.merged.skills.items[0], retainItem(f.previous.skills.items[0], f.previous.skills));
+    const whole = ['V_NOT_EXTRACTED', 'V_UNKNOWN_REGRESSION', 'T_ERRATA_MISSING'].includes(code);
+    assert.equal(r.report.items.find(x => x.id === f.previous.skills.items[0].id).decision, whole ? 'kept-previous' : 'combined');
+    assert.deepEqual(r.merged.skills.items[0], whole ? retainItem(f.previous.skills.items[0], f.previous.skills) :
+      combinedExpected(f.extracts.skills.items[0], f.previous.skills.items[0]));
+    if (!whole) assert.deepEqual(r.report.items.find(x => x.id === f.previous.skills.items[0].id).combinationFailures, []);
     assert.deepEqual(r.merged.skills.items.slice(1), f.data.skills.items.slice(1));
     assert.deepEqual(r.merged.terms, f.data.terms);
     assert.equal(Object.hasOwn(r.report.gates.output, 'knownExceptions'), false);
@@ -383,8 +393,15 @@ test('InterT60_狀態通過失敗尚未說明與類別降級', async (t) => {
   const r = await f.run({ state });
   const result = await stateApi.readState(state), ids = f.data.skills.items.map((x) => x.id);
   assert.equal(result.run.items[ids[0]].stage, 'verified');
-  assert.equal(result.run.items[ids[1]].outcome, 'kept-previous');
-  assert.match(result.run.items[ids[1]].reason, /T_PLACEHOLDER/);
+  assert.equal(result.run.items[ids[1]].outcome, null);
+  assert.equal(result.run.items[ids[1]].stage, 'verified');
+  assert.equal(result.run.items[ids[1]].reason, null);
+  assert.deepEqual(result.run.items[ids[1]].explanationFrom, old);
+  assert.equal(result.run.items[ids[1]].valuesChanged, false);
+  const combined = r.report.items.find(row => row.id === ids[1]);
+  assert.equal(combined.decision, 'combined');
+  assert.deepEqual(combined.failures.map(failure => failure.code), ['T_ENGLISH', 'T_PLACEHOLDER']);
+  assert.deepEqual(combined.combinationFailures, []);
   assert.equal(failures(r, 'V_NOT_DESCRIBED').length, 1);
   assert.equal(result.run.categories.terms.status, 'kept-previous');
   const before = await readFile(state, 'utf8');
@@ -516,7 +533,7 @@ test('InterT80_預設上一版索引與暫存輸出清理', async (t) => {
     assert.ok(buildRoot.startsWith(tmpdir())); return { status: 0 };
   } });
   assert.equal(r.report.result, 'degraded');
-  assert.deepEqual(r.merged.skills.items[0], retainItem(f.previous.skills.items[0], f.previous.skills));
+  assert.deepEqual(r.merged.skills.items[0], combinedExpected(f.extracts.skills.items[0], f.previous.skills.items[0]));
   await assert.rejects(readFile(join(buildRoot, 'data', meta.gameVersion, 'skills.json')), { code: 'ENOENT' });
 });
 
@@ -536,14 +553,25 @@ test('InterT82_IO 錯誤不寫狀態', async (t) => {
   await writeFile(state, '{}'); await assert.rejects(f.run({ state }));
 });
 
-// Scenario: one retained item remains structurally invalid. Purpose: halt only after no passing item can be excluded.
+// Scenario: extraction is absent or combination also fails, and whole-item retention remains invalid.
+// Purpose: halt after either fallback path exhausts the usable item shapes.
 test('InterT86_保留上一版仍無法讀取整批停止', async (t) => {
-  const f = await fixture(t);
-  f.previous.skills.items[0].key = '';
-  f.data.skills.items[0].explanation.notes = 'TODO';
-  const r = await f.run();
-  assert.equal(r.exitCode, 3); assert.equal(r.report.gates.output.status, 'halted');
-  assert.ok(r.report.gates.output.errors.length > 0);
+  for (const mode of ['missing-extract', 'invalid-explanation']) {
+    const f = await fixture(t);
+    if (mode === 'missing-extract') {
+      f.previous.skills.items[0].key = '';
+      f.extracts.skills.items.shift();
+    } else f.previous.skills.items[0].explanation.effect = '';
+    f.data.skills.items[0].explanation.notes = 'TODO';
+    const r = await f.run();
+    assert.equal(r.exitCode, 3); assert.equal(r.report.gates.output.status, 'halted');
+    assert.ok(r.report.gates.output.errors.length > 0);
+    if (mode === 'invalid-explanation') {
+      const row = r.report.items.find(item => item.id === f.previous.skills.items[0].id);
+      assert.equal(row.decision, 'kept-previous');
+      assert.ok(row.combinationFailures.some(failure => failure.code === 'T_FORMAT'));
+    }
+  }
 });
 
 // Scenario: each placeholder syntax appears, and unexplained numeric paths include tiers and bars. Purpose: protect the full text rule surface.

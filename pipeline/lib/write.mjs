@@ -11,7 +11,7 @@ import { InputError, readJson, readCandidateBytes, sha256 } from './verify/input
 export class WriteError extends Error {}
 export function parseWriteArgs(args) {
   const names = { root: 'root', state: 'state', 'cloud-dir': 'cloudDir', report: 'report',
-    'candidate-dir': 'candidateDir', 'previous-dir': 'previousDir' }, options = {};
+    'candidate-dir': 'candidateDir', 'extract-dir': 'extractDir', 'previous-dir': 'previousDir' }, options = {};
   for (let i = 0; i < args.length; i += 2) {
     const flag = args[i], key = flag.slice(2);
     if (!flag.startsWith('--') || !Object.hasOwn(names, key)) throw new InputError(`未知參數：${flag}`);
@@ -43,13 +43,14 @@ function checkReportState(run, report) {
     if (item.stage === 'written' && ['updated', 'removed'].includes(item.outcome)) {
       const rows = report.items.filter((row) => row.category === item.category && row.id === id);
       if (report.categories[item.category]?.status !== 'ok' ||
-        (item.change !== 'removed' && item.outcome === 'updated' && (rows.length !== 1 || rows[0].decision !== 'pass'))) throw writtenConflict(id);
+        (item.change !== 'removed' && item.outcome === 'updated' && (rows.length !== 1 || !['pass', 'combined'].includes(rows[0].decision)))) throw writtenConflict(id);
       continue;
     }
     if (report.categories[item.category]?.status !== 'ok' || item.stage === 'written' || item.change === 'removed') continue;
     const rows = report.items.filter((row) => row.category === item.category && row.id === id);
-    if (rows.length !== 1 || !((rows[0].decision === 'pass' && item.outcome === null && item.stage === 'verified') ||
+    if (rows.length !== 1 || !((['pass', 'combined'].includes(rows[0].decision) && item.outcome === null && item.stage === 'verified') ||
       (['kept-previous', 'excluded'].includes(rows[0].decision) && item.outcome === 'kept-previous'))) throw inconsistent();
+    if (rows[0].decision === 'combined' && (!item.explanationFrom || typeof item.valuesChanged !== 'boolean')) throw inconsistent();
   }
 }
 async function safeJson(path, label, optional = false) {
@@ -68,7 +69,7 @@ function updateCategory(state, category, info, rows) {
       if (item.stage === 'described') next = advanceItem(next, id, 'verified');
       next = advanceItem(next, id, 'written');
     } else if (item.stage === 'verified') {
-      if (!rows.some((row) => row.category === category && row.id === id && row.decision === 'pass')) throw inconsistent();
+      if (!rows.some((row) => row.category === category && row.id === id && ['pass', 'combined'].includes(row.decision))) throw inconsistent();
       next = advanceItem(next, id, 'written');
     }
     else throw new WriteError(`項目尚未通過檢查，請重跑 verify：${id}`);
@@ -77,6 +78,7 @@ function updateCategory(state, category, info, rows) {
 }
 export function writeSummary(run, report, final) {
   const lines = [];
+  lines.push(`組合採用 ${report.items.filter(row => row.decision === 'combined').length}／退回 ${report.items.filter(row => row.decision === 'kept-previous' && row.combinationFailures?.length).length}`);
   for (const category of CATEGORIES) {
     lines.push(`${category}：寫入 ${final[category].items.length} 項`);
     const kept = final[category].items.filter((item) => item.retainedFrom);
@@ -150,6 +152,14 @@ export async function runWrite(inputOptions = {}) {
   const legacyReport = !Object.hasOwn(report, 'targetSchemaVersion');
   for (const category of CATEGORIES) {
     const previous = previousDir && previousDir !== 'none' ? (await safeJson(join(previousDir, `${category}.json`), `上一版/${category}.json`, true))?.value : null;
+    let extract;
+    if (report.items.some(row => row.category === category && row.decision === 'combined')) {
+      const bytes = await readCandidateBytes(join(inputOptions.extractDir ?? join(candidateDir, '..', 'extract'), `${category}.json`));
+      if (bytes === null || sha256(bytes) !== report.categories[category].extractSha256)
+        throw new WriteError('extract 在檢查後已變動，請重跑 node pipeline/verify.mjs');
+      try { extract = JSON.parse(bytes.toString('utf8')); }
+      catch { throw new WriteError(`extract JSON 無法解析：${category}`); }
+    }
     try {
       // Legacy verify approved each category's original schema, never a promotion.
       // Only a new verify report can authorize the current release target.
@@ -162,7 +172,7 @@ export async function runWrite(inputOptions = {}) {
         candidates[category]?.schemaVersion !== previous?.schemaVersion)
         throw new Error('保留項目的 schemaVersion 與候選資料不一致');
       final[category] = composeFinal({ category, status: report.categories[category].status,
-        candidate: candidates[category], previous, rows: report.items, version: run, targetSchemaVersion });
+        candidate: candidates[category], extract, previous, rows: report.items, version: run, targetSchemaVersion });
     }
     catch (error) { throw new WriteError(error.message); }
     for (const [id, item] of Object.entries(run.items)) {
