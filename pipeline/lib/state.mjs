@@ -68,7 +68,7 @@ export function registerItem(s, id, info) {
   if (!items[id] || items[id].inputHash !== info.inputHash)
     items[id] = { ...info, stage: 'extracted', outcome: null, reason: null };
   const marker = n.retainedExplanations?.[id];
-  if (marker) Object.assign(items[id], { explanationFrom: structuredClone(marker.explanationFrom), valuesChanged: marker.valuesChanged });
+  if (marker) Object.assign(items[id], { explanationFrom: structuredClone(marker.explanationFrom), valuesChanged: marker.valuesChanged, officialChanged: marker.officialChanged ?? false });
   return n;
 }
 

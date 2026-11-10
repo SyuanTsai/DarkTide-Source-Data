@@ -6,6 +6,7 @@ import { stringifyCanonical, writeCanonicalFile } from './canonical-json.mjs';
 import { readState, writeState, advanceItem, keepPrevious, completeRun } from './state.mjs';
 import { resolveCloudRoot } from './cloud-dir.mjs';
 import { composeFinal } from './verify/compose.mjs';
+import { decisionSha256 } from './verify/report.mjs';
 import { InputError, readJson, readCandidateBytes, sha256 } from './verify/input.mjs';
 
 export class WriteError extends Error {}
@@ -35,6 +36,11 @@ function checked(check, label) {
 const inconsistent = () => new WriteError('檢查報告與狀態檔不一致，請重跑 node pipeline/verify.mjs');
 const writtenConflict = (id) => new WriteError(`已寫入的項目 ${id} 與新的檢查報告衝突：請把該項目的說明改回能通過檢查的內容後重跑 verify`);
 function checkReportState(run, report) {
+  for (const row of report.items.filter(row => row.decision === 'combined')) {
+    if ((row.officialChanged === true && typeof row.lockedEffect !== 'string') ||
+      typeof report.categories[row.category]?.mergedSha256 !== 'string' ||
+      !/^[0-9a-f]{64}$/i.test(report.categories[row.category].mergedSha256)) throw inconsistent();
+  }
   for (const category of CATEGORIES) {
     if (run.categories[category]?.status !== report.categories[category].status ||
       run.categories[category]?.reason !== report.categories[category].reason) throw inconsistent();
@@ -50,7 +56,16 @@ function checkReportState(run, report) {
     const rows = report.items.filter((row) => row.category === item.category && row.id === id);
     if (rows.length !== 1 || !((['pass', 'combined'].includes(rows[0].decision) && item.outcome === null && item.stage === 'verified') ||
       (['kept-previous', 'excluded'].includes(rows[0].decision) && item.outcome === 'kept-previous'))) throw inconsistent();
-    if (rows[0].decision === 'combined' && (!item.explanationFrom || typeof item.valuesChanged !== 'boolean')) throw inconsistent();
+    if (rows[0].decision === 'combined' && (!item.explanationFrom || typeof item.valuesChanged !== 'boolean' || typeof item.officialChanged !== 'boolean' ||
+      (rows[0].officialChanged === true && !item.officialChanged))) throw inconsistent();
+  }
+  for (const category of CATEGORIES) {
+    if (run.reportIntegrity) {
+      const binding = run.reportIntegrity[category];
+      if (!binding || binding.decisionSha256 !== decisionSha256(report.items, category)) throw inconsistent();
+      if (binding.mergedSha256 && (typeof report.categories[category].mergedSha256 !== 'string' ||
+        binding.mergedSha256 !== report.categories[category].mergedSha256.toLowerCase())) throw inconsistent();
+    }
   }
 }
 async function safeJson(path, label, optional = false) {
@@ -105,6 +120,7 @@ export async function runWrite(inputOptions = {}) {
   const run = state.run;
   // A completed run is accepted only as an exact, read-only replay below.
   if (!run || !['running', 'completed', 'halted'].includes(run.status)) throw new InputError('尚無執行中的工作，請先跑 node pipeline/check-version.mjs');
+  if (run.status !== 'completed' && !run.reportIntegrity) throw new InputError('舊狀態缺少檢查報告完整性資料，請用目前版本重跑 verify');
   let base;
   if (!inputOptions.report || !inputOptions.candidateDir) {
     try { base = join(resolveCloudRoot({ override: inputOptions.cloudDir }), run.gameVersion); }
@@ -185,6 +201,8 @@ export async function runWrite(inputOptions = {}) {
   const versionItems = Object.values(final).flatMap(file => file.items ?? []);
   for (const category of CATEGORIES)
     checked(checkDataFile(category, stringifyCanonical(final[category]), versionItems), `${category} 最終資料`);
+  for (const category of CATEGORIES)
+    if (report.categories[category].mergedSha256 && sha256(Buffer.from(stringifyCanonical(final[category]))) !== String(report.categories[category].mergedSha256).toLowerCase()) throw inconsistent();
   if (checkFileConsistency(Object.entries(final).map(([category, value]) => ({ category, value })), ['schemaVersion']).length)
     throw new WriteError('最終資料的 schemaVersion 不一致');
   const index = { schemaVersion: final[CATEGORIES[0]].schemaVersion, gameVersion: run.gameVersion, path: `data/${run.gameVersion}`,

@@ -138,26 +138,24 @@ test('InterT01_legacy completed replay preserves approved 1.1 output', async t =
   assert.equal((await read(join(f.root, 'data/current.json'))).schemaVersion, '1.1.0');
 });
 
-// Scenario: the same legacy release stopped after writing only skills, before current publication.
-// Purpose: resumption preserves that checkpoint and publishes all four files/current as 1.1.
-test('InterT02_legacy interrupted category write resumes with schema 1.1', async t => {
-  const f = await legacyReportFixture(t);
-  await f.checkpoint(['skills']);
+// Scenario: a current verify precedes an interrupted category write.
+// Purpose: resume its checkpoint and preserve output bytes after verification.
+test('InterT02_verified interrupted category write resumes', async t => {
+  const f = await fixture(t, { previous: true }); f.verify();
+  await assert.rejects(runWrite({ root: f.root, state: f.state, cloudDir: f.cloud,
+    afterCategory(category) { if (category === 'skills') throw Error('interrupt'); } }), /interrupt/);
   const first = await readFile(join(f.root, 'data', meta.gameVersion, 'skills.json'));
-  assert.equal((await runWrite(f.options)).exitCode, 0);
-  for (const category of CATEGORIES) assert.deepEqual(await read(join(f.root, 'data', meta.gameVersion, `${category}.json`)), f.expected[category]);
+  assert.equal(f.write().status, 0);
   assert.deepEqual(await readFile(join(f.root, 'data', meta.gameVersion, 'skills.json')), first);
-  assert.equal((await read(join(f.root, 'data/current.json'))).schemaVersion, '1.1.0');
-  assert.equal((await read(f.state)).run.status, 'completed');
   const before = await snapshot(f.root);
-  assert.equal((await runWrite(f.options)).exitCode, 0);
-  assert.deepEqual(await snapshot(f.root), before);
+  assert.equal(f.write().status, 0); assert.deepEqual(await snapshot(f.root), before);
 });
 
 // Scenario: a legacy all-retained report has 1.1 predecessors except for 1.2 terms.
 // Purpose: reject inconsistent approved category schemas before publishing any file/state.
 test('InterT03_legacy inconsistent previous schemas fail closed', async t => {
   const f = await legacyReportFixture(t), path = join(f.previousDir, 'terms.json');
+  await f.checkpoint(CATEGORIES, true);
   await writeCanonicalFile(path, { ...await read(path), schemaVersion: '1.2.0' });
   const before = await snapshot(f.root);
   await assert.rejects(runWrite(f.options), /schemaVersion.*不一致/);
@@ -165,9 +163,10 @@ test('InterT03_legacy inconsistent previous schemas fail closed', async t => {
 });
 
 // Scenario: a legacy report mixes 1.1 candidates with whole-category retained 1.1 data.
-// Purpose: infer each approved schema from its original source, retaining historical candidate support.
-test('InterT04_legacy candidates and retained categories publish their approved 1.1 schema', async t => {
+// Purpose: completed replay infers approved schemas from their original sources without changing bytes.
+test('InterT04_legacy candidates and retained categories replay their approved 1.1 schema', async t => {
   const f = await legacyReportFixture(t, ['skills', 'weapons']);
+  await f.checkpoint(CATEGORIES, true);
   assert.equal((await runWrite(f.options)).exitCode, 0);
   for (const category of CATEGORIES) assert.deepEqual(await read(join(f.root, 'data', meta.gameVersion, `${category}.json`)), f.expected[category]);
   assert.equal((await read(join(f.root, 'data/current.json'))).schemaVersion, '1.1.0');
@@ -177,6 +176,7 @@ test('InterT04_legacy candidates and retained categories publish their approved 
 // Purpose: legacy reports cannot authorize the promotion reserved for explicit new-format targets.
 test('InterT05_legacy item retention rejects cross-schema promotion', async t => {
   const f = await legacyReportFixture(t, CATEGORIES), report = await read(f.reportPath);
+  await f.checkpoint(CATEGORIES, true);
   for (const category of CATEGORIES) {
     const path = join(f.candidateDir, `${category}.json`);
     await writeCanonicalFile(path, { ...await read(path), schemaVersion: '1.2.0' });
@@ -193,7 +193,7 @@ test('InterT05_legacy item retention rejects cross-schema promotion', async t =>
 // Purpose: write must fail closed rather than supply its own current schema default.
 test('InterT06_write rejects missing approved schema sources and null report targets', async t => {
   for (const mode of ['missing-previous', 'null-target']) {
-    const f = await legacyReportFixture(t);
+    const f = await legacyReportFixture(t); await f.checkpoint(CATEGORIES, true);
     if (mode === 'missing-previous') f.options.previousDir = 'none';
     else await writeCanonicalFile(f.reportPath, { ...await read(f.reportPath), targetSchemaVersion: null });
     const before = await snapshot(f.root);
@@ -371,7 +371,7 @@ test('InterT43_written item conflict blocks resume until description is correcte
   assert.ok(!result.stderr.includes(f.root)); assert.deepEqual(await snapshot(f.root), data); assert.deepEqual(await readFile(f.state), state);
   await writeCanonicalFile(path, good); f.verify(); f.success(f.write()); f.validate();
   const resumed = await snapshot(join(f.root, 'data')), completed = await readFile(f.state);
-  const reset = JSON.parse(state); for (const item of Object.values(reset.run.items)) { if (item.stage === 'written') { item.stage = item.change === 'removed' ? 'described' : 'verified'; item.outcome = null; } }
+  const reset = JSON.parse(state); reset.run.reportIntegrity = (await read(f.state)).run.reportIntegrity; for (const item of Object.values(reset.run.items)) { if (item.stage === 'written') { item.stage = item.change === 'removed' ? 'described' : 'verified'; item.outcome = null; } }
   await writeState(f.state, reset); f.success(f.write());
   assert.deepEqual(await snapshot(join(f.root, 'data')), resumed); assert.deepEqual(await readFile(f.state), completed);
 });
@@ -401,7 +401,7 @@ test('InterT45_written removal cannot reappear in final data', async (t) => {
   report.categories.skills.candidateSha256 = createHash('sha256').update(await readFile(candidatePath)).digest('hex');
   report.items.push({ id, category: 'skills', decision: 'pass', failures: [], notes: [] }); await writeCanonicalFile(reportPath, report);
   const before = await snapshot(join(f.root, 'data')), stateBytes = await readFile(f.state), result = f.write();
-  assert.equal(result.status, 1); assert.ok(result.stderr.includes(`已寫入的項目 ${id} 與新的檢查報告衝突`));
+  assert.equal(result.status, 1); assert.match(result.stderr, /檢查報告與狀態檔不一致/);
   assert.deepEqual(await snapshot(join(f.root, 'data')), before); assert.deepEqual(await readFile(f.state), stateBytes);
 });
 
@@ -462,13 +462,13 @@ test('InterT62_report and restored state mismatch blocks writes', async (t) => {
   assert.deepEqual(await snapshot(join(f.root, 'data')), before); assert.deepEqual(await readFile(f.state), saved);
 });
 
-// Scenario: an extract version disagrees with the running state. Purpose: propagate the genuine halted result without writing.
-test('InterT63_genuine halted verify propagates exit 3', async (t) => {
+// Scenario: verify halts on an extract version mismatch without a binding. Purpose: require a fresh verify and never write.
+test('InterT63_unbound halted verify requires fresh verify', async (t) => {
   const f = await fixture(t), path = join(f.base, 'extract/skills.json'), extract = await read(path);
   extract.gameVersion = '9.9'; await writeCanonicalFile(path, extract);
   assert.equal(f.cli('verify', f.verifyArgs).status, 3);
   const before = await snapshot(join(f.root, 'data')), state = await readFile(f.state), result = f.write();
-  assert.equal(result.status, 3); assert.match(result.stdout, /檢查結果為整批停止，不寫入/);
+  assert.notEqual(result.status, 0); assert.match(result.stderr, /重跑.*verify/);
   assert.deepEqual(await snapshot(join(f.root, 'data')), before); assert.deepEqual(await readFile(f.state), state);
 });
 

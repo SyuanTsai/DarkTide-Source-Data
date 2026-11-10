@@ -13,11 +13,11 @@ import { checkText } from './text.mjs';
 import { createCodeNumbers } from './code-numbers.mjs';
 import { effectTaskFor } from '../official-effect.mjs';
 import { loadTextIndex } from '../official-text.mjs';
-import { readJson } from './input.mjs';
+import { readJson, sha256 } from './input.mjs';
 import { parseTranslation, translationConflicts } from './translation.mjs';
 import { decide, verifyMerged, checkOldVersions, writeMerged } from './output.mjs';
 import { execute, handleIssues, stderrTail } from './issues.mjs';
-import { categoryReport, finishReport, makeReport } from './report.mjs';
+import { categoryReport, decisionSha256, finishReport, makeReport } from './report.mjs';
 import { combineItem } from './compose.mjs';
 import { dataFile } from '../candidate.mjs';
 import { checkDataFile } from '../data-files.mjs';
@@ -100,12 +100,18 @@ export async function runVerify(inputOptions) {
       const extracted = entry.extract.items.find(x => x.id === row.id);
       const previous = entry.previous?.items?.find(x => x.id === row.id);
       if (!extracted || !previous) return;
-      const combined = combineItem(extracted, previous);
+      const task = ['skills', 'blessings'].includes(row.category)
+        ? effectTaskFor(extracted, textIndex, entry.extract.effectFormats?.[row.id]) : undefined;
+      const lockedEffect = typeof task?.lockedEffect === 'string'
+        ? task.lockedEffect : undefined;
+      const combined = combineItem(extracted, previous, lockedEffect);
       const schemaErrors = checkDataFile(row.category, stringifyCanonical(dataFile(row.category, version,
         [combined], entry.candidate.schemaVersion)), contextItems.map(item => item?.id === row.id ? combined : item)).errors;
-      const checked = verifyItem(row.category, entry, combined, extracted, previous, schemaErrors, true);
+      const checked = verifyItem(row.category, entry, combined, extracted, previous, schemaErrors, false);
       row.combinationFailures = checked.failures;
       if (!checked.failures.length) {
+        row.officialChanged = lockedEffect !== undefined && lockedEffect !== previous.explanation.effect;
+        if (lockedEffect !== undefined) row.lockedEffect = lockedEffect;
         row.decision = 'combined'; row.notes = checked.notes; row.warnings = checked.warnings;
       } else row.failures.push(...checked.failures);
     };
@@ -134,7 +140,11 @@ export async function runVerify(inputOptions) {
     if (output.targetSchemaVersion) report.targetSchemaVersion = output.targetSchemaVersion;
     merged = output.merged;
     report.gates.output.errors = [...output.errors, ...checkOldVersions(root, input.current)];
-    for (const [category, data] of Object.entries(merged)) report.categories[category].counts.merged = data.items?.length ?? 0;
+    for (const [category, data] of Object.entries(merged)) {
+      report.categories[category].counts.merged = data.items?.length ?? 0;
+      if (report.items.some(row => row.category === category && row.decision === 'combined'))
+        report.categories[category].mergedSha256 = sha256(Buffer.from(stringifyCanonical(data)));
+    }
     if (report.gates.output.errors.length) halt('排除失敗項目後，最終資料或舊版本仍無法讀取', 'output');
     else report.gates.output.status = 'pass';
     // A dry-run never executes git or gh; a caller may supply modsCommit for immutable links.
@@ -155,7 +165,12 @@ export async function runVerify(inputOptions) {
     }
     finishReport(report);
     let state = updatedState(input.state, stateMatches, report);
-    if (stateMatches && report.result !== 'halted') state = trackExplanations(state, loaded, report, merged);
+    if (stateMatches && report.result !== 'halted') {
+      state = trackExplanations(state, loaded, report, merged);
+      state.run.reportIntegrity = Object.fromEntries(Object.entries(report.categories).map(([category, info]) =>
+        [category, { decisionSha256: decisionSha256(report.items, category),
+          ...(info.mergedSha256 ? { mergedSha256: info.mergedSha256 } : {}) }]));
+    }
     if (options.report) await writeCanonicalFile(options.report, report);
     if (options.state && stateMatches) await writeState(options.state, state);
     const writtenWarnings = stateMatches ? report.items.filter((row) => !['pass', 'combined'].includes(row.decision) &&

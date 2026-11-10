@@ -5,8 +5,8 @@ import { stringifyCanonical } from './canonical-json.mjs';
 export const valuesFingerprint = (category, values) => contentHash(category, { values });
 export function retainedExplanations(state) {
   return Object.entries(state.retainedExplanations ?? {}).map(([id, marker]) => ({ id,
-    category: marker.category, explanationFrom: marker.explanationFrom, valuesChanged: marker.valuesChanged }))
-    .sort((a, b) => Number(b.valuesChanged) - Number(a.valuesChanged) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    category: marker.category, explanationFrom: marker.explanationFrom, valuesChanged: marker.valuesChanged, officialChanged: marker.officialChanged ?? false }))
+    .sort((a, b) => (Number(b.valuesChanged) + Number(b.officialChanged)) - (Number(a.valuesChanged) + Number(a.officialChanged)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
 
 // Track the actual selected values, including whole-item/category fallbacks. Never publish these markers.
@@ -22,7 +22,7 @@ export function trackExplanations(state, loaded, report, merged) {
       stringifyCanonical(item.explanation) !== stringifyCanonical(previous.explanation));
     if (rewritten) {
       if (next.retainedExplanations) delete next.retainedExplanations[item.id];
-      if (runItem) { delete runItem.explanationFrom; delete runItem.valuesChanged; }
+      if (runItem) { delete runItem.explanationFrom; delete runItem.valuesChanged; delete runItem.officialChanged; }
       continue;
     }
     const retained = report.categories[category].status === 'kept-previous' ||
@@ -33,9 +33,10 @@ export function trackExplanations(state, loaded, report, merged) {
     };
     const valuesAtExplanation = existing?.valuesFingerprint ?? valuesFingerprint(category, previous.values);
     const marker = { category, explanationFrom, valuesFingerprint: valuesAtExplanation,
-      valuesChanged: valuesFingerprint(category, item.values) !== valuesAtExplanation };
+      valuesChanged: valuesFingerprint(category, item.values) !== valuesAtExplanation,
+      officialChanged: Boolean(existing?.officialChanged || (row?.decision === 'combined' && row.officialChanged)) };
     (next.retainedExplanations ??= {})[item.id] = marker;
-    if (runItem) Object.assign(runItem, { explanationFrom: structuredClone(explanationFrom), valuesChanged: marker.valuesChanged });
+    if (runItem) Object.assign(runItem, { explanationFrom: structuredClone(explanationFrom), valuesChanged: marker.valuesChanged, officialChanged: marker.officialChanged });
   }
   return next;
 }

@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+import { stringifyCanonical } from '../canonical-json.mjs';
 import { compare, params, SCRIPT_VERSION } from './common.mjs';
 
 export function makeReport(version) {
@@ -58,4 +60,10 @@ export function summary(report, issueMode) {
   const warnings = report.items.flatMap((item) => (item.warnings ?? []).map((warning) => `${item.id}：${warning.message}`));
   lines.push(`官方原文 warning：${warnings.length ? warnings.join('；') : '無'}`);
   return `${lines.join('\n')}\n`;
+}
+
+export function decisionSha256(items, category) {
+  const decisions = items.filter(row => row.category === category).map(row => [row.id, row.decision])
+    .sort((a, b) => compare(a[0], b[0]) || compare(a[1], b[1]));
+  return createHash('sha256').update(stringifyCanonical(decisions)).digest('hex');
 }
