@@ -67,9 +67,10 @@ export function checkDataFile(category, text, versionItems) {
     if (x.source?.text && x.source.text.batch !== (retained ? retained.textBatch : value.textBatch))
       add(`${p}/source/text/batch`, retained ? 'Retained batch mismatch' : 'Batch mismatch');
     if (retained) {
+      // TEMPORARY (SYP-403): same-version retention allowed for same-version regeneration. Restore conditions in SYP-420 comment 12724.
       try {
-        if (compareVersions(retained.gameVersion, value.gameVersion) >= 0)
-          add(`${p}/retainedFrom/gameVersion`, 'Retained version must be older');
+        if (compareVersions(retained.gameVersion, value.gameVersion) > 0)
+          add(`${p}/retainedFrom/gameVersion`, 'Retained version must not be newer');
       } catch { /* Schema validation reports malformed versions. */ }
     }
     if (category === 'blessings' && Array.isArray(x.values?.tiers)) {

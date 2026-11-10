@@ -10,6 +10,7 @@ import { compare, failure, itemIndex } from './common.mjs';
 import { InputError, categoryReason, inputHalt, loadInput } from './input.mjs';
 import { checkValues } from './values.mjs';
 import { checkText } from './text.mjs';
+import { createCodeNumbers } from './code-numbers.mjs';
 import { effectTaskFor } from '../official-effect.mjs';
 import { loadTextIndex } from '../official-text.mjs';
 import { readJson } from './input.mjs';
@@ -42,6 +43,7 @@ function updatedState(state, matches, report) {
 }
 
 export async function runVerify(inputOptions) {
+  const codeNumbers = createCodeNumbers({ repo: inputOptions.sourceCodeRepo });
   const root = resolve(inputOptions.root ?? fileURLToPath(new URL('../../../', import.meta.url)));
   const options = { issues: 'off', modsRepo: 'SyuanTsai/Warhammer-40-000-DARKTIDE-Mods', exec: spawnSync,
     ...inputOptions, root };
@@ -85,7 +87,7 @@ export async function runVerify(inputOptions) {
           row.failures.push(failure('values', 'V_NOT_DESCRIBED', '/explanation', '項目仍在取數階段，尚未完成說明'));
         const task = extracted && ['1.1.0', '1.2.0'].includes(entry.extract.schemaVersion) && ['skills', 'blessings'].includes(category)
           ? effectTaskFor(extracted, textIndex, entry.extract.effectFormats?.[id]) : undefined;
-        const text = checkText(item, extracted, allowedNames, report.translationConflicts, table, task?.lockedEffect, candidateItems);
+        const text = checkText(item, extracted, allowedNames, report.translationConflicts, table, task?.lockedEffect, candidateItems, codeNumbers);
         const stateItem = stateMatches ? input.state.run.items[id] : undefined;
         const generated = stateItem ? ['added','changed'].includes(stateItem.change) :
           !previous || JSON.stringify(item.explanation) !== JSON.stringify(previous.explanation) || JSON.stringify(item.citations) !== JSON.stringify(previous.citations);

@@ -83,7 +83,7 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 依 skills、weapons、blessings、terms 順序原子寫入 `<root>/data/<ver>/<category>.json`，每類完成後更新 state checkpoint。removed 項目逐步推進至 written；整類降級的未完成項目記錄 kept-previous 與原因。最後原子寫入 current.json（versions 合集按版本排序），再 completeRun。相同 bytes 不重寫；中斷後可接續。已 completed 的相同輸入僅允許輸出完全相符的唯讀重跑，避免第二次改寫任何檔案。
 
-`retainedFrom: { gameVersion, sourceCommit, textBatch }` 記錄保留項目最早的來源，連續保留不更新此欄位。validate 對這些項目的 source.commit／source.text.batch 比對 retainedFrom，而其 gameVersion 必須早於檔頭；普通項目仍須符合檔頭的 commit／batch。排序、id、anchor、valueRefs 等其餘檢查完全相同。此為選填欄位，既有 1.0.0 資料不需遷移。
+`retainedFrom: { gameVersion, sourceCommit, textBatch }` 記錄保留項目最早的來源，連續保留不更新此欄位。validate 對這些項目的 source.commit／source.text.batch 比對 retainedFrom，而其 gameVersion 暫時允許等於檔頭（同版本重產），仍不可比檔頭新；恢復條件：SYP-420 完成，或改用正式的同版本機制。普通項目仍須符合檔頭的 commit／batch。排序、id、anchor、valueRefs 等其餘檢查完全相同。此為選填欄位，既有 1.0.0 資料不需遷移。
 
 exit 0 表示完成；exit 1 表示候選檔變動、版本倒退、資料驗證或寫入錯誤；exit 2 表示參數、狀態、報告版本或輸入錯誤；halted 報告 exit 3 並印「檢查結果為整批停止，不寫入」。完成後執行 `node pipeline/validate.mjs`。輸出摘要不含時間戳，列出每類項目數、保留項目及原因、保留類別與空檔類別。
 
@@ -202,7 +202,7 @@ node --test tests/pipeline/real-smoke.test.mjs
 - C5：**所有版本**的 errata 一律使用 `{locale,official,corrected,valueRefs,sources,anchor?}`；禁止單數 `valueRef` 與額外 key。valueRefs 為至少一筆 values JSON Pointer，sources 為至少一筆 `{path,line}`；來源針對固定 Source-Code e46b892。anchor 僅含 `field/locale/text/occurrence/itemId?/param?/tier?`，locale 須相同、text 非空、occurrence 為正整數。field 限 `official/name/displayParameter`；displayParameter 必須有 param；blessings 須指定存在的 1..4 tier，先查該階的 params key，再查根層 values.params key，其他項目只查根層 values.params key。其他 field 禁止 param、tier。itemId 須符合 item id pattern，目標存在於同版本任一類別；valueRefs 改在該目標的 values 解析。displayParameter 的 text 以查得的指定 param 顯示值定位。verify 仍拒絕未知參數、無官方數字差異或無法由引用值推導的勘誤。舊 examples 的單數 valueRef 已遷移，正式資料無 errata，未變動。
 - C6：沿原 key/name/official/values/aliases fingerprint，只有存在 source.codeRefs 時才額外加入 `{codeRefs:{refId:sha256}}`，使用 canonical JSON。沒有 codeRefs 的 item 雜湊保持逐位元相同；source.files、valueSources 與其行號不納入。
 
-AI I/O 的外層 schemaVersion 仍為 `1.0.0`；AI input 增加選填 `dataSchemaVersion`，新輸入明示資料版本，並保留 item 的 values/source 與 previous 的 citations。AI output 新增同形狀選填 citations，errata 使用 C5，effectOrigin 仍由 pipeline 決定。candidate/write 原樣傳遞 citations 與 errata；state 仍只記錄階段、結果與 inputHash。數字掃描可使用兩層 mechanics 推導說明數字；T_COVERAGE 只檢查 params 與 tiers[].params。來源行號與 sha256 不可供說明引用。
+AI I/O 的外層 schemaVersion 仍為 `1.0.0`；AI input 增加選填 `dataSchemaVersion`，新輸入明示資料版本，並保留 item 的 values/source 與 previous 的 citations。AI output 新增同形狀選填 citations，errata 使用 C5，effectOrigin 仍由 pipeline 決定。candidate/write 原樣傳遞 citations 與 errata；state 仍只記錄階段、結果與 inputHash。數字掃描可使用兩層 mechanics 推導說明數字；T_NUMBER 另接受同段 citation 的 valueRefs 所指有限數字，經單層的 1±x、x^n、(1+x)^n、兩數相加或相乘及一次百分比換算得到的結果；指數 n 須是同段引用的 2 至 20 整數。也接受同段 codeRefs 所指固定 commit 的完整 symbol 中的 Lua 數字字面量或其百分比，須先核對 sha256 並排除註解。缺少 citation、來源或雜湊不符時不適用新規則。T_DIRECTION 不變；T_COVERAGE 只檢查 params 與 tiers[].params。來源行號與 sha256 不可供說明引用。
 
 #### 固定 mechanics 取數（SYP-403）
 
