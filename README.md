@@ -6,7 +6,7 @@
 node --test tests/pipeline/
 ```
 
-舊 authoring／W09 系統已於 SYP-390 移除，可從 Git 歷史取得。遊戲解析產出（舊 generic 匯入資料）存放於 Google 雲端，不放 Git。
+舊 authoring／W09 系統已於 SYP-390 移除，可從 Git 歷史取得。遊戲解析產出（原路徑為 `content → imports → generic`）存放於 Google 雲端，不放 Git。
 
 ## Public boundary
 
