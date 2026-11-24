@@ -699,7 +699,10 @@ class Parser {
         if(reference)out._cloneReference=reference;
         out.entries=n.entries.map(e=>({...e,value:copy(e.value)}));copies.delete(n);return out;
       };
-      return node.ref==='table.shallow_copy'?{...source,entries:source.entries.map(e=>({...e}))}:copy(source);
+      const clone=node.ref==='table.shallow_copy'?{...source,entries:source.entries.map(e=>({...e}))}:copy(source);
+      // Profile declarations use the outer clone call as separate provenance.
+      clone._cloneCall={path:this.filename,line:node.startLine};
+      return clone;
     }
     // foundation/utilities/math.lua binds this helper to math.rad.
     if(this.staticArithmetic&&node.ref==='math.degrees_to_radians'&&node.args.length===1&&!this.environment.has('math')&&this.options.mathRadiansVerified) {

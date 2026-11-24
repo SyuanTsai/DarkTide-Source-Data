@@ -55,17 +55,21 @@ export function createDamageProfileExtractor({lookup,resolve,field,component,ann
     function record(name,source) {
       if(records.has(name))return records.get(name);
       const declared=definition('damage',name),node=resolve(lookup('damage',name));
-      const p={id:name,distributions:[],bindings:[],unknown:null,source:location(declared?.node??node,source)};
+      const declaration=declared?.node??node;
+      const declarationSource=location(declaration,source);
+      // A reference registers an existing profile at its own declaration site.
+      const cloneCall=declaration?.type==='table'?declaration._cloneCall:null;
+      const p={id:name,distributions:[],bindings:[],unknown:null,source:cloneCall??declarationSource};
       records.set(name,p);
       const add=(scope,target)=>{
         const normal=get(scope,'power_distribution'),ranged=get(scope,'power_distribution_ranged');
         if(normal) {
-          const at=location(normal,location(scope,p.source));
+          const at=location(normal,location(scope,declarationSource));
           p.distributions.push({target,range:null,attack:raw(get(normal,'attack'),at),impact:raw(get(normal,'impact'),at)});
           if(unknownKey(resolve(normal)))problem('DAMAGE_PROFILE_UNKNOWN','DYNAMIC_VALUE',at,{profile:name});
         }
         if(ranged)for(const range of ['near','far']) {
-          const at=location(ranged,location(scope,p.source));
+          const at=location(ranged,location(scope,declarationSource));
           p.distributions.push({target,range,attack:raw(get(get(ranged,'attack'),range),at),impact:raw(get(get(ranged,'impact'),range),at)});
         }
       };
@@ -82,7 +86,7 @@ export function createDamageProfileExtractor({lookup,resolve,field,component,ann
       } else p.unknown=node?'DYNAMIC_VALUE':'NOT_VERIFIED';
       if(!p.distributions.length) {
         p.unknown??='NOT_EXPOSED_BY_SOURCE';
-        const unknown={kind:'unknown',min:null,max:null,unknown:p.unknown,source:location(node,p.source)};
+        const unknown={kind:'unknown',min:null,max:null,unknown:p.unknown,source:location(node,declarationSource)};
         p.distributions.push({target:null,range:null,attack:{...unknown},impact:{...unknown}});
       }
       if(p.unknown) {

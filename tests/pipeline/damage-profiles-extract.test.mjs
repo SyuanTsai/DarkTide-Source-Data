@@ -87,6 +87,19 @@ return hit_scan_templates`,
   assert.ok(missing.problems.some(p=>p.action==='hip'&&p.reason==='NOT_VERIFIED'));
 });
 
+test('Missing power_level in a cloned hitScan template keeps the parent source',()=>{
+  const file=projectile+'hit_scan_templates.lua';
+  const extra={[file]:`local hit_scan_templates={
+  hip={damage={impact={damage_profile="ranged"}}},
+}
+hit_scan_templates.copy=table.clone(hit_scan_templates.hip)
+return hit_scan_templates`};
+  const {profiles,files}=run({extra,actions:weapon.replace('HitScanTemplates.hip','HitScanTemplates.copy')});
+  const binding=profiles.find(p=>p.id==='ranged').bindings.find(b=>b.action==='hip');
+  assert.deepEqual(binding.powerLevel,{value:null,unknown:'NOT_EXPOSED_BY_SOURCE',source:{path:file,line:2}});
+  assert.ok(files.some(f=>f.path===file&&f.line===2));
+});
+
 // Scenario: ordered overrides replace a whole distribution before a final scalar write.
 // Purpose: prevent deep-merging a removed impact field or reverting to an earlier attack.
 test('UnitT30_overrides apply in order and replace whole tables',()=>{
@@ -105,6 +118,232 @@ test('UnitT32_override traversal never mutates aliased parent tables',()=>{
   const {profiles}=run({definitions,actions});
   assert.equal(profiles.find(p=>p.id==='base').distributions[0].attack.min,10);
   assert.equal(profiles.find(p=>p.id==='replaced').distributions[0].attack.min,7);
+});
+
+test('UnitT33_profile sources identify own declarations after cloning and field writes',()=>{
+  const definitions=`local damage_templates={
+  parent =
+    {power_distribution={attack=10,impact=3}},
+}
+damage_templates.pure = table.clone(damage_templates.parent)
+damage_templates.modified =
+  table.clone(damage_templates.parent)
+damage_templates.modified.power_distribution.attack = 20
+local local_copy = table.clone(damage_templates.parent)
+damage_templates.registered = local_copy
+return damage_templates`;
+  const actions=`local D=require("scripts/settings/damage/damage_profile_templates")
+local weapon_template={actions={
+  base={damage_profile=D.parent},
+  pure={damage_profile=D.pure},
+  modified={damage_profile=D.modified},
+  registered={damage_profile=D.registered},
+}}
+return weapon_template`;
+  const {profiles,problems}=run({definitions,actions});
+  const resolve=id=>profiles.find(profile=>profile.id===id);
+  assert.deepEqual(resolve('pure').source,{path:damage,line:5});
+  assert.deepEqual(resolve('modified').source,{path:damage,line:7});
+  assert.deepEqual(resolve('parent').source,{path:damage,line:3});
+  assert.deepEqual(resolve('registered').source,{path:damage,line:10});
+  assert.deepEqual(resolve('pure').distributions[0].attack.source,{path:damage,line:3});
+  assert.deepEqual(resolve('modified').distributions[0].attack.source,{path:damage,line:8});
+  assert.deepEqual(['parent','pure','modified'].map(id=>resolve(id).distributions[0].attack.min),[10,10,20]);
+  assert.deepEqual(problems,[]);
+});
+
+test('UnitT34_cloned override source identifies the declaration in the required module',()=>{
+  const file='profiles.lua';
+  const definitions=`local WeaponTweaks=require("scripts/utilities/weapon_tweaks")
+local damage_templates={}
+WeaponTweaks.extract_weapon_tweaks("profiles",damage_templates,{})
+return damage_templates`;
+  const extra={
+    'scripts/utilities/weapon_tweaks.lua':readFileSync(new URL('./fixtures/review6/weapon_tweaks.lua',import.meta.url),'utf8'),
+    [file]:`local damage_templates={base={power_distribution={attack=10,impact=3}}}
+local overrides={}
+overrides.parent={parent_template_name="base",overrides={{"power_distribution","attack",7}}}
+overrides.copy=table.clone(overrides.parent)
+return {base_templates=damage_templates,overrides=overrides}`,
+  };
+  const {profiles,problems}=run({definitions,actions:only('copy'),extra});
+  assert.deepEqual(profiles[0].source,{path:file,line:4});
+  assert.equal(profiles[0].distributions[0].attack.min,7);
+  assert.deepEqual(problems,[]);
+});
+
+test('Clone helpers use the calling file and keep imported attack sources',()=>{
+  const parent='parent.lua';
+  const extra={[parent]:`return {
+  power_distribution={
+    attack=10,impact=3
+  }
+}`};
+  for(const helper of ['clone','clone_instance','shallow_copy']) {
+    const definitions=`local parent=require("parent")
+local damage_templates={}
+damage_templates.copy =
+  table.${helper}(
+    parent
+  )
+return damage_templates`;
+    const {profiles:[profile],problems}=run({definitions,actions:only('copy'),extra});
+    assert.deepEqual(profile.source,{path:damage,line:4},helper);
+    assert.deepEqual(profile.distributions[0].attack.source,{path:parent,line:3},helper);
+    assert.equal(profile.distributions[0].attack.min,10,helper);
+    assert.deepEqual(problems,[],helper);
+  }
+});
+
+test('Whole-table clone preserves the nested profile clone call source',()=>{
+  const definitions=`local damage_templates={parent={power_distribution={attack=10,impact=3}}}
+damage_templates.copy=table.clone(damage_templates.parent)
+local templates=table.clone(damage_templates)
+return templates`;
+  const {profiles,files}=run({definitions,actions:only('copy')});
+  assert.deepEqual(profiles[0].source,{path:damage,line:2});
+  assert.ok(files.some(f=>f.path===damage&&f.line===2));
+});
+
+test('Table merge preserves the profile clone call source',()=>{
+  const definitions=`local source={parent={power_distribution={attack=10,impact=3}}}
+source.copy=table.clone(source.parent)
+local damage_templates={}
+table.merge(damage_templates,source)
+return damage_templates`;
+  const {profiles,files}=run({definitions,actions:only('copy')});
+  assert.deepEqual(profiles[0].source,{path:damage,line:2});
+  assert.ok(files.some(f=>f.path===damage&&f.line===2));
+});
+
+test('Table merge preserves the clone declaration and value sources after a dynamic write',()=>{
+  const definitions=`local base={power_distribution={attack=10,impact=3}}
+local source={}
+source.p=table.clone(base)
+source[runtime_profile_name]={power_distribution={attack=20,impact=6}}
+local damage_templates={}
+table.merge(damage_templates,source)
+return damage_templates`;
+  const {profiles:[profile],problems,files}=run({definitions,actions:only('p')});
+  const source={path:damage,line:3};
+  assert.equal(profile.unknown,'DYNAMIC_VALUE');
+  assert.deepEqual(profile.distributions[0].attack.source,{path:damage,line:1});
+  assert.deepEqual({
+    profile:profile.source,
+    problem:problems.find(p=>p.code==='DAMAGE_PROFILE_UNKNOWN'&&p.profile==='p'&&p.reason==='DYNAMIC_VALUE')?.source,
+    files:[...new Set(files.filter(f=>f.path===damage).map(f=>f.line))],
+  },{profile:source,problem:source,files:[3,1]});
+});
+
+test('Dynamic registry keys retain a known clone declaration and fall back for unsupported lookups',()=>{
+  const assignment=`local base={power_distribution={attack=10,impact=3}}; local damage_templates={}
+damage_templates.p=table.clone(base)
+damage_templates[runtime_profile_name]={power_distribution={attack=20,impact=6}}
+return damage_templates`;
+  const constructor=`local damage_templates={
+  p={power_distribution={attack=10,impact=3}},
+  [runtime_profile_name]={power_distribution={attack=20,impact=6}},
+}
+return damage_templates`;
+  for(const [definitions,line,sourceLines] of [[assignment,2,[2,1]],[constructor,1,[1]]]) {
+    const {profiles:[profile],problems,files}=run({definitions,actions:only('p')});
+    const source={path:damage,line};
+    assert.equal(profile.unknown,'DYNAMIC_VALUE');
+    assert.deepEqual(profile.distributions[0].attack.source,{path:damage,line:1});
+    assert.deepEqual({
+      profile:profile.source,
+      problem:problems.find(p=>p.code==='DAMAGE_PROFILE_UNKNOWN'&&p.profile==='p'&&p.reason==='DYNAMIC_VALUE')?.source,
+      files:[...new Set(files.filter(f=>f.path===damage).map(f=>f.line))],
+    },{profile:source,problem:source,files:sourceLines});
+  }
+});
+
+test('Merging a dynamic key into a cloned registry keeps the lookup source',()=>{
+  const definitions=`local base={p={power_distribution={attack=10,impact=3}}}
+local damage_templates=table.clone(base)
+table.merge(damage_templates,{[runtime_profile_name]={power_distribution={attack=20,impact=6}}})
+return damage_templates`;
+  const {profiles:[profile],problems,files}=run({definitions,actions:only('p')});
+  const source={path:damage,line:1};
+  assert.equal(profile.unknown,'DYNAMIC_VALUE');
+  assert.deepEqual(profile.source,source);
+  assert.deepEqual(profile.distributions[0].attack.source,source);
+  assert.deepEqual(profile.distributions[0].impact.source,source);
+  assert.deepEqual(problems.find(p=>p.code==='DAMAGE_PROFILE_UNKNOWN'&&p.profile==='p')?.source,source);
+  assert.deepEqual([...new Set(files.filter(f=>f.path===damage).map(f=>f.line))],[1]);
+});
+
+for(const [registration,definitions,line,valueLine=line] of [
+  ['reference assignment',`local base={power_distribution={attack=10,impact=3}}
+local damage_templates={}
+damage_templates.p=base`,4],
+  ['reference in a table literal',`local base={power_distribution={attack=10,impact=3}}
+local damage_templates={
+  p=base}`,4],
+  ['table literal value',`local damage_templates={}
+damage_templates.p =
+  {power_distribution={attack=10,impact=3}}`,3],
+  // The conditional write invalidates the old table in place, so its clone call remains the source.
+  ['clone value',`local base={power_distribution={attack=10,impact=3}}
+local damage_templates={}
+damage_templates.p =
+  table.clone(base)`,4,1],
+]) {
+  test(`Conditional overwrite uses the fallback source for a ${registration}`,()=>{
+    const {profiles:[profile],problems,files}=run({
+      definitions:`${definitions}
+if runtime then
+  damage_templates.p={power_distribution={attack=20,impact=6}}
+end
+return damage_templates`,
+      actions:only('p'),
+    });
+    const source={path:damage,line};
+    assert.equal(profile.unknown,'DYNAMIC_VALUE');
+    assert.deepEqual(profile.distributions[0].attack.source,{path:damage,line:valueLine});
+    assert.deepEqual({
+      profile:profile.source,
+      problem:problems.find(p=>p.code==='DAMAGE_PROFILE_UNKNOWN'&&p.profile==='p'&&p.reason==='DYNAMIC_VALUE')?.source,
+      files:[...new Set(files.filter(f=>f.path===damage).map(f=>f.line))],
+    },{profile:source,problem:source,files:[...new Set([line,valueLine])]});
+  });
+}
+
+test('Imported clone keeps its call source after table.make_unique',()=>{
+  const file='profiles.lua';
+  const definitions=`local WeaponTweaks=require("scripts/utilities/weapon_tweaks")
+local templates={}
+WeaponTweaks.extract_weapon_tweaks("profiles",templates,{})
+return settings("DamageProfileTemplates",templates)`;
+  const extra={
+    'scripts/utilities/weapon_tweaks.lua':readFileSync(new URL('./fixtures/review6/weapon_tweaks.lua',import.meta.url),'utf8'),
+    [file]:`local damage_templates={}
+local overrides={}
+table.make_unique(damage_templates)
+table.make_unique(overrides)
+damage_templates.base={power_distribution={attack=10,impact=3}}
+damage_templates.copy=table.clone(damage_templates.base)
+return {base_templates=damage_templates,overrides=overrides}`,
+  };
+  const {profiles:[profile],files}=run({definitions,actions:only('copy'),extra});
+  assert.deepEqual(profile.source,{path:file,line:6});
+  assert.deepEqual(profile.distributions[0].attack.source,{path:file,line:5});
+  assert.ok(files.some(f=>f.path===file&&f.line===6));
+});
+
+test('Cloned profile with dynamic fields keeps its clone call source',()=>{
+  const definitions=`local base={power_distribution={attack=10,impact=3},[runtime_field]={}}
+local damage_templates={}
+damage_templates.p=table.clone(base)
+return damage_templates`;
+  const {profiles:[profile],problems,files}=run({definitions,actions:only('p')});
+  assert.equal(profile.unknown,'DYNAMIC_VALUE');
+  assert.equal(profile.distributions[0].attack.unknown,'DYNAMIC_VALUE');
+  assert.equal(profile.distributions[0].impact.unknown,'DYNAMIC_VALUE');
+  const source={path:damage,line:3};
+  assert.deepEqual(profile.source,source);
+  assert.ok(files.some(f=>f.path===source.path&&f.line===source.line));
+  assert.ok(problems.some(p=>p.code==='DAMAGE_PROFILE_UNKNOWN'&&p.profile==='p'&&p.reason==='DYNAMIC_VALUE'));
 });
 
 // Scenario: WeaponTweaks.create_new receives a proven row of zero or one element.
