@@ -240,6 +240,8 @@ $pending = @(Invoke-RegenNode pipeline/diff.mjs --state $state --cloud-dir $clou
 $pending | Select-Object id,input,output
 ```
 
+**只有使用者要求重寫沿用說明（SYP-420）時**，從 `node pipeline/retained-explanations.mjs --state $state` 的查詢結果篩選本批要改寫的 ID，將 ID 字串陣列存成外部工作目錄中的 `ids.json`，再於上方第一個 diff 指令末尾加上 `--rewrite-retained <ids.json>`（代入實際檔案路徑）。清單一經使用，同一輪只能維持或擴大。`run.rewriteRetained` 中仍有登記的 ID 都必須保留，包括已到 `written` 的項目。verify 已清除沿用標記、類別缺少 extract 或結構不符時也適用。從未用過此參數的 run 維持一般 diff 行為。擴大清單、重跑 diff 或改動任何 output 後，write 前必須重跑 verify。verify 通過後請勿撤回或改回舊的 output。若要放棄改寫，請重新建立重產工作目錄。
+
 diff 的前版指向 repo `data/`；後續所有 candidate／verify／write 的回退則使用未變的 `$prev`。檢查四類 extract 版本一致、來源 metadata、added/changed/removed/unchanged 與預期相符；結果出乎預期、來源不一致或腳本失敗時停止交給使用者。
 
 ### 重產 C：沿原第 4 步寫說明

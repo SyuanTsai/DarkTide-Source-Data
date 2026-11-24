@@ -34,6 +34,7 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 | `--pending` | 只列待寫說明及輸入／輸出路徑 |
 | `--json` | 搭配 `--pending` 輸出 JSON |
 | `--mark-described <id>` | 驗證 AI 輸出的 schema、id、inputHash 與資料結構後，推進至 described |
+| `--rewrite-retained <ids.json>` | 將清單指定的沿用說明納入本次改寫 |
 
 輸出為 `<cloud>/<ver>/extract/`、`diff/diff.json`、`ai/input/<itemFileName(id)>`；AI 將說明寫入 `ai/output/<itemFileName(id)>`。exit 0 表示成功（可包含缺檔或類別結構降級），exit 1 表示參數、狀態、IO 或驗證失敗。
 
@@ -79,6 +80,14 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 後續 diff／fingerprint 照發布資料中的新 values 與既有 key／name／official／aliases／codeRefs 雜湊判斷變動；沿用說明或 state 標記本身不會造成 changed。valuesChanged 僅表示 values 與該份說明基準有差異，不代表本輪 diff 的 changed。
 
 唯讀查詢：`node pipeline/retained-explanations.mjs`，或 `node pipeline/retained-explanations.mjs --state <外部 state.json>`。輸出所有說明沿用中的 id、類別、explanationFrom、valuesChanged、officialChanged（JSON）；兩者皆 true 最前，任一 true 次之，再依 id，無需 cloud 或執行中的 run，也不寫入任何檔案。SYP-420 時優先處理 valuesChanged 或 officialChanged 的項目，並確認這份清單已經清空。
+
+要重新撰寫指定的沿用說明，執行 diff 時加上 `--rewrite-retained <ids.json>`。清單必須是可讀取、格式正確的 JSON 檔，內容為至少一個非空字串 ID 的陣列，且 ID 不得重複。每個 ID 須有 state 的 `retainedExplanations` 標記，或已記錄在 `run.rewriteRetained` 中。沿用標記的類別須與 ID 相符。該類別本輪 diff 的狀態須為 `ok`，且項目須為 `unchanged` 或 `changed`。驗證不符時，diff 會在寫入 state 或中間檔前失敗。此參數與 `--pending`、`--mark-described` 互斥，請分開執行。
+
+符合條件的 `unchanged` 項目會列為 `changed`，和原本就是 `changed` 的項目一起走一般說明流程。AI input 的 `previous` 包含 repo 資料目前的說明、既有 citations 與 errata。撰寫 output 後以 `--mark-described <id>` 標記，再由 verify 清除實際改寫且通過的一般候選項標記。走組合或退回整筆沿用的項目會保留標記。
+
+選填的 `run.rewriteRetained` 保存本輪所有成功選取的改寫 ID，依 ID 排序且不重複。帶清單的 diff 成功後會合併本次與既有的選取，接續同一輪會保留記錄，開始新一輪時會重設。未帶此參數的 diff 不會更新此欄位，從未用過此參數的 run 維持一般 diff 行為。
+
+清單一經使用，同一輪只能維持或擴大。`run.rewriteRetained` 中仍有登記的 ID 都必須保留，包括已到 `written` 的項目。verify 已清除沿用標記、類別缺少 extract 或結構不符時也適用。若縮減或省略清單而漏掉這些 ID，diff 會在處理類別、移除過期登記及寫入檔案前失敗。擴大清單、重跑 diff 或改動任何 output 後，write 前必須重跑 verify。verify 通過後請勿撤回或改回舊的 output。若要放棄改寫，請重新建立重產工作目錄。
 
 ## 寫入（WP4b）
 
