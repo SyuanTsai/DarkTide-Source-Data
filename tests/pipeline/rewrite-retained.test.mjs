@@ -59,7 +59,7 @@ async function setup(t, gameVersion = meta.gameVersion) {
   const rewrite = ['--rewrite-retained', list];
   const input = id => read(join(base, 'ai/input', itemFileName(id)));
   const report = () => read(join(base, 'diff/diff.json'));
-  return { root, state, cloud, list, data, extract, base, translation, cli, diff, run, rewrite, input, report };
+  return { root, state, cloud, list, data, extract, base, cli, diff, run, rewrite, input, report };
 }
 
 async function snapshot(dir) {
@@ -84,13 +84,13 @@ async function describe(f, overrides = {}) {
   return output;
 }
 
-async function rejectsWithoutWrites(f, args, message, problem) {
+async function rejectsWithoutWrites(f, args, message, ...problems) {
   const stateBefore = await readFile(f.state), cloudBefore = await snapshot(f.cloud);
   const result = f.diff(...args);
   assert.equal(result.status, 1, result.stderr);
   assert.match(result.stderr, /^錯誤：/);
   assert.match(result.stderr, message);
-  if (problem !== undefined) assert.ok(result.stderr.includes(problem), result.stderr);
+  for (const problem of problems) assert.ok(result.stderr.includes(problem), result.stderr);
   assert.deepEqual(await readFile(f.state), stateBefore);
   assert.deepEqual(await snapshot(f.cloud), cloudBefore);
 }
@@ -122,8 +122,7 @@ test('InterT10_selected retained items become changed and enter pending', async 
   await assert.rejects(f.input(unselected), { code: 'ENOENT' });
 });
 
-// Scenario: during same-version regeneration, only one of two selected items receives rewritten output. Purpose: clear the passing rewrite's marker and preserve the fallback's marker.
-test('InterT20_mark-described and verify clear only the passing rewrite marker', async t => {
+async function setupVerifiedRewrite(t) {
   const gameVersion = '1.0';
   const f = await setup(t, gameVersion);
   const sources = [{ path: 'scripts/example.lua', line: 1 }];
@@ -170,9 +169,21 @@ test('InterT20_mark-described and verify clear only the passing rewrite marker',
     citations: [...citations, { section: 'notes', text: notes, codeRefs: [], valueRefs }],
     errata,
   });
-  await writeFile(f.translation, '# 譯名\n');
-  const verified = f.cli('verify', '--root', f.root, '--state', f.state, '--cloud-dir', f.cloud, '--translation', f.translation, '--issues', 'off');
-  assert.equal(verified.status, 0, verified.stderr || verified.stdout);
+  // Verify needs a translation file. Keep the diff glossary absent on both runs.
+  const verifyTranslation = join(f.root, 'verify-translation.md');
+  await writeFile(verifyTranslation, '# 譯名\n');
+  const publishArgs = ['--root', f.root, '--state', f.state, '--cloud-dir', f.cloud];
+  const verify = () => {
+    const result = f.cli('verify', ...publishArgs, '--translation', verifyTranslation, '--issues', 'off');
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+  };
+  verify();
+  return { ...f, gameVersion, output, verify, write: () => f.cli('write', ...publishArgs) };
+}
+
+// Scenario: during same-version regeneration, only one of two selected items receives rewritten output. Purpose: clear the passing rewrite's marker and preserve the fallback's marker.
+test('InterT20_mark-described and verify clear only the passing rewrite marker', async t => {
+  const f = await setupVerifiedRewrite(t);
   const report = await read(join(f.base, 'verify/report.json'));
   const rewritten = report.items.find(item => item.id === skill);
   const fallback = report.items.find(item => item.id === blessing);
@@ -182,11 +193,11 @@ test('InterT20_mark-described and verify clear only the passing rewrite marker',
   assert.equal(state.run.items[skill].stage, 'verified');
   assert.ok(!Object.hasOwn(state.retainedExplanations, skill));
   assert.ok(Object.hasOwn(state.retainedExplanations, blessing));
-  const merged = await read(join(f.base, 'verify/out/data', gameVersion, 'skills.json'));
-  assert.deepEqual(merged.items.find(item => item.id === skill).explanation, { ...output.explanation, effectOrigin: 'official' });
+  const merged = await read(join(f.base, 'verify/out/data', f.gameVersion, 'skills.json'));
+  assert.deepEqual(merged.items.find(item => item.id === skill).explanation, { ...f.output.explanation, effectOrigin: 'official' });
 });
 
-// Scenario: the same list is reused after marking one item described, then omitted. Purpose: preserve bytes and stage on resume and remove unwritten registrations without the option.
+// Scenario: the same list is reused after marking one item described, then omitted. Purpose: preserve bytes and stage on resume and reject omission without removing registrations.
 test('InterT30_repeating the list preserves bytes and described stage', async t => {
   const f = await setup(t);
   f.run(...f.rewrite);
@@ -198,14 +209,45 @@ test('InterT30_repeating the list preserves bytes and described stage', async t 
     assert.deepEqual(await readFile(f.state), stateBefore);
     assert.equal((await read(f.state)).run.items[skill].stage, 'described');
   }
-  f.run();
-  const state = await read(f.state), report = await f.report();
-  assert.ok(report.categories.skills.unchanged.includes(skill));
-  assert.ok(report.categories.blessings.unchanged.includes(blessing));
-  for (const id of [skill, blessing]) {
-    assert.ok(!Object.hasOwn(state.run.items, id));
-    assert.ok(Object.hasOwn(state.retainedExplanations, id));
-  }
+  await rejectsWithoutWrites(f, [], /本輪已選取的沿用說明改寫項目不可移除/, skill, blessing);
+});
+
+// Scenario: a second retained ID is added to the list in the same run. Purpose: allow expansion while preserving the existing described stage.
+test('InterT32_expanding the list keeps the first selection and registers the second', async t => {
+  const f = await setup(t);
+  await save(f.list, [skill]);
+  f.run(...f.rewrite);
+  await describe(f);
+  assert.ok(!Object.hasOwn((await read(f.state)).run.items, blessing));
+  await save(f.list, [skill, blessing]);
+  assert.match(f.run(...f.rewrite), /沿用說明改寫：2 項/);
+  const { items } = (await read(f.state)).run;
+  assert.equal(items[skill].stage, 'described');
+  assert.equal(items[blessing].change, 'changed');
+  assert.equal(items[blessing].stage, 'extracted');
+});
+
+// Scenario: verify clears the marker for a rewritten item before diff repeats with the same list. Purpose: preserve the verified state and publish the new explanation.
+test('InterT35_reuses the verified rewrite list and publishes the new explanation', async t => {
+  const f = await setupVerifiedRewrite(t);
+  const stateBefore = await readFile(f.state), cloudBefore = await snapshot(f.cloud);
+  const verified = JSON.parse(stateBefore);
+  assert.ok(!Object.hasOwn(verified.retainedExplanations, skill));
+  assert.equal(verified.run.items[skill].stage, 'verified');
+
+  assert.match(f.run(...f.rewrite), /沿用說明改寫：2 項/);
+  assert.equal((await read(f.state)).run.items[skill].stage, 'verified');
+  assert.deepEqual(await readFile(f.state), stateBefore);
+  assert.deepEqual(await snapshot(f.cloud), cloudBefore);
+
+  f.verify();
+  const result = f.write();
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const published = await read(join(f.data, f.gameVersion, 'skills.json'));
+  assert.deepEqual(published.items.find(item => item.id === skill).explanation, { ...f.output.explanation, effectOrigin: 'official' });
+  const { run } = await read(f.state);
+  assert.equal(run.items[skill].stage, 'written');
+  assert.equal(run.status, 'completed');
 });
 
 const invalidLists = [
@@ -246,6 +288,18 @@ for (const [scenario, contents, message, problem, prepare] of invalidLists) {
     if (contents === null) await rm(f.list);
     else await writeFile(f.list, contents);
     await rejectsWithoutWrites(f, f.rewrite, message, problem);
+  });
+}
+
+for (const omitOption of [false, true]) {
+  // Scenario: after verify clears a marker, the list is narrowed or omitted. Purpose: prevent loss of a verified rewrite registration and preserve state and cloud bytes.
+  test(`InterT45_rejects ${omitOption ? 'omitting' : 'narrowing'} the list after verify without writing files`, async t => {
+    const f = await setupVerifiedRewrite(t);
+    assert.ok(!Object.hasOwn((await read(f.state)).retainedExplanations, skill));
+    if (!omitOption) await save(f.list, [blessing]);
+    const missing = omitOption ? [skill, blessing] : [skill];
+    await rejectsWithoutWrites(f, omitOption ? [] : f.rewrite,
+      /本輪已選取的沿用說明改寫項目不可移除.*請帶同一份清單，或重新建立重產工作目錄/, ...missing);
   });
 }
 

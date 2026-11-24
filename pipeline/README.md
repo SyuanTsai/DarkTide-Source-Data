@@ -81,9 +81,9 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 唯讀查詢：`node pipeline/retained-explanations.mjs`，或 `node pipeline/retained-explanations.mjs --state <外部 state.json>`。輸出所有說明沿用中的 id、類別、explanationFrom、valuesChanged、officialChanged（JSON）；兩者皆 true 最前，任一 true 次之，再依 id，無需 cloud 或執行中的 run，也不寫入任何檔案。SYP-420 時優先處理 valuesChanged 或 officialChanged 的項目，並確認這份清單已經清空。
 
-要重新撰寫指定的沿用說明，執行 diff 時加上 `--rewrite-retained <ids.json>`。清單必須是可讀取、格式正確的 JSON 檔，內容為至少一個非空字串 ID 的陣列，且 ID 不得重複。每個 ID 都必須有 state 的 `retainedExplanations` 標記，標記類別須與 ID 相符，該類別本輪 diff 的狀態須為 `ok`，且項目須為 `unchanged` 或 `changed`。驗證不符時，diff 會在寫入 state 或中間檔前失敗。此參數與 `--pending`、`--mark-described` 互斥，請分開執行。
+要重新撰寫指定的沿用說明，執行 diff 時加上 `--rewrite-retained <ids.json>`。清單必須是可讀取、格式正確的 JSON 檔，內容為至少一個非空字串 ID 的陣列，且 ID 不得重複。每個 ID 須有 state 的 `retainedExplanations` 標記，或已在本輪登記為 `changed`，類別均須與 ID 相符。該類別本輪 diff 的狀態須為 `ok`，且項目須為 `unchanged` 或 `changed`。驗證不符時，diff 會在寫入 state 或中間檔前失敗。此參數與 `--pending`、`--mark-described` 互斥，請分開執行。
 
-符合條件的 `unchanged` 項目會列為 `changed`，和原本就是 `changed` 的項目一起走一般說明流程。AI input 的 `previous` 包含 repo 資料目前的說明、既有 citations 與 errata。撰寫 output 後以 `--mark-described <id>` 標記，再由 verify 清除實際改寫且通過的一般候選項標記。走組合或退回整筆沿用的項目會保留標記。接續同一批時請帶同一份清單。若重跑 diff 時省略此參數，僅因清單被列為 `changed` 的項目會回到 `unchanged`，尚未到 `written` 的登記依既有規則移除。
+符合條件的 `unchanged` 項目會列為 `changed`，和原本就是 `changed` 的項目一起走一般說明流程。AI input 的 `previous` 包含 repo 資料目前的說明、既有 citations 與 errata。撰寫 output 後以 `--mark-described <id>` 標記，再由 verify 清除實際改寫且通過的一般候選項標記。走組合或退回整筆沿用的項目會保留標記。接續同一批時請帶同一份清單，即使 verify 已清除部分標記也一樣。清單可以新增項目，同一輪內不可移除因清單列為 `changed` 且尚未到 `written` 的項目。若縮減或省略清單而漏掉這些項目，diff 會在寫入前失敗。若要放棄改寫，請重新建立重產工作目錄。
 
 ## 寫入（WP4b）
 
