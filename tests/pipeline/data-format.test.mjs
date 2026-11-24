@@ -314,8 +314,8 @@ test('UnitT50_errata anchors validate structure and overlapping locations', () =
 });
 
 // Scenario: retained provenance names old, current, or future content versions.
-// Purpose: preserve provenance checks while temporarily allowing same-version retention.
-test('UnitT90_retained provenance is validated (temporary same-version allowance)', () => {
+// Purpose: enforce provenance checks and require an older retained version.
+test('UnitT90_retained provenance is validated', () => {
   const data = file('skills');
   const item = data.items[0];
   data.gameVersion = '1.0.0';
@@ -330,9 +330,9 @@ test('UnitT90_retained provenance is validated (temporary same-version allowance
   assert.ok(errors().some((e) => e.message === 'Retained batch mismatch' && e.path === '/items/0/source/text/batch'));
   item.retainedFrom.textBatch = item.source.text.batch;
   item.retainedFrom.gameVersion = '1.0.0';
-  assert.equal(errors().some((e) => e.path === '/items/0/retainedFrom/gameVersion'), false);
+  assert.ok(errors().some((e) => e.path === '/items/0/retainedFrom/gameVersion' && e.message === 'Retained version must be older'));
   item.retainedFrom.gameVersion = '2.0.0';
-  assert.ok(errors().some((e) => e.message === 'Retained version must not be newer'));
+  assert.ok(errors().some((e) => e.path === '/items/0/retainedFrom/gameVersion' && e.message === 'Retained version must be older'));
   item.retainedFrom.gameVersion = '0.0.0';
   assert.equal(errors().some((e) => e.path === '/items/0/retainedFrom/gameVersion'), false);
   item.retainedFrom.sourceCommit = '2'.repeat(40);
