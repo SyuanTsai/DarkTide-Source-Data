@@ -203,6 +203,7 @@ test('InterT30_repeating the list preserves bytes and described stage', async t 
   f.run(...f.rewrite);
   await describe(f);
   const before = await snapshot(f.cloud), stateBefore = await readFile(f.state);
+  assert.deepEqual(JSON.parse(stateBefore).run.rewriteRetained, [blessing, skill]);
   for (let attempt = 0; attempt < 2; attempt++) {
     f.run(...f.rewrite);
     assert.deepEqual(await snapshot(f.cloud), before);
@@ -221,10 +222,28 @@ test('InterT32_expanding the list keeps the first selection and registers the se
   assert.ok(!Object.hasOwn((await read(f.state)).run.items, blessing));
   await save(f.list, [skill, blessing]);
   assert.match(f.run(...f.rewrite), /沿用說明改寫：2 項/);
-  const { items } = (await read(f.state)).run;
+  const { items, rewriteRetained } = (await read(f.state)).run;
+  assert.deepEqual(rewriteRetained, [blessing, skill]);
   assert.equal(items[skill].stage, 'described');
   assert.equal(items[blessing].change, 'changed');
   assert.equal(items[blessing].stage, 'extracted');
+});
+
+// Scenario: the run has a written selection and a recorded ID without a registration. Purpose: permit their omission while retaining their IDs when the list changes.
+test('InterT33_omitting inactive selections preserves their recorded IDs', async t => {
+  const f = await setup(t);
+  await save(f.list, [skill]);
+  f.run(...f.rewrite);
+  const state = await read(f.state);
+  state.run.items[skill].stage = 'written';
+  state.run.rewriteRetained = [skill, unselected];
+  await writeState(f.state, state);
+
+  f.run();
+  assert.deepEqual((await read(f.state)).run.rewriteRetained, [skill, unselected]);
+  await save(f.list, [blessing]);
+  f.run(...f.rewrite);
+  assert.deepEqual((await read(f.state)).run.rewriteRetained, [blessing, skill, unselected]);
 });
 
 // Scenario: verify clears the marker for a rewritten item before diff repeats with the same list. Purpose: preserve the verified state and publish the new explanation.
@@ -234,6 +253,7 @@ test('InterT35_reuses the verified rewrite list and publishes the new explanatio
   const verified = JSON.parse(stateBefore);
   assert.ok(!Object.hasOwn(verified.retainedExplanations, skill));
   assert.equal(verified.run.items[skill].stage, 'verified');
+  assert.deepEqual(verified.run.rewriteRetained, [blessing, skill]);
 
   assert.match(f.run(...f.rewrite), /沿用說明改寫：2 項/);
   assert.equal((await read(f.state)).run.items[skill].stage, 'verified');
@@ -260,6 +280,12 @@ const invalidLists = [
   ['whitespace-only element', JSON.stringify([skill, ' ']), /非空字串/, '" "'],
   ['duplicate id', JSON.stringify([skill, skill]), /重複/, skill],
   ['id absent from retainedExplanations', JSON.stringify([skill, unmarked]), /沿用說明標記/, unmarked],
+  ['ordinary changed ID with no retained marker', JSON.stringify([changed]), /沿用說明標記/, changed, async f => {
+    const state = await read(f.state);
+    assert.equal(state.run.items[changed].change, 'changed');
+    delete state.retainedExplanations[changed];
+    await writeState(f.state, state);
+  }],
   ['marker category mismatch', JSON.stringify([skill, blessing]), /類別.*不符/, blessing, async f => {
     const state = await read(f.state);
     state.retainedExplanations[blessing].category = 'skills';
@@ -295,11 +321,29 @@ for (const omitOption of [false, true]) {
   // Scenario: after verify clears a marker, the list is narrowed or omitted. Purpose: prevent loss of a verified rewrite registration and preserve state and cloud bytes.
   test(`InterT45_rejects ${omitOption ? 'omitting' : 'narrowing'} the list after verify without writing files`, async t => {
     const f = await setupVerifiedRewrite(t);
-    assert.ok(!Object.hasOwn((await read(f.state)).retainedExplanations, skill));
+    const state = await read(f.state);
+    assert.ok(!Object.hasOwn(state.retainedExplanations, skill));
+    assert.deepEqual(state.run.rewriteRetained, [blessing, skill]);
     if (!omitOption) await save(f.list, [blessing]);
     const missing = omitOption ? [skill, blessing] : [skill];
     await rejectsWithoutWrites(f, omitOption ? [] : f.rewrite,
       /本輪已選取的沿用說明改寫項目不可移除.*請帶同一份清單，或重新建立重產工作目錄/, ...missing);
+  });
+}
+
+for (const status of ['missing', 'structure-mismatch']) {
+  // Scenario: verify clears the selected skill's marker, then its extract is degraded and the list keeps only the blessing. Purpose: lock selections before category processing and preserve all state and cloud bytes.
+  test(`InterT47_rejects narrowing the list when the selected skill extract is ${status}`, async t => {
+    const f = await setupVerifiedRewrite(t);
+    const verified = await read(f.state);
+    assert.ok(!Object.hasOwn(verified.retainedExplanations, skill));
+    assert.equal(verified.run.items[skill].stage, 'verified');
+    const file = join(f.extract, 'skills.json');
+    if (status === 'missing') await rm(file);
+    else await save(file, { ...await read(file), status, reason: '測試結構不符', items: [] });
+    await save(f.list, [blessing]);
+    await rejectsWithoutWrites(f, f.rewrite,
+      /本輪已選取的沿用說明改寫項目不可移除.*請帶同一份清單，或重新建立重產工作目錄/, skill);
   });
 }
 
@@ -317,9 +361,34 @@ test('InterT50_rejects conflicting modes and invalid option usage', async t => {
 test('InterT60_plain diff matches the pre-change output bytes', async t => {
   const f = await setup(t);
   const stdout = f.run(), cloud = await snapshot(f.cloud);
-  const output = { stdout, state: (await readFile(f.state)).toString('hex'),
+  const stateBytes = await readFile(f.state);
+  assert.ok(!Object.hasOwn(JSON.parse(stateBytes).run, 'rewriteRetained'));
+  const output = { stdout, state: stateBytes.toString('hex'),
     cloud: Object.fromEntries(Object.entries(cloud).map(([path, bytes]) => [path, bytes.toString('hex')])) };
   const digest = createHash('sha256').update(stringifyCanonical(output)).digest('hex');
   // Captured from the unmodified diff CLI at 14f0b49.
   assert.equal(digest, '5a3acbb3e7efa478714a9c7c57f8efd84574efd239b7886a6d8abe80a9c79418');
+});
+
+// Scenario: a plain diff registers an unmarked change, then the extract is corrected to match the published item. Purpose: remove the obsolete registration using the same behavior as the baseline CLI.
+test('InterT65_plain diff removes a stale changed registration when the item becomes unchanged', async t => {
+  const f = await setup(t);
+  const state = await read(f.state);
+  delete state.retainedExplanations[changed];
+  await writeState(f.state, state);
+  f.run();
+  assert.equal((await read(f.state)).run.items[changed].change, 'changed');
+
+  const file = join(f.extract, 'skills.json'), extract = await read(file);
+  const previous = await read(join(f.data, '1.0/skills.json'));
+  extract.items.find(item => item.id === changed).values = previous.items.find(item => item.id === changed).values;
+  await save(file, extract);
+
+  assert.ok(f.run().includes(`已移除過期登記：${changed}`));
+  const { run } = await read(f.state);
+  assert.ok(!Object.hasOwn(run.items, changed));
+  assert.ok(!Object.hasOwn(run, 'rewriteRetained'));
+  const { skills } = (await f.report()).categories;
+  assert.ok(skills.unchanged.includes(changed));
+  assert.ok(!skills.changed.includes(changed));
 });

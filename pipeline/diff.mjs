@@ -46,7 +46,7 @@ function parseArgs() {
 }
 async function optional(file) { try { return await readFile(file, 'utf8'); } catch (e) { if (e.code === 'ENOENT') return null; throw e; } }
 function parse(text, file) { try { return JSON.parse(text); } catch { throw new Error(`JSON 格式錯誤：${file}`); } }
-async function readRewriteList(file, { retainedExplanations: markers = {}, run: { items } }) {
+async function readRewriteList(file, { retainedExplanations: markers = {} }, recordedRewrites) {
   const label = basename(file) || '--rewrite-retained';
   let text;
   try { text = await readFile(file, 'utf8'); }
@@ -60,15 +60,15 @@ async function readRewriteList(file, { retainedExplanations: markers = {}, run: 
     if (typeof id !== 'string' || !id.trim()) throw new Error(`沿用說明改寫清單第 ${index + 1} 項須為非空字串：${JSON.stringify(id)}`);
     if (seen.has(id)) throw new Error(`沿用說明改寫清單的 ID 重複：${id}`);
     seen.add(id);
-    const category = categories[id.split(':')[1]];
+    const type = id.split(':')[1];
+    const category = Object.hasOwn(categories, type) ? categories[type] : undefined;
     const marker = Object.hasOwn(markers, id) ? markers[id] : undefined;
     if (marker && marker.category !== category) throw new Error(`沿用說明標記的類別與 ID 不符：${id}（${marker.category}）`);
-    const entry = Object.hasOwn(items, id) ? items[id] : undefined;
-    if (!marker && !(entry?.change === 'changed' && entry.category === category)) throw new Error(`找不到沿用說明標記：${id}`);
+    if (!marker && !(category && recordedRewrites.has(id))) throw new Error(`找不到沿用說明標記：${id}`);
     if (!byCategory.has(category)) byCategory.set(category, []);
     byCategory.get(category).push(id);
   }
-  return { count: ids.length, byCategory };
+  return { ids: seen, byCategory };
 }
 function promoteRetained(diff, ids) {
   const unchanged = new Set(diff.unchanged), changed = new Set(diff.changed);
@@ -136,8 +136,12 @@ async function main() {
   }
   const work = resolve(options['--work-dir'] || join(repo, '.pipeline-work', run.gameVersion));
   const dataDir = resolve(options['--data-dir'] || join(repo, 'data'));
+  const recordedRewrites = new Set(run.rewriteRetained);
   const rewrite = Object.hasOwn(options, '--rewrite-retained')
-    ? await readRewriteList(options['--rewrite-retained'], state) : undefined;
+    ? await readRewriteList(options['--rewrite-retained'], state, recordedRewrites) : undefined;
+  const omittedRewrites = [...recordedRewrites].filter(id =>
+    Object.hasOwn(run.items, id) && run.items[id].stage !== 'written' && !rewrite?.ids.has(id));
+  if (omittedRewrites.length) throw new Error(`本輪已選取的沿用說明改寫項目不可移除：${omittedRewrites.sort().join('、')}。請帶同一份清單，或重新建立重產工作目錄`);
   const textFile=join(work,'extract','text.json');
   const textIndex=await optional(textFile)!==null?loadTextIndex(textFile):undefined;
   logicalRoots.push([join(work, 'extract'), 'extract'], [dataDir, 'data']);
@@ -153,7 +157,6 @@ async function main() {
   }
   const report = { schemaVersion: '1.0.0', ...Object.fromEntries(fields.map((k) => [k, run[k]])), previousGameVersion: previousVersion, categories: {} };
   const registrations = [], inputs = [];
-  const omittedRewrites = [];
   let extractVersion, previousSchemaVersion;
   for (const category of CATEGORIES) {
     const file = join(work, 'extract', `${category}.json`), text = await optional(file);
@@ -181,16 +184,8 @@ async function main() {
       });
       diff.changed.sort();
     }
-    const rewriteIds = new Set(rewrite?.byCategory.get(category));
-    const omitted = diff.unchanged.filter(id => {
-      const entry = run.items[id];
-      return entry?.change === 'changed' && entry.category === category && entry.stage !== 'written' && !rewriteIds.has(id);
-    });
-    if (omitted.length) {
-      omittedRewrites.push(...omitted);
-      continue;
-    }
-    if (rewriteIds.size) promoteRetained(diff, rewriteIds);
+    const rewriteIds = rewrite?.byCategory.get(category);
+    if (rewriteIds) promoteRetained(diff, rewriteIds);
     report.categories[category] = { status: 'ok', reason: null, ...diff };
     const oldMap = new Map(previous.map((item) => [item.id, item])), newMap = new Map(extract.items.map((item) => [item.id, item]));
     for (const change of ['added', 'changed', 'removed']) for (const id of diff[change]) {
@@ -205,7 +200,6 @@ async function main() {
       }
     }
   }
-  if (omittedRewrites.length) throw new Error(`本輪已選取的沿用說明改寫項目不可移除：${omittedRewrites.sort().join('、')}。請帶同一份清單，或重新建立重產工作目錄`);
   if (rewrite) for (const [category, ids] of rewrite.byCategory) {
     const { status } = report.categories[category];
     if (status !== 'ok') throw new Error(`沿用說明改寫項目的類別 ${category} 本次狀態為 ${status}：${ids.join('、')}`);
@@ -222,13 +216,14 @@ async function main() {
     state = registerItem(state, id, info);
     if (info.change === 'removed' && state.run.items[id].stage === 'extracted') state = advanceItem(state, id, 'described');
   }
+  if (rewrite) state.run.rewriteRetained = [...new Set([...recordedRewrites, ...rewrite.ids])].sort();
   await writeState(stateFile, state);
   for (const category of [...CATEGORIES, 'text']) { const src = join(work, 'extract', `${category}.json`); if (await optional(src) !== null) await copyIfChanged(src, join(layout.extract, `${category}.json`)); }
   await writeChanged(join(layout.diff, 'text-current.json'), {available: await optional(textFile) !== null});
   await writeChanged(join(layout.diff, 'diff.json'), report);
   for (const input of inputs) await writeChanged(join(layout.aiInput, itemFileName(input.id)), input);
   for (const category of CATEGORIES) { const c = report.categories[category]; console.log(c.status === 'ok' ? `${category}：新增 ${c.added.length}、變動 ${c.changed.length}、移除 ${c.removed.length}、沿用 ${c.unchanged.length}` : `${category}：${c.status}${c.reason ? `（${c.reason}）` : ''}`); }
-  if (rewrite) console.log(`沿用說明改寫：${rewrite.count} 項`);
+  if (rewrite) console.log(`沿用說明改寫：${rewrite.ids.size} 項`);
   console.log(`待寫說明：${pendingItems(state, 'described').filter((id) => state.run.items[id].change !== 'removed').length} 項`);
 }
 main().catch((e) => { console.error(`錯誤：${e.code ? `${logical(e.path)}：${e.code === 'ENOENT' ? '找不到檔案' : `讀取失敗（${e.code}）`}` : e.message}`); process.exitCode = 1; });

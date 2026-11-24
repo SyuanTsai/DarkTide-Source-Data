@@ -173,6 +173,32 @@ test('UnitT50_null item produces schema error', async (t) => {
   );
 });
 
+// Scenario: persist a run with rewrite selections, then resume it or start a new run. Purpose: accept and preserve the optional array for the lifetime of its run.
+test('UnitT60_rewrite selections round-trip and belong to one run', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'state-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const path = join(dir, 'state.json');
+  const original = state.startRun(state.emptyState(), meta);
+  original.run.rewriteRetained = [id, `${id}_2`];
+  await state.writeState(path, original);
+  const restored = await state.readState(path);
+  assert.deepEqual(restored, original);
+  assert.deepEqual(state.startRun(restored, meta).run.rewriteRetained, original.run.rewriteRetained);
+  assert.ok(!Object.hasOwn(state.startRun(restored, { ...meta, gameVersion: '1.3' }).run, 'rewriteRetained'));
+});
+
+for (const [scenario, selection] of [['duplicate IDs', [id, id]], ['a non-string ID', [id, 42]]]) {
+  // Scenario: an invalid selection array is stored in the run. Purpose: enforce unique string IDs in the persisted state schema.
+  test(`UnitT65_rewrite selection schema rejects ${scenario}`, async t => {
+    const dir = await mkdtemp(join(tmpdir(), 'state-'));
+    t.after(() => rm(dir, { recursive: true, force: true }));
+    const s = state.startRun(state.emptyState(), meta);
+    s.run.rewriteRetained = selection;
+    const path = join(dir, 'state.json');
+    await assert.rejects(state.writeState(path, s), /\/run anyOf did not match/);
+  });
+}
+
 // Scenario: obsolete registrations are removed unless already written. Purpose: preserve immutable state and completed items.
 test('UnitT90_unregister removes pending items and rejects written items', () => {
   const original = state.registerItem(state.startRun(state.emptyState(), meta), id, info);
