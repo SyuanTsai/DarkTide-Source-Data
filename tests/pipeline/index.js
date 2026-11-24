@@ -8,6 +8,7 @@ import './data-format.test.mjs';
 import './damage-profiles.test.mjs';
 import './damage-profiles-extract.test.mjs';
 import './diff.test.mjs';
+import './rewrite-retained.test.mjs';
 import './candidate.test.mjs';
 import './verify.test.mjs';
 import './combined.test.mjs';
