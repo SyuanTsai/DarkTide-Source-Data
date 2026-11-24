@@ -175,6 +175,26 @@ test('InterT50_完整取數語意、來源、官方文字與固定輸入重複�
   assert.deepEqual(run(f).bytes,bytes);
 });
 
+test('A cloned blessing tier override resolves a local string key to 15%',t=>{
+  const f=prepared(t);
+  put(f.source,'scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_test.lua',`local key="damage"
+local base={[key]=0.15}
+local templates={}
+templates.weapon_trait_bespoke_gun_p1_test={
+  format_values={
+    damage={format_type="percentage",find_value={find_value_type="trait_override",buff_template_name="buff",path={"stat_buffs","damage"}}},
+  },
+  buffs={buff={{}}},
+}
+templates.weapon_trait_bespoke_gun_p1_test.buffs.buff[1].stat_buffs=table.clone(base)
+return templates`);
+  f.args[3]=commit(f.source);
+  const {data}=run(f);
+  const item=data.items.find(x=>x.key==='weapon_trait_bespoke_gun_p1_test');
+  assert.deepEqual(item.values.tiers[0].params.damage,{value:15,unit:'percent'});
+  assert.ok(!data.problems.some(p=>p.message.startsWith('[PATH_MISSING]')));
+});
+
 // Scenario: extract runs with percent, localized and manipulated parameters. Purpose: persist rules only in the work envelope, never inside final values.
 test('InterT55_祝福格式資訊只保留於 extract 工作資料',t=>{
   const f=prepared(t),{data}=run(f),item=data.items.find(x=>x.key==='weapon_trait_bespoke_gun_p1_test');
