@@ -140,7 +140,7 @@ async function main() {
   const rewrite = Object.hasOwn(options, '--rewrite-retained')
     ? await readRewriteList(options['--rewrite-retained'], state, recordedRewrites) : undefined;
   const omittedRewrites = [...recordedRewrites].filter(id =>
-    Object.hasOwn(run.items, id) && run.items[id].stage !== 'written' && !rewrite?.ids.has(id));
+    Object.hasOwn(run.items, id) && !rewrite?.ids.has(id));
   if (omittedRewrites.length) throw new Error(`本輪已選取的沿用說明改寫項目不可移除：${omittedRewrites.sort().join('、')}。請帶同一份清單，或重新建立重產工作目錄`);
   const textFile=join(work,'extract','text.json');
   const textIndex=await optional(textFile)!==null?loadTextIndex(textFile):undefined;

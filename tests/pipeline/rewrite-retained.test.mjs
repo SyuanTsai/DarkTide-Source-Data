@@ -10,7 +10,7 @@ import { itemFileName } from '../../pipeline/lib/cloud-dir.mjs';
 import { CATEGORIES } from '../../pipeline/lib/data-files.mjs';
 import { inputHashFor } from '../../pipeline/lib/diff-core.mjs';
 import { valuesFingerprint } from '../../pipeline/lib/retained-explanations.mjs';
-import { emptyState, startRun, writeState } from '../../pipeline/lib/state.mjs';
+import { advanceItem, emptyState, startRun, writeState } from '../../pipeline/lib/state.mjs';
 
 const fixture = 'tests/pipeline/fixtures/diff';
 const meta = { gameVersion: '1.1', sourceCommit: '1'.repeat(40), textBatch: 'example-batch' };
@@ -229,21 +229,18 @@ test('InterT32_expanding the list keeps the first selection and registers the se
   assert.equal(items[blessing].stage, 'extracted');
 });
 
-// Scenario: the run has a written selection and a recorded ID without a registration. Purpose: permit their omission while retaining their IDs when the list changes.
-test('InterT33_omitting inactive selections preserves their recorded IDs', async t => {
+// Scenario: the run has a recorded ID without a registration. Purpose: permit its omission while preserving the recorded ID when the list changes.
+test('InterT33_omitting an unregistered selection preserves its recorded ID', async t => {
   const f = await setup(t);
-  await save(f.list, [skill]);
-  f.run(...f.rewrite);
   const state = await read(f.state);
-  state.run.items[skill].stage = 'written';
-  state.run.rewriteRetained = [skill, unselected];
+  state.run.rewriteRetained = [unselected];
   await writeState(f.state, state);
 
   f.run();
-  assert.deepEqual((await read(f.state)).run.rewriteRetained, [skill, unselected]);
+  assert.deepEqual((await read(f.state)).run.rewriteRetained, [unselected]);
   await save(f.list, [blessing]);
   f.run(...f.rewrite);
-  assert.deepEqual((await read(f.state)).run.rewriteRetained, [blessing, skill, unselected]);
+  assert.deepEqual((await read(f.state)).run.rewriteRetained, [blessing, unselected]);
 });
 
 // Scenario: verify clears the marker for a rewritten item before diff repeats with the same list. Purpose: preserve the verified state and publish the new explanation.
@@ -344,6 +341,26 @@ for (const status of ['missing', 'structure-mismatch']) {
     await save(f.list, [blessing]);
     await rejectsWithoutWrites(f, f.rewrite,
       /本輪已選取的沿用說明改寫項目不可移除.*請帶同一份清單，或重新建立重產工作目錄/, skill);
+  });
+}
+
+for (const omitOption of [false, true]) {
+  // Scenario: after verify, the skill reaches written while the blessing is still pending publication. Purpose: keep the written selection locked and preserve state and cloud bytes.
+  test(`InterT48_rejects ${omitOption ? 'omitting' : 'narrowing'} the list after a selection is written`, async t => {
+    const f = await setupVerifiedRewrite(t);
+    const verified = await read(f.state);
+    assert.equal(verified.run.items[skill].stage, 'verified');
+
+    // Use the state API to model an interrupted write after the skill reaches written.
+    const partial = advanceItem(verified, skill, 'written');
+    assert.equal(partial.run.items[skill].stage, 'written');
+    assert.notEqual(partial.run.items[blessing].stage, 'written');
+    await writeState(f.state, partial);
+
+    if (!omitOption) await save(f.list, [blessing]);
+    const missing = omitOption ? [skill, blessing] : [skill];
+    await rejectsWithoutWrites(f, omitOption ? [] : f.rewrite,
+      /本輪已選取的沿用說明改寫項目不可移除/, ...missing);
   });
 }
 

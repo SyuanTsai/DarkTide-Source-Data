@@ -87,7 +87,7 @@ Canonical JSON 的物件 key 按 UTF-16 排序，陣列保持順序；使用 com
 
 選填的 `run.rewriteRetained` 保存本輪所有成功選取的改寫 ID，依 ID 排序且不重複。帶清單的 diff 成功後會合併本次與既有的選取，接續同一輪會保留記錄，開始新一輪時會重設。未帶此參數的 diff 不會更新此欄位，從未用過此參數的 run 維持一般 diff 行為。
 
-接續同一批請帶原清單，也可以新增項目。`run.rewriteRetained` 中仍有登記且尚未到 `written` 的 ID 都必須保留在清單中，即使 verify 已清除沿用標記，或類別缺少 extract、結構不符，也適用。若縮減或省略清單而漏掉這些 ID，diff 會在處理類別、移除過期登記及寫入檔案前失敗。若要放棄改寫，請重新建立重產工作目錄。
+清單一經使用，同一輪只能維持或擴大。`run.rewriteRetained` 中仍有登記的 ID 都必須保留，包括已到 `written` 的項目。verify 已清除沿用標記、類別缺少 extract 或結構不符時也適用。若縮減或省略清單而漏掉這些 ID，diff 會在處理類別、移除過期登記及寫入檔案前失敗。擴大清單、重跑 diff 或改動任何 output 後，write 前必須重跑 verify。verify 通過後請勿撤回或改回舊的 output。若要放棄改寫，請重新建立重產工作目錄。
 
 ## 寫入（WP4b）
 
