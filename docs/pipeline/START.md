@@ -246,19 +246,16 @@ diff 的前版指向 repo `data/`；後續所有 candidate／verify／write 的�
 
 ### 重產 C：沿原第 4 步寫說明
 
-逐項讀 `$pending` 提供的 input，嚴格照原第 4 步寫入它指定的 output，不能用佔位說明跳過。每完成一個就立即標記；沒有新說明的項目交由 verify 嘗試組合，再依原第 6 步檢視最終決策。然後重新讀 pending：
+逐項讀 `$pending` 提供的 input，嚴格照原第 4 步寫入它指定的 output，不能用佔位說明跳過。每完成一個就立即標記，然後重新讀 pending：
 
 ```powershell
 foreach ($entry in $pending) {
   # 先讀取此 input、完成原第 4 步說明並存入 output；本區塊不會自動生成說明。
-  if (-not (Test-Path -LiteralPath $entry.output -PathType Leaf)) {
-    Write-Output "尚無新說明，交由 verify 組合／整筆沿用／排除：$($entry.id)"
-    continue
-  }
+  if (-not (Test-Path -LiteralPath $entry.output -PathType Leaf)) { throw "尚未完成說明：$($entry.id)" }
   Invoke-RegenNode pipeline/diff.mjs --state $state --cloud-dir $cloud --mark-described $entry.id
 }
 $pending = @(Invoke-RegenNode pipeline/diff.mjs --state $state --cloud-dir $cloud --pending --json | ConvertFrom-Json)
-if ($pending.Count -ne 0) { Write-Output "尚無新說明 $($pending.Count) 項；verify 決策後，寫入前依原第 6 步檢視" }
+if ($pending.Count -ne 0) { throw '仍有待寫說明，不可 verify/write' }
 ```
 
 ### 重產 D：verify → 原第 5a 步 → write → validate
@@ -274,7 +271,7 @@ $report.items | Where-Object decision -ne 'pass' | Select-Object id,decision,fai
 $report.categories | ConvertTo-Json -Depth 6
 ```
 
-此時必須依原第 5a 步由獨立審查者（也就是和撰寫說明不同的 AI 執行環境）完成 damage profile 抽查、記錄逐筆證據並確認一致，才可執行下一區塊。抽查不足／不一致、保留或排除項目需要人工決策、譯名衝突未能確定，均停止交給使用者。單項保留仍須通過最終 schema；目前暫時允許 retainedFrom 與發布檔頭為同版本，只禁止比檔頭新；SYP-420 完成時恢復必須早於發布遊戲版本的規則。
+此時必須依原第 5a 步由獨立審查者（也就是和撰寫說明不同的 AI 執行環境）完成 damage profile 抽查、記錄逐筆證據並確認一致，才可執行下一區塊。抽查不足／不一致、保留或排除項目需要人工決策、譯名衝突未能確定，均停止交給使用者。單項保留仍須通過最終 schema；同版本 baseline 的新 retainedFrom 若不符合既有「必須早於發布遊戲版本」規則，verify 會整批停止，不能改來源或 provenance 來繞過。
 
 ```powershell
 # 僅在原第 5a 步抽查完成且一致後執行。

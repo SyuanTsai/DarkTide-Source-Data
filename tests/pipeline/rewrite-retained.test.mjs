@@ -122,7 +122,7 @@ test('InterT10_selected retained items become changed and enter pending', async 
   await assert.rejects(f.input(unselected), { code: 'ENOENT' });
 });
 
-async function setupVerifiedRewrite(t) {
+async function setupRewriteForVerify(t, { invalidBlessingErrata = false } = {}) {
   const gameVersion = '1.0';
   const f = await setup(t, gameVersion);
   const sources = [{ path: 'scripts/example.lua', line: 1 }];
@@ -131,6 +131,16 @@ async function setupVerifiedRewrite(t) {
   const citations = [{ section: 'conditions', text: conditions, codeRefs: [], valueRefs }];
   const errata = [{ locale: 'en', official: '9', corrected: '10', valueRefs: ['/params/test/value'], sources,
     anchor: { field: 'official', locale: 'en', text: 'Example ability 9', occurrence: 1 } }];
+  // Reused explanations must cover the values from the current extract.
+  const retainedConditions = {
+    [blessing]: '效果為20%，最多10層',
+    'darktide:blessing:fixture_b': '效果為20%，最多11層',
+    [changed]: '提升25%，最多11層',
+    [unmarked]: '最多10層',
+    'darktide:term:keyword:fixture_b': '最多11層',
+    [unselected]: '最多10次',
+    'darktide:weapon:example_family:fixture_b': '最多10次',
+  };
   for (const category of CATEGORIES) {
     const paths = [join(f.data, '1.0', category + '.json'), join(f.extract, category + '.json')];
     for (const path of paths) {
@@ -139,10 +149,13 @@ async function setupVerifiedRewrite(t) {
       file.gameVersion = gameVersion;
       for (const item of file.items) {
         if (category === 'weapons') Object.assign(item.values, { bars: [], curves: [], attackCombos: [] });
-        if (item.explanation && ['skills', 'blessings'].includes(category)) {
+        if (item.explanation && ['skills', 'blessings'].includes(category))
           Object.assign(item.explanation, { effect: item.official.zh, effectOrigin: 'official' });
-          if (item.id === blessing) item.explanation.conditions = '效果為20%，最多10層';
-        }
+        if (item.explanation && Object.hasOwn(retainedConditions, item.id))
+          item.explanation.conditions = retainedConditions[item.id];
+        // Match the inherited 10% → 20% erratum to its official text.
+        if (item.id === 'darktide:blessing:fixture_b' || (item.id === blessing && !invalidBlessingErrata))
+          item.official.en = 'Example ability 10%';
         if (item.id === skill) {
           item.official.en = 'Example ability 9';
           item.source.valueSources = Object.fromEntries(valueRefs.map(ref => [ref, sources]));
@@ -173,28 +186,73 @@ async function setupVerifiedRewrite(t) {
   const verifyTranslation = join(f.root, 'verify-translation.md');
   await writeFile(verifyTranslation, '# 譯名\n');
   const publishArgs = ['--root', f.root, '--state', f.state, '--cloud-dir', f.cloud];
+  return { ...f, gameVersion, output,
+    verify: () => f.cli('verify', ...publishArgs, '--translation', verifyTranslation, '--issues', 'off'),
+    write: () => f.cli('write', ...publishArgs),
+  };
+}
+
+async function setupVerifiedRewrite(t) {
+  const f = await setupRewriteForVerify(t);
   const verify = () => {
-    const result = f.cli('verify', ...publishArgs, '--translation', verifyTranslation, '--issues', 'off');
+    const result = f.verify();
     assert.equal(result.status, 0, result.stderr || result.stdout);
   };
   verify();
-  return { ...f, gameVersion, output, verify, write: () => f.cli('write', ...publishArgs) };
+  return { ...f, verify };
 }
 
-// Scenario: during same-version regeneration, only one of two selected items receives rewritten output. Purpose: clear the passing rewrite's marker and preserve the fallback's marker.
+// Scenario: during same-version regeneration, only one of two selected items receives rewritten output. Purpose: clear the passing rewrite's marker and preserve the combined item's marker.
 test('InterT20_mark-described and verify clear only the passing rewrite marker', async t => {
   const f = await setupVerifiedRewrite(t);
   const report = await read(join(f.base, 'verify/report.json'));
   const rewritten = report.items.find(item => item.id === skill);
-  const fallback = report.items.find(item => item.id === blessing);
+  const combined = report.items.find(item => item.id === blessing);
   assert.equal(rewritten.decision, 'pass', JSON.stringify(rewritten));
-  assert.ok(['combined', 'kept-previous'].includes(fallback.decision), JSON.stringify(fallback));
+  assert.equal(combined.decision, 'combined', JSON.stringify(combined));
+  assert.deepEqual(combined.combinationFailures, []);
+  assert.ok(combined.failures.some(failure => failure.code === 'V_NOT_DESCRIBED'));
   const state = await read(f.state);
   assert.equal(state.run.items[skill].stage, 'verified');
   assert.ok(!Object.hasOwn(state.retainedExplanations, skill));
   assert.ok(Object.hasOwn(state.retainedExplanations, blessing));
   const merged = await read(join(f.base, 'verify/out/data', f.gameVersion, 'skills.json'));
   assert.deepEqual(merged.items.find(item => item.id === skill).explanation, { ...f.output.explanation, effectOrigin: 'official' });
+  const mergedBlessings = await read(join(f.base, 'verify/out/data', f.gameVersion, 'blessings.json'));
+  const mergedBlessing = mergedBlessings.items.find(item => item.id === blessing);
+  const input = await f.input(blessing);
+  assert.deepEqual(mergedBlessing.explanation, input.previous.explanation);
+  assert.deepEqual(mergedBlessing.source, input.item.source);
+  assert.ok(!Object.hasOwn(mergedBlessing, 'retainedFrom'));
+});
+
+// Scenario: an undescribed item in same-version regeneration has inherited errata that fail combination. Purpose: halt the batch and block publication when only whole-item retention is possible.
+test('InterT25_same-version whole-item retention halts verify and blocks write', async t => {
+  const f = await setupRewriteForVerify(t, { invalidBlessingErrata: true });
+  const dataBefore = await snapshot(f.data);
+
+  const verified = f.verify();
+  assert.equal(verified.status, 3, verified.stderr || verified.stdout);
+  const report = await read(join(f.base, 'verify/report.json'));
+  assert.equal(report.result, 'halted');
+  assert.equal(report.previousGameVersion, f.gameVersion);
+  assert.equal(report.items.find(item => item.id === skill).decision, 'pass');
+  const retained = report.items.find(item => item.id === blessing);
+  assert.equal(retained.decision, 'kept-previous');
+  assert.deepEqual(retained.combinationFailures.map(failure => failure.code), ['T_ERRATA_INVALID']);
+  assert.equal(report.gates.output.status, 'halted');
+  assert.deepEqual(report.gates.output.errors.map(({ category, path }) => [category, path]),
+    [['blessings', '/items/0/retainedFrom/gameVersion']]);
+  assert.equal((await read(f.state)).run.status, 'halted');
+  await assert.rejects(readdir(join(f.base, 'verify/out')), { code: 'ENOENT' });
+
+  const stateBeforeWrite = await readFile(f.state);
+  const written = f.write();
+  // A halted first verify has no report integrity record for write to accept.
+  assert.equal(written.status, 2, written.stderr || written.stdout);
+  assert.match(written.stderr, /缺少檢查報告完整性資料/);
+  assert.deepEqual(await snapshot(f.data), dataBefore);
+  assert.deepEqual(await readFile(f.state), stateBeforeWrite);
 });
 
 // Scenario: the same list is reused after marking one item described, then omitted. Purpose: preserve bytes and stage on resume and reject omission without removing registrations.

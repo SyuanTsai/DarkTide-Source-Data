@@ -86,18 +86,20 @@ test('UnitT30_START requirements do not bind a tool or model', () => {
       assert.notDeepEqual(toolRequirements(sentence), [], sentence);
 });
 
-// Scenario: an item has no fresh prose and same-version retention is used during regeneration.
-// Purpose: keep steps 4/6/8 and the temporary retention rule aligned with verification.
-test('UnitT40_START describes combination decisions and temporary same-version retention', () => {
+// Scenario: an item has no fresh explanation, or regeneration tries to retain one from the same version.
+// Purpose: preserve ordinary combination guidance and enforce the regeneration gates.
+test('UnitT40_START describes combination decisions and strict regeneration gates', () => {
   const text = readFileSync('docs/pipeline/START.md', 'utf8');
   const step4 = text.slice(text.indexOf('4. 說明：'), text.indexOf('5. 檢查：'));
   const step6 = text.slice(text.indexOf('6. 寫入：'), text.indexOf('7. 部署：'));
+  const regenC = text.slice(text.indexOf('### 重產 C'), text.indexOf('### 重產 D'));
+  const regenD = text.slice(text.indexOf('### 重產 D'), text.indexOf('### 重產 E'));
   assert.match(step4, /沒有新說明.*先嘗試組合/);
   assert.match(step6, /組合／整筆沿用／排除決策/);
   assert.ok(text.includes('組合採用 N／退回 N'));
-  assert.ok(text.includes('目前暫時允許 retainedFrom 與發布檔頭為同版本，只禁止比檔頭新'));
-  assert.ok(text.includes('SYP-420 完成時恢復必須早於發布遊戲版本的規則'));
+  assert.ok(regenD.includes('同版本 baseline 的新 retainedFrom 若不符合既有「必須早於發布遊戲版本」規則，verify 會整批停止，不能改來源或 provenance 來繞過。'));
   assert.ok(text.includes('startRun({...old,run:null}'));
-  assert.ok(text.includes('尚無新說明，交由 verify 組合／整筆沿用／排除'));
-  assert.ok(!text.includes('仍有待寫說明，不可 verify/write'));
+  assert.ok(regenC.includes('每完成一個就立即標記，然後重新讀 pending'));
+  assert.ok(regenC.includes('if (-not (Test-Path -LiteralPath $entry.output -PathType Leaf)) { throw "尚未完成說明：$($entry.id)" }'));
+  assert.ok(regenC.includes("if ($pending.Count -ne 0) { throw '仍有待寫說明，不可 verify/write' }"));
 });
